@@ -108,7 +108,7 @@ public class PostgresClient implements DBClient {
                     throw new GroundDBException("No results found for query: " + preparedStatement.toString());
                 }
 
-                // Moves the cursor to the first element so that data can be access directly.
+                // Moves the cursor to the first element so that data can be accessed directly.
                 resultSet.next();
                 return resultSet;
             } catch (SQLException e) {
