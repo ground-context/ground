@@ -1,0 +1,6 @@
+dbType: postgres
+dbName: ground
+dbHost: localhost
+dbPort: 5432
+dbUser: ground
+dbPassword: metadata
