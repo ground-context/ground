@@ -17,7 +17,7 @@ public class GraphsResourceTest extends GroundTest {
     @Test
     public void createGraphVersion() throws GroundException {
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
 
         Edge edge = edgesResource.createEdge("test");
         EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new NonEmptyStringParam(null));

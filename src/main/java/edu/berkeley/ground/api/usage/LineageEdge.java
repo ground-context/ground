@@ -1,5 +1,6 @@
 package edu.berkeley.ground.api.usage;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.Type;
@@ -21,7 +22,9 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
     // the name of this LineageEdge
     private String name;
 
-    protected LineageEdge(String id, String name) {
+    @JsonCreator
+    protected LineageEdge(@JsonProperty("id") String id,
+                          @JsonProperty("name") String name) {
         super(id);
 
         this.name = name;

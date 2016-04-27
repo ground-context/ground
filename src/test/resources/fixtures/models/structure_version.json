@@ -1,0 +1,9 @@
+{
+    "id": "abcd",
+    "structureId": "Structures.test",
+
+    "attributes": {
+        "tag1": "integer",
+        "tag2": "string"
+    }
+}

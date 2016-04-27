@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public class ModelCreateUtils {
-    public static NodeVersion getNodeVersion(String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, String nodeId) {
-        return new NodeVersion(id, tags, structureVersionId, Optional.<String>empty(), Optional.<Map<String,String>>empty(), nodeId);
+    public static NodeVersion getNodeVersion(String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters, String nodeId) {
+        return new NodeVersion(id, tags, structureVersionId, reference, parameters, nodeId);
     }
 
     public static EdgeVersion getEdgeVersion(String id, String edgeId, String fromId, String toId) {

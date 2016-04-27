@@ -34,8 +34,11 @@ public class RichVersion extends Version {
     // the optional parameters associated with this RichVersion if there is a reference
     private Optional<Map<String, String>> parameters;
 
-    protected RichVersion(String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, Optional<String>
-            reference, Optional<Map<String, String>> parameters) {
+    protected RichVersion(String id,
+                          Optional<Map<String, Tag>> tags,
+                          Optional<String> structureVersionId,
+                          Optional<String> reference,
+                          Optional<Map<String, String>> parameters) {
 
         super(id);
 
@@ -123,7 +126,7 @@ public class RichVersion extends Version {
 
             throw new GroundException(e);
         }
-        Map<String, Tag> tagsMap = new HashMap<>();
+        Map<String, Tag> tagsMap;
         Optional<Map<String, Tag>> tags;
 
         try {

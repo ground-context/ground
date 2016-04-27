@@ -1,0 +1,18 @@
+{
+    "id": "abcd",
+    "tags": {
+        "testtag": {
+            "versionId": "abcd",
+            "key": "testtag",
+            "value": "tag",
+            "type": "string"
+        }
+    },
+    
+    "reference": "http://www.google.com",
+    "parameters": {
+        "http": "GET"
+    }, 
+
+    "nodeId": "Nodes.test"
+}

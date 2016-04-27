@@ -9,6 +9,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,12 +21,35 @@ public class NodesResourceTest extends GroundTest {
         Node node = nodesResource.createNode("test");
         assertThat(node.getName()).isEqualTo("test");
 
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
         assertThat(nodeVersion.getNodeId()).isEqualTo(node.getId());
 
         assertThat(nodeVersion.getParameters()).isEmpty();
         assertThat(nodeVersion.getReference()).isEmpty();
         assertThat(nodeVersion.getStructureVersionId()).isEmpty();
         assertThat(nodeVersion.getTags()).isEmpty();
+    }
+
+    @Test
+    public void testReferences() throws GroundException {
+        Node node = nodesResource.createNode("test");
+
+        Optional<String> reference = Optional.of("http://www.google.com");
+
+        Map<String, String> parametersMap = new HashMap<>();
+        parametersMap.put("http", "GET");
+        Optional<Map<String, String>> parameters = Optional.of(parametersMap);
+
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), reference, parameters, node.getId()), new NonEmptyStringParam(null));
+        assertThat(nodeVersion.getNodeId()).isEqualTo(node.getId());
+
+        assertThat(nodeVersion.getReference()).isPresent();
+        assertThat(nodeVersion.getParameters()).isPresent();
+
+        assertThat(nodeVersion.getReference().get()).isEqualTo("http://www.google.com");
+        assertThat(nodeVersion.getParameters().get().size()).isEqualTo(1);
+        assertThat(nodeVersion.getParameters().get().keySet()).contains("http");
+        assertThat(nodeVersion.getParameters().get().get("http")).isEqualTo("GET");
+
     }
 }

@@ -1,5 +1,6 @@
 package edu.berkeley.ground.api.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.Type;
@@ -21,7 +22,9 @@ public class Edge extends Item<EdgeVersion> {
     // the name of this Edge
     private String name;
 
-    protected Edge(String id, String name) {
+    @JsonCreator
+    protected Edge(@JsonProperty("id") String id,
+                   @JsonProperty("name") String name) {
         super(id);
 
         this.name = name;

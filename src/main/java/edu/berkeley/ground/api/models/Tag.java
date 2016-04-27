@@ -1,5 +1,6 @@
 package edu.berkeley.ground.api.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
@@ -33,7 +34,11 @@ public class Tag {
     // the Type of the Value if it exists
     private Optional<Type> valueType;
 
-    public Tag(String versionId, String key, Optional<Object> value, Optional<Type> valueType) {
+    @JsonCreator
+    public Tag(@JsonProperty("versionId") String versionId,
+               @JsonProperty("key") String key,
+               @JsonProperty("value") Optional<Object> value,
+                @JsonProperty("type") Optional<Type> valueType) {
         this.versionId = versionId;
         this.key = key;
         this.value = value;
@@ -86,5 +91,16 @@ public class Tag {
             throw new GroundException(e);
         }
 
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Tag)) {
+            return false;
+        }
+
+        Tag that = (Tag) other;
+
+        return this.key.equals(that.key) && this.value.equals(that.value) && this.valueType.equals(that.valueType);
     }
 }

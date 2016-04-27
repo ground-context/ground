@@ -40,7 +40,7 @@ public class StructuresResourceTest extends GroundTest {
         tagsMap.put("test", new Tag(null, "test", Optional.of("a"), Optional.of(Type.STRING)));
 
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.of(tagsMap), Optional.of(structureVersion.getId()), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.of(tagsMap), Optional.of(structureVersion.getId()), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
 
         assertThat(nodeVersion.getStructureVersionId()).isPresent();
         assertThat(nodeVersion.getStructureVersionId().get()).isEqualTo(structureVersion.getId());

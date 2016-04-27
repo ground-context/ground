@@ -1,5 +1,6 @@
 package edu.berkeley.ground.api.models;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.Type;
@@ -21,7 +22,10 @@ public class Node extends Item<NodeVersion> {
     // the name of this Node
     private String name;
 
-    protected Node(String id, String name) {
+    @JsonCreator
+    protected Node(
+            @JsonProperty("id") String id,
+            @JsonProperty("name") String name) {
         super(id);
 
         this.name = name;

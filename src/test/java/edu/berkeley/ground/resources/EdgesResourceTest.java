@@ -15,7 +15,7 @@ public class EdgesResourceTest extends GroundTest {
     @Test
     public void createEdgeVersion() throws GroundException {
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
 
         Edge edge = edgesResource.createEdge("test");
         assertThat(edge.getName()).isEqualTo("test");
