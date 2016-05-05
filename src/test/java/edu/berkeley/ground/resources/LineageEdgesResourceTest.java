@@ -1,6 +1,6 @@
 package edu.berkeley.ground.resources;
 
-import edu.berkeley.ground.GroundTest;
+import edu.berkeley.ground.GroundResourceTest;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.usage.LineageEdge;
 import edu.berkeley.ground.api.usage.LineageEdgeVersion;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LineageEdgesResourceTest extends GroundTest {
+public class LineageEdgesResourceTest extends GroundResourceTest {
     @Test
     public void createLineageEdge() throws GroundException {
         Node node = nodesResource.createNode("test");

@@ -2,7 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.Structure;
+import edu.berkeley.ground.api.models.StructureFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
+import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -20,9 +22,13 @@ public class StructuresResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructuresResource.class);
 
     private DBClient dbClient;
+    private StructureFactory structureFactory;
+    private StructureVersionFactory structureVersionFactory;
 
-    public StructuresResource(DBClient dbClient) {
+    public StructuresResource(DBClient dbClient, StructureFactory structureFactory, StructureVersionFactory structureVersionFactory) {
         this.dbClient = dbClient;
+        this.structureFactory = structureFactory;
+        this.structureVersionFactory = structureVersionFactory;
     }
 
     @GET
@@ -33,7 +39,7 @@ public class StructuresResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Structure structure = Structure.retrieveFromDatabase(connection, name);
+            Structure structure = this.structureFactory.retrieveFromDatabase(connection, name);
 
             connection.commit();
             return structure;
@@ -51,7 +57,7 @@ public class StructuresResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            StructureVersion structureVersion = StructureVersion.retrieveFromDatabase(connection, id);
+            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(connection, id);
 
             connection.commit();
             return structureVersion;
@@ -69,7 +75,7 @@ public class StructuresResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Structure structure = Structure.create(connection, name);
+            Structure structure = this.structureFactory.create(connection, name);
 
             connection.commit();
             return structure;
@@ -87,10 +93,10 @@ public class StructuresResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            StructureVersion created = StructureVersion.create(connection,
-                                                               structureVersion.getStructureId(),
-                                                               structureVersion.getAttributes(),
-                                                               parentId.get());
+            StructureVersion created = this.structureVersionFactory.create(connection,
+                                                                           structureVersion.getStructureId(),
+                                                                           structureVersion.getAttributes(),
+                                                                           parentId.get());
 
             connection.commit();
             return created;

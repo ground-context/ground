@@ -2,7 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.usage.LineageEdge;
+import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersion;
+import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -19,10 +21,14 @@ import javax.ws.rs.core.MediaType;
 public class LineageEdgesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdgesResource.class);
 
-    protected DBClient dbClient;
+    private DBClient dbClient;
+    private LineageEdgeFactory lineageEdgeFactory;
+    private LineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-    public LineageEdgesResource(DBClient dbClient) {
+    public LineageEdgesResource(DBClient dbClient, LineageEdgeFactory lineageEdgeFactory, LineageEdgeVersionFactory lineageEdgeVersionFactory) {
         this.dbClient = dbClient;
+        this.lineageEdgeFactory = lineageEdgeFactory;
+        this.lineageEdgeVersionFactory = lineageEdgeVersionFactory;
     }
 
     @GET
@@ -33,7 +39,7 @@ public class LineageEdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            LineageEdge lineageEdge = LineageEdge.retrieveFromDatabase(connection, name);
+            LineageEdge lineageEdge = this.lineageEdgeFactory.retrieveFromDatabase(connection, name);
 
             connection.commit();
             return lineageEdge;
@@ -51,7 +57,7 @@ public class LineageEdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            LineageEdgeVersion lineageEdgeVersion = LineageEdgeVersion.retrieveFromDatabase(connection, id);
+            LineageEdgeVersion lineageEdgeVersion = this.lineageEdgeVersionFactory.retrieveFromDatabase(connection, id);
 
             connection.commit();
             return lineageEdgeVersion;
@@ -69,7 +75,7 @@ public class LineageEdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            LineageEdge lineageEdge = LineageEdge.create(connection, name);
+            LineageEdge lineageEdge = this.lineageEdgeFactory.create(connection, name);
 
             connection.commit();
             return lineageEdge;
@@ -87,15 +93,15 @@ public class LineageEdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            LineageEdgeVersion created = LineageEdgeVersion.create(connection,
-                                                                   lineageEdgeVersion.getTags(),
-                                                                   lineageEdgeVersion.getStructureVersionId(),
-                                                                   lineageEdgeVersion.getReference(),
-                                                                   lineageEdgeVersion.getParameters(),
-                                                                   lineageEdgeVersion.getFromId(),
-                                                                   lineageEdgeVersion.getToId(),
-                                                                   lineageEdgeVersion.getLineageEdgeId(),
-                                                                   parentId.get());
+            LineageEdgeVersion created = this.lineageEdgeVersionFactory.create(connection,
+                                                                               lineageEdgeVersion.getTags(),
+                                                                               lineageEdgeVersion.getStructureVersionId(),
+                                                                               lineageEdgeVersion.getReference(),
+                                                                               lineageEdgeVersion.getParameters(),
+                                                                               lineageEdgeVersion.getFromId(),
+                                                                               lineageEdgeVersion.getToId(),
+                                                                               lineageEdgeVersion.getLineageEdgeId(),
+                                                                               parentId.get());
 
             connection.commit();
             return created;

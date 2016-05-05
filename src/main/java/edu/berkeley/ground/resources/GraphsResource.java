@@ -2,7 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.Graph;
+import edu.berkeley.ground.api.models.GraphFactory;
 import edu.berkeley.ground.api.models.GraphVersion;
+import edu.berkeley.ground.api.models.GraphVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -20,9 +22,13 @@ public class GraphsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphsResource.class);
 
     private DBClient dbClient;
+    private GraphFactory graphFactory;
+    private GraphVersionFactory graphVersionFactory;
 
-    public GraphsResource(DBClient dbClient) {
+    public GraphsResource(DBClient dbClient, GraphFactory graphFactory, GraphVersionFactory graphVersionFactory) {
         this.dbClient = dbClient;
+        this.graphFactory = graphFactory;
+        this.graphVersionFactory = graphVersionFactory;
     }
 
     @GET
@@ -33,7 +39,7 @@ public class GraphsResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Graph graph = Graph.retrieveFromDatabase(connection, name);
+            Graph graph = this.graphFactory.retrieveFromDatabase(connection, name);
 
             connection.commit();
             return graph;
@@ -51,7 +57,7 @@ public class GraphsResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            GraphVersion graphVersion =  GraphVersion.retrieveFromDatabase(connection, id);
+            GraphVersion graphVersion = this.graphVersionFactory.retrieveFromDatabase(connection, id);
 
             connection.commit();
             return graphVersion;
@@ -69,7 +75,7 @@ public class GraphsResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Graph graph = Graph.create(connection, name);
+            Graph graph = this.graphFactory.create(connection, name);
 
             connection.commit();
             return graph;
@@ -87,14 +93,14 @@ public class GraphsResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            GraphVersion created =  GraphVersion.create(connection,
-                                                        graphVersion.getTags(),
-                                                        graphVersion.getStructureVersionId(),
-                                                        graphVersion.getReference(),
-                                                        graphVersion.getParameters(),
-                                                        graphVersion.getGraphId(),
-                                                        graphVersion.getEdgeVersionIds(),
-                                                        parentId.get());
+            GraphVersion created = this.graphVersionFactory.create(connection,
+                                                                   graphVersion.getTags(),
+                                                                   graphVersion.getStructureVersionId(),
+                                                                   graphVersion.getReference(),
+                                                                   graphVersion.getParameters(),
+                                                                   graphVersion.getGraphId(),
+                                                                   graphVersion.getEdgeVersionIds(),
+                                                                   parentId.get());
 
             connection.commit();
             return created;

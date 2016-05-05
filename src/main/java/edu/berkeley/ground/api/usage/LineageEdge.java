@@ -35,35 +35,6 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
         return this.name;
     }
 
-    /* FACTORY METHODS */
-    public static LineageEdge create(GroundDBConnection connection, String name) throws GroundException {
-        String uniqueId = "LineageEdges." + name;
-
-        Item.insertIntoDatabase(connection, uniqueId);
-
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("name", Type.STRING, name));
-        insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
-
-        connection.insert("LineageEdges", insertions);
-
-        LOGGER.info("Created lineage edge " + name + ".");
-
-        return new LineageEdge(uniqueId, name);
-    }
-
-    public static LineageEdge retrieveFromDatabase(GroundDBConnection connection, String name) throws GroundException {
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("name", Type.STRING, name));
-
-        ResultSet resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
-        String id = DbUtils.getString(resultSet, 1);
-
-        LOGGER.info("Retrieved lineage edge " + name + ".");
-
-        return new LineageEdge(id, name);
-    }
-
     public static String idToName(String id) {
         return id.substring(13);
     }

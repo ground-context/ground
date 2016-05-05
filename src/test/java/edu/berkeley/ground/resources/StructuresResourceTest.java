@@ -1,6 +1,6 @@
 package edu.berkeley.ground.resources;
 
-import edu.berkeley.ground.GroundTest;
+import edu.berkeley.ground.GroundResourceTest;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class StructuresResourceTest extends GroundTest {
+public class StructuresResourceTest extends GroundResourceTest {
     @Test
     public void createStructure() throws GroundException {
         Structure structure = structuresResource.createStructure("test");

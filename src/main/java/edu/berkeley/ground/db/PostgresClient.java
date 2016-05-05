@@ -32,7 +32,7 @@ public class PostgresClient implements DBClient {
         }
     }
 
-    public class PostgresConnection implements GroundDBConnection {
+    public class PostgresConnection extends GroundDBConnection {
         private Connection connection;
 
         public PostgresConnection(Connection connection) throws SQLException {

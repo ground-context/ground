@@ -2,7 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.Edge;
+import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.EdgeVersion;
+import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -21,9 +23,13 @@ public class EdgesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EdgesResource.class);
 
     private DBClient dbClient;
+    private EdgeFactory edgeFactory;
+    private EdgeVersionFactory edgeVersionFactory;
 
-    public EdgesResource(DBClient dbClient) {
+    public EdgesResource(DBClient dbClient, EdgeFactory edgeFactory, EdgeVersionFactory edgeVersionFactory) {
         this.dbClient = dbClient;
+        this.edgeFactory = edgeFactory;
+        this.edgeVersionFactory = edgeVersionFactory;
     }
 
     @GET
@@ -34,7 +40,7 @@ public class EdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Edge edge = Edge.retrieveFromDatabase(connection, name);
+            Edge edge = this.edgeFactory.retrieveFromDatabase(connection, name);
 
             connection.commit();
             return edge;
@@ -52,7 +58,7 @@ public class EdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            EdgeVersion edgeVersion = EdgeVersion.retrieveFromDatabase(connection, id);
+            EdgeVersion edgeVersion = this.edgeVersionFactory.retrieveFromDatabase(connection, id);
 
             connection.commit();
             return edgeVersion;
@@ -70,7 +76,7 @@ public class EdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Edge edge = Edge.create(connection, name);
+            Edge edge = this.edgeFactory.create(connection, name);
 
             connection.commit();
             return edge;
@@ -88,15 +94,15 @@ public class EdgesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            EdgeVersion created =EdgeVersion.create(connection,
-                                                    edgeVersion.getTags(),
-                                                    edgeVersion.getStructureVersionId(),
-                                                    edgeVersion.getReference(),
-                                                    edgeVersion.getParameters(),
-                                                    edgeVersion.getEdgeId(),
-                                                    edgeVersion.getFromId(),
-                                                    edgeVersion.getToId(),
-                                                    parentId.get());
+            EdgeVersion created = this.edgeVersionFactory.create(connection,
+                                                                 edgeVersion.getTags(),
+                                                                 edgeVersion.getStructureVersionId(),
+                                                                 edgeVersion.getReference(),
+                                                                 edgeVersion.getParameters(),
+                                                                 edgeVersion.getEdgeId(),
+                                                                 edgeVersion.getFromId(),
+                                                                 edgeVersion.getToId(),
+                                                                 parentId.get());
 
             connection.commit();
             return created;

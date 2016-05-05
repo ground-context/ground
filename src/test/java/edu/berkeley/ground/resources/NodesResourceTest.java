@@ -1,6 +1,6 @@
 package edu.berkeley.ground.resources;
 
-import edu.berkeley.ground.GroundTest;
+import edu.berkeley.ground.GroundResourceTest;
 import edu.berkeley.ground.api.models.ModelCreateUtils;
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeVersion;
@@ -15,7 +15,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class NodesResourceTest extends GroundTest {
+public class NodesResourceTest extends GroundResourceTest {
     @Test
     public void createNodeVersion() throws GroundException {
         Node node = nodesResource.createNode("test");

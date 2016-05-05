@@ -7,7 +7,6 @@ dbname = sys.argv[1]
 conn = psycopg2.connect("dbname=%s user=ground password=metadata" % (dbname))
 conn.autocommit = True
 cursor = conn.cursor()
-
 print ("Connection succeeded. Dropping tables...")
 
 try:
@@ -38,6 +37,6 @@ except:
 
 print "Creating tables..."
 
-cursor.execute(open("schema.sql", 'r').read())
+cursor.execute(open("postgres.sql", 'r').read())
 
 print "Table creation succeeded."

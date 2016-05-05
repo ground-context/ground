@@ -2,7 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.Node;
+import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.models.NodeVersion;
+import edu.berkeley.ground.api.models.NodeVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -21,9 +23,13 @@ public class NodesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodesResource.class);
 
     private DBClient dbClient;
+    private NodeFactory nodeFactory;
+    private NodeVersionFactory nodeVersionFactory;
 
-    public NodesResource(DBClient dbClient) {
+    public NodesResource(DBClient dbClient, NodeFactory nodeFactory, NodeVersionFactory nodeVersionFactory) {
         this.dbClient = dbClient;
+        this.nodeFactory = nodeFactory;
+        this.nodeVersionFactory = nodeVersionFactory;
     }
 
     @GET
@@ -34,7 +40,7 @@ public class NodesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Node node =  Node.retrieveFromDatabase(connection, name);
+            Node node =  this.nodeFactory.retrieveFromDatabase(connection, name);
 
             connection.commit();
             return node;
@@ -52,7 +58,7 @@ public class NodesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            NodeVersion nodeVersion = NodeVersion.retrieveFromDatabase(connection, id);
+            NodeVersion nodeVersion = this.nodeVersionFactory.retrieveFromDatabase(connection, id);
 
             connection.commit();
             return nodeVersion;
@@ -70,7 +76,7 @@ public class NodesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            Node node = Node.create(connection, name);
+            Node node = this.nodeFactory.create(connection, name);
 
             connection.commit();
             return node;
@@ -88,13 +94,13 @@ public class NodesResource {
         GroundDBConnection connection = this.dbClient.getConnection();
 
         try {
-            NodeVersion created = NodeVersion.create(connection,
-                                                     nodeVersion.getTags(),
-                                                     nodeVersion.getStructureVersionId(),
-                                                     nodeVersion.getReference(),
-                                                     nodeVersion.getParameters(),
-                                                     nodeVersion.getNodeId(),
-                                                     parentId.get());
+            NodeVersion created = this.nodeVersionFactory.create(connection,
+                                                                 nodeVersion.getTags(),
+                                                                 nodeVersion.getStructureVersionId(),
+                                                                 nodeVersion.getReference(),
+                                                                 nodeVersion.getParameters(),
+                                                                 nodeVersion.getNodeId(),
+                                                                 parentId.get());
 
             connection.commit();
             return created;
