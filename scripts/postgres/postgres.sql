@@ -33,7 +33,7 @@ create table Structures (
 
 create table StructureVersions (
     id varchar not null primary key references Versions(id),
-    structure_id varchar not null unique references Structures(item_id)
+    structure_id varchar not null references Structures(item_id)
 );
 
 create table StructureVersionItems (

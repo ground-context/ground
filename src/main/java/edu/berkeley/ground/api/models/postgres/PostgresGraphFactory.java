@@ -7,6 +7,7 @@ import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
@@ -19,14 +20,17 @@ import java.util.Optional;
 
 public class PostgresGraphFactory extends GraphFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresItemFactory itemFactory;
 
-    public PostgresGraphFactory(PostgresItemFactory itemFactory) {
+    public PostgresGraphFactory(PostgresItemFactory itemFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.itemFactory = itemFactory;
     }
 
-    public Graph create(GroundDBConnection connection, String name) throws GroundException {
+    public Graph create(String name) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         String uniqueId = "Graphs." + name;
         this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
@@ -36,19 +40,21 @@ public class PostgresGraphFactory extends GraphFactory {
 
         connection.insert("Graphs", insertions);
 
+        connection.commit();
         LOGGER.info("Created graph " + name + ".");
 
         return GraphFactory.construct(uniqueId, name);
     }
 
-    public Graph retrieveFromDatabase(GroundDBConnection connection, String name) throws GroundException {
-
+    public Graph retrieveFromDatabase(String name) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("name", Type.STRING, name));
 
         ResultSet resultSet = connection.equalitySelect("Graphs", DBClient.SELECT_STAR, predicates);
         String id = DbUtils.getString(resultSet, 1);
 
+        connection.commit();
         LOGGER.info("Retrieved graph " + name + ".");
 
         return GraphFactory.construct(id, name);

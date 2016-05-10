@@ -12,13 +12,14 @@ import java.io.File;
 
 
 public class GroundResourceTest {
-    private final DBClient dbClient = new PostgresClient("localhost", 5432, "test", "ground", "metadata");
+    private final PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "ground", "metadata");
+    private PostgresFactories factoryGenerator = new PostgresFactories(dbClient);
 
-    protected final NodesResource nodesResource = new NodesResource(dbClient, PostgresFactories.getNodeFactory(), PostgresFactories.getNodeVersionFactory());
-    protected final EdgesResource edgesResource = new EdgesResource(dbClient, PostgresFactories.getEdgeFactory(), PostgresFactories.getEdgeVersionFactory());
-    protected final GraphsResource graphsResource = new GraphsResource(dbClient, PostgresFactories.getGraphFactory(), PostgresFactories.getGraphVersionFactory());
-    protected final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(dbClient, PostgresFactories.getLineageEdgeFactory(), PostgresFactories.getLineageEdgeVersionFactory());
-    protected final StructuresResource structuresResource = new StructuresResource(dbClient, PostgresFactories.getStructureFactory(), PostgresFactories.getStructureVersionFactory());
+    protected final NodesResource nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
+    protected final EdgesResource edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
+    protected final GraphsResource graphsResource = new GraphsResource(factoryGenerator.getGraphFactory(), factoryGenerator.getGraphVersionFactory());
+    protected final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(factoryGenerator.getLineageEdgeFactory(), factoryGenerator.getLineageEdgeVersionFactory());
+    protected final StructuresResource structuresResource = new StructuresResource(factoryGenerator.getStructureFactory(), factoryGenerator.getStructureVersionFactory());
 
 
     @Before

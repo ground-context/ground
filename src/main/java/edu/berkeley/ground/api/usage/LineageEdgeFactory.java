@@ -6,9 +6,9 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.Optional;
 
 public abstract class LineageEdgeFactory {
-    public abstract LineageEdge create(GroundDBConnection connection, String name) throws GroundException;
+    public abstract LineageEdge create(String name) throws GroundException;
 
-    public abstract LineageEdge retrieveFromDatabase(GroundDBConnection connection, String name) throws GroundException;
+    public abstract LineageEdge retrieveFromDatabase(String name) throws GroundException;
 
     public abstract void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException;
 

@@ -21,12 +21,10 @@ import javax.ws.rs.core.MediaType;
 public class GraphsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphsResource.class);
 
-    private DBClient dbClient;
     private GraphFactory graphFactory;
     private GraphVersionFactory graphVersionFactory;
 
-    public GraphsResource(DBClient dbClient, GraphFactory graphFactory, GraphVersionFactory graphVersionFactory) {
-        this.dbClient = dbClient;
+    public GraphsResource(GraphFactory graphFactory, GraphVersionFactory graphVersionFactory) {
         this.graphFactory = graphFactory;
         this.graphVersionFactory = graphVersionFactory;
     }
@@ -36,17 +34,7 @@ public class GraphsResource {
     @Path("/{name}")
     public Graph getGraph(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving graph " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Graph graph = this.graphFactory.retrieveFromDatabase(connection, name);
-
-            connection.commit();
-            return graph;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.graphFactory.retrieveFromDatabase(name);
     }
 
     @GET
@@ -54,17 +42,7 @@ public class GraphsResource {
     @Path("/versions/{id}")
     public GraphVersion getGraphVersion(@PathParam("id") String id) throws GroundException {
         LOGGER.info("Retrieving graph version " + id + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            GraphVersion graphVersion = this.graphVersionFactory.retrieveFromDatabase(connection, id);
-
-            connection.commit();
-            return graphVersion;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.graphVersionFactory.retrieveFromDatabase(id);
     }
 
     @POST
@@ -72,17 +50,7 @@ public class GraphsResource {
     @Path("/{name}")
     public Graph createGraph(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Creating graph " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Graph graph = this.graphFactory.create(connection, name);
-
-            connection.commit();
-            return graph;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.graphFactory.create(name);
     }
 
     @POST
@@ -90,23 +58,12 @@ public class GraphsResource {
     @Path("/versions")
     public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion, @QueryParam("parent")NonEmptyStringParam parentId) throws GroundException {
         LOGGER.info("Creating graph version in graph " + graphVersion.getGraphId() + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            GraphVersion created = this.graphVersionFactory.create(connection,
-                                                                   graphVersion.getTags(),
-                                                                   graphVersion.getStructureVersionId(),
-                                                                   graphVersion.getReference(),
-                                                                   graphVersion.getParameters(),
-                                                                   graphVersion.getGraphId(),
-                                                                   graphVersion.getEdgeVersionIds(),
-                                                                   parentId.get());
-
-            connection.commit();
-            return created;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.graphVersionFactory.create(graphVersion.getTags(),
+                                               graphVersion.getStructureVersionId(),
+                                               graphVersion.getReference(),
+                                               graphVersion.getParameters(),
+                                               graphVersion.getGraphId(),
+                                               graphVersion.getEdgeVersionIds(),
+                                               parentId.get());
     }
 }

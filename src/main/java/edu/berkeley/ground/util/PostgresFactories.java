@@ -11,64 +11,79 @@ import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionHistoryDAGFactory;
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionSuccessorFactory;
+import edu.berkeley.ground.db.PostgresClient;
 
 public class PostgresFactories {
-    private static PostgresVersionFactory versionFactory = new PostgresVersionFactory();
-    private static PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory();
-    private static PostgresVersionHistoryDAGFactory versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
-    private static PostgresItemFactory itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
+    private PostgresStructureFactory structureFactory;
+    private PostgresStructureVersionFactory structureVersionFactory;
+    private PostgresEdgeFactory edgeFactory;
+    private PostgresEdgeVersionFactory edgeVersionFactory;
+    private PostgresGraphFactory graphFactory;
+    private PostgresGraphVersionFactory graphVersionFactory;
+    private PostgresNodeFactory nodeFactory;
+    private PostgresNodeVersionFactory nodeVersionFactory;
 
-    private static PostgresStructureFactory structureFactory = new PostgresStructureFactory(itemFactory);
-    private static PostgresStructureVersionFactory structureVersionFactory = new PostgresStructureVersionFactory(structureFactory, versionFactory);
-    private static PostgresTagFactory tagFactory = new PostgresTagFactory();
-    private static PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
-    private static PostgresEdgeFactory edgeFactory = new PostgresEdgeFactory(itemFactory);
-    private static PostgresEdgeVersionFactory edgeVersionFactory = new PostgresEdgeVersionFactory(edgeFactory, richVersionFactory);
-    private static PostgresGraphFactory graphFactory = new PostgresGraphFactory(itemFactory);
-    private static PostgresGraphVersionFactory graphVersionFactory = new PostgresGraphVersionFactory(graphFactory, richVersionFactory);
-    private static PostgresNodeFactory nodeFactory = new PostgresNodeFactory(itemFactory);
-    private static PostgresNodeVersionFactory nodeVersionFactory = new PostgresNodeVersionFactory(nodeFactory, richVersionFactory);
+    private PostgresLineageEdgeFactory lineageEdgeFactory;
+    private PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-    private static PostgresLineageEdgeFactory lineageEdgeFactory = new PostgresLineageEdgeFactory(itemFactory);
-    private static PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory = new PostgresLineageEdgeVersionFactory(lineageEdgeFactory, richVersionFactory);
+    public PostgresFactories(PostgresClient postgresClient) {
+        PostgresVersionFactory versionFactory = new PostgresVersionFactory();
+        PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory();
+        PostgresVersionHistoryDAGFactory versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
+        PostgresItemFactory itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
 
-    public static EdgeFactory getEdgeFactory() {
+        this.structureFactory = new PostgresStructureFactory(itemFactory, postgresClient);
+        this.structureVersionFactory = new PostgresStructureVersionFactory(this.structureFactory, versionFactory, postgresClient);
+        PostgresTagFactory tagFactory = new PostgresTagFactory();
+        PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
+        this.edgeFactory = new PostgresEdgeFactory(itemFactory, postgresClient);
+        this.edgeVersionFactory = new PostgresEdgeVersionFactory(this.edgeFactory, richVersionFactory, postgresClient);
+        this.graphFactory = new PostgresGraphFactory(itemFactory, postgresClient);
+        this.graphVersionFactory = new PostgresGraphVersionFactory(this.graphFactory, richVersionFactory, postgresClient);
+        this.nodeFactory = new PostgresNodeFactory(itemFactory, postgresClient);
+        this.nodeVersionFactory = new PostgresNodeVersionFactory(this.nodeFactory, richVersionFactory, postgresClient);
+
+        this.lineageEdgeFactory = new PostgresLineageEdgeFactory(itemFactory, postgresClient);
+        this.lineageEdgeVersionFactory = new PostgresLineageEdgeVersionFactory(this.lineageEdgeFactory, richVersionFactory, postgresClient);
+    }
+
+    public EdgeFactory getEdgeFactory() {
         return edgeFactory;
     }
 
-    public static EdgeVersionFactory getEdgeVersionFactory() {
+    public EdgeVersionFactory getEdgeVersionFactory() {
         return edgeVersionFactory;
     }
 
-    public static GraphFactory getGraphFactory() {
+    public GraphFactory getGraphFactory() {
         return graphFactory;
     }
 
-    public static GraphVersionFactory getGraphVersionFactory() {
+    public GraphVersionFactory getGraphVersionFactory() {
         return graphVersionFactory;
     }
 
-    public static NodeFactory getNodeFactory() {
+    public NodeFactory getNodeFactory() {
         return nodeFactory;
     }
 
-    public static NodeVersionFactory getNodeVersionFactory() {
+    public NodeVersionFactory getNodeVersionFactory() {
         return nodeVersionFactory;
     }
 
-    public static LineageEdgeFactory getLineageEdgeFactory() {
+    public LineageEdgeFactory getLineageEdgeFactory() {
         return lineageEdgeFactory;
     }
 
-    public static LineageEdgeVersionFactory getLineageEdgeVersionFactory() {
+    public LineageEdgeVersionFactory getLineageEdgeVersionFactory() {
         return lineageEdgeVersionFactory;
     }
 
-    public static StructureFactory getStructureFactory() {
+    public StructureFactory getStructureFactory() {
         return structureFactory;
     }
 
-    public static StructureVersionFactory getStructureVersionFactory() {
+    public StructureVersionFactory getStructureVersionFactory() {
         return structureVersionFactory;
     }
 }

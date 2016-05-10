@@ -7,6 +7,7 @@ import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
@@ -18,14 +19,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class PostgresStructureFactory extends StructureFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Structure.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresItemFactory itemFactory;
 
-    public PostgresStructureFactory(PostgresItemFactory itemFactory) {
+    public PostgresStructureFactory(PostgresItemFactory itemFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.itemFactory = itemFactory;
     }
-    public Structure create(GroundDBConnection connection, String name) throws GroundException {
+
+    public Structure create(String name) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
+
         String uniqueId = "Structures." + name;
 
         this.itemFactory.insertIntoDatabase(connection, uniqueId);
@@ -36,18 +42,22 @@ public class PostgresStructureFactory extends StructureFactory {
 
         connection.insert("Structures", insertions);
 
+        connection.commit();
         LOGGER.info("Created structure " + name + ".");
 
         return StructureFactory.construct(uniqueId, name);
     }
 
-    public Structure retrieveFromDatabase(GroundDBConnection connection, String name)  throws GroundException {
+    public Structure retrieveFromDatabase(String name)  throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("name", Type.STRING, name));
 
         ResultSet resultSet = connection.equalitySelect("Structures", DBClient.SELECT_STAR, predicates);
         String id = DbUtils.getString(resultSet, 1);
 
+        connection.commit();
         LOGGER.info("Retrieved structure " + name + ".");
 
         return StructureFactory.construct(id, name);

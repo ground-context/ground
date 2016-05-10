@@ -7,6 +7,7 @@ import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
@@ -19,14 +20,17 @@ import java.util.Optional;
 
 public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresLineageEdgeFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresItemFactory itemFactory;
 
-    public PostgresLineageEdgeFactory(PostgresItemFactory itemFactory) {
+    public PostgresLineageEdgeFactory(PostgresItemFactory itemFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.itemFactory = itemFactory;
     }
 
-    public LineageEdge create(GroundDBConnection connection, String name) throws GroundException {
+    public LineageEdge create(String name) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         String uniqueId = "LineageEdges." + name;
 
         this.itemFactory.insertIntoDatabase(connection, uniqueId);
@@ -37,18 +41,21 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
 
         connection.insert("LineageEdges", insertions);
 
+        connection.commit();
         LOGGER.info("Created lineage edge " + name + ".");
 
         return LineageEdgeFactory.construct(uniqueId, name);
     }
 
-    public LineageEdge retrieveFromDatabase(GroundDBConnection connection, String name) throws GroundException {
+    public LineageEdge retrieveFromDatabase(String name) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("name", Type.STRING, name));
 
         ResultSet resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
         String id = DbUtils.getString(resultSet, 1);
 
+        connection.commit();
         LOGGER.info("Retrieved lineage edge " + name + ".");
 
         return LineageEdgeFactory.construct(id, name);

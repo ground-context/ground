@@ -15,8 +15,6 @@ public interface DBClient {
     GroundDBConnection getConnection() throws GroundDBException;
 
     abstract class GroundDBConnection {
-        protected Connection connection;
-
         public abstract void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException;
 
         public abstract ResultSet equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException;
@@ -24,5 +22,7 @@ public interface DBClient {
         public abstract void commit() throws GroundDBException;
 
         public abstract void abort() throws GroundDBException;
+
+        public abstract void execute(String sql) throws GroundDBException;
     }
 }

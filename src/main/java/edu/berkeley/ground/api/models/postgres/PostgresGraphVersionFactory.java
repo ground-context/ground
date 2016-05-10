@@ -8,6 +8,7 @@ import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import edu.berkeley.ground.util.IdGenerator;
@@ -23,17 +24,18 @@ import java.util.stream.Collectors;
 
 public class PostgresGraphVersionFactory extends GraphVersionFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphVersionFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresGraphFactory graphFactory;
     private PostgresRichVersionFactory richVersionFactory;
 
-    public PostgresGraphVersionFactory(PostgresGraphFactory graphFactory, PostgresRichVersionFactory richVersionFactory) {
+    public PostgresGraphVersionFactory(PostgresGraphFactory graphFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.graphFactory = graphFactory;
         this.richVersionFactory = richVersionFactory;
     }
 
-    public GraphVersion create(GroundDBConnection connection,
-                               Optional<Map<String, Tag>> tags,
+    public GraphVersion create(Optional<Map<String, Tag>> tags,
                                Optional<String> structureVersionId,
                                Optional<String> reference,
                                Optional<Map<String, String>> parameters,
@@ -41,6 +43,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                                List<String> edgeVersionIds,
                                Optional<String> parentId) throws GroundException {
 
+        GroundDBConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(graphId);
 
         tags = tags.map ( tagsMap ->
@@ -65,12 +68,14 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
 
         this.graphFactory.update(connection, graphId, id, parentId);
 
+        connection.commit();
         LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
         return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
     }
 
-    public GraphVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public GraphVersion retrieveFromDatabase(String id) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -85,6 +90,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
         ResultSet edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
         List<String> edgeVersionIds = DbUtils.getAllStrings(edgeSet, 2);
 
+        connection.commit();
         LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
 
         return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), graphId, edgeVersionIds);

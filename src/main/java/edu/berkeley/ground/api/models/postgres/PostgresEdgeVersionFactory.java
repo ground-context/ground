@@ -5,6 +5,7 @@ import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import edu.berkeley.ground.util.IdGenerator;
@@ -20,17 +21,18 @@ import java.util.stream.Collectors;
 
 public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeVersionFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresEdgeFactory edgeFactory;
     private PostgresRichVersionFactory richVersionFactory;
 
-    public PostgresEdgeVersionFactory(PostgresEdgeFactory edgeFactory, PostgresRichVersionFactory richVersionFactory) {
+    public PostgresEdgeVersionFactory(PostgresEdgeFactory edgeFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.edgeFactory = edgeFactory;
         this.richVersionFactory = richVersionFactory;
     }
 
-    public EdgeVersion create(GroundDBConnection connection,
-                              Optional<Map<String, Tag>> tags,
+    public EdgeVersion create(Optional<Map<String, Tag>> tags,
                               Optional<String> structureVersionId,
                               Optional<String> reference,
                               Optional<Map<String, String>> parameters,
@@ -39,6 +41,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
                               String toId,
                               Optional<String> parentId) throws GroundException {
 
+        GroundDBConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(edgeId);
 
         tags = tags.map ( tagsMap ->
@@ -57,12 +60,14 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
 
         this.edgeFactory.update(connection, edgeId, id, parentId);
 
+        connection.commit();
         LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
         return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, edgeId, fromId, toId);
     }
 
-    public EdgeVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public EdgeVersion retrieveFromDatabase(String id) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -73,6 +78,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
         String fromId =  DbUtils.getString(resultSet, 3);
         String toId = DbUtils.getString(resultSet, 4);
 
+        connection.commit();
         LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
 
         return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);

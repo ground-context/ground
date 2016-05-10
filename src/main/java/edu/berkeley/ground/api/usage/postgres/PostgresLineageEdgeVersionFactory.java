@@ -10,6 +10,7 @@ import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import edu.berkeley.ground.util.IdGenerator;
@@ -25,18 +26,19 @@ import java.util.stream.Collectors;
 
 public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresLineageEdgeVersionFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresLineageEdgeFactory lineageEdgeFactory;
     private PostgresRichVersionFactory richVersionFactory;
 
-    public PostgresLineageEdgeVersionFactory(PostgresLineageEdgeFactory lineageEdgeFactory, PostgresRichVersionFactory richVersionFactory) {
+    public PostgresLineageEdgeVersionFactory(PostgresLineageEdgeFactory lineageEdgeFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.lineageEdgeFactory = lineageEdgeFactory;
         this.richVersionFactory = richVersionFactory;
     }
 
 
-    public LineageEdgeVersion create(GroundDBConnection connection,
-                                     Optional<Map<String, Tag>> tags,
+    public LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
                                      Optional<String> structureVersionId,
                                      Optional<String> reference,
                                      Optional<Map<String, String>> parameters,
@@ -45,7 +47,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
                                      String lineageEdgeId,
                                      Optional<String> parentId) throws GroundException {
 
-        LineageEdge lineageEdge = this.lineageEdgeFactory.retrieveFromDatabase(connection, LineageEdge.idToName(lineageEdgeId));
+        GroundDBConnection connection = this.dbClient.getConnection();
 
         String id = IdGenerator.generateId(lineageEdgeId);
 
@@ -65,12 +67,14 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
 
         this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentId);
 
+        connection.commit();
         LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
         return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, fromId, toId, lineageEdgeId);
     }
 
-    public LineageEdgeVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
         RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -82,6 +86,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
         String fromId = DbUtils.getString(resultSet, 3);
         String toId = DbUtils.getString(resultSet, 4);
 
+        connection.commit();
         LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
         return LineageEdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);

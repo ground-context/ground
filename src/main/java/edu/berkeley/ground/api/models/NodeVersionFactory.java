@@ -7,15 +7,14 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class NodeVersionFactory {
-    public abstract NodeVersion create(GroundDBConnection connection,
-                                       Optional<Map<String, Tag>> tags,
+    public abstract NodeVersion create(Optional<Map<String, Tag>> tags,
                                        Optional<String> structureVersionId,
                                        Optional<String> reference,
                                        Optional<Map<String, String>> parameters,
                                        String nodeId,
                                        Optional<String> parentId) throws GroundException;
 
-    public abstract NodeVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException;
+    public abstract NodeVersion retrieveFromDatabase(String id) throws GroundException;
 
     public static NodeVersion construct(String id,
                                         Optional<Map<String, Tag>> tags,

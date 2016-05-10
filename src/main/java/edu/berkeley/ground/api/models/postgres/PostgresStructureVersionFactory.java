@@ -7,6 +7,7 @@ import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.DbUtils;
 import edu.berkeley.ground.util.IdGenerator;
@@ -18,21 +19,23 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class PostgresStructureVersionFactory extends StructureVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StructureVersion.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureVersionFactory.class);
+    private PostgresClient dbClient;
 
     private PostgresStructureFactory structureFactory;
     private PostgresVersionFactory versionFactory;
 
-    public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory, PostgresVersionFactory versionFactory) {
+    public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory, PostgresVersionFactory versionFactory, PostgresClient dbClient) {
+        this.dbClient = dbClient;
         this.structureFactory = structureFactory;
         this.versionFactory = versionFactory;
     }
 
-    public StructureVersion create(GroundDBConnection connection,
-                                   String structureId,
+    public StructureVersion create(String structureId,
                                    Map<String, Type> attributes,
                                    Optional<String> parentId) throws GroundException {
 
+        GroundDBConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(structureId);
 
         this.versionFactory.insertIntoDatabase(connection, id);
@@ -54,12 +57,15 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
         this.structureFactory.update(connection, structureId, id, parentId);
 
+        connection.commit();
         LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
         return StructureVersionFactory.construct(id, structureId, attributes);
     }
 
-    public StructureVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public StructureVersion retrieveFromDatabase(String id) throws GroundException {
+        GroundDBConnection connection = this.dbClient.getConnection();
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
         ResultSet resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
@@ -77,6 +83,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
             String structureId = DbUtils.getString(resultSet, 2);
 
+            connection.commit();
             LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
             return StructureVersionFactory.construct(id, structureId, attributes);

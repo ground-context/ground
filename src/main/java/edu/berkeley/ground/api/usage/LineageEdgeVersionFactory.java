@@ -8,8 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class LineageEdgeVersionFactory {
-    public abstract LineageEdgeVersion create(GroundDBConnection connection,
-                                              Optional<Map<String, Tag>> tags,
+    public abstract LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
                                               Optional<String> structureVersionId,
                                               Optional<String> reference,
                                               Optional<Map<String, String>> parameters,
@@ -18,7 +17,7 @@ public abstract class LineageEdgeVersionFactory {
                                               String lineageEdgeId,
                                               Optional<String> parentId) throws GroundException;
 
-    public abstract LineageEdgeVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException;
+    public abstract LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException;
 
     protected static LineageEdgeVersion construct(String id,
                                                   Optional<Map<String, Tag>> tags,

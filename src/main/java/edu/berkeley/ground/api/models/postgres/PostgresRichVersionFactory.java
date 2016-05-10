@@ -38,7 +38,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
         this.versionFactory.insertIntoDatabase(connection, id);
 
         if(structureVersionId.isPresent()) {
-            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(connection, structureVersionId.get());
+            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId.get());
             RichVersionFactory.checkStructureTags(connection, structureVersion, tags);
         }
 

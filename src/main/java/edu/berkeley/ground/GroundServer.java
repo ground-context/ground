@@ -1,7 +1,6 @@
 package edu.berkeley.ground;
 
 import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.postgres.PostgresEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
@@ -14,9 +13,20 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 // TODO: Clean up imports
-// TODO: Check Logger classes
+// TODO: Check Logger classes at creation match actual classes
 // TODO: Check formatting in factories
 public class GroundServer extends Application<GroundServerConfiguration> {
+    private EdgeFactory edgeFactory;
+    private EdgeVersionFactory edgeVersionFactory;
+    private GraphFactory graphFactory;
+    private GraphVersionFactory graphVersionFactory;
+    private LineageEdgeFactory lineageEdgeFactory;
+    private LineageEdgeVersionFactory lineageEdgeVersionFactory;
+    private NodeFactory nodeFactory;
+    private NodeVersionFactory nodeVersionFactory;
+    private StructureFactory structureFactory;
+    private StructureVersionFactory structureVersionFactory;
+
     public static void main(String [] args) throws Exception {
         new GroundServer().run(args);
     }
@@ -33,48 +43,49 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) {
-        DBClient dbClient;
-
-        EdgeFactory edgeFactory;
-        EdgeVersionFactory edgeVersionFactory;
-        GraphFactory graphFactory;
-        GraphVersionFactory graphVersionFactory;
-        LineageEdgeFactory lineageEdgeFactory;
-        LineageEdgeVersionFactory lineageEdgeVersionFactory;
-        NodeFactory nodeFactory;
-        NodeVersionFactory nodeVersionFactory;
-        StructureFactory structureFactory;
-        StructureVersionFactory structureVersionFactory;
-
-
         switch (configuration.getDbType()) {
             case "postgres":
-                dbClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-                edgeFactory = PostgresFactories.getEdgeFactory();
-                edgeVersionFactory = PostgresFactories.getEdgeVersionFactory();
-                graphFactory = PostgresFactories.getGraphFactory();
-                graphVersionFactory = PostgresFactories.getGraphVersionFactory();
-                lineageEdgeFactory = PostgresFactories.getLineageEdgeFactory();
-                lineageEdgeVersionFactory = PostgresFactories.getLineageEdgeVersionFactory();
-                nodeFactory = PostgresFactories.getNodeFactory();
-                nodeVersionFactory = PostgresFactories.getNodeVersionFactory();
-                structureFactory = PostgresFactories.getStructureFactory();
-                structureVersionFactory = PostgresFactories.getStructureVersionFactory();
+                PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
+                setPostgresFactories(postgresClient);
+                break;
+
+            case "cassandra":
+                CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
+                setCassandraFactories(cassandraClient);
                 break;
 
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }
 
-        final EdgesResource edgesResource = new EdgesResource(dbClient, edgeFactory, edgeVersionFactory);
-        final GraphsResource graphsResource = new GraphsResource(dbClient, graphFactory, graphVersionFactory);
-        final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(dbClient, lineageEdgeFactory, lineageEdgeVersionFactory);
-        final NodesResource nodesResource = new NodesResource(dbClient, nodeFactory, nodeVersionFactory);
-        final StructuresResource structuresResource = new StructuresResource(dbClient, structureFactory, structureVersionFactory);
+        final EdgesResource edgesResource = new EdgesResource(edgeFactory, edgeVersionFactory);
+        final GraphsResource graphsResource = new GraphsResource(graphFactory, graphVersionFactory);
+        final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
+        final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
+        final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
 
         environment.jersey().register(edgesResource);
         environment.jersey().register(graphsResource);
         environment.jersey().register(lineageEdgesResource);
         environment.jersey().register(nodesResource);
         environment.jersey().register(structuresResource);
+    }
+
+    private void setPostgresFactories(PostgresClient postgresClient) {
+        PostgresFactories factoryGenerator = new PostgresFactories(postgresClient);
+
+        edgeFactory = factoryGenerator.getEdgeFactory();
+        edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
+        graphFactory = factoryGenerator.getGraphFactory();
+        graphVersionFactory = factoryGenerator.getGraphVersionFactory();
+        lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
+        lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
+        nodeFactory = factoryGenerator.getNodeFactory();
+        nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
+        structureFactory = factoryGenerator.getStructureFactory();
+        structureVersionFactory = factoryGenerator.getStructureVersionFactory();
+    }
+
+    private void setCassandraFactories(CassandraClient cassandraClient) {
+        // implement
     }
 }

@@ -118,6 +118,14 @@ public class PostgresClient implements DBClient {
             }
         }
 
+        public void execute(String sql) throws GroundDBException {
+            try {
+                this.connection.prepareStatement(sql).execute();
+            } catch(SQLException e) {
+                throw new GroundDBException(e);
+            }
+        }
+
         public void commit() throws GroundDBException {
             try {
                 this.connection.commit();

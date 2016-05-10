@@ -21,12 +21,10 @@ import javax.ws.rs.core.MediaType;
 public class StructuresResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructuresResource.class);
 
-    private DBClient dbClient;
     private StructureFactory structureFactory;
     private StructureVersionFactory structureVersionFactory;
 
-    public StructuresResource(DBClient dbClient, StructureFactory structureFactory, StructureVersionFactory structureVersionFactory) {
-        this.dbClient = dbClient;
+    public StructuresResource(StructureFactory structureFactory, StructureVersionFactory structureVersionFactory) {
         this.structureFactory = structureFactory;
         this.structureVersionFactory = structureVersionFactory;
     }
@@ -36,17 +34,7 @@ public class StructuresResource {
     @Path("/{name}")
     public Structure getStructure(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving structure " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Structure structure = this.structureFactory.retrieveFromDatabase(connection, name);
-
-            connection.commit();
-            return structure;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.structureFactory.retrieveFromDatabase(name);
     }
 
     @GET
@@ -54,17 +42,7 @@ public class StructuresResource {
     @Path("/versions/{id}")
     public StructureVersion getStructureVersion(@PathParam("id") String id) throws GroundException {
         LOGGER.info("Retrieving structure version " + id + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(connection, id);
-
-            connection.commit();
-            return structureVersion;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.structureVersionFactory.retrieveFromDatabase(id);
     }
 
     @POST
@@ -72,17 +50,7 @@ public class StructuresResource {
     @Path("/{name}")
     public Structure createStructure(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Creating structure " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Structure structure = this.structureFactory.create(connection, name);
-
-            connection.commit();
-            return structure;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.structureFactory.create(name);
     }
 
     @POST
@@ -90,19 +58,8 @@ public class StructuresResource {
     @Path("/versions")
     public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion, @QueryParam("parent") NonEmptyStringParam parentId) throws GroundException {
         LOGGER.info("Creating structure version in structure " + structureVersion.getStructureId() + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            StructureVersion created = this.structureVersionFactory.create(connection,
-                                                                           structureVersion.getStructureId(),
-                                                                           structureVersion.getAttributes(),
-                                                                           parentId.get());
-
-            connection.commit();
-            return created;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.structureVersionFactory.create(structureVersion.getStructureId(),
+                                                   structureVersion.getAttributes(),
+                                                   parentId.get());
     }
 }

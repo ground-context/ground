@@ -6,9 +6,9 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.Optional;
 
 public abstract class StructureFactory {
-    public abstract Structure create(GroundDBConnection connection, String name) throws GroundException;
+    public abstract Structure create(String name) throws GroundException;
 
-    public abstract Structure retrieveFromDatabase(GroundDBConnection connection, String name)  throws GroundException;
+    public abstract Structure retrieveFromDatabase(String name)  throws GroundException;
 
     public abstract void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException;
 
