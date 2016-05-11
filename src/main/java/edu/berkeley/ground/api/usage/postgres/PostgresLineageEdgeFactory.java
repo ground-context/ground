@@ -8,12 +8,11 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,34 +30,47 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
 
     public LineageEdge create(String name) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        String uniqueId = "LineageEdges." + name;
+        try {
+            String uniqueId = "LineageEdges." + name;
 
-        this.itemFactory.insertIntoDatabase(connection, uniqueId);
+            this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("name", Type.STRING, name));
-        insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
+            List<DbDataContainer> insertions = new ArrayList<>();
+            insertions.add(new DbDataContainer("name", Type.STRING, name));
+            insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
 
-        connection.insert("LineageEdges", insertions);
+            connection.insert("LineageEdges", insertions);
 
-        connection.commit();
-        LOGGER.info("Created lineage edge " + name + ".");
+            connection.commit();
+            LOGGER.info("Created lineage edge " + name + ".");
 
-        return LineageEdgeFactory.construct(uniqueId, name);
+            return LineageEdgeFactory.construct(uniqueId, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public LineageEdge retrieveFromDatabase(String name) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        ResultSet resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
-        String id = DbUtils.getString(resultSet, 1);
+        try {
+            List<DbDataContainer> predicates = new ArrayList<>();
+            predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        connection.commit();
-        LOGGER.info("Retrieved lineage edge " + name + ".");
+            QueryResults resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
+            String id = resultSet.getString(1);
 
-        return LineageEdgeFactory.construct(id, name);
+            connection.commit();
+            LOGGER.info("Retrieved lineage edge " + name + ".");
+
+            return LineageEdgeFactory.construct(id, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {

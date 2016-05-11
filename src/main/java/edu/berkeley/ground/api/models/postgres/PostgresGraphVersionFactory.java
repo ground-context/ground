@@ -9,13 +9,12 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,55 +43,69 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                                Optional<String> parentId) throws GroundException {
 
         GroundDBConnection connection = this.dbClient.getConnection();
-        String id = IdGenerator.generateId(graphId);
 
-        tags = tags.map ( tagsMap ->
-                                  tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-        );
+        try {
+            String id = IdGenerator.generateId(graphId);
 
-        this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            tags = tags.map(tagsMap ->
+                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
+            );
 
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("id", Type.STRING, id));
-        insertions.add(new DbDataContainer("graph_id", Type.STRING, graphId));
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
-        connection.insert("GraphVersions", insertions);
+            List<DbDataContainer> insertions = new ArrayList<>();
+            insertions.add(new DbDataContainer("id", Type.STRING, id));
+            insertions.add(new DbDataContainer("graph_id", Type.STRING, graphId));
 
-        for (String edgeVersionId : edgeVersionIds) {
-            List<DbDataContainer> edgeInsertion = new ArrayList<>();
-            edgeInsertion.add(new DbDataContainer("gvid", Type.STRING, id));
-            edgeInsertion.add(new DbDataContainer("evid", Type.STRING, edgeVersionId));
+            connection.insert("GraphVersions", insertions);
 
-            connection.insert("GraphVersionEdges", edgeInsertion);
+            for (String edgeVersionId : edgeVersionIds) {
+                List<DbDataContainer> edgeInsertion = new ArrayList<>();
+                edgeInsertion.add(new DbDataContainer("gvid", Type.STRING, id));
+                edgeInsertion.add(new DbDataContainer("evid", Type.STRING, edgeVersionId));
+
+                connection.insert("GraphVersionEdges", edgeInsertion);
+            }
+
+            this.graphFactory.update(connection, graphId, id, parentId);
+
+            connection.commit();
+            LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
+
+            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
         }
-
-        this.graphFactory.update(connection, graphId, id, parentId);
-
-        connection.commit();
-        LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
-
-        return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
     }
 
     public GraphVersion retrieveFromDatabase(String id) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, id));
+        try {
+            RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
-        List<DbDataContainer> edgePredicate = new ArrayList<>();
-        edgePredicate.add(new DbDataContainer("gvid", Type.STRING, id));
+            List<DbDataContainer> predicates = new ArrayList<>();
+            predicates.add(new DbDataContainer("id", Type.STRING, id));
 
-        ResultSet resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
-        String graphId = DbUtils.getString(resultSet, 2);
+            List<DbDataContainer> edgePredicate = new ArrayList<>();
+            edgePredicate.add(new DbDataContainer("gvid", Type.STRING, id));
 
-        ResultSet edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
-        List<String> edgeVersionIds = DbUtils.getAllStrings(edgeSet, 2);
+            QueryResults resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            String graphId = resultSet.getString(2);
 
-        connection.commit();
-        LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
+            QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
+            List<String> edgeVersionIds = edgeSet.getStringList();
 
-        return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), graphId, edgeVersionIds);
+            connection.commit();
+            LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
+
+            return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), graphId, edgeVersionIds);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 }

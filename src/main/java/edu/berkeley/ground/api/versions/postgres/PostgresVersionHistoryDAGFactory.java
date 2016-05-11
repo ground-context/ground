@@ -4,6 +4,7 @@ import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
@@ -24,25 +25,19 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     }
 
     public <T extends Version> VersionHistoryDAG<T> create(String itemId) throws GroundException {
-        return this.construct(itemId);
+        return construct(itemId);
     }
 
     public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connection, String itemId) throws GroundException {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("item_id", Type.STRING, itemId));
 
-        ResultSet resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
-        try {
-            do {
-                edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getInt(2)));
-            } while (resultSet.next());
-        } catch (SQLException e) {
-            LOGGER.error("Unexpected error: " + e.getMessage());
-
-            throw new GroundDBException(e.getMessage());
-        }
+        do {
+            edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getInt(2)));
+        } while (resultSet.next());
 
         return VersionHistoryDAGFactory.construct(itemId, edges);
     }

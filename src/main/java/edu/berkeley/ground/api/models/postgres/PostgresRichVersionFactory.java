@@ -9,13 +9,11 @@ import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class PostgresRichVersionFactory extends RichVersionFactory {
@@ -67,17 +65,17 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     public RichVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
-        ResultSet resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
 
         List<DbDataContainer> parameterPredicates = new ArrayList<>();
         parameterPredicates.add(new DbDataContainer("richversion_id", Type.STRING, id));
         Map<String, String> parametersMap = new HashMap<>();
         Optional<Map<String, String>> parameters;
         try {
-            ResultSet parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
+            QueryResults parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
 
             do {
-                parametersMap.put(DbUtils.getString(parameterSet, 2), DbUtils.getString(parameterSet, 3));
+                parametersMap.put(parameterSet.getString(2), parameterSet.getString(3));
             } while (parameterSet.next());
 
             parameters = Optional.of(parametersMap);
@@ -87,11 +85,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             } else {
                 throw e;
             }
-        } catch (SQLException e) {
-            LOGGER.error(e.getMessage());
-
-            throw new GroundException(e);
         }
+
         Map<String, Tag> tagsMap;
         Optional<Map<String, Tag>> tags;
 
@@ -106,8 +101,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             }
         }
 
-        Optional<String> reference = Optional.ofNullable(DbUtils.getString(resultSet, 3));
-        Optional<String> structureVersionId = Optional.ofNullable(DbUtils.getString(resultSet, 2));
+        Optional<String> reference = Optional.ofNullable(resultSet.getString(3));
+        Optional<String> structureVersionId = Optional.ofNullable(resultSet.getString(2));
 
         return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
     }

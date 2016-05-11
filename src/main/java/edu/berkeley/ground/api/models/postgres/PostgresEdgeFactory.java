@@ -8,13 +8,11 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.ConnectException;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,35 +30,48 @@ public class PostgresEdgeFactory extends EdgeFactory {
 
     public Edge create(String name) throws GroundException {
         GroundDBConnection connection = dbClient.getConnection();
-        String uniqueId = "Edges." + name;
 
-        this.itemFactory.insertIntoDatabase(connection, uniqueId);
+        try {
+            String uniqueId = "Edges." + name;
 
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("name", Type.STRING, name));
-        insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
+            this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
-        connection.insert("Edges", insertions);
+            List<DbDataContainer> insertions = new ArrayList<>();
+            insertions.add(new DbDataContainer("name", Type.STRING, name));
+            insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
 
-        connection.commit();
-        LOGGER.info("Created edge " + name + ".");
+            connection.insert("Edges", insertions);
 
-        return EdgeFactory.construct(uniqueId, name);
+            connection.commit();
+            LOGGER.info("Created edge " + name + ".");
+            return EdgeFactory.construct(uniqueId, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public Edge retrieveFromDatabase(String name) throws GroundException {
         GroundDBConnection connection = dbClient.getConnection();
-        List<DbDataContainer> predicates = new ArrayList<>();
 
-        predicates.add(new DbDataContainer("name", Type.STRING, name));
+        try {
+            List<DbDataContainer> predicates = new ArrayList<>();
 
-        ResultSet resultSet = connection.equalitySelect("Edges", DBClient.SELECT_STAR, predicates);
-        String id = DbUtils.getString(resultSet, 1);
+            predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        connection.commit();
-        LOGGER.info("Retrieved edge " + name + ".");
+            QueryResults resultSet = connection.equalitySelect("Edges", DBClient.SELECT_STAR, predicates);
+            String id = resultSet.getString(1);
 
-        return EdgeFactory.construct(id, name);
+            connection.commit();
+            LOGGER.info("Retrieved edge " + name + ".");
+
+            return EdgeFactory.construct(id, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {

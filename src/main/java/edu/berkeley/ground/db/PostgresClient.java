@@ -52,6 +52,7 @@ public class PostgresClient implements DBClient {
 
             insertString = insertString.substring(0, insertString.length() - 2) + ")";
             valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
+
             try {
                 PreparedStatement preparedStatement = this.connection.prepareStatement(insertString + valuesString + ";");
 
@@ -73,8 +74,9 @@ public class PostgresClient implements DBClient {
 
         }
 
-        public ResultSet equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
+        public QueryResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
             String select = "select ";
+
             for (String item : projection) {
                 select += item + ", ";
             }
@@ -110,19 +112,11 @@ public class PostgresClient implements DBClient {
 
                 // Moves the cursor to the first element so that data can be accessed directly.
                 resultSet.next();
-                return resultSet;
+                return new PostgresResults(resultSet);
             } catch (SQLException e) {
                 LOGGER.error("Unexpected error in database query: " + e.getMessage());
 
                 throw new GroundDBException(e.getMessage());
-            }
-        }
-
-        public void execute(String sql) throws GroundDBException {
-            try {
-                this.connection.prepareStatement(sql).execute();
-            } catch(SQLException e) {
-                throw new GroundDBException(e);
             }
         }
 

@@ -8,12 +8,11 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,34 +30,48 @@ public class PostgresNodeFactory extends NodeFactory {
 
     public Node create(String name) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        String uniqueId = "Nodes." + name;
 
-        this.itemFactory.insertIntoDatabase(connection, uniqueId);
+        try {
+            String uniqueId = "Nodes." + name;
 
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("name", Type.STRING, name));
-        insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
+            this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
-        connection.insert("Nodes", insertions);
+            List<DbDataContainer> insertions = new ArrayList<>();
+            insertions.add(new DbDataContainer("name", Type.STRING, name));
+            insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
 
-        connection.commit();
-        LOGGER.info("Created node " + name + ".");
+            connection.insert("Nodes", insertions);
 
-        return NodeFactory.construct(uniqueId, name);
+            connection.commit();
+            LOGGER.info("Created node " + name + ".");
+
+            return NodeFactory.construct(uniqueId, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public Node retrieveFromDatabase(String name) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        ResultSet resultSet = connection.equalitySelect("Nodes", DBClient.SELECT_STAR, predicates);
-        String id = DbUtils.getString(resultSet, 1);
+        try {
+            List<DbDataContainer> predicates = new ArrayList<>();
+            predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        connection.commit();
-        LOGGER.info("Retrieved node " + name + ".");
+            QueryResults resultSet = connection.equalitySelect("Nodes", DBClient.SELECT_STAR, predicates);
+            String id = resultSet.getString(1);
 
-        return NodeFactory.construct(id, name);
+            connection.commit();
+            LOGGER.info("Retrieved node " + name + ".");
+
+            return NodeFactory.construct(id, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {

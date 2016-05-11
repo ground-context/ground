@@ -7,13 +7,11 @@ import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,15 +27,9 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
 
         connection.insert("VersionSuccessors", insertions);
 
-        ResultSet resultSet = connection.equalitySelect("VersionSuccessors", Stream.of("successor_id").collect(Collectors.toList()), insertions);
-        try {
-            int dbId = resultSet.getInt(1);
-            return VersionSuccessorFactory.construct(dbId, toId, fromId);
-        } catch (SQLException e) {
-            LOGGER.error("Unexpected error: " + e.getMessage());
-
-            throw new GroundException(e);
-        }
+        QueryResults resultSet = connection.equalitySelect("VersionSuccessors", Stream.of("successor_id").collect(Collectors.toList()), insertions);
+        int dbId = resultSet.getInt(1);
+        return VersionSuccessorFactory.construct(dbId, toId, fromId);
 
     }
 
@@ -45,10 +37,10 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("successor_id", Type.INTEGER, dbId));
 
-        ResultSet resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
 
-        String toId = DbUtils.getString(resultSet, 2);
-        String fromId = DbUtils.getString(resultSet, 3);
+        String toId = resultSet.getString(2);
+        String fromId = resultSet.getString(3);
 
         return VersionSuccessorFactory.construct(dbId, toId, fromId);
     }

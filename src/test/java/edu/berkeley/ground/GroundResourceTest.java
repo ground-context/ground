@@ -1,8 +1,6 @@
 package edu.berkeley.ground;
 
-import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.PostgresFactories;
 import org.junit.After;

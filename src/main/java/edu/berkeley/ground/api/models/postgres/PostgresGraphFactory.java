@@ -8,12 +8,11 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,33 +30,47 @@ public class PostgresGraphFactory extends GraphFactory {
 
     public Graph create(String name) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        String uniqueId = "Graphs." + name;
-        this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("name", Type.STRING, name));
-        insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
+        try {
+            String uniqueId = "Graphs." + name;
+            this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
-        connection.insert("Graphs", insertions);
+            List<DbDataContainer> insertions = new ArrayList<>();
+            insertions.add(new DbDataContainer("name", Type.STRING, name));
+            insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
 
-        connection.commit();
-        LOGGER.info("Created graph " + name + ".");
+            connection.insert("Graphs", insertions);
 
-        return GraphFactory.construct(uniqueId, name);
+            connection.commit();
+            LOGGER.info("Created graph " + name + ".");
+
+            return GraphFactory.construct(uniqueId, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public Graph retrieveFromDatabase(String name) throws GroundException {
         GroundDBConnection connection = this.dbClient.getConnection();
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        ResultSet resultSet = connection.equalitySelect("Graphs", DBClient.SELECT_STAR, predicates);
-        String id = DbUtils.getString(resultSet, 1);
+        try {
+            List<DbDataContainer> predicates = new ArrayList<>();
+            predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-        connection.commit();
-        LOGGER.info("Retrieved graph " + name + ".");
+            QueryResults resultSet = connection.equalitySelect("Graphs", DBClient.SELECT_STAR, predicates);
+            String id = resultSet.getString(1);
 
-        return GraphFactory.construct(id, name);
+            connection.commit();
+            LOGGER.info("Retrieved graph " + name + ".");
+
+            return GraphFactory.construct(id, name);
+        } catch (GroundException e) {
+            connection.abort();
+
+            throw e;
+        }
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {

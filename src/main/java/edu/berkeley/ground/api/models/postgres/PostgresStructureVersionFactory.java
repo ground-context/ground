@@ -8,14 +8,12 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.DbUtils;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class PostgresStructureVersionFactory extends StructureVersionFactory {
@@ -68,29 +66,23 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
-        ResultSet resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
 
         List<DbDataContainer> attributePredicates = new ArrayList<>();
         attributePredicates.add(new DbDataContainer("svid", Type.STRING, id));
-        ResultSet attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+        QueryResults attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
 
-        try {
-            Map<String, Type> attributes = new HashMap<>();
+        Map<String, Type> attributes = new HashMap<>();
 
-            do {
-                attributes.put(DbUtils.getString(attributesSet, 2), Type.fromString(DbUtils.getString(attributesSet, 3)));
-            } while (attributesSet.next());
+        do {
+            attributes.put(attributesSet.getString(2), Type.fromString(attributesSet.getString(3)));
+        } while (attributesSet.next());
 
-            String structureId = DbUtils.getString(resultSet, 2);
+        String structureId = resultSet.getString(2);
 
-            connection.commit();
-            LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
+        connection.commit();
+        LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
-            return StructureVersionFactory.construct(id, structureId, attributes);
-        } catch (SQLException e) {
-            LOGGER.error(e.getMessage());
-
-            throw new GroundException(e);
-        }
+        return StructureVersionFactory.construct(id, structureId, attributes);
     }
 }
