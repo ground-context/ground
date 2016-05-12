@@ -1,24 +1,19 @@
-package edu.berkeley.ground.api.versions.postgres;
+package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
-import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
-    private PostgresVersionSuccessorFactory versionSuccessorFactory;
+public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
+    private CassandraVersionSuccessorFactory versionSuccessorFactory;
 
-    public PostgresVersionHistoryDAGFactory(PostgresVersionSuccessorFactory versionSuccessorFactory) {
+    public CassandraVersionHistoryDAGFactory(CassandraVersionSuccessorFactory versionSuccessorFactory) {
         this.versionSuccessorFactory = versionSuccessorFactory;
     }
 

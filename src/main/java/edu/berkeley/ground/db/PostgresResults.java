@@ -56,11 +56,11 @@ public class PostgresResults implements QueryResults {
         }
     }
 
-    public List<String> getStringList() throws GroundException {
+    public List<String> getStringList(int index) throws GroundException {
         try {
             List<String> stringList = new ArrayList<>();
             do {
-                stringList.add(this.getString(2));
+                stringList.add(this.getString(index));
             } while (resultSet.next());
 
             return stringList;

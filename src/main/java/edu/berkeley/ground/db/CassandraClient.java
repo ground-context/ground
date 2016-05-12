@@ -6,7 +6,6 @@ import edu.berkeley.ground.exceptions.GroundDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class CassandraClient implements DBClient {
 
     public CassandraClient(String host, int port, String dbName, String username, String password) {
         cluster = Cluster.builder()
-                .addContactPoint(host + ":" + port)
+                .addContactPoint(host)
                 .withAuthProvider(new PlainTextAuthProvider(username, password))
                 .build();
 
@@ -28,7 +27,7 @@ public class CassandraClient implements DBClient {
 
     public CassandraConnection getConnection() throws GroundDBException {
         try {
-            return new CassandraConnection(cluster.connect(this.keyspace));
+            return new CassandraConnection(cluster.connect(this.keyspace), this.keyspace);
         } catch (SQLException e) {
             throw new GroundDBException(e);
         }
@@ -36,9 +35,11 @@ public class CassandraClient implements DBClient {
 
     public class CassandraConnection extends GroundDBConnection {
         private Session session;
+        private String keyspace;
 
-        public CassandraConnection(Session session) throws SQLException {
+        public CassandraConnection(Session session, String keyspace) throws SQLException {
             this.session = session;
+            this.keyspace = keyspace;
         }
 
         public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
@@ -57,7 +58,7 @@ public class CassandraClient implements DBClient {
 
             BoundStatement statement = new BoundStatement(session.prepare(prepString));
 
-            int index = 1;
+            int index = 0;
             for (DbDataContainer container : insertValues) {
                 CassandraClient.setValue(statement, container.getValue(), container.getType(), index);
 
@@ -89,7 +90,7 @@ public class CassandraClient implements DBClient {
 
             BoundStatement statement = new BoundStatement(this.session.prepare(select + ";"));
 
-            int index = 1;
+            int index = 0;
             for (DbDataContainer container : predicatesAndValues) {
                 CassandraClient.setValue(statement, container.getValue(), container.getType(), index);
 
@@ -98,7 +99,14 @@ public class CassandraClient implements DBClient {
 
             LOGGER.info("Executing query: " + statement.toString() + ".");
 
-            return null;
+
+            ResultSet resultSet = this.session.execute(statement);
+
+            if(resultSet == null || resultSet.isExhausted()) {
+                throw new GroundDBException("No results found for query: " + statement.toString());
+            }
+
+            return new CassandraResults(resultSet);
         }
 
         public void commit() throws GroundDBException {

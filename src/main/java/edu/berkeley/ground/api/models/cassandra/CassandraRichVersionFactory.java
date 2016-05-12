@@ -1,29 +1,27 @@
-package edu.berkeley.ground.api.models.postgres;
+package edu.berkeley.ground.api.models.cassandra;
 
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.RichVersionFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
+import edu.berkeley.ground.api.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class PostgresRichVersionFactory extends RichVersionFactory {
-    private PostgresVersionFactory versionFactory;
-    private PostgresStructureVersionFactory structureVersionFactory;
-    private PostgresTagFactory tagFactory;
+public class CassandraRichVersionFactory extends RichVersionFactory {
+    private CassandraVersionFactory versionFactory;
+    private CassandraStructureVersionFactory structureVersionFactory;
+    private CassandraTagFactory tagFactory;
 
-    public PostgresRichVersionFactory(PostgresVersionFactory versionFactory,
-                                      PostgresStructureVersionFactory structureVersionFactory,
-                                      PostgresTagFactory tagFactory) {
+    public CassandraRichVersionFactory(CassandraVersionFactory versionFactory,
+                                       CassandraStructureVersionFactory structureVersionFactory,
+                                       CassandraTagFactory tagFactory) {
 
         this.versionFactory = versionFactory;
         this.structureVersionFactory = structureVersionFactory;
@@ -73,7 +71,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             QueryResults parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
 
             do {
-                parametersMap.put(parameterSet.getString(2), parameterSet.getString(3));
+                parametersMap.put(parameterSet.getString(0), parameterSet.getString(1));
             } while (parameterSet.next());
 
             parameters = Optional.of(parametersMap);
@@ -99,8 +97,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             }
         }
 
-        Optional<String> reference = Optional.ofNullable(resultSet.getString(3));
-        Optional<String> structureVersionId = Optional.ofNullable(resultSet.getString(2));
+        Optional<String> reference = Optional.ofNullable(resultSet.getString(2));
+        Optional<String> structureVersionId = Optional.ofNullable(resultSet.getString(1));
 
         return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
     }

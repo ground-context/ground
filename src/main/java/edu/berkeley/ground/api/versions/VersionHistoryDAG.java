@@ -13,7 +13,7 @@ public class VersionHistoryDAG<T extends Version> {
     private String itemId;
 
     // list of VersionSuccessors that make up this DAG
-    private List<Long> edgeIds;
+    private List<String> edgeIds;
 
     // map of parents to children
     private Map<String, String> parentChildMap;
@@ -35,7 +35,7 @@ public class VersionHistoryDAG<T extends Version> {
     }
 
     @JsonProperty
-    public List<Long> getEdgeIds() {
+    public List<String> getEdgeIds() {
         return this.edgeIds;
     }
 
@@ -56,7 +56,7 @@ public class VersionHistoryDAG<T extends Version> {
      * @param childId the id of the "to" of the edge
      * @throws GroundException
      */
-    public void addEdge(String parentId, String childId, long successorId) throws GroundException {
+    public void addEdge(String parentId, String childId, String successorId) throws GroundException {
         edgeIds.add(successorId);
         parentChildMap.put(parentId, childId);
     }

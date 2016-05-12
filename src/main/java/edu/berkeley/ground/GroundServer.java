@@ -7,6 +7,7 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.resources.*;
+import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.PostgresFactories;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
@@ -86,6 +87,17 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     }
 
     private void setCassandraFactories(CassandraClient cassandraClient) {
-        // implement
+        CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient);
+
+        edgeFactory = factoryGenerator.getEdgeFactory();
+        edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
+        graphFactory = factoryGenerator.getGraphFactory();
+        graphVersionFactory = factoryGenerator.getGraphVersionFactory();
+        lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
+        lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
+        nodeFactory = factoryGenerator.getNodeFactory();
+        nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
+        structureFactory = factoryGenerator.getStructureFactory();
+        structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 }

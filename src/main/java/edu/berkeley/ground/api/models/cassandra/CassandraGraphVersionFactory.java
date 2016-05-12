@@ -1,14 +1,14 @@
-package edu.berkeley.ground.api.models.postgres;
+package edu.berkeley.ground.api.models.cassandra;
 
 import edu.berkeley.ground.api.models.GraphVersion;
 import edu.berkeley.ground.api.models.GraphVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
@@ -21,14 +21,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class PostgresGraphVersionFactory extends GraphVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphVersionFactory.class);
-    private PostgresClient dbClient;
+public class CassandraGraphVersionFactory extends GraphVersionFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CassandraGraphVersionFactory.class);
+    private CassandraClient dbClient;
 
-    private PostgresGraphFactory graphFactory;
-    private PostgresRichVersionFactory richVersionFactory;
+    private CassandraGraphFactory graphFactory;
+    private CassandraRichVersionFactory richVersionFactory;
 
-    public PostgresGraphVersionFactory(PostgresGraphFactory graphFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient) {
+    public CassandraGraphVersionFactory(CassandraGraphFactory graphFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient) {
         this.dbClient = dbClient;
         this.graphFactory = graphFactory;
         this.richVersionFactory = richVersionFactory;
@@ -93,10 +93,10 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
             edgePredicate.add(new DbDataContainer("gvid", Type.STRING, id));
 
             QueryResults resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
-            String graphId = resultSet.getString(2);
+            String graphId = resultSet.getString(1);
 
             QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
-            List<String> edgeVersionIds = edgeSet.getStringList(2);
+            List<String> edgeVersionIds = edgeSet.getStringList(1);
 
             connection.commit();
             LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

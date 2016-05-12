@@ -1,4 +1,4 @@
-package edu.berkeley.ground.api.versions.postgres;
+package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.Version;
@@ -14,9 +14,10 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
+public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connection, String fromId, String toId) throws GroundException {
         List<DbDataContainer> insertions = new ArrayList<>();
+
         String dbId = IdGenerator.generateId(fromId + toId);
 
         insertions.add(new DbDataContainer("successor_id", Type.STRING, dbId));
@@ -26,7 +27,6 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
         connection.insert("VersionSuccessors", insertions);
 
         return VersionSuccessorFactory.construct(dbId, toId, fromId);
-
     }
 
     public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connection, String dbId) throws GroundException {
