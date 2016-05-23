@@ -6,6 +6,7 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.cassandra.CassandraVersionFactory;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -28,7 +29,8 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         this.tagFactory = tagFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connection, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+        CassandraConnection connection = (CassandraConnection) connectionPointer;
         this.versionFactory.insertIntoDatabase(connection, id);
 
         if(structureVersionId.isPresent()) {
@@ -58,7 +60,9 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         }
     }
 
-    public RichVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+        CassandraConnection connection = (CassandraConnection) connectionPointer;
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
         QueryResults resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);

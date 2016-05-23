@@ -5,6 +5,7 @@ import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +23,16 @@ public class PostgresItemFactory extends ItemFactory {
         this.versionHistoryDAGFactory = versionHistoryDAGFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         List<DbDataContainer> insertions = new ArrayList<>();
         insertions.add(new DbDataContainer("id", Type.STRING, id));
 
         connection.insert("Items", insertions);
     }
 
-    public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {
+    public void update(GroundDBConnection connectionPointer, String itemId, String childId, Optional<String> parent) throws GroundException {
         String parentId;
 
         // If a parent is specified, great. If it's not specified and there is only one leaf, great.
@@ -38,7 +41,7 @@ public class PostgresItemFactory extends ItemFactory {
         if (parent.isPresent()) {
             parentId = parent.get();
         } else {
-            List<String> leaves = this.getLeaves(connection, itemId);
+            List<String> leaves = this.getLeaves(connectionPointer, itemId);
             if (leaves.size() == 1) {
                 parentId = leaves.get(0);
             } else {
@@ -48,7 +51,7 @@ public class PostgresItemFactory extends ItemFactory {
 
         VersionHistoryDAG dag;
         try {
-            dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
+            dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connectionPointer, itemId);
         } catch (GroundException e) {
             if (!e.getMessage().contains("No results found for query:")) {
                 throw e;
@@ -64,7 +67,7 @@ public class PostgresItemFactory extends ItemFactory {
             throw new GroundException(errorString);
         }
 
-        this.versionHistoryDAGFactory.addEdge(connection, dag, parentId, childId, itemId);
+        this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
     }
 
     private List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {

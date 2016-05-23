@@ -5,8 +5,8 @@ import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -33,7 +33,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
                                    Map<String, Type> attributes,
                                    Optional<String> parentId) throws GroundException {
 
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(structureId);
 
         this.versionFactory.insertIntoDatabase(connection, id);
@@ -62,7 +62,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
     }
 
     public StructureVersion retrieveFromDatabase(String id) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));

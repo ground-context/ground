@@ -7,9 +7,9 @@ import edu.berkeley.ground.api.usage.LineageEdgeVersion;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
@@ -45,7 +45,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
                                      String lineageEdgeId,
                                      Optional<String> parentId) throws GroundException {
 
-        GroundDBConnection connection = this.dbClient.getConnection();
+        PostgresConnection connection = this.dbClient.getConnection();
 
         try {
             String id = IdGenerator.generateId(lineageEdgeId);
@@ -78,7 +78,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
     }
 
     public LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        PostgresConnection connection = this.dbClient.getConnection();
 
         try {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);

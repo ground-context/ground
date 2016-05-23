@@ -5,6 +5,7 @@ import edu.berkeley.ground.api.models.StructureFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -29,7 +30,7 @@ public class CassandraStructureFactory extends StructureFactory {
     }
 
     public Structure create(String name) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             String uniqueId = "Structures." + name;
@@ -54,7 +55,7 @@ public class CassandraStructureFactory extends StructureFactory {
     }
 
     public Structure retrieveFromDatabase(String name)  throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();

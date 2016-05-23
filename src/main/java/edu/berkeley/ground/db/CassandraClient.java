@@ -27,7 +27,7 @@ public class CassandraClient implements DBClient {
 
     public CassandraConnection getConnection() throws GroundDBException {
         try {
-            return new CassandraConnection(cluster.connect(this.keyspace), this.keyspace);
+            return new CassandraConnection(cluster.connect(this.keyspace));
         } catch (SQLException e) {
             throw new GroundDBException(e);
         }
@@ -35,11 +35,9 @@ public class CassandraClient implements DBClient {
 
     public class CassandraConnection extends GroundDBConnection {
         private Session session;
-        private String keyspace;
 
-        public CassandraConnection(Session session, String keyspace) throws SQLException {
+        public CassandraConnection(Session session) throws SQLException {
             this.session = session;
-            this.keyspace = keyspace;
         }
 
         public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {

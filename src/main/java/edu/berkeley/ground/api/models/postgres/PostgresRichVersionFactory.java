@@ -9,10 +9,9 @@ import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -30,7 +29,9 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
         this.tagFactory = tagFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connection, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         this.versionFactory.insertIntoDatabase(connection, id);
 
         if(structureVersionId.isPresent()) {
@@ -60,7 +61,9 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
         }
     }
 
-    public RichVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException {
+    public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
         QueryResults resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);

@@ -5,6 +5,7 @@ import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -29,7 +30,8 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     }
 
     public LineageEdge create(String name) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
+
         try {
             String uniqueId = "LineageEdges." + name;
 
@@ -53,7 +55,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     }
 
     public LineageEdge retrieveFromDatabase(String name) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();

@@ -6,8 +6,8 @@ import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -43,7 +43,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
                               String toId,
                               Optional<String> parentId) throws GroundException {
 
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             String id = IdGenerator.generateId(edgeId);
@@ -75,7 +75,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
     }
 
     public EdgeVersion retrieveFromDatabase(String id) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);

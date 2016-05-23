@@ -15,10 +15,6 @@ public interface DBClient {
     GroundDBConnection getConnection() throws GroundDBException;
 
     abstract class GroundDBConnection {
-        public abstract void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException;
-
-        public abstract QueryResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException;
-
         public abstract void commit() throws GroundDBException;
 
         public abstract void abort() throws GroundDBException;

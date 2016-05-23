@@ -24,7 +24,7 @@ public class PostgresClient implements DBClient {
         this.password = password;
     }
 
-    public GroundDBConnection getConnection() throws GroundDBException {
+    public PostgresConnection getConnection() throws GroundDBException {
         try {
             return new PostgresConnection(DriverManager.getConnection(connectionString, username, password));
         } catch(SQLException e) {

@@ -6,9 +6,9 @@ import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
@@ -42,7 +42,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                                List<String> edgeVersionIds,
                                Optional<String> parentId) throws GroundException {
 
-        GroundDBConnection connection = this.dbClient.getConnection();
+        PostgresConnection connection = this.dbClient.getConnection();
 
         try {
             String id = IdGenerator.generateId(graphId);
@@ -81,7 +81,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
     }
 
     public GraphVersion retrieveFromDatabase(String id) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        PostgresConnection connection = this.dbClient.getConnection();
 
         try {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);

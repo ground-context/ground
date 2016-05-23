@@ -4,14 +4,10 @@ import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
-import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +22,9 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         return construct(itemId);
     }
 
-    public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connection, String itemId) throws GroundException {
+    public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String itemId) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("item_id", Type.STRING, itemId));
 
@@ -40,7 +38,9 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         return VersionHistoryDAGFactory.construct(itemId, edges);
     }
 
-    public void addEdge(GroundDBConnection connection, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException {
+    public void addEdge(GroundDBConnection connectionPointer, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 
         List<DbDataContainer> insertions = new ArrayList<>();

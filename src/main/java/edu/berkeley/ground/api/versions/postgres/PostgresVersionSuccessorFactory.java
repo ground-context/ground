@@ -7,6 +7,7 @@ import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
@@ -15,7 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
-    public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connection, String fromId, String toId) throws GroundException {
+    public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, String fromId, String toId) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         List<DbDataContainer> insertions = new ArrayList<>();
         String dbId = IdGenerator.generateId(fromId + toId);
 
@@ -29,7 +32,9 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
 
     }
 
-    public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connection, String dbId) throws GroundException {
+    public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String dbId) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("successor_id", Type.STRING, dbId));
 

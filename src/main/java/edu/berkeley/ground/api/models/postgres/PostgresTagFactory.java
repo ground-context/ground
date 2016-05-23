@@ -6,15 +6,16 @@ import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class PostgresTagFactory extends TagFactory {
-    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connection, String id) throws GroundException {
+    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("richversion_id", Type.STRING, id));
 

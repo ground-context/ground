@@ -5,9 +5,9 @@ import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
@@ -33,7 +33,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
                                    Map<String, Type> attributes,
                                    Optional<String> parentId) throws GroundException {
 
-        GroundDBConnection connection = this.dbClient.getConnection();
+        PostgresConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(structureId);
 
         this.versionFactory.insertIntoDatabase(connection, id);
@@ -62,7 +62,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     }
 
     public StructureVersion retrieveFromDatabase(String id) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        PostgresConnection connection = this.dbClient.getConnection();
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));

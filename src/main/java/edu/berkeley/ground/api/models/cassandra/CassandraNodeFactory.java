@@ -5,6 +5,7 @@ import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -29,7 +30,7 @@ public class CassandraNodeFactory extends NodeFactory {
     }
 
     public Node create(String name) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             String uniqueId = "Nodes." + name;
@@ -54,7 +55,7 @@ public class CassandraNodeFactory extends NodeFactory {
     }
 
     public Node retrieveFromDatabase(String name) throws GroundException {
-        GroundDBConnection connection = this.dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();

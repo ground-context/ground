@@ -8,6 +8,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
     }
 
     public Edge create(String name) throws GroundException {
-        GroundDBConnection connection = dbClient.getConnection();
+        PostgresConnection connection = dbClient.getConnection();
 
         try {
             String uniqueId = "Edges." + name;
@@ -53,7 +54,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
     }
 
     public Edge retrieveFromDatabase(String name) throws GroundException {
-        GroundDBConnection connection = dbClient.getConnection();
+        PostgresConnection connection = dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();

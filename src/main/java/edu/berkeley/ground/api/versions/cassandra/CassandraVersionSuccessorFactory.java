@@ -4,6 +4,7 @@ import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.api.versions.Version;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
+import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -15,7 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
-    public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connection, String fromId, String toId) throws GroundException {
+    public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, String fromId, String toId) throws GroundException {
+        CassandraConnection connection = (CassandraConnection) connectionPointer;
+
         List<DbDataContainer> insertions = new ArrayList<>();
 
         String dbId = IdGenerator.generateId(fromId + toId);
@@ -29,7 +32,9 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
         return VersionSuccessorFactory.construct(dbId, toId, fromId);
     }
 
-    public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connection, String dbId) throws GroundException {
+    public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String dbId) throws GroundException {
+        CassandraConnection connection = (CassandraConnection) connectionPointer;
+
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("successor_id", Type.STRING, dbId));
 
