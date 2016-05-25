@@ -13,7 +13,7 @@ import java.io.File;
 
 
 public class GroundResourceTest {
-    private static final String BACKING_STORE_TYPE = "titan";
+    private static final String BACKING_STORE_TYPE = "postgres";
     private static final String TEST_DB_NAME = "test";
 
     protected NodesResource nodesResource;
@@ -61,7 +61,7 @@ public class GroundResourceTest {
     private void setBackingStore() {
         switch (BACKING_STORE_TYPE) {
             case "postgres": {
-                PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "ground", "metadata");
+                PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "test", "");
                 PostgresFactories factoryGenerator = new PostgresFactories(dbClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
@@ -73,7 +73,7 @@ public class GroundResourceTest {
             }
 
             case "cassandra": {
-                CassandraClient dbClient = new CassandraClient("localhost", 5432, "test", "ground", "metadata");
+                CassandraClient dbClient = new CassandraClient("localhost", 9160, "test", "test", "");
                 CassandraFactories factoryGenerator = new CassandraFactories(dbClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
