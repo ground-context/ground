@@ -75,10 +75,10 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
         Map<String, Type> attributes = new HashMap<>();
 
         do {
-            attributes.put(attributesSet.getString(0), Type.fromString(attributesSet.getString(2)));
+            attributes.put(attributesSet.getString(1), Type.fromString(attributesSet.getString(2)));
         } while (attributesSet.next());
 
-        String structureId = resultSet.getString(0);
+        String structureId = resultSet.getString(1);
 
         connection.commit();
         LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
