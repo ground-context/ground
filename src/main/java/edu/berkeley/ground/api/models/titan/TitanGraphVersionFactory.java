@@ -94,9 +94,7 @@ public class TitanGraphVersionFactory extends GraphVersionFactory {
             List<TitanVertex> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "GraphVersionEdge");
             List<String> edgeVersionIds = new ArrayList<>();
 
-            for (TitanVertex edgeVersionVertex : edgeVersionVertices) {
-                edgeVersionIds.add(edgeVersionVertex.property("id").value().toString());
-            }
+            edgeVersionVertices.stream().forEach(edgeVersionVertex -> edgeVersionIds.add(edgeVersionVertex.property("id").value().toString()));
 
             connection.commit();
             LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

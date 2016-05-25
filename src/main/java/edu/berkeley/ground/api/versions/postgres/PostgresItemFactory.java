@@ -72,7 +72,7 @@ public class PostgresItemFactory extends ItemFactory {
 
     private List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
         try {
-            VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
+            VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
 
             return dag.getLeaves();
         } catch (GroundException e) {

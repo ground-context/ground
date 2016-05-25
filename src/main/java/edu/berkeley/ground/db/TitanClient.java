@@ -90,15 +90,12 @@ public class TitanClient implements DBClient {
             queue.add(vertex);
 
             TitanVertexQuery query;
-            while ((query = queue.pop().query().has("label", "VersionSuccessor")).count() != 0) {
+            while ((query = queue.pop().query().has("label", label)).count() != 0) {
                 Iterator<TitanEdge> edgeIterator = query.edges().iterator();
-                while (edgeIterator.hasNext()) {
-                    TitanEdge edge = edgeIterator.next();
-
+                edgeIterator.forEachRemaining(edge -> {
                     queue.add(edge.outVertex());
-
                     result.add(edge);
-                }
+                });
             }
 
             return result;
@@ -107,13 +104,10 @@ public class TitanClient implements DBClient {
         public List<TitanVertex> getAdjacentVerticesByEdgeLabel(TitanVertex vertex, String edgeLabel) {
             List<TitanVertex> result = new ArrayList<>();
 
-            TitanVertexQuery query = vertex.query().has("label", "VersionSuccessor");
+            TitanVertexQuery query = vertex.query().has("label", edgeLabel);
             Iterator<TitanEdge> edgeIterator = query.edges().iterator();
-            while (edgeIterator.hasNext()) {
-                TitanEdge edge = edgeIterator.next();
 
-                result.add(edge.outVertex());
-            }
+            edgeIterator.forEachRemaining(edge -> result.add(edge.outVertex()));
 
             return result;
         }

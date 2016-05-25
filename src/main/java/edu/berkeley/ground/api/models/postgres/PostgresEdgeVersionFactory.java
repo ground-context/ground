@@ -3,7 +3,6 @@ package edu.berkeley.ground.api.models.postgres;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;

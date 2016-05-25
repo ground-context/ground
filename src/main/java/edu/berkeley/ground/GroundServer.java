@@ -4,7 +4,6 @@ import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.TitanClient;
 import edu.berkeley.ground.resources.*;

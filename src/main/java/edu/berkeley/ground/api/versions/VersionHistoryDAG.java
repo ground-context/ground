@@ -56,7 +56,7 @@ public class VersionHistoryDAG<T extends Version> {
      * @param childId the id of the "to" of the edge
      * @throws GroundException
      */
-    public void addEdge(String parentId, String childId, String successorId) throws GroundException {
+    public void addEdge(String parentId, String childId, String successorId) {
         edgeIds.add(successorId);
         parentChildMap.put(parentId, childId);
     }

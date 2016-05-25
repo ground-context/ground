@@ -36,7 +36,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
         if(structureVersionId.isPresent()) {
             StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId.get());
-            RichVersionFactory.checkStructureTags(connection, structureVersion, tags);
+            RichVersionFactory.checkStructureTags(structureVersion, tags);
         }
 
         List<DbDataContainer> insertions = new ArrayList<>();
@@ -53,8 +53,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
                 List<DbDataContainer> tagInsertion = new ArrayList<>();
                 tagInsertion.add(new DbDataContainer("richversion_id", Type.STRING, id));
                 tagInsertion.add(new DbDataContainer("key", Type.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", Type.STRING, tag.getValue().map(t -> t.toString()).orElse(null)));
-                tagInsertion.add(new DbDataContainer("type", Type.STRING, tag.getValueType().map(t -> t.toString()).orElse(null)));
+                tagInsertion.add(new DbDataContainer("value", Type.STRING, tag.getValue().map(Object::toString).orElse(null)));
+                tagInsertion.add(new DbDataContainer("type", Type.STRING, tag.getValueType().map(Object::toString).orElse(null)));
 
                 connection.insert("Tags", tagInsertion);
             }

@@ -16,11 +16,11 @@ public abstract class RichVersionFactory {
         return new RichVersion(id, tags, structureVersionId, reference, parameters);
     }
 
-    protected static boolean checkStructureTags(GroundDBConnection connection, StructureVersion structureVersion, Optional<Map<String, Tag>> tags) throws GroundException {
+    protected static void checkStructureTags(StructureVersion structureVersion, Optional<Map<String, Tag>> tags) throws GroundException {
         Map<String, Type> structureVersionAttributes = structureVersion.getAttributes();
 
         if(!tags.isPresent()) {
-            return false;
+            throw new GroundException("No tags were specified");
         }
 
         Map<String, Tag> tagsMap = tags.get();
@@ -29,14 +29,12 @@ public abstract class RichVersionFactory {
 
             // check if such a tag exists
             if(!tagsMap.keySet().contains(key)) {
-                return false;
+                throw new GroundException("No tag with key " + key + " was specified.");
             } else if (!tagsMap.get(key).getValueType().isPresent()) { // check that value type is specified
-                return false;
+                throw new GroundException("Tag with key " + key + " did not have a value.");
             } else if (!tagsMap.get(key).getValueType().get().equals(structureVersionAttributes.get(key))) { // check that the value type is the same
-                return false;
+                throw new GroundException("Tag with key " + key + " did not have a value of the correct type.");
             }
         }
-
-        return true;
     }
 }

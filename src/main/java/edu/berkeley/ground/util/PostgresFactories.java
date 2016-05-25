@@ -3,7 +3,6 @@ package edu.berkeley.ground.util;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.models.postgres.*;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeVersion;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.api.usage.postgres.PostgresLineageEdgeFactory;
 import edu.berkeley.ground.api.usage.postgres.PostgresLineageEdgeVersionFactory;

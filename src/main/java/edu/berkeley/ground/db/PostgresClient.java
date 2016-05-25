@@ -5,8 +5,6 @@ import edu.berkeley.ground.exceptions.GroundDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Types;
-
 import java.sql.*;
 import java.util.List;
 

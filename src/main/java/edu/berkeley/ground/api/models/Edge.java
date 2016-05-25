@@ -9,8 +9,8 @@ public class Edge extends Item<EdgeVersion> {
     private String name;
 
     @JsonCreator
-    protected Edge(@JsonProperty("id") String id,
-                   @JsonProperty("name") String name) {
+    Edge(@JsonProperty("id") String id,
+         @JsonProperty("name") String name) {
         super(id);
 
         this.name = name;
