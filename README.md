@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ground-metadata/ground.svg?branch=master)](https://travis-ci.org/ground-metadata/ground)
+
 # Ground
 
 Ground is an open-source metadata service under development at UC Berkeley.
