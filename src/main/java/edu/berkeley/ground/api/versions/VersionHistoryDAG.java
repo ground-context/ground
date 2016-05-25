@@ -1,29 +1,19 @@
 package edu.berkeley.ground.api.versions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
-import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class VersionHistoryDAG<T extends Version> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionHistoryDAG.class);
-
     // the id of the Version that's at the rootId of this DAG
     private String itemId;
 
     // list of VersionSuccessors that make up this DAG
-    private List<Long> edgeIds;
+    private List<String> edgeIds;
 
     // map of parents to children
     private Map<String, String> parentChildMap;
@@ -45,7 +35,7 @@ public class VersionHistoryDAG<T extends Version> {
     }
 
     @JsonProperty
-    public List<Long> getEdgeIds() {
+    public List<String> getEdgeIds() {
         return this.edgeIds;
     }
 
@@ -62,22 +52,13 @@ public class VersionHistoryDAG<T extends Version> {
     /**
      * Adds an edge to this DAG.
      *
-     * @param connection
      * @param parentId the id of the "from" of the edge
      * @param childId the id of the "to" of the edge
      * @throws GroundException
      */
-    public void addEdge(GroundDBConnection connection, String parentId, String childId) throws GroundException {
-        VersionSuccessor successor = VersionSuccessor.create(connection, parentId, childId);
-
-        edgeIds.add(successor.getId());
+    public void addEdge(String parentId, String childId, String successorId) {
+        edgeIds.add(successorId);
         parentChildMap.put(parentId, childId);
-
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("item_id", Type.STRING, this.itemId));
-        insertions.add(new DbDataContainer("successor_id", Type.INTEGER, (int) successor.getId()));
-
-        connection.insert("VersionHistoryDAGs", insertions);
     }
 
     /**
@@ -85,35 +66,10 @@ public class VersionHistoryDAG<T extends Version> {
      *
      * @return the list of the IDs of the leaves of this DAG
      */
-    protected List<String> getLeaves() {
+    public List<String> getLeaves() {
         List<String> leaves = new ArrayList<>(this.parentChildMap.values());
         leaves.removeAll(this.parentChildMap.keySet());
 
         return leaves;
-    }
-
-    /* FACTORY METHODS */
-    public static <T extends Version>  VersionHistoryDAG<T> create(GroundDBConnection connection, String itemId) throws GroundException {
-        return new VersionHistoryDAG<>(itemId, new ArrayList<>());
-    }
-
-    public static <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connection, String itemId) throws GroundException {
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("item_id", Type.STRING, itemId));
-
-        ResultSet resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
-
-        List<VersionSuccessor<T>> edges = new ArrayList<>();
-        try {
-            do {
-                edges.add(VersionSuccessor.retrieveFromDatabase(connection, resultSet.getInt(2)));
-            } while (resultSet.next());
-        } catch (SQLException e) {
-            LOGGER.error("Unexpected error: " + e.getMessage());
-
-            throw new GroundDBException(e.getMessage());
-        }
-
-        return new VersionHistoryDAG<>(itemId, edges);
     }
 }

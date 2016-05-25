@@ -1,6 +1,6 @@
 package edu.berkeley.ground.resources;
 
-import edu.berkeley.ground.GroundTest;
+import edu.berkeley.ground.GroundResourceTest;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class EdgesResourceTest extends GroundTest {
+public class EdgesResourceTest extends GroundResourceTest {
     @Test
     public void createEdgeVersion() throws GroundException {
         Node node = nodesResource.createNode("test");

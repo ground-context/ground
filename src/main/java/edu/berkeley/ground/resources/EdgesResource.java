@@ -2,9 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.Edge;
+import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.EdgeVersion;
-import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
@@ -20,10 +20,12 @@ import javax.ws.rs.core.MediaType;
 public class EdgesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EdgesResource.class);
 
-    private DBClient dbClient;
+    private EdgeFactory edgeFactory;
+    private EdgeVersionFactory edgeVersionFactory;
 
-    public EdgesResource(DBClient dbClient) {
-        this.dbClient = dbClient;
+    public EdgesResource(EdgeFactory edgeFactory, EdgeVersionFactory edgeVersionFactory) {
+        this.edgeFactory = edgeFactory;
+        this.edgeVersionFactory = edgeVersionFactory;
     }
 
     @GET
@@ -31,17 +33,7 @@ public class EdgesResource {
     @Path("/{name}")
     public Edge getEdge(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving edge " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Edge edge = Edge.retrieveFromDatabase(connection, name);
-
-            connection.commit();
-            return edge;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.edgeFactory.retrieveFromDatabase(name);
     }
 
     @GET
@@ -49,17 +41,7 @@ public class EdgesResource {
     @Path("/versions/{id}")
     public EdgeVersion getEdgeVersion(@PathParam("id") String id) throws GroundException {
         LOGGER.info("Retrieving edge version " + id + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            EdgeVersion edgeVersion = EdgeVersion.retrieveFromDatabase(connection, id);
-
-            connection.commit();
-            return edgeVersion;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.edgeVersionFactory.retrieveFromDatabase(id);
     }
 
     @POST
@@ -67,17 +49,7 @@ public class EdgesResource {
     @Path("/{name}")
     public Edge createEdge(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Creating edge " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Edge edge = Edge.create(connection, name);
-
-            connection.commit();
-            return edge;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.edgeFactory.create(name);
     }
 
     @POST
@@ -85,24 +57,13 @@ public class EdgesResource {
     @Path("/versions")
     public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion, @QueryParam("parent") @UnwrapValidatedValue NonEmptyStringParam parentId) throws GroundException {
         LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            EdgeVersion created =EdgeVersion.create(connection,
-                                                    edgeVersion.getTags(),
-                                                    edgeVersion.getStructureVersionId(),
-                                                    edgeVersion.getReference(),
-                                                    edgeVersion.getParameters(),
-                                                    edgeVersion.getEdgeId(),
-                                                    edgeVersion.getFromId(),
-                                                    edgeVersion.getToId(),
-                                                    parentId.get());
-
-            connection.commit();
-            return created;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.edgeVersionFactory.create(edgeVersion.getTags(),
+                                              edgeVersion.getStructureVersionId(),
+                                              edgeVersion.getReference(),
+                                              edgeVersion.getParameters(),
+                                              edgeVersion.getEdgeId(),
+                                              edgeVersion.getFromId(),
+                                              edgeVersion.getToId(),
+                                              parentId.get());
     }
 }

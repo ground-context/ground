@@ -5,7 +5,7 @@ create table Versions (
 );
 
 create table VersionSuccessors (
-    successor_id serial not null primary key,
+    successor_id varchar not null primary key,
     vfrom varchar not null references Versions(id),
     vto varchar not null references Versions(id),
     unique (vfrom, vto)
@@ -17,7 +17,7 @@ create table Items (
 
 create table VersionHistoryDAGs (
     item_id varchar not null references Items(id),
-    successor_id integer not null references VersionSuccessors(successor_id),
+    successor_id varchar not null references VersionSuccessors(successor_id),
     primary key(item_id, successor_id)
 );
 
@@ -33,7 +33,7 @@ create table Structures (
 
 create table StructureVersions (
     id varchar not null primary key references Versions(id),
-    structure_id varchar not null unique references Structures(item_id)
+    structure_id varchar not null references Structures(item_id)
 );
 
 create table StructureVersionItems (

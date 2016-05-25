@@ -2,9 +2,9 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.Node;
+import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.api.models.NodeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.slf4j.Logger;
@@ -20,10 +20,12 @@ import javax.ws.rs.core.MediaType;
 public class NodesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodesResource.class);
 
-    private DBClient dbClient;
+    private NodeFactory nodeFactory;
+    private NodeVersionFactory nodeVersionFactory;
 
-    public NodesResource(DBClient dbClient) {
-        this.dbClient = dbClient;
+    public NodesResource(NodeFactory nodeFactory, NodeVersionFactory nodeVersionFactory) {
+        this.nodeFactory = nodeFactory;
+        this.nodeVersionFactory = nodeVersionFactory;
     }
 
     @GET
@@ -31,17 +33,7 @@ public class NodesResource {
     @Path("/{name}")
     public Node getNode(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving node " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Node node =  Node.retrieveFromDatabase(connection, name);
-
-            connection.commit();
-            return node;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.nodeFactory.retrieveFromDatabase(name);
     }
 
     @GET
@@ -49,17 +41,7 @@ public class NodesResource {
     @Path("/versions/{id}")
     public NodeVersion getNodeVersion(@PathParam("id") String id) throws GroundException {
         LOGGER.info("Retrieving node version " + id + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            NodeVersion nodeVersion = NodeVersion.retrieveFromDatabase(connection, id);
-
-            connection.commit();
-            return nodeVersion;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.nodeVersionFactory.retrieveFromDatabase(id);
     }
 
     @POST
@@ -67,17 +49,7 @@ public class NodesResource {
     @Path("/{name}")
     public Node createNode(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Creating node " + name + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            Node node = Node.create(connection, name);
-
-            connection.commit();
-            return node;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.nodeFactory.create(name);
     }
 
     @POST
@@ -85,22 +57,11 @@ public class NodesResource {
     @Path("/versions")
     public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parent") NonEmptyStringParam parentId) throws GroundException {
         LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
-        GroundDBConnection connection = this.dbClient.getConnection();
-
-        try {
-            NodeVersion created = NodeVersion.create(connection,
-                                                     nodeVersion.getTags(),
-                                                     nodeVersion.getStructureVersionId(),
-                                                     nodeVersion.getReference(),
-                                                     nodeVersion.getParameters(),
-                                                     nodeVersion.getNodeId(),
-                                                     parentId.get());
-
-            connection.commit();
-            return created;
-        } catch (GroundException e) {
-            connection.abort();
-            throw e;
-        }
+        return this.nodeVersionFactory.create(nodeVersion.getTags(),
+                                              nodeVersion.getStructureVersionId(),
+                                              nodeVersion.getReference(),
+                                              nodeVersion.getParameters(),
+                                              nodeVersion.getNodeId(),
+                                              parentId.get());
     }
 }

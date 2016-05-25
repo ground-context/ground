@@ -2,7 +2,6 @@ package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.exceptions.GroundDBException;
 
-import java.sql.ResultSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,13 +11,9 @@ public interface DBClient {
 
     GroundDBConnection getConnection() throws GroundDBException;
 
-    interface GroundDBConnection {
-        void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException;
+    abstract class GroundDBConnection {
+        public abstract void commit() throws GroundDBException;
 
-        ResultSet equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException;
-
-        void commit() throws GroundDBException;
-
-        void abort() throws GroundDBException;
+        public abstract void abort() throws GroundDBException;
     }
 }
