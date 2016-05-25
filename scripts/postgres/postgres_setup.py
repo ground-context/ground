@@ -15,9 +15,6 @@ try:
     cursor.execute(open("drop_postgres.sql", 'r').read())
 except:
     print "Dropping tables failed."
-    conn.rollback()
-    conn.close()
-    sys.exit(1)
 
 print "Creating tables..."
 

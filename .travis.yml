@@ -1,3 +1,4 @@
+sudo: required
 language: java
 jdk: oraclejdk8
 script: mvn clean test
@@ -7,7 +8,11 @@ services:
     - cassandra
 
 before_script: 
+    - sudo pip install psycopg2
+    - sudo pip install cassandra-driver
     - createdb test
     - createuser test -d -s
     - |- 
         cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
+    - cd scripts/postgres && python2.7 postgres_setup.py test && cd ..
+    - cd scripts/cassandra && python2.7 cassandra_setup.py test && cd ..
