@@ -13,7 +13,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class PostgresTagFactory extends TagFactory {
-    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         PostgresConnection connection = (PostgresConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -32,6 +32,10 @@ public class PostgresTagFactory extends TagFactory {
             result.put(key, new Tag(id, key, value, type));
         } while (resultSet.next());
 
-        return result;
+        if (result.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(result);
+        }
     }
 }

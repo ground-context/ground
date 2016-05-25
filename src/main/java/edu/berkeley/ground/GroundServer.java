@@ -6,9 +6,11 @@ import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.TitanClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.PostgresFactories;
+import edu.berkeley.ground.util.TitanFactories;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -55,6 +57,10 @@ public class GroundServer extends Application<GroundServerConfiguration> {
                 setCassandraFactories(cassandraClient);
                 break;
 
+            case "titan":
+                TitanClient titanClient = new TitanClient(false);
+                setTitanFactories(titanClient);
+
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }
 
@@ -88,6 +94,21 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     private void setCassandraFactories(CassandraClient cassandraClient) {
         CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient);
+
+        edgeFactory = factoryGenerator.getEdgeFactory();
+        edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
+        graphFactory = factoryGenerator.getGraphFactory();
+        graphVersionFactory = factoryGenerator.getGraphVersionFactory();
+        lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
+        lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
+        nodeFactory = factoryGenerator.getNodeFactory();
+        nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
+        structureFactory = factoryGenerator.getStructureFactory();
+        structureVersionFactory = factoryGenerator.getStructureVersionFactory();
+    }
+
+    private void setTitanFactories(TitanClient titanClient) {
+        TitanFactories factoryGenerator = new TitanFactories(titanClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();

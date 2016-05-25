@@ -10,7 +10,7 @@ import java.util.Optional;
 public abstract class StructureVersionFactory {
     public abstract StructureVersion create(String structureId,
                                             Map<String, Type> attributes,
-                                            Optional<String> parentId) throws GroundException;
+                                            Optional<String> parentId) throws GroundException, GroundException;
 
     public abstract StructureVersion retrieveFromDatabase(String id) throws GroundException;
 

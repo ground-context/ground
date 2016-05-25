@@ -88,19 +88,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             }
         }
 
-        Map<String, Tag> tagsMap;
-        Optional<Map<String, Tag>> tags;
-
-        try {
-            tagsMap = this.tagFactory.retrieveFromDatabaseById(connection, id);
-            tags = Optional.of(tagsMap);
-        } catch (GroundException e) {
-            if (!e.getMessage().contains("No results found for query")) {
-                throw e;
-            } else {
-                tags = Optional.empty();
-            }
-        }
+        Optional<Map<String, Tag>> tags = tagFactory.retrieveFromDatabaseById(connection, id);
 
         Optional<String> reference = Optional.ofNullable(resultSet.getString(3));
         Optional<String> structureVersionId = Optional.ofNullable(resultSet.getString(2));
