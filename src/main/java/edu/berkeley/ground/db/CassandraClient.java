@@ -59,7 +59,11 @@ public class CassandraClient implements DBClient {
                 index++;
             }
 
-            LOGGER.info("Executing update: " + statement.toString() + ".");
+            LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+
+            if(insertValues.size() > 1) {
+                LOGGER.info("Size of insert values is: " + insertValues.size() + "; insert values[1] is " + insertValues.get(1).getValue() + "Value at first index is " + statement.getString(1));
+            }
 
             this.session.execute(statement);
         }
@@ -91,7 +95,7 @@ public class CassandraClient implements DBClient {
                 index++;
             }
 
-            LOGGER.info("Executing query: " + statement.toString() + ".");
+            LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
 
 
             ResultSet resultSet = this.session.execute(statement);
@@ -117,17 +121,23 @@ public class CassandraClient implements DBClient {
             case STRING:
                 if (value != null) {
                     statement.setString(index, (String) value);
+                } else {
+                    statement.setToNull(index);
                 }
 
                 break;
             case INTEGER:
                 if (value != null) {
                     statement.setInt(index, (Integer) value);
+                } else {
+                    statement.setToNull(index);
                 }
                 break;
             case BOOLEAN:
                 if (value != null) {
                     statement.setBool(index, (Boolean) value);
+                } else {
+                    statement.setToNull(index);
                 }
                 break;
         }

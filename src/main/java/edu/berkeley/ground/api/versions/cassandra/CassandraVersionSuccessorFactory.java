@@ -40,8 +40,8 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
 
         QueryResults resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
 
+        String fromId = resultSet.getString(1);
         String toId = resultSet.getString(2);
-        String fromId = resultSet.getString(3);
 
         return VersionSuccessorFactory.construct(dbId, toId, fromId);
     }

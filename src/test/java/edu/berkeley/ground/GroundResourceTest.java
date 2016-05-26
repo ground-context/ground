@@ -29,7 +29,7 @@ public class GroundResourceTest {
                 case "postgres": {
                     setBackingStore();
 
-                    Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py " + TEST_DB_NAME, null, new File("scripts/postgres/"));
+                    Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py test " + TEST_DB_NAME, null, new File("scripts/postgres/"));
                     p.waitFor();
 
                     break;

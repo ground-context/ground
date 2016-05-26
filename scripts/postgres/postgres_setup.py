@@ -1,25 +1,12 @@
-import psycopg2
-import sys
+import os, sys
 
-assert (len(sys.argv) == 2)
-dbname = sys.argv[1]
+assert (len(sys.argv) == 3)
+user = sys.argv[1]
+dbname = sys.argv[2]
 
-print ("Attempting to to connect...")
-conn = psycopg2.connect(database=dbname, user="ground", host="localhost", password="metadata")
 
-conn.autocommit = False
-cursor = conn.cursor()
-print ("Connection succeeded. Dropping tables...")
+delete_string = "psql -U " + str(user) + " -d " + str(dbname) + " -f drop_postgres.sql"
+create_string = "psql -U " + str(user) + " -d " + str(dbname) + " -f postgres.sql"
 
-try:
-    cursor.execute(open("drop_postgres.sql", 'r').read())
-except:
-    print "Dropping tables failed."
-
-print "Creating tables..."
-
-cursor.execute(open("postgres.sql", 'r').read())
-
-conn.commit()
-conn.close()
-print "Table creation succeeded."
+os.system(delete_string)
+os.system(create_string)
