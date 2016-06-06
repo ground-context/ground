@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.berkeley</groupId>
-    <artifactId>ground</artifactId>
+    <artifactId>ground-java</artifactId>
     <version>0.1-SNAPSHOT</version>
 
     <properties>
@@ -63,6 +63,14 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>9.4.1208</version>
+        </dependency>
+
+        <!-- http://mvnrepository.com/artifact/org.apache.hive/hive-metastore -->
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-metastore</artifactId>
+            <version>2.2.0-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
