@@ -133,6 +133,12 @@ public class PostgresClient implements DBClient {
                 throw new GroundDBException(e);
             }
         }
+
+
+        @Override
+        public void beginTransaction() throws GroundDBException {
+          // TODO Auto-generated method stub
+        }
     }
 
     private static void setValue(PreparedStatement preparedStatement, Object value, Type type, int index) throws SQLException {

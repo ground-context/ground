@@ -119,6 +119,11 @@ public class TitanClient implements DBClient {
         public void abort() throws GroundDBException {
             this.transaction.rollback();
         }
+
+        @Override
+        public void beginTransaction() throws GroundDBException {
+          // TODO Auto-generated method stub
+        }
     }
 
     @VisibleForTesting

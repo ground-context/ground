@@ -114,6 +114,11 @@ public class CassandraClient implements DBClient {
         public void abort() throws GroundDBException {
             // do nothing; Cassandra doesn't have txns
         }
+
+        @Override
+        public void beginTransaction() throws GroundDBException {
+          //do nothing; Cassandra doesn't have txns 
+        }
     }
 
     private static void setValue(BoundStatement statement, Object value, Type type, int index) {
