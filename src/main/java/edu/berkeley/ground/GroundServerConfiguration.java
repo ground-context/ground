@@ -26,7 +26,6 @@ public class GroundServerConfiguration extends Configuration {
     @NotEmpty
     private String dbPassword;
 
-    @NotNull
     private EsConfiguration esConfiguration;
 
     @JsonProperty

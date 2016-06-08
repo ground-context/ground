@@ -64,19 +64,10 @@ public class GroundResourceTest {
     }
 
     private void setBackingStore() {
-        final ManagedEsClient esClient;
-        try {
-            esClient = new ManagedEsClient(TransportClient.builder().build().addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300)));
-        } catch (Exception e) {
-            throw new RuntimeException("FATAL: " + e.getMessage());
-        }
-
-        ElasticSearchClient elasticSearchClient = new ElasticSearchClient(esClient);
-
         switch (BACKING_STORE_TYPE) {
             case "postgres": {
                 PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "test", "");
-                PostgresFactories factoryGenerator = new PostgresFactories(dbClient, elasticSearchClient);
+                PostgresFactories factoryGenerator = new PostgresFactories(dbClient, null);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
@@ -88,7 +79,7 @@ public class GroundResourceTest {
 
             case "cassandra": {
                 CassandraClient dbClient = new CassandraClient("localhost", 9160, "test", "test", "");
-                CassandraFactories factoryGenerator = new CassandraFactories(dbClient, elasticSearchClient);
+                CassandraFactories factoryGenerator = new CassandraFactories(dbClient, null);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
@@ -100,7 +91,7 @@ public class GroundResourceTest {
 
             case "titan": {
                 TitanClient dbClient = new TitanClient(false);
-                TitanFactories factoryGenerator = new TitanFactories(dbClient, elasticSearchClient);
+                TitanFactories factoryGenerator = new TitanFactories(dbClient, null);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());

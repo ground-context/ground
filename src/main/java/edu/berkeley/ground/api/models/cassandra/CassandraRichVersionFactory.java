@@ -63,7 +63,9 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
                 connection.insert("Tags", tagInsertion);
             }
 
-            this.elasticSearchClient.indexTags(id, tags.get());
+            if (this.elasticSearchClient != null) {
+                this.elasticSearchClient.indexTags(id, tags.get());
+            }
         }
     }
 

@@ -77,7 +77,9 @@ public class TitanRichVersionFactory extends RichVersionFactory {
                 connection.addEdge("TagConnection", versionVertex, tagVertex, new ArrayList<>());
             }
 
-            elasticSearchClient.indexTags(id, tags.get());
+            if (this.elasticSearchClient != null) {
+                elasticSearchClient.indexTags(id, tags.get());
+            }
         }
     }
 

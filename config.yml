@@ -5,6 +5,6 @@ dbPort: 5432
 dbUser: ground
 dbPassword: metadata
 
-esConfiguration: 
-    nodeClient: false
-    servers: ["localhost:9300", ]
+# esConfiguration: 
+#    nodeClient: false
+#    servers: ["localhost:9300", ]

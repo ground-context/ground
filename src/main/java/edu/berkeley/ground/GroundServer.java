@@ -44,10 +44,15 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) {
-        final ManagedEsClient esClient = new ManagedEsClient(configuration.getEsConfiguration());
-        environment.lifecycle().manage(esClient);
+        ElasticSearchClient elasticSearchClient = null;
 
-        ElasticSearchClient elasticSearchClient = new ElasticSearchClient(esClient);
+        if (configuration.getEsConfiguration() != null) {
+            final ManagedEsClient esClient = new ManagedEsClient(configuration.getEsConfiguration());
+            environment.lifecycle().manage(esClient);
+
+            elasticSearchClient = new ElasticSearchClient(esClient);
+        }
+
 
         switch (configuration.getDbType()) {
             case "postgres":
