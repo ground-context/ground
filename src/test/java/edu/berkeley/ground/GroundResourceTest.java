@@ -5,11 +5,16 @@ import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.TitanClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
+import edu.berkeley.ground.util.ElasticSearchClient;
 import edu.berkeley.ground.util.PostgresFactories;
 import edu.berkeley.ground.util.TitanFactories;
+import io.dropwizard.elasticsearch.managed.ManagedEsClient;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.junit.Before;
 
 import java.io.File;
+import java.net.InetAddress;
 
 
 public class GroundResourceTest {
@@ -59,10 +64,19 @@ public class GroundResourceTest {
     }
 
     private void setBackingStore() {
+        final ManagedEsClient esClient;
+        try {
+            esClient = new ManagedEsClient(TransportClient.builder().build().addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300)));
+        } catch (Exception e) {
+            throw new RuntimeException("FATAL: " + e.getMessage());
+        }
+
+        ElasticSearchClient elasticSearchClient = new ElasticSearchClient(esClient);
+
         switch (BACKING_STORE_TYPE) {
             case "postgres": {
                 PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "test", "");
-                PostgresFactories factoryGenerator = new PostgresFactories(dbClient);
+                PostgresFactories factoryGenerator = new PostgresFactories(dbClient, elasticSearchClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
@@ -74,7 +88,7 @@ public class GroundResourceTest {
 
             case "cassandra": {
                 CassandraClient dbClient = new CassandraClient("localhost", 9160, "test", "test", "");
-                CassandraFactories factoryGenerator = new CassandraFactories(dbClient);
+                CassandraFactories factoryGenerator = new CassandraFactories(dbClient, elasticSearchClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
@@ -86,7 +100,7 @@ public class GroundResourceTest {
 
             case "titan": {
                 TitanClient dbClient = new TitanClient(false);
-                TitanFactories factoryGenerator = new TitanFactories(dbClient);
+                TitanFactories factoryGenerator = new TitanFactories(dbClient, elasticSearchClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());

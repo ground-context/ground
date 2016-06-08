@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ground-metadata/ground.svg?branch=master)](https://travis-ci.org/ground-metadata/ground)
+[![Build Status](https://travis-ci.org/ground-context/ground.svg?branch=master)](https://travis-ci.org/ground-context/ground)
 
 # Ground
 

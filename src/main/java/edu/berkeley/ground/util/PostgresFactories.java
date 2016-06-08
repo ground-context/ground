@@ -25,7 +25,7 @@ public class PostgresFactories {
     private PostgresLineageEdgeFactory lineageEdgeFactory;
     private PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-    public PostgresFactories(PostgresClient postgresClient) {
+    public PostgresFactories(PostgresClient postgresClient, ElasticSearchClient elasticSearchClient) {
         PostgresVersionFactory versionFactory = new PostgresVersionFactory();
         PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory();
         PostgresVersionHistoryDAGFactory versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
@@ -34,7 +34,7 @@ public class PostgresFactories {
         this.structureFactory = new PostgresStructureFactory(itemFactory, postgresClient);
         this.structureVersionFactory = new PostgresStructureVersionFactory(this.structureFactory, versionFactory, postgresClient);
         PostgresTagFactory tagFactory = new PostgresTagFactory();
-        PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
+        PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(versionFactory, structureVersionFactory, tagFactory, elasticSearchClient);
         this.edgeFactory = new PostgresEdgeFactory(itemFactory, postgresClient);
         this.edgeVersionFactory = new PostgresEdgeVersionFactory(this.edgeFactory, richVersionFactory, postgresClient);
         this.graphFactory = new PostgresGraphFactory(itemFactory, postgresClient);

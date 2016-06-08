@@ -2,6 +2,7 @@ package edu.berkeley.ground;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
+import io.dropwizard.elasticsearch.config.EsConfiguration;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
@@ -24,6 +25,9 @@ public class GroundServerConfiguration extends Configuration {
 
     @NotEmpty
     private String dbPassword;
+
+    @NotNull
+    private EsConfiguration esConfiguration;
 
     @JsonProperty
     public String getDbType() {
@@ -83,5 +87,15 @@ public class GroundServerConfiguration extends Configuration {
     @JsonProperty
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    @JsonProperty
+    public EsConfiguration getEsConfiguration() {
+        return this.esConfiguration;
+    }
+
+    @JsonProperty
+    public void setEsConfiguration(EsConfiguration esConfiguration) {
+        this.esConfiguration = esConfiguration;
     }
 }

@@ -14,7 +14,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dropwizard version -->
-        <dropwizard.version>1.0.0-rc2</dropwizard.version>
+        <dropwizard.version>1.0.0-rc3</dropwizard.version>
 
         <!-- Cassandra version -->
         <cassandra.version>3.0.0</cassandra.version>
@@ -45,6 +45,16 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>19.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -110,8 +120,8 @@
             <artifactId>titan-all</artifactId>
             <version>${titan.version}</version>
 
-            <!-- Exclude transitive dependencies that break Dropwizard -->
             <exclusions>
+                <!-- Exclude transitive dependencies that break Dropwizard -->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -132,7 +142,31 @@
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-json</artifactId>
+                </exclusion>
+
+                <!-- Exclude Lucene version that breaks Elasticsearch -->
+                <exclusion>
+                    <groupId>com.thinkaurelius.titan</groupId>
+                    <artifactId>titan-lucene</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard.modules</groupId>
+            <artifactId>dropwizard-elasticsearch</artifactId>
+            <version>1.0.0-rc2-1</version>
         </dependency>
 
         <dependency>

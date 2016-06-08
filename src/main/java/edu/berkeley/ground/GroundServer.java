@@ -8,15 +8,14 @@ import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.TitanClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
+import edu.berkeley.ground.util.ElasticSearchClient;
 import edu.berkeley.ground.util.PostgresFactories;
 import edu.berkeley.ground.util.TitanFactories;
 import io.dropwizard.Application;
+import io.dropwizard.elasticsearch.managed.ManagedEsClient;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-// TODO: Clean up imports
-// TODO: Check Logger classes at creation match actual classes
-// TODO: Check formatting in factories
 public class GroundServer extends Application<GroundServerConfiguration> {
     private EdgeFactory edgeFactory;
     private EdgeVersionFactory edgeVersionFactory;
@@ -45,20 +44,25 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) {
+        final ManagedEsClient esClient = new ManagedEsClient(configuration.getEsConfiguration());
+        environment.lifecycle().manage(esClient);
+
+        ElasticSearchClient elasticSearchClient = new ElasticSearchClient(esClient);
+
         switch (configuration.getDbType()) {
             case "postgres":
                 PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-                setPostgresFactories(postgresClient);
+                setPostgresFactories(postgresClient, elasticSearchClient);
                 break;
 
             case "cassandra":
                 CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-                setCassandraFactories(cassandraClient);
+                setCassandraFactories(cassandraClient, elasticSearchClient);
                 break;
 
             case "titan":
                 TitanClient titanClient = new TitanClient(false);
-                setTitanFactories(titanClient);
+                setTitanFactories(titanClient, elasticSearchClient);
 
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }
@@ -76,8 +80,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         environment.jersey().register(structuresResource);
     }
 
-    private void setPostgresFactories(PostgresClient postgresClient) {
-        PostgresFactories factoryGenerator = new PostgresFactories(postgresClient);
+    private void setPostgresFactories(PostgresClient postgresClient, ElasticSearchClient elasticSearchClient) {
+        PostgresFactories factoryGenerator = new PostgresFactories(postgresClient, elasticSearchClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
@@ -91,8 +95,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 
-    private void setCassandraFactories(CassandraClient cassandraClient) {
-        CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient);
+    private void setCassandraFactories(CassandraClient cassandraClient, ElasticSearchClient elasticSearchClient) {
+        CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient, elasticSearchClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
@@ -106,8 +110,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 
-    private void setTitanFactories(TitanClient titanClient) {
-        TitanFactories factoryGenerator = new TitanFactories(titanClient);
+    private void setTitanFactories(TitanClient titanClient, ElasticSearchClient elasticSearchClient) {
+        TitanFactories factoryGenerator = new TitanFactories(titanClient, elasticSearchClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();

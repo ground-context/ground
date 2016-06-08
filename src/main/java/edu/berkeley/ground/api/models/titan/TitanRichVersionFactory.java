@@ -10,16 +10,19 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.TitanClient.TitanConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.ElasticSearchClient;
 
 import java.util.*;
 
 public class TitanRichVersionFactory extends RichVersionFactory {
     private TitanStructureVersionFactory structureVersionFactory;
     private TitanTagFactory tagFactory;
+    private ElasticSearchClient elasticSearchClient;
 
-    public TitanRichVersionFactory(TitanStructureVersionFactory structureVersionFactory, TitanTagFactory tagFactory) {
+    public TitanRichVersionFactory(TitanStructureVersionFactory structureVersionFactory, TitanTagFactory tagFactory, ElasticSearchClient elasticSearchClient) {
         this.structureVersionFactory = structureVersionFactory;
         this.tagFactory = tagFactory;
+        this.elasticSearchClient = elasticSearchClient;
     }
 
     public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
@@ -73,6 +76,8 @@ public class TitanRichVersionFactory extends RichVersionFactory {
                 TitanVertex tagVertex = connection.addVertex("Tag", tagInsertion);
                 connection.addEdge("TagConnection", versionVertex, tagVertex, new ArrayList<>());
             }
+
+            elasticSearchClient.indexTags(id, tags.get());
         }
     }
 

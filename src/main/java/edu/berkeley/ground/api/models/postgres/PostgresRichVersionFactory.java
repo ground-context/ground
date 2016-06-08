@@ -12,6 +12,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.ElasticSearchClient;
 
 import java.util.*;
 
@@ -19,14 +20,17 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     private PostgresVersionFactory versionFactory;
     private PostgresStructureVersionFactory structureVersionFactory;
     private PostgresTagFactory tagFactory;
+    private ElasticSearchClient elasticSearchClient;
 
     public PostgresRichVersionFactory(PostgresVersionFactory versionFactory,
                                       PostgresStructureVersionFactory structureVersionFactory,
-                                      PostgresTagFactory tagFactory) {
+                                      PostgresTagFactory tagFactory,
+                                      ElasticSearchClient elasticSearchClient) {
 
         this.versionFactory = versionFactory;
         this.structureVersionFactory = structureVersionFactory;
         this.tagFactory = tagFactory;
+        this.elasticSearchClient = elasticSearchClient;
     }
 
     public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
@@ -58,6 +62,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
                 connection.insert("Tags", tagInsertion);
             }
+
+            this.elasticSearchClient.indexTags(id, tags.get());
         }
     }
 

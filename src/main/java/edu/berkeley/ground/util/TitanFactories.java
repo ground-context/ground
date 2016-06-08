@@ -24,7 +24,7 @@ public class TitanFactories {
     private TitanLineageEdgeFactory lineageEdgeFactory;
     private TitanLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-    public TitanFactories(TitanClient cassandraClient) {
+    public TitanFactories(TitanClient cassandraClient, ElasticSearchClient elasticSearchClient) {
         TitanVersionSuccessorFactory versionSuccessorFactory = new TitanVersionSuccessorFactory();
         TitanVersionHistoryDAGFactory versionHistoryDAGFactory = new TitanVersionHistoryDAGFactory(versionSuccessorFactory);
         TitanItemFactory itemFactory = new TitanItemFactory(versionHistoryDAGFactory);
@@ -32,7 +32,7 @@ public class TitanFactories {
         this.structureFactory = new TitanStructureFactory(itemFactory, cassandraClient);
         this.structureVersionFactory = new TitanStructureVersionFactory(this.structureFactory, cassandraClient);
         TitanTagFactory tagFactory = new TitanTagFactory();
-        TitanRichVersionFactory richVersionFactory = new TitanRichVersionFactory(structureVersionFactory, tagFactory);
+        TitanRichVersionFactory richVersionFactory = new TitanRichVersionFactory(structureVersionFactory, tagFactory, elasticSearchClient);
         this.edgeFactory = new TitanEdgeFactory(itemFactory, cassandraClient);
         this.edgeVersionFactory = new TitanEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient);
         this.graphFactory = new TitanGraphFactory(itemFactory, cassandraClient);
