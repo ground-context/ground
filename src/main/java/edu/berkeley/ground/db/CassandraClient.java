@@ -25,6 +25,7 @@ public class CassandraClient implements DBClient {
         this.keyspace = dbName;
     }
 
+    @Override
     public CassandraConnection getConnection() throws GroundDBException {
         return new CassandraConnection(cluster.connect(this.keyspace));
     }

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.hadoop.conf.Configuration;
+
 public interface DBClient {
   List<String> SELECT_STAR = Stream.of("*").collect(Collectors.toList());
 
@@ -17,6 +19,9 @@ public interface DBClient {
     public abstract void abort() throws GroundDBException;
 
     public abstract void beginTransaction() throws GroundDBException;
+
+    public abstract void setConf(Configuration conf);
+
   }
 
 }

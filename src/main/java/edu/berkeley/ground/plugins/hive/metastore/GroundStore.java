@@ -39,16 +39,19 @@ import org.apache.hadoop.hive.metastore.api.Type;
 import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.metastore.api.UnknownPartitionException;
 import org.apache.hadoop.hive.metastore.api.UnknownTableException;
-import org.apache.hadoop.hive.metastore.hbase.HBaseReadWrite;
-import org.apache.hadoop.hive.metastore.hbase.HBaseStore;
 import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.berkeley.ground.api.models.Graph;
+import edu.berkeley.ground.api.models.GraphFactory;
+import edu.berkeley.ground.exceptions.GroundException;
+import scala.xml.factory.NodeFactory;
+
 public class GroundStore implements RawStore {
 
-  static final private Logger LOG = LoggerFactory.getLogger(HBaseStore.class.getName());
+  static final private Logger LOG = LoggerFactory.getLogger(GroundStore.class.getName());
 
   // Do not access this directly, call getHBase to make sure it is initialized.
   private GroundReadWrite ground = null;
@@ -62,7 +65,7 @@ public class GroundStore implements RawStore {
   }
 
   @Override
-  public void setConf(Configuration arg0) {
+  public void setConf(Configuration config) {
     // TODO Auto-generated method stub
 
   }
@@ -98,14 +101,23 @@ public class GroundStore implements RawStore {
 
   @Override
   public void rollbackTransaction() {
-    // TODO Auto-generated method stub
-
+    try {
+      //need a better one
+      getGround().close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+    }
   }
 
   @Override
-  public void createDatabase(Database db) throws InvalidObjectException, MetaException {
-    // TODO Auto-generated method stub
-
+  public void createDatabase(Database db)
+      throws InvalidObjectException, MetaException {
+    GraphFactory graph = ground.getGraphFactory();
+    try {
+      Graph g = graph.create(db.getName());
+    } catch (GroundException e) {
+    }
+    
   }
 
   @Override
@@ -911,7 +923,8 @@ public class GroundStore implements RawStore {
   }
 
   @Override
-  public void addPrimaryKeys(List<SQLPrimaryKey> pks) throws InvalidObjectException, MetaException {
+  public void addPrimaryKeys(List<SQLPrimaryKey> pks)
+      throws InvalidObjectException, MetaException {
     // TODO Auto-generated method stub
 
   }
