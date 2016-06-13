@@ -121,6 +121,7 @@ public class PostgresClient implements DBClient {
         public void commit() throws GroundDBException {
             try {
                 this.connection.commit();
+                this.connection.close();
             } catch(SQLException e) {
                 throw new GroundDBException(e);
             }
@@ -129,6 +130,7 @@ public class PostgresClient implements DBClient {
         public void abort() throws GroundDBException {
             try {
                 this.connection.rollback();
+                this.connection.close();
             } catch (SQLException e) {
                 throw new GroundDBException(e);
             }
