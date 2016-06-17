@@ -11,7 +11,7 @@ before_script:
     - cqlsh -e "SHOW VERSION;"
     - |- 
         cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
-    - cd scripts/postgres && python2.7 postgres_setup.py test test && cd ../..
-    - cd scripts/cassandra && python2.7 cassandra_setup.py test && cd ../..
+    - cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
+    - cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../../..
 
 script: mvn clean test

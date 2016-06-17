@@ -1,4 +1,7 @@
 dependency-reduced-pom.xml
 .idea/
+.settings/
 target/
 ground.iml
+.classpath
+.project
