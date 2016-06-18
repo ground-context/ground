@@ -1,60 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>edu.berkeley</groupId>
-	<artifactId>ground</artifactId>
-	<version>0.1-SNAPSHOT</version>
+    <groupId>edu.berkeley</groupId>
+    <artifactId>ground</artifactId>
+    <version>0.1-SNAPSHOT</version>
 
-	<name>Ground</name>
-	<url>http://www.ground-metadata.org</url>
-	<prerequisites>
-		<maven>3.3.9</maven>
-	</prerequisites>
+    <name>Ground</name>
+    <url>http://www.ground-metadata.org</url>
+    <prerequisites>
+        <maven>3.3.9</maven>
+    </prerequisites>
 
-	<properties>
-		<!-- use UTF-8 for everything -->
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <properties>
+        <!-- use UTF-8 for everything -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<!-- Dropwizard version -->
-		<dropwizard.version>1.0.0-rc3</dropwizard.version>
+        <!-- Dropwizard version -->
+        <dropwizard.version>1.0.0-rc3</dropwizard.version>
 
-		<!-- Cassandra version -->
-		<cassandra.version>3.0.0</cassandra.version>
+        <!-- Cassandra version -->
+        <cassandra.version>3.0.0</cassandra.version>
 
-		<!-- Titan version -->
-		<titan.version>1.0.0</titan.version>
-		<hive.version>2.2.0-SNAPSHOT</hive.version>
-	</properties>
+        <!-- Titan version -->
+        <titan.version>1.0.0</titan.version>
+        <hive.version>2.2.0-SNAPSHOT</hive.version>
+    </properties>
 
-	<repositories>
-		<!-- the Maven Central Repository -->
-		<repository>
-			<id>central</id>
-			<name>Maven Repository Switchboard</name>
-			<layout>default</layout>
-			<url>http://repo1.maven.org/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
+    <repositories>
+        <!-- the Maven Central Repository -->
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <layout>default</layout>
+            <url>http://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
 
-		<repository>
-			<id>mvn</id>
-			<name>Maven Repository</name>
-			<layout>default</layout>
-			<url>http://mvnrepository.com/artifact</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
+        <repository>
+            <id>mvn</id>
+            <name>Maven Repository</name>
+            <layout>default</layout>
+            <url>http://mvnrepository.com/artifact</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
-	<packaging>pom</packaging>
-	<modules>
-		<module>ground-core</module>
-		<module>plugins/hive-plugin</module>
-	</modules>
+    <packaging>pom</packaging>
+    <modules>
+        <module>ground-core</module>
+        <module>plugins/hive-plugin</module>
+    </modules>
 </project>
