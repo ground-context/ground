@@ -93,4 +93,12 @@ public class TitanNodeVersionFactory extends NodeVersionFactory {
             throw e;
         }
     }
+
+    public List<String> getTransitiveClosure(String nodeVersionId) throws GroundException {
+        TitanConnection connection = this.dbClient.getConnection();
+        List<String> result = connection.transitiveClosure(nodeVersionId);
+
+        connection.commit();
+        return result;
+    }
 }

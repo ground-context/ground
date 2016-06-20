@@ -2,10 +2,12 @@ package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresClient implements DBClient {
@@ -115,6 +117,30 @@ public class PostgresClient implements DBClient {
                 LOGGER.error("Unexpected error in database query: " + e.getMessage());
 
                 throw new GroundDBException(e.getMessage());
+            }
+        }
+
+        public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
+            try {
+                PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
+                                                    "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
+                                                    "    union\n" +
+                                                    "    (select p.vfrom, ev.endpoint_two\n" +
+                                                    "    from paths p, edgeversions ev\n" +
+                                                    "    where p.vto = ev.endpoint_one)\n" +
+                                                    ") select * from paths;");
+                statement.setString(1, nodeVersionId);
+
+                ResultSet resultSet = statement.executeQuery();
+
+                List<String> result = new ArrayList<>();
+                while (resultSet.next()) {
+                    result.add(resultSet.getString(2));
+                }
+
+                return result;
+            } catch (SQLException e) {
+                throw new GroundException(e);
             }
         }
 

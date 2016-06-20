@@ -1,6 +1,7 @@
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,5 +16,7 @@ public interface DBClient {
         public abstract void commit() throws GroundDBException;
 
         public abstract void abort() throws GroundDBException;
+
+        public abstract List<String> transitiveClosure(String nodeVersionId) throws GroundException;
     }
 }

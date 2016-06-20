@@ -92,4 +92,12 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
             throw e;
         }
     }
+
+    public List<String> getTransitiveClosure(String nodeVersionId) throws GroundException {
+        PostgresConnection connection = this.dbClient.getConnection();
+        List<String> result = connection.transitiveClosure(nodeVersionId);
+
+        connection.commit();
+        return result;
+    }
 }

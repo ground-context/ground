@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/nodes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -63,5 +64,14 @@ public class NodesResource {
                                               nodeVersion.getParameters(),
                                               nodeVersion.getNodeId(),
                                               parentId.get());
+    }
+
+    @GET
+    @Timed
+    @Path("/closure/{id}")
+    public List<String> transitiveClosure(@PathParam("id") String nodeVersionId) throws GroundException {
+        LOGGER.info("Running transitive closure on node version  " + nodeVersionId + ".");
+
+        return this.nodeVersionFactory.getTransitiveClosure(nodeVersionId);
     }
 }

@@ -3,10 +3,13 @@ package edu.berkeley.ground.db;
 import com.datastax.driver.core.*;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.JGraphTUtils;
+import org.jgrapht.*;
+import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public class CassandraClient implements DBClient {
@@ -105,6 +108,18 @@ public class CassandraClient implements DBClient {
             }
 
             return new CassandraResults(resultSet);
+        }
+
+        public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
+            ResultSet resultSet = this.session.execute("select endpoint_one, endpoint_two from edgeversions;");
+            DirectedGraph<String, DefaultEdge> graph = JGraphTUtils.createGraph();
+
+            for (Row r : resultSet.all()) {
+                JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
+            }
+
+            return JGraphTUtils.iterate(graph, nodeVersionId);
+
         }
 
         public void commit() throws GroundDBException {

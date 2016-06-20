@@ -95,4 +95,12 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             throw e;
         }
     }
+
+    public List<String> getTransitiveClosure(String nodeVersionId) throws GroundException {
+        CassandraConnection connection = this.dbClient.getConnection();
+        List<String> result = connection.transitiveClosure(nodeVersionId);
+
+        connection.commit();
+        return result;
+    }
 }

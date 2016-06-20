@@ -2,6 +2,7 @@ package edu.berkeley.ground.api.models;
 
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -14,6 +15,8 @@ public abstract class NodeVersionFactory {
                                        Optional<String> parentId) throws GroundException;
 
     public abstract NodeVersion retrieveFromDatabase(String id) throws GroundException;
+
+    public abstract List<String> getTransitiveClosure(String nodeVersionId) throws GroundException;
 
     public static NodeVersion construct(String id,
                                         Optional<Map<String, Tag>> tags,

@@ -7,11 +7,18 @@
     <artifactId>ground</artifactId>
     <version>0.1-SNAPSHOT</version>
 
+    <modules>
+        <module>ground-core</module>
+        <module>plugins/hive-plugin</module>
+    </modules>
+
     <name>Ground</name>
     <url>http://www.ground-metadata.org</url>
     <prerequisites>
         <maven>3.3.9</maven>
     </prerequisites>
+
+    <packaging>pom</packaging>
 
     <properties>
         <!-- use UTF-8 for everything -->
@@ -26,7 +33,12 @@
 
         <!-- Titan version -->
         <titan.version>1.0.0</titan.version>
+
+        <!-- Hive version -->
         <hive.version>2.2.0-SNAPSHOT</hive.version>
+
+        <!-- JGraphT version -->
+        <jgrapht.version>0.9.2</jgrapht.version>
     </properties>
 
     <repositories>
@@ -51,10 +63,4 @@
             </snapshots>
         </repository>
     </repositories>
-
-    <packaging>pom</packaging>
-    <modules>
-        <module>ground-core</module>
-        <module>plugins/hive-plugin</module>
-    </modules>
 </project>
