@@ -13,7 +13,7 @@
     </modules>
 
     <name>Ground</name>
-    <url>http://www.ground-metadata.org</url>
+    <url>http://www.ground-context.org</url>
     <prerequisites>
         <maven>3.3.9</maven>
     </prerequisites>
