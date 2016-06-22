@@ -1,16 +1,16 @@
-package edu.berkeley.ground.api.models.titan;
+package edu.berkeley.ground.api.models.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,14 +20,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class TitanEdgeVersionFactory extends EdgeVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanEdgeVersionFactory.class);
-    private TitanClient dbClient;
+public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinEdgeVersionFactory.class);
+    private GremlinClient dbClient;
 
-    private TitanEdgeFactory edgeFactory;
-    private TitanRichVersionFactory richVersionFactory;
+    private GremlinEdgeFactory edgeFactory;
+    private GremlinRichVersionFactory richVersionFactory;
 
-    public TitanEdgeVersionFactory(TitanEdgeFactory edgeFactory, TitanRichVersionFactory richVersionFactory, TitanClient dbClient) {
+    public GremlinEdgeVersionFactory(GremlinEdgeFactory edgeFactory, GremlinRichVersionFactory richVersionFactory, GremlinClient dbClient) {
         this.dbClient = dbClient;
         this.edgeFactory = edgeFactory;
         this.richVersionFactory = richVersionFactory;
@@ -42,7 +42,7 @@ public class TitanEdgeVersionFactory extends EdgeVersionFactory {
                               String toId,
                               Optional<String> parentId) throws GroundException {
 
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             String id = IdGenerator.generateId(edgeId);
@@ -58,16 +58,16 @@ public class TitanEdgeVersionFactory extends EdgeVersionFactory {
             insertions.add(new DbDataContainer("endpoint_one", Type.STRING, fromId));
             insertions.add(new DbDataContainer("endpoint_two", Type.STRING, toId));
 
-            TitanVertex vertex = connection.addVertex("EdgeVersion", insertions);
+            Vertex vertex = connection.addVertex("EdgeVersion", insertions);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", Type.STRING, fromId));
-            TitanVertex fromVertex = connection.getVertex(predicates);
+            Vertex fromVertex = connection.getVertex(predicates);
 
             predicates.clear();
             predicates.add(new DbDataContainer("id", Type.STRING, toId));
-            TitanVertex toVertex = connection.getVertex(predicates);
+            Vertex toVertex = connection.getVertex(predicates);
 
             predicates.clear();
             connection.addEdge("EdgeVersionConnection", fromVertex, vertex, predicates);
@@ -86,7 +86,7 @@ public class TitanEdgeVersionFactory extends EdgeVersionFactory {
     }
 
     public EdgeVersion retrieveFromDatabase(String id) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
@@ -94,7 +94,7 @@ public class TitanEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", Type.STRING, id));
 
-            TitanVertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = connection.getVertex(predicates);
             String edgeId = versionVertex.property("edge_id").value().toString();
             String fromId = versionVertex.property("endpoint_one").value().toString();
             String toId = versionVertex.property("endpoint_two").value().toString();

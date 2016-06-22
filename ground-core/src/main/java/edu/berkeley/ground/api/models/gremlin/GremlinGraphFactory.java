@@ -1,15 +1,15 @@
-package edu.berkeley.ground.api.usage.titan;
+package edu.berkeley.ground.api.models.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
-import edu.berkeley.ground.api.usage.LineageEdge;
-import edu.berkeley.ground.api.usage.LineageEdgeFactory;
+import edu.berkeley.ground.api.models.Graph;
+import edu.berkeley.ground.api.models.GraphFactory;
 import edu.berkeley.ground.api.versions.Type;
-import edu.berkeley.ground.api.versions.titan.TitanItemFactory;
+import edu.berkeley.ground.api.versions.gremlin.GremlinItemFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,35 +17,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class TitanLineageEdgeFactory extends LineageEdgeFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanLineageEdgeFactory.class);
-    private TitanClient dbClient;
+public class GremlinGraphFactory extends GraphFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinGraphFactory.class);
+    private GremlinClient dbClient;
 
-    private TitanItemFactory itemFactory;
+    private GremlinItemFactory itemFactory;
 
-    public TitanLineageEdgeFactory(TitanItemFactory itemFactory, TitanClient dbClient) {
+    public GremlinGraphFactory(GremlinItemFactory itemFactory, GremlinClient dbClient) {
         this.dbClient = dbClient;
         this.itemFactory = itemFactory;
     }
 
-    public LineageEdge create(String name) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+    public Graph create(String name) throws GroundException {
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
-            String uniqueId = "LineageEdges." + name;
-
+            String uniqueId = "Graphs." + name;
             this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("name", Type.STRING, name));
             insertions.add(new DbDataContainer("id", Type.STRING, uniqueId));
 
-            connection.addVertex("LineageEdges", insertions);
+            connection.addVertex("Graph", insertions);
 
             connection.commit();
-            LOGGER.info("Created lineage edge " + name + ".");
+            LOGGER.info("Created graph " + name + ".");
 
-            return LineageEdgeFactory.construct(uniqueId, name);
+            return GraphFactory.construct(uniqueId, name);
         } catch (GroundException e) {
             connection.abort();
 
@@ -53,19 +52,20 @@ public class TitanLineageEdgeFactory extends LineageEdgeFactory {
         }
     }
 
-    public LineageEdge retrieveFromDatabase(String name) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+    public Graph retrieveFromDatabase(String name) throws GroundException {
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", Type.STRING, name));
-            TitanVertex vertex = connection.getVertex(predicates);
+
+            Vertex vertex = connection.getVertex(predicates);
             String id = vertex.property("id").value().toString();
 
             connection.commit();
-            LOGGER.info("Retrieved lineage edge " + name + ".");
+            LOGGER.info("Retrieved graph " + name + ".");
 
-            return LineageEdgeFactory.construct(id, name);
+            return GraphFactory.construct(id, name);
         } catch (GroundException e) {
             connection.abort();
 

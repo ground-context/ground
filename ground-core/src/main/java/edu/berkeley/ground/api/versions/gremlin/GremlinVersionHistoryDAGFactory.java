@@ -1,20 +1,20 @@
-package edu.berkeley.ground.api.versions.titan;
+package edu.berkeley.ground.api.versions.gremlin;
 
-import com.thinkaurelius.titan.core.TitanEdge;
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TitanVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
-    private TitanVersionSuccessorFactory versionSuccessorFactory;
+public class GremlinVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
+    private GremlinVersionSuccessorFactory versionSuccessorFactory;
 
-    public TitanVersionHistoryDAGFactory(TitanVersionSuccessorFactory versionSuccessorFactory) {
+    public GremlinVersionHistoryDAGFactory(GremlinVersionSuccessorFactory versionSuccessorFactory) {
         this.versionSuccessorFactory = versionSuccessorFactory;
     }
 
@@ -23,17 +23,17 @@ public class TitanVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     }
 
     public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String itemId) throws GroundException {
-        TitanConnection connection = (TitanConnection) connectionPointer;
+        GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, itemId));
 
-        TitanVertex itemVertex = connection.getVertex(predicates);
-        List<TitanEdge> titanEdges = connection.getDescendantEdgesWithLabel(itemVertex, "VersionSuccessor");
+        Vertex itemVertex = connection.getVertex(predicates);
+        List<Edge> titanEdges = connection.getDescendantEdgesWithLabel(itemVertex, "VersionSuccessor");
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
 
-        for (TitanEdge titanEdge : titanEdges) {
+        for (Edge titanEdge : titanEdges) {
             edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, (String) titanEdge.property("successor_id").value()));
         }
 

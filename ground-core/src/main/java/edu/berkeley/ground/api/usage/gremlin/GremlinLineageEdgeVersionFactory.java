@@ -1,17 +1,17 @@
-package edu.berkeley.ground.api.usage.titan;
+package edu.berkeley.ground.api.usage.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.models.titan.TitanRichVersionFactory;
+import edu.berkeley.ground.api.models.gremlin.GremlinRichVersionFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersion;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,14 +21,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class TitanLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanLineageEdgeVersionFactory.class);
-    private TitanClient dbClient;
+public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinLineageEdgeVersionFactory.class);
+    private GremlinClient dbClient;
 
-    private TitanLineageEdgeFactory lineageEdgeFactory;
-    private TitanRichVersionFactory richVersionFactory;
+    private GremlinLineageEdgeFactory lineageEdgeFactory;
+    private GremlinRichVersionFactory richVersionFactory;
 
-    public TitanLineageEdgeVersionFactory(TitanLineageEdgeFactory lineageEdgeFactory, TitanRichVersionFactory richVersionFactory, TitanClient dbClient) {
+    public GremlinLineageEdgeVersionFactory(GremlinLineageEdgeFactory lineageEdgeFactory, GremlinRichVersionFactory richVersionFactory, GremlinClient dbClient) {
         this.dbClient = dbClient;
         this.lineageEdgeFactory = lineageEdgeFactory;
         this.richVersionFactory = richVersionFactory;
@@ -44,7 +44,7 @@ public class TitanLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
                                      String lineageEdgeId,
                                      Optional<String> parentId) throws GroundException {
 
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             String id = IdGenerator.generateId(lineageEdgeId);
@@ -59,18 +59,18 @@ public class TitanLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             insertions.add(new DbDataContainer("endpoint_one", Type.STRING, fromId));
             insertions.add(new DbDataContainer("endpoint_two", Type.STRING, toId));
 
-            TitanVertex versionVertex = connection.addVertex("LineageEdgeVersions", insertions);
+            Vertex versionVertex = connection.addVertex("LineageEdgeVersions", insertions);
 
             this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentId);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", Type.STRING, fromId));
-            TitanVertex fromVertex = connection.getVertex(predicates);
+            Vertex fromVertex = connection.getVertex(predicates);
 
             predicates.clear();
             predicates.add(new DbDataContainer("id", Type.STRING, toId));
-            TitanVertex toVertex = connection.getVertex(predicates);
+            Vertex toVertex = connection.getVertex(predicates);
 
             predicates.clear();
             connection.addEdge("LineageEdgeVersionConnection", fromVertex, versionVertex, predicates);
@@ -88,7 +88,7 @@ public class TitanLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     }
 
     public LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
@@ -96,7 +96,7 @@ public class TitanLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", Type.STRING, id));
 
-            TitanVertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = connection.getVertex(predicates);
             String lineageEdgeId = versionVertex.property("lineageedge_id").value().toString();
             String fromId = versionVertex.property("endpoint_one").value().toString();
             String toId = versionVertex.property("endpoint_two").value().toString();

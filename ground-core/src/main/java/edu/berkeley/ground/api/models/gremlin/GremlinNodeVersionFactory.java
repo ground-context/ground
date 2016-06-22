@@ -1,16 +1,16 @@
-package edu.berkeley.ground.api.models.titan;
+package edu.berkeley.ground.api.models.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.models.NodeVersion;
 import edu.berkeley.ground.api.models.NodeVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,14 +20,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class TitanNodeVersionFactory extends NodeVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanNodeVersionFactory.class);
-    private TitanClient dbClient;
+public class GremlinNodeVersionFactory extends NodeVersionFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinNodeVersionFactory.class);
+    private GremlinClient dbClient;
 
-    private TitanNodeFactory nodeFactory;
-    private TitanRichVersionFactory richVersionFactory;
+    private GremlinNodeFactory nodeFactory;
+    private GremlinRichVersionFactory richVersionFactory;
 
-    public TitanNodeVersionFactory(TitanNodeFactory nodeFactory, TitanRichVersionFactory richVersionFactory, TitanClient dbClient) {
+    public GremlinNodeVersionFactory(GremlinNodeFactory nodeFactory, GremlinRichVersionFactory richVersionFactory, GremlinClient dbClient) {
         this.dbClient = dbClient;
         this.nodeFactory = nodeFactory;
         this.richVersionFactory = richVersionFactory;
@@ -41,7 +41,7 @@ public class TitanNodeVersionFactory extends NodeVersionFactory {
                               String nodeId,
                               Optional<String> parentId) throws GroundException {
 
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             String id = IdGenerator.generateId(nodeId);
@@ -72,7 +72,7 @@ public class TitanNodeVersionFactory extends NodeVersionFactory {
     }
 
     public NodeVersion retrieveFromDatabase(String id) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         try {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
@@ -80,7 +80,7 @@ public class TitanNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", Type.STRING, id));
 
-            TitanVertex vertex = connection.getVertex(predicates);
+            Vertex vertex = connection.getVertex(predicates);
             String nodeId = vertex.property("node_id").value().toString();
 
             connection.commit();
@@ -95,7 +95,7 @@ public class TitanNodeVersionFactory extends NodeVersionFactory {
     }
 
     public List<String> getTransitiveClosure(String nodeVersionId) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
         List<String> result = connection.transitiveClosure(nodeVersionId);
 
         connection.commit();

@@ -1,4 +1,4 @@
-package edu.berkeley.ground.api.versions.titan;
+package edu.berkeley.ground.api.versions.gremlin;
 
 import edu.berkeley.ground.api.versions.ItemFactory;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class TitanItemFactory extends ItemFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanItemFactory.class);
+public class GremlinItemFactory extends ItemFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinItemFactory.class);
 
-    private TitanVersionHistoryDAGFactory versionHistoryDAGFactory;
+    private GremlinVersionHistoryDAGFactory versionHistoryDAGFactory;
 
-    public TitanItemFactory(TitanVersionHistoryDAGFactory versionHistoryDAGFactory) {
+    public GremlinItemFactory(GremlinVersionHistoryDAGFactory versionHistoryDAGFactory) {
         this.versionHistoryDAGFactory = versionHistoryDAGFactory;
     }
 

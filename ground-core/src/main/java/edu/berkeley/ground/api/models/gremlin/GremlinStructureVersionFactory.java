@@ -1,26 +1,26 @@
-package edu.berkeley.ground.api.models.titan;
+package edu.berkeley.ground.api.models.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class TitanStructureVersionFactory extends StructureVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanStructureVersionFactory.class);
-    private TitanClient dbClient;
+public class GremlinStructureVersionFactory extends StructureVersionFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinStructureVersionFactory.class);
+    private GremlinClient dbClient;
 
-    private TitanStructureFactory structureFactory;
+    private GremlinStructureFactory structureFactory;
 
-    public TitanStructureVersionFactory(TitanStructureFactory structureFactory, TitanClient dbClient) {
+    public GremlinStructureVersionFactory(GremlinStructureFactory structureFactory, GremlinClient dbClient) {
         this.dbClient = dbClient;
         this.structureFactory = structureFactory;
     }
@@ -29,14 +29,14 @@ public class TitanStructureVersionFactory extends StructureVersionFactory {
                                    Map<String, Type> attributes,
                                    Optional<String> parentId) throws GroundException {
 
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(structureId);
 
         List<DbDataContainer> insertions = new ArrayList<>();
         insertions.add(new DbDataContainer("id", Type.STRING, id));
         insertions.add(new DbDataContainer("structure_id", Type.STRING, structureId));
 
-        TitanVertex versionVertex = connection.addVertex("StructureVersion", insertions);
+        Vertex versionVertex = connection.addVertex("StructureVersion", insertions);
 
         for (String key : attributes.keySet()) {
             List<DbDataContainer> itemInsertions = new ArrayList<>();
@@ -44,7 +44,7 @@ public class TitanStructureVersionFactory extends StructureVersionFactory {
             itemInsertions.add(new DbDataContainer("skey", Type.STRING, key));
             itemInsertions.add(new DbDataContainer("type", Type.STRING, attributes.get(key).toString()));
 
-            TitanVertex itemVertex = connection.addVertex("StructureVersionItem", itemInsertions);
+            Vertex itemVertex = connection.addVertex("StructureVersionItem", itemInsertions);
             connection.addEdge("StructureVersionItemConnection", versionVertex, itemVertex, new ArrayList<>());
         }
 
@@ -57,16 +57,16 @@ public class TitanStructureVersionFactory extends StructureVersionFactory {
     }
 
     public StructureVersion retrieveFromDatabase(String id) throws GroundException {
-        TitanConnection connection = this.dbClient.getConnection();
+        GremlinConnection connection = this.dbClient.getConnection();
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
-        TitanVertex versionVertex = connection.getVertex(predicates);
+        Vertex versionVertex = connection.getVertex(predicates);
 
-        List<TitanVertex> adjacentVetices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "StructureVersionItemConnection");
+        List<Vertex> adjacentVetices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "StructureVersionItemConnection");
         Map<String, Type> attributes = new HashMap<>();
 
-        for(TitanVertex titanVertex : adjacentVetices) {
+        for(Vertex titanVertex : adjacentVetices) {
             attributes.put(titanVertex.property("skey").value().toString(), Type.fromString(titanVertex.property("type").value().toString()));
         }
 

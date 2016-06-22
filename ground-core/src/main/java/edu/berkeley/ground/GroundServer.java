@@ -5,7 +5,7 @@ import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.TitanClient;
+import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.ElasticSearchClient;
@@ -66,8 +66,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
                 break;
 
             case "titan":
-                TitanClient titanClient = new TitanClient(false);
-                setTitanFactories(titanClient, elasticSearchClient);
+                GremlinClient gremlinClient = new GremlinClient(false);
+                setTitanFactories(gremlinClient, elasticSearchClient);
 
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }
@@ -115,8 +115,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 
-    private void setTitanFactories(TitanClient titanClient, ElasticSearchClient elasticSearchClient) {
-        TitanFactories factoryGenerator = new TitanFactories(titanClient, elasticSearchClient);
+    private void setTitanFactories(GremlinClient gremlinClient, ElasticSearchClient elasticSearchClient) {
+        TitanFactories factoryGenerator = new TitanFactories(gremlinClient, elasticSearchClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();

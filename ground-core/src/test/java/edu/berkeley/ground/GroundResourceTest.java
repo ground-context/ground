@@ -2,19 +2,14 @@ package edu.berkeley.ground;
 
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.TitanClient;
+import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
-import edu.berkeley.ground.util.ElasticSearchClient;
 import edu.berkeley.ground.util.PostgresFactories;
 import edu.berkeley.ground.util.TitanFactories;
-import io.dropwizard.elasticsearch.managed.ManagedEsClient;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.junit.Before;
 
 import java.io.File;
-import java.net.InetAddress;
 
 
 public class GroundResourceTest {
@@ -90,7 +85,7 @@ public class GroundResourceTest {
             }
 
             case "titan": {
-                TitanClient dbClient = new TitanClient(false);
+                GremlinClient dbClient = new GremlinClient(false);
                 TitanFactories factoryGenerator = new TitanFactories(dbClient, null);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
@@ -99,7 +94,6 @@ public class GroundResourceTest {
                 lineageEdgesResource = new LineageEdgesResource(factoryGenerator.getLineageEdgeFactory(), factoryGenerator.getLineageEdgeVersionFactory());
                 structuresResource = new StructuresResource(factoryGenerator.getStructureFactory(), factoryGenerator.getStructureVersionFactory());
 
-                dbClient.createSchema();
                 break;
             }
 

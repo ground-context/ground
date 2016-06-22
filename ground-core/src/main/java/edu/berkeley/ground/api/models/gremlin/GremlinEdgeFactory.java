@@ -1,15 +1,15 @@
-package edu.berkeley.ground.api.models.titan;
+package edu.berkeley.ground.api.models.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.versions.Type;
-import edu.berkeley.ground.api.versions.titan.TitanItemFactory;
+import edu.berkeley.ground.api.versions.gremlin.GremlinItemFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,18 +17,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class TitanEdgeFactory extends EdgeFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TitanEdgeFactory.class);
-    private TitanClient dbClient;
-    private TitanItemFactory itemFactory;
+public class GremlinEdgeFactory extends EdgeFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinEdgeFactory.class);
+    private GremlinClient dbClient;
+    private GremlinItemFactory itemFactory;
 
-    public TitanEdgeFactory(TitanItemFactory itemFactory, TitanClient dbClient) {
+    public GremlinEdgeFactory(GremlinItemFactory itemFactory, GremlinClient dbClient) {
         this.dbClient = dbClient;
         this.itemFactory = itemFactory;
     }
 
     public Edge create(String name) throws GroundException {
-        TitanConnection connection = dbClient.getConnection();
+        GremlinConnection connection = dbClient.getConnection();
 
         try {
             String uniqueId = "Edges." + name;
@@ -52,13 +52,13 @@ public class TitanEdgeFactory extends EdgeFactory {
     }
 
     public Edge retrieveFromDatabase(String name) throws GroundException {
-        TitanConnection connection = dbClient.getConnection();
+        GremlinConnection connection = dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", Type.STRING, name));
 
-            TitanVertex vertex = connection.getVertex(predicates);
+            Vertex vertex = connection.getVertex(predicates);
             String id = vertex.property("id").value().toString();
 
             connection.commit();

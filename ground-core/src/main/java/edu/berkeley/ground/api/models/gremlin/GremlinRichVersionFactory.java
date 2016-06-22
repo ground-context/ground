@@ -1,6 +1,5 @@
-package edu.berkeley.ground.api.models.titan;
+package edu.berkeley.ground.api.models.gremlin;
 
-import com.thinkaurelius.titan.core.TitanVertex;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.RichVersionFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
@@ -8,29 +7,30 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.TitanClient.TitanConnection;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.ElasticSearchClient;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.*;
 
-public class TitanRichVersionFactory extends RichVersionFactory {
-    private TitanStructureVersionFactory structureVersionFactory;
-    private TitanTagFactory tagFactory;
+public class GremlinRichVersionFactory extends RichVersionFactory {
+    private GremlinStructureVersionFactory structureVersionFactory;
+    private GremlinTagFactory tagFactory;
     private ElasticSearchClient elasticSearchClient;
 
-    public TitanRichVersionFactory(TitanStructureVersionFactory structureVersionFactory, TitanTagFactory tagFactory, ElasticSearchClient elasticSearchClient) {
+    public GremlinRichVersionFactory(GremlinStructureVersionFactory structureVersionFactory, GremlinTagFactory tagFactory, ElasticSearchClient elasticSearchClient) {
         this.structureVersionFactory = structureVersionFactory;
         this.tagFactory = tagFactory;
         this.elasticSearchClient = elasticSearchClient;
     }
 
     public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
-        TitanConnection connection = (TitanConnection) connectionPointer;
+        GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
-        TitanVertex versionVertex = connection.getVertex(predicates);
+        Vertex versionVertex = connection.getVertex(predicates);
 
         if (structureVersionId.isPresent()) {
             StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId.get());
@@ -48,7 +48,7 @@ public class TitanRichVersionFactory extends RichVersionFactory {
                 insertions.add(new DbDataContainer("pkey", Type.STRING, key));
                 insertions.add(new DbDataContainer("value", Type.STRING, value));
 
-                TitanVertex parameterVertex = connection.addVertex("RichVersionExternalParameter", insertions);
+                Vertex parameterVertex = connection.addVertex("RichVersionExternalParameter", insertions);
 
                 insertions.clear();
                 connection.addEdge("RichVersionExternalParameterConnection", versionVertex, parameterVertex, insertions);
@@ -73,7 +73,7 @@ public class TitanRichVersionFactory extends RichVersionFactory {
                 tagInsertion.add(new DbDataContainer("value", Type.STRING, tag.getValue().map(Object::toString).orElse(null)));
                 tagInsertion.add(new DbDataContainer("type", Type.STRING, tag.getValueType().map(Object::toString).orElse(null)));
 
-                TitanVertex tagVertex = connection.addVertex("Tag", tagInsertion);
+                Vertex tagVertex = connection.addVertex("Tag", tagInsertion);
                 connection.addEdge("TagConnection", versionVertex, tagVertex, new ArrayList<>());
             }
 
@@ -84,19 +84,19 @@ public class TitanRichVersionFactory extends RichVersionFactory {
     }
 
     public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
-        TitanConnection connection = (TitanConnection) connectionPointer;
+        GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
-        TitanVertex versionVertex = connection.getVertex(predicates);
+        Vertex versionVertex = connection.getVertex(predicates);
 
-        List<TitanVertex> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "RichVersionExternalParameterConnection");
+        List<Vertex> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "RichVersionExternalParameterConnection");
         Optional<Map<String, String>> parameters;
 
         if (!parameterVertices.isEmpty()) {
             Map<String, String> parametersMap = new HashMap<>();
 
-            for (TitanVertex parameter : parameterVertices) {
+            for (Vertex parameter : parameterVertices) {
                 parametersMap.put(parameter.property("pkey").value().toString(), parameter.property("value").value().toString());
             }
 
