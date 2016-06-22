@@ -1,6 +1,5 @@
 package edu.berkeley.ground.db;
 
-import com.google.common.annotations.VisibleForTesting;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.*;
@@ -14,8 +13,8 @@ import java.util.List;
 public class GremlinClient implements DBClient {
     private Graph graph;
 
-    public GremlinClient(boolean createSchema) {
-        this.graph = GraphFactory.open("config/titan-cassandra.properties");
+    public GremlinClient() {
+        this.graph = GraphFactory.open("conf/titan-cassandra.properties");
     }
 
     public GremlinConnection getConnection() throws GroundDBException {
@@ -107,7 +106,7 @@ public class GremlinClient implements DBClient {
 
         public List<String> transitiveClosure(String nodeVersionId) {
             GraphTraversal traversal = this.graph.traversal().V().has("id", nodeVersionId);
-            traversal.outE().inV().inE().loops();
+            traversal.outE().inV().inE().times(Integer.MAX_VALUE);
 
             List<String> result = new ArrayList<>();
 

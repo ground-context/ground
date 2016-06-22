@@ -11,7 +11,7 @@ import edu.berkeley.ground.api.versions.gremlin.GremlinVersionHistoryDAGFactory;
 import edu.berkeley.ground.api.versions.gremlin.GremlinVersionSuccessorFactory;
 import edu.berkeley.ground.db.GremlinClient;
 
-public class TitanFactories {
+public class GremlinFactories {
     private GremlinStructureFactory structureFactory;
     private GremlinStructureVersionFactory structureVersionFactory;
     private GremlinEdgeFactory edgeFactory;
@@ -24,7 +24,7 @@ public class TitanFactories {
     private GremlinLineageEdgeFactory lineageEdgeFactory;
     private GremlinLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-    public TitanFactories(GremlinClient cassandraClient, ElasticSearchClient elasticSearchClient) {
+    public GremlinFactories(GremlinClient cassandraClient) {
         GremlinVersionSuccessorFactory versionSuccessorFactory = new GremlinVersionSuccessorFactory();
         GremlinVersionHistoryDAGFactory versionHistoryDAGFactory = new GremlinVersionHistoryDAGFactory(versionSuccessorFactory);
         GremlinItemFactory itemFactory = new GremlinItemFactory(versionHistoryDAGFactory);
@@ -32,7 +32,7 @@ public class TitanFactories {
         this.structureFactory = new GremlinStructureFactory(itemFactory, cassandraClient);
         this.structureVersionFactory = new GremlinStructureVersionFactory(this.structureFactory, cassandraClient);
         GremlinTagFactory tagFactory = new GremlinTagFactory();
-        GremlinRichVersionFactory richVersionFactory = new GremlinRichVersionFactory(structureVersionFactory, tagFactory, elasticSearchClient);
+        GremlinRichVersionFactory richVersionFactory = new GremlinRichVersionFactory(structureVersionFactory, tagFactory);
         this.edgeFactory = new GremlinEdgeFactory(itemFactory, cassandraClient);
         this.edgeVersionFactory = new GremlinEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient);
         this.graphFactory = new GremlinGraphFactory(itemFactory, cassandraClient);

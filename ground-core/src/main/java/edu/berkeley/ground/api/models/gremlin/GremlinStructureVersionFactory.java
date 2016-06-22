@@ -66,8 +66,8 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
         List<Vertex> adjacentVetices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "StructureVersionItemConnection");
         Map<String, Type> attributes = new HashMap<>();
 
-        for(Vertex titanVertex : adjacentVetices) {
-            attributes.put(titanVertex.property("skey").value().toString(), Type.fromString(titanVertex.property("type").value().toString()));
+        for(Vertex gremlinVertex : adjacentVetices) {
+            attributes.put(gremlinVertex.property("skey").value().toString(), Type.fromString(gremlinVertex.property("type").value().toString()));
         }
 
         String structureId = versionVertex.property("structure_id").toString();

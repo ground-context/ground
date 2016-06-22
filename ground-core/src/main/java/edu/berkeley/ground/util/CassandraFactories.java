@@ -25,7 +25,7 @@ public class CassandraFactories {
     private CassandraLineageEdgeFactory lineageEdgeFactory;
     private CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-    public CassandraFactories(CassandraClient cassandraClient, ElasticSearchClient elasticSearchClient) {
+    public CassandraFactories(CassandraClient cassandraClient) {
         CassandraVersionFactory versionFactory = new CassandraVersionFactory();
         CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory();
         CassandraVersionHistoryDAGFactory versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
@@ -34,7 +34,7 @@ public class CassandraFactories {
         this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient);
         this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient);
         CassandraTagFactory tagFactory = new CassandraTagFactory();
-        CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(versionFactory, structureVersionFactory, tagFactory, elasticSearchClient);
+        CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
         this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient);
         this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient);
         this.graphFactory = new CassandraGraphFactory(itemFactory, cassandraClient);

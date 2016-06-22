@@ -29,12 +29,12 @@ public class GremlinVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         predicates.add(new DbDataContainer("id", Type.STRING, itemId));
 
         Vertex itemVertex = connection.getVertex(predicates);
-        List<Edge> titanEdges = connection.getDescendantEdgesWithLabel(itemVertex, "VersionSuccessor");
+        List<Edge> gremlinEdges = connection.getDescendantEdgesWithLabel(itemVertex, "VersionSuccessor");
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
 
-        for (Edge titanEdge : titanEdges) {
-            edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, (String) titanEdge.property("successor_id").value()));
+        for (Edge gremlinEdge : gremlinEdges) {
+            edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, (String) gremlinEdge.property("successor_id").value()));
         }
 
         return VersionHistoryDAGFactory.construct(itemId, edges);

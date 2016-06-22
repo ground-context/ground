@@ -9,7 +9,6 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.ElasticSearchClient;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.*;
@@ -17,12 +16,10 @@ import java.util.*;
 public class GremlinRichVersionFactory extends RichVersionFactory {
     private GremlinStructureVersionFactory structureVersionFactory;
     private GremlinTagFactory tagFactory;
-    private ElasticSearchClient elasticSearchClient;
 
-    public GremlinRichVersionFactory(GremlinStructureVersionFactory structureVersionFactory, GremlinTagFactory tagFactory, ElasticSearchClient elasticSearchClient) {
+    public GremlinRichVersionFactory(GremlinStructureVersionFactory structureVersionFactory, GremlinTagFactory tagFactory) {
         this.structureVersionFactory = structureVersionFactory;
         this.tagFactory = tagFactory;
-        this.elasticSearchClient = elasticSearchClient;
     }
 
     public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
@@ -75,10 +72,6 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
 
                 Vertex tagVertex = connection.addVertex("Tag", tagInsertion);
                 connection.addEdge("TagConnection", versionVertex, tagVertex, new ArrayList<>());
-            }
-
-            if (this.elasticSearchClient != null) {
-                elasticSearchClient.indexTags(id, tags.get());
             }
         }
     }

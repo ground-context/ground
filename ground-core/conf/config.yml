@@ -1,4 +1,4 @@
-dbType: postgres
+dbType: gremlin
 dbName: ground
 dbHost: localhost
 dbPort: 5432

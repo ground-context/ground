@@ -6,7 +6,7 @@ import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.PostgresFactories;
-import edu.berkeley.ground.util.TitanFactories;
+import edu.berkeley.ground.util.GremlinFactories;
 import org.junit.Before;
 
 import java.io.File;
@@ -44,8 +44,8 @@ public class GroundResourceTest {
                     break;
                 }
 
-                case "titan": {
-                    Process p = Runtime.getRuntime().exec("python2.7 drop_cassandra.py", null, new File("scripts/titan/"));
+                case "gremlin": {
+                    Process p = Runtime.getRuntime().exec("python2.7 drop_cassandra.py", null, new File("scripts/ground/"));
                     p.waitFor();
 
                     setBackingStore();
@@ -84,9 +84,9 @@ public class GroundResourceTest {
                 break;
             }
 
-            case "titan": {
-                GremlinClient dbClient = new GremlinClient(false);
-                TitanFactories factoryGenerator = new TitanFactories(dbClient, null);
+            case "grermlin": {
+                GremlinClient dbClient = new GremlinClient();
+                GremlinFactories factoryGenerator = new GremlinFactories(dbClient, null);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());

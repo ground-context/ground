@@ -8,9 +8,8 @@ import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
-import edu.berkeley.ground.util.ElasticSearchClient;
 import edu.berkeley.ground.util.PostgresFactories;
-import edu.berkeley.ground.util.TitanFactories;
+import edu.berkeley.ground.util.GremlinFactories;
 import io.dropwizard.Application;
 import io.dropwizard.elasticsearch.managed.ManagedEsClient;
 import io.dropwizard.setup.Bootstrap;
@@ -44,30 +43,26 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) {
-        ElasticSearchClient elasticSearchClient = null;
-
         if (configuration.getEsConfiguration() != null) {
             final ManagedEsClient esClient = new ManagedEsClient(configuration.getEsConfiguration());
             environment.lifecycle().manage(esClient);
-
-            elasticSearchClient = new ElasticSearchClient(esClient);
         }
 
 
         switch (configuration.getDbType()) {
             case "postgres":
                 PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-                setPostgresFactories(postgresClient, elasticSearchClient);
+                setPostgresFactories(postgresClient);
                 break;
 
             case "cassandra":
                 CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-                setCassandraFactories(cassandraClient, elasticSearchClient);
+                setCassandraFactories(cassandraClient);
                 break;
 
-            case "titan":
-                GremlinClient gremlinClient = new GremlinClient(false);
-                setTitanFactories(gremlinClient, elasticSearchClient);
+            case "gremlin":
+                GremlinClient gremlinClient = new GremlinClient();
+                setGremlinFactories(gremlinClient);
 
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }
@@ -85,8 +80,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         environment.jersey().register(structuresResource);
     }
 
-    private void setPostgresFactories(PostgresClient postgresClient, ElasticSearchClient elasticSearchClient) {
-        PostgresFactories factoryGenerator = new PostgresFactories(postgresClient, elasticSearchClient);
+    private void setPostgresFactories(PostgresClient postgresClient) {
+        PostgresFactories factoryGenerator = new PostgresFactories(postgresClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
@@ -100,8 +95,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 
-    private void setCassandraFactories(CassandraClient cassandraClient, ElasticSearchClient elasticSearchClient) {
-        CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient, elasticSearchClient);
+    private void setCassandraFactories(CassandraClient cassandraClient) {
+        CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
@@ -115,8 +110,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 
-    private void setTitanFactories(GremlinClient gremlinClient, ElasticSearchClient elasticSearchClient) {
-        TitanFactories factoryGenerator = new TitanFactories(gremlinClient, elasticSearchClient);
+    private void setGremlinFactories(GremlinClient gremlinClient) {
+        GremlinFactories factoryGenerator = new GremlinFactories(gremlinClient);
 
         edgeFactory = factoryGenerator.getEdgeFactory();
         edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();

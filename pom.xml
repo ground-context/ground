@@ -32,7 +32,10 @@
         <cassandra.version>3.0.0</cassandra.version>
 
         <!-- Gremlin version -->
-        <gremlin.version>3.2.0-incubating</gremlin.version>
+        <gremlin.version>3.0.1-incubating</gremlin.version>
+
+        <!-- Titan version -->
+        <titan.version>1.0.0</titan.version>
 
         <!-- Hive version -->
         <hive.version>2.2.0-SNAPSHOT</hive.version>
