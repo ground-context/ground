@@ -62,7 +62,7 @@ public class GroundResourceTest {
         switch (BACKING_STORE_TYPE) {
             case "postgres": {
                 PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "test", "");
-                PostgresFactories factoryGenerator = new PostgresFactories(dbClient, null);
+                PostgresFactories factoryGenerator = new PostgresFactories(dbClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
@@ -74,7 +74,7 @@ public class GroundResourceTest {
 
             case "cassandra": {
                 CassandraClient dbClient = new CassandraClient("localhost", 9160, "test", "test", "");
-                CassandraFactories factoryGenerator = new CassandraFactories(dbClient, null);
+                CassandraFactories factoryGenerator = new CassandraFactories(dbClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
@@ -86,7 +86,7 @@ public class GroundResourceTest {
 
             case "grermlin": {
                 GremlinClient dbClient = new GremlinClient();
-                GremlinFactories factoryGenerator = new GremlinFactories(dbClient, null);
+                GremlinFactories factoryGenerator = new GremlinFactories(dbClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());

@@ -73,6 +73,6 @@ public class GremlinEdgeFactory extends EdgeFactory {
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {
-        this.itemFactory.update(connection, itemId, childId, parent);
+        this.itemFactory.update(connection, "Edges." +  itemId, childId, parent);
     }
 }

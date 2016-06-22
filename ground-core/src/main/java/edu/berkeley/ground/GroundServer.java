@@ -11,7 +11,6 @@ import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.PostgresFactories;
 import edu.berkeley.ground.util.GremlinFactories;
 import io.dropwizard.Application;
-import io.dropwizard.elasticsearch.managed.ManagedEsClient;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -43,12 +42,6 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) {
-        if (configuration.getEsConfiguration() != null) {
-            final ManagedEsClient esClient = new ManagedEsClient(configuration.getEsConfiguration());
-            environment.lifecycle().manage(esClient);
-        }
-
-
         switch (configuration.getDbType()) {
             case "postgres":
                 PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
@@ -63,6 +56,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
             case "gremlin":
                 GremlinClient gremlinClient = new GremlinClient();
                 setGremlinFactories(gremlinClient);
+                break;
 
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }

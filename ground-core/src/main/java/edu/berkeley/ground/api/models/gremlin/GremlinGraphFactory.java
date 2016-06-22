@@ -74,6 +74,6 @@ public class GremlinGraphFactory extends GraphFactory {
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {
-        this.itemFactory.update(connection, itemId, childId, parent);
+        this.itemFactory.update(connection, "Graphs." + itemId, childId, parent);
     }
 }

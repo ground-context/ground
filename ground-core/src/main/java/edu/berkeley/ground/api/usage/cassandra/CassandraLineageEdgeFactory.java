@@ -76,6 +76,6 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {
-        this.itemFactory.update(connection, itemId, childId, parent);
+        this.itemFactory.update(connection, "LineageEdges." + itemId, childId, parent);
     }
 }

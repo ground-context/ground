@@ -2,6 +2,7 @@ package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.exceptions.GroundDBException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.*;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 
@@ -106,14 +107,15 @@ public class GremlinClient implements DBClient {
 
         public List<String> transitiveClosure(String nodeVersionId) {
             GraphTraversal traversal = this.graph.traversal().V().has("id", nodeVersionId);
-            traversal.outE().inV().inE().times(Integer.MAX_VALUE);
+
+            traversal = traversal.repeat(__.outE("EdgeVersionConnection").inV().outE("EdgeVersionConnection").inV());
+            traversal = traversal.emit();
+            traversal = traversal.until(__.outE("EdgeVersionConnection").count().is(0)).values("id");
 
             List<String> result = new ArrayList<>();
 
             traversal.forEachRemaining(object -> {
-                if (object instanceof Vertex) {
-                    result.add(((Vertex) object).property("id").toString());
-                }
+                result.add(((String) object));
             });
 
             return result;
