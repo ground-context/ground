@@ -14,10 +14,11 @@ public class JGraphTUtils {
         return new DefaultDirectedGraph<>(DefaultEdge.class);
     }
 
-    public static void addEdge(DirectedGraph<String, DefaultEdge> graph, String from, String to) {
-        graph.addVertex(from);
-        graph.addVertex(to);
+    public static void addVertex(DirectedGraph<String, DefaultEdge> graph, String id) {
+        graph.addVertex(id);
+    }
 
+    public static void addEdge(DirectedGraph<String, DefaultEdge> graph, String from, String to) {
         graph.addEdge(from, to);
     }
 

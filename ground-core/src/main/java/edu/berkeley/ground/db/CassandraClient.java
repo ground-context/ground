@@ -29,8 +29,14 @@ public class CassandraClient implements DBClient {
 
         this.keyspace = dbName;
 
-        ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select endpoint_one, endpoint_two from edgeversions;");
+        ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select id from nodeversions;");
         this.graph = JGraphTUtils.createGraph();
+
+        for (Row r : resultSet.all()) {
+            JGraphTUtils.addVertex(graph, r.getString(0));
+        }
+
+        resultSet = this.cluster.connect(this.keyspace).execute("select endpoint_one, endpoint_two from edgeversions;");
 
         for (Row r : resultSet.all()) {
             JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
@@ -92,10 +98,6 @@ public class CassandraClient implements DBClient {
             }
 
             LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
-
-            if(insertValues.size() > 1) {
-                LOGGER.info("Size of insert values is: " + insertValues.size() + "; insert values[1] is " + insertValues.get(1).getValue() + "Value at first index is " + statement.getString(1));
-            }
 
             this.session.execute(statement);
         }
