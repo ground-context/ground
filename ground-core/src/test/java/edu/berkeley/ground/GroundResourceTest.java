@@ -3,6 +3,7 @@ package edu.berkeley.ground;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.PostgresFactories;
@@ -45,7 +46,7 @@ public class GroundResourceTest {
                 }
 
                 case "gremlin": {
-                    Process p = Runtime.getRuntime().exec("python2.7 drop_cassandra.py", null, new File("scripts/ground/"));
+                    Process p = Runtime.getRuntime().exec("$TITAN_HOME/bin/gremlin.sh delete_gremlin.groovy", null, new File("scripts/gremlin/"));
                     p.waitFor();
 
                     setBackingStore();
@@ -58,7 +59,7 @@ public class GroundResourceTest {
         }
     }
 
-    private void setBackingStore() {
+    private void setBackingStore() throws GroundDBException {
         switch (BACKING_STORE_TYPE) {
             case "postgres": {
                 PostgresClient dbClient = new PostgresClient("localhost", 5432, "test", "test", "");

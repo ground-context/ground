@@ -6,6 +6,7 @@ import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.PostgresFactories;
@@ -41,7 +42,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     }
 
     @Override
-    public void run(GroundServerConfiguration configuration, Environment environment) {
+    public void run(GroundServerConfiguration configuration, Environment environment) throws GroundException {
         switch (configuration.getDbType()) {
             case "postgres":
                 PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());

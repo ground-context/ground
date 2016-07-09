@@ -1,10 +1,6 @@
-dbType: gremlin
+dbType: cassandra
 dbName: ground
 dbHost: localhost
-dbPort: 5432
+dbPort: 7000
 dbUser: ground
 dbPassword: metadata
-
-# esConfiguration: 
-#    nodeClient: false
-#    servers: ["localhost:9300", ]

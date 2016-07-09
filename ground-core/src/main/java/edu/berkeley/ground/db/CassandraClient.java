@@ -19,27 +19,56 @@ public class CassandraClient implements DBClient {
 
     private String keyspace;
 
-    public CassandraClient(String host, int port, String dbName, String username, String password) {
+    private DirectedGraph<String, DefaultEdge> graph;
+
+    public CassandraClient(String host, int port, String dbName, String username, String password) throws GroundDBException {
         cluster = Cluster.builder()
                 .addContactPoint(host)
                 .withAuthProvider(new PlainTextAuthProvider(username, password))
                 .build();
 
         this.keyspace = dbName;
+
+        ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select endpoint_one, endpoint_two from edgeversions;");
+        this.graph = JGraphTUtils.createGraph();
+
+        for (Row r : resultSet.all()) {
+            JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
+        }
     }
 
     public CassandraConnection getConnection() throws GroundDBException {
-        return new CassandraConnection(cluster.connect(this.keyspace));
+        return new CassandraConnection(this.cluster.connect(this.keyspace), this.graph);
     }
 
     public class CassandraConnection extends GroundDBConnection {
         private Session session;
+        private DirectedGraph<String, DefaultEdge> graph;
 
-        public CassandraConnection(Session session) {
+        public CassandraConnection(Session session, DirectedGraph<String, DefaultEdge> graph) {
             this.session = session;
+            this.graph = graph;
         }
 
         public void insert(String table, List<DbDataContainer> insertValues) {
+            // hack to keep JGraphT up to date
+            if (table.equals("EdgeVersions")) {
+                String nvFromId = null;
+                String nvToId = null;
+
+                for (DbDataContainer container : insertValues) {
+                    if (container.getField().equals("endpoint_one")) {
+                        nvFromId = container.getValue().toString();
+                    }
+
+                    if (container.getField().equals("endpoint_two")) {
+                        nvToId = container.getValue().toString();
+                    }
+                }
+
+                JGraphTUtils.addEdge(graph, nvFromId, nvToId);
+            }
+
             String insertString = "insert into " + table + "(";
             String valuesString = "values (";
 
@@ -111,15 +140,8 @@ public class CassandraClient implements DBClient {
         }
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
-            ResultSet resultSet = this.session.execute("select endpoint_one, endpoint_two from edgeversions;");
-            DirectedGraph<String, DefaultEdge> graph = JGraphTUtils.createGraph();
 
-            for (Row r : resultSet.all()) {
-                JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
-            }
-
-            return JGraphTUtils.iterate(graph, nodeVersionId);
-
+            return JGraphTUtils.iterate(this.graph, nodeVersionId);
         }
 
         public void commit() throws GroundDBException {
