@@ -133,7 +133,7 @@ create table LineageEdgeVersions (
 insert into Versions(id) values ('EMPTY');
 
 /* CREATE FUNCTION FOR ITERATION */
-create function reachable(vstart varchar) returns table(vfrom varchar, vto varchar) as $$ 
+create function reachable(vstart varchar) returns table(dest varchar) as $$ 
   declare cnt integer;
   declare prev_cnt integer;
 
@@ -146,7 +146,7 @@ create function reachable(vstart varchar) returns table(vfrom varchar, vto varch
       alter table paths rename to old_paths;
       create table paths as select * from new_paths union select * from old_paths;
     end loop;
-    return query select * from paths;
+    return query select endpoint_two from paths;
   end;
 $$ language plpgsql;
 
