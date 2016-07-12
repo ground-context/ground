@@ -138,7 +138,7 @@ public class PostgresClient implements DBClient {
 
                 List<String> result = new ArrayList<>();
                 while (resultSet.next()) {
-                    result.add(resultSet.getString(2));
+                    result.add(resultSet.getString(1));
                 }
 
                 return result;
