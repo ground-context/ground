@@ -138,6 +138,7 @@ create function reachable(vstart varchar) returns table(dest varchar) as $$
   declare prev_cnt integer;
 
   begin
+    drop table if exists paths;
     create temp table paths as select endpoint_one, endpoint_two from edgeversions where endpoint_one = vstart;
     select into cnt count(*) from paths;
 
