@@ -157,7 +157,7 @@ public class GroundReadWrite {
         StructureVersionFactory svf = new PostgresStructureVersionFactory((PostgresStructureFactory) sf,
                 (PostgresVersionFactory) vf, (PostgresClient) dbClient);
         RichVersionFactory rf = new PostgresRichVersionFactory((PostgresVersionFactory) vf,
-                (PostgresStructureVersionFactory) svf, null, null);
+                (PostgresStructureVersionFactory) svf, null);
 
         edgeFactory = new PostgresEdgeFactory(itemFactory, (PostgresClient) dbClient);
         edgeVersionFactory = new PostgresEdgeVersionFactory((PostgresEdgeFactory) edgeFactory,

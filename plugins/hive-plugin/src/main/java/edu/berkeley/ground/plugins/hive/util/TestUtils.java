@@ -40,7 +40,7 @@ public class TestUtils {
         		(PostgresClient) dbClient);
         StructureVersionFactory svf = new PostgresStructureVersionFactory((PostgresStructureFactory) sf,
         		(PostgresVersionFactory) vf, (PostgresClient) dbClient);
-        RichVersionFactory rf = new PostgresRichVersionFactory((PostgresVersionFactory) vf, (PostgresStructureVersionFactory) svf, null, null);
+        RichVersionFactory rf = new PostgresRichVersionFactory((PostgresVersionFactory) vf, (PostgresStructureVersionFactory) svf, null);
 
         PostgresEdgeFactory pef = new PostgresEdgeFactory(itemFactory, (PostgresClient) dbClient);
         edgeVersionFactory = new PostgresEdgeVersionFactory(pef, 
