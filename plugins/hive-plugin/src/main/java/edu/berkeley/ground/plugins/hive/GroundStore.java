@@ -2,8 +2,12 @@ package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -11,12 +15,19 @@ import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.hive.metastore.FileMetadataHandler;
 import org.apache.hadoop.hive.metastore.RawStore;
 import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
+import org.apache.hive.common.util.HiveStringUtils;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.berkeley.ground.api.models.Graph;
-import edu.berkeley.ground.api.models.GraphFactory;
+import edu.berkeley.ground.api.models.Edge;
+import edu.berkeley.ground.api.models.EdgeFactory;
+import edu.berkeley.ground.api.models.EdgeVersion;
+import edu.berkeley.ground.api.models.EdgeVersionFactory;
+import edu.berkeley.ground.api.models.NodeFactory;
+import edu.berkeley.ground.api.models.NodeVersion;
+import edu.berkeley.ground.api.models.NodeVersionFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 
 public class GroundStore implements RawStore, Configurable {
@@ -28,6 +39,11 @@ public class GroundStore implements RawStore, Configurable {
     private GroundReadWrite ground = null;
     private Configuration conf;
     private int txnNestLevel;
+    private Map<String,String> dbMap = Collections.synchronizedMap(new HashMap<String, String>());
+    private Map<String, List<String>> dbTable = Collections.synchronizedMap(new HashMap<String, List<String>>());
+
+    public GroundStore() {
+    }
 
     public Configuration getConf() {
         // TODO Auto-generated method stub
@@ -75,21 +91,45 @@ public class GroundStore implements RawStore, Configurable {
     }
 
     public void createDatabase(Database db) throws InvalidObjectException, MetaException {
-        GraphFactory graph = ground.getGraphFactory();
-        try {
-            Graph g = graph.create(db.getName());
-        } catch (GroundException e) {
-        }
+        NodeFactory nf = getGround().getNodeFactory();
+        NodeVersionFactory nvf = getGround().getNodeVersionFactory();
 
+        Database dbCopy = db.deepCopy();
+        try {
+            edu.berkeley.ground.api.versions.Type dbType = edu.berkeley.ground.api.versions.Type.fromString("string");
+            Tag dbTag = new Tag(null, dbCopy.getName(), Optional.of(dbCopy), Optional.of(dbType)); // fix
+            Optional<String> reference = Optional.of(dbCopy.getLocationUri());
+            Optional<String> versionId = Optional.empty();
+            Optional<String> parentId = Optional.empty(); // fix
+            HashMap<String, Tag> tags = new HashMap<>();
+            tags.put(dbCopy.getName(), dbTag);
+            Optional<Map<String, Tag>> tagsMap = Optional.of(tags);
+            Optional<Map<String, String>> parameters = Optional.of(dbCopy.getParameters());
+            String name = HiveStringUtils.normalizeIdentifier(dbCopy.getName());
+            String nodeId = nf.create(name).getId();
+            NodeVersion n = nvf.create(tagsMap, versionId, reference, parameters, nodeId, parentId);
+            dbMap.put(name, n.getId());
+        } catch (GroundException e) {
+            LOG.error("error creating database " + e);
+            throw new MetaException(e.getMessage());
+        }
     }
 
     public Database getDatabase(String name) throws NoSuchObjectException {
-        // TODO Auto-generated method stub
-        return null;
+        NodeVersion n;
+        try {
+            n = getGround().getNodeVersionFactory().retrieveFromDatabase(name);
+        } catch (GroundException e) {
+            LOG.error("get failed for database ", name, e);
+            throw new NoSuchObjectException(e.getMessage());
+        }
+        Map<String, Tag> dbTag = n.getTags().get();
+        return (Database) dbTag.get(name).getValue().get();
     }
 
     public boolean dropDatabase(String dbname) throws NoSuchObjectException, MetaException {
-        // TODO Auto-generated method stub
+        Database db = getDatabase(dbname);
+        db.clear(); // TODO
         return false;
     }
 
@@ -104,8 +144,9 @@ public class GroundStore implements RawStore, Configurable {
     }
 
     public List<String> getAllDatabases() throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
+        List<String> list = new ArrayList<>();
+        list.addAll(dbMap.keySet());
+        return list;
     }
 
     public boolean createType(Type type) {
@@ -123,9 +164,82 @@ public class GroundStore implements RawStore, Configurable {
         return false;
     }
 
+    /**
+     *
+     * There would be a "database contains" relationship between D and T, and
+     * there would be a "table contains" relationship between T and each
+     * attribute. The types of attributes of those nodes, and the fact that A2
+     * and A4 are partition keys would be tags of those nodes. The fact that the
+     * table T is in a particular file format (Parquet or Avro) would be a tag
+     * on the table node.
+     * 
+     */
     public void createTable(Table tbl) throws InvalidObjectException, MetaException {
-        // TODO Auto-generated method stub
+        openTransaction();
+        // HiveMetaStore above us checks if the table already exists, so we can
+        // blindly store it here.
+        try {
+            Table tblCopy = tbl.deepCopy();
+            String dbName = tblCopy.getDbName();
+            String tableName = tblCopy.getTableName();
+            Map<String, Tag> tagsMap = new HashMap<>();
+            Tag tblTag = createTag(tableName, tblCopy);
+            tagsMap.put(tbl.getTableName(), tblTag);
+            // create an edge to db which contains this table
+            EdgeVersionFactory evf = getGround().getEdgeVersionFactory();
+            EdgeFactory ef = getGround().getEdgeFactory();
+            String edgeId = dbName + "." + tableName;
+            // Tag tag = createTag(edgeId, ev);
+            // tagsMap.put(edgeId, tag);
+            Optional<Map<String, Tag>> tags = Optional.of(tagsMap);
+            Optional<Map<String, String>> parameters = Optional.of(tbl.getParameters());
+            // new node for this table
+            String nodeId = getGround().getNodeFactory().create(tableName).getId();
+            NodeVersion nvTbl = getGround().getNodeVersionFactory().create(tags, Optional.empty(), Optional.empty(),
+                    parameters, nodeId, Optional.empty());
+            Edge edge = ef.create(edgeId);
+            String dbNode = dbMap.get(dbName);
+            EdgeVersion ev = evf.create(Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty(), edge.getId(), dbNode, nvTbl.getId(), Optional.empty());
+            // add parition keys
+            List<FieldSchema> partitionKeys = tbl.getPartitionKeys();
+            if (partitionKeys != null) {
+                for (FieldSchema f : partitionKeys) {
+                    EdgeVersion field = evf.create(Optional.empty(), Optional.empty(), Optional.of(f.getType()),
+                            Optional.empty(), f.getName(), tableName, f.getName(),
+                            Optional.empty() /** does it refer to version */
+                    );
+                    tagsMap.put(f.getName(), createTag(f.getName(), field));
+                }
+            }
+            // edges and tags for partition-keys
+            // update database
+            // TODO populate partitions
+            tblCopy.setDbName(HiveStringUtils.normalizeIdentifier(tblCopy.getDbName()));
+            tblCopy.setTableName(HiveStringUtils.normalizeIdentifier(tblCopy.getTableName()));
+            synchronized (dbTable) {
+                if (dbTable.containsKey(tblCopy.getDbName())) {
+                    dbTable.get(tblCopy.getDbName()).add(tblCopy.getTableName());
+                } else {
+                    List<String> valuesList = new ArrayList<String>();
+                    valuesList.add(tblCopy.getTableName());
+                    dbTable.put(tblCopy.getDbName(), valuesList);
+                }
+            }
+        } catch (GroundException e) {
+            LOG.error("Unable to create table{} ", e);
+            throw new MetaException("Unable to read from or write ground database " + e.getMessage());
+        }
+    }
 
+    private Tag createTag(String id, Object value) {
+        return createTag("1.0.0", id, value, Optional.empty());
+    }
+
+    private Tag createTag(String version, String id, Object value,
+            Optional<edu.berkeley.ground.api.versions.Type> type) {
+        return new Tag(version, id, Optional.of(value), type /** fix type */
+        );
     }
 
     public boolean dropTable(String dbName, String tableName)
@@ -135,8 +249,15 @@ public class GroundStore implements RawStore, Configurable {
     }
 
     public Table getTable(String dbName, String tableName) throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
+        NodeVersion n;
+        try {
+            n = getGround().getNodeVersionFactory().retrieveFromDatabase(tableName);
+        } catch (GroundException e) {
+            LOG.error("get failed for database ", tableName, e);
+            throw new MetaException(e.getMessage());
+        }
+        Map<String, Tag> tblTag = n.getTags().get();
+        return (Table) tblTag.get(tableName).getValue().get();
     }
 
     public boolean addPartition(Partition part) throws InvalidObjectException, MetaException {
@@ -203,8 +324,7 @@ public class GroundStore implements RawStore, Configurable {
     }
 
     public List<String> getAllTables(String dbName) throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
+        return dbTable.get(dbName);
     }
 
     public List<String> listTableNamesByFilter(String dbName, String filter, short max_tables)
@@ -412,8 +532,7 @@ public class GroundStore implements RawStore, Configurable {
     }
 
     public List<String> listRoleNames() {
-        // TODO Auto-generated method stub
-        return null;
+        return new ArrayList<>();
     }
 
     public List<Role> listRoles(String principalName, PrincipalType principalType) {
