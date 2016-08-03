@@ -26,7 +26,7 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         PostgresConnection connection = (PostgresConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("item_id", Type.STRING, itemId));
+        predicates.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
 
         QueryResults resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
 
@@ -44,8 +44,8 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 
         List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("item_id", Type.STRING, itemId));
-        insertions.add(new DbDataContainer("successor_id", Type.STRING, successor.getId()));
+        insertions.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
+        insertions.add(new DbDataContainer("successor_id", GroundType.STRING, successor.getId()));
 
         connection.insert("VersionHistoryDAGs", insertions);
 

@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
@@ -21,13 +21,13 @@ public class Tag {
 
     @UnwrapValidatedValue
     // the Type of the Value if it exists
-    private Optional<Type> valueType;
+    private Optional<GroundType> valueType;
 
     @JsonCreator
     public Tag(@JsonProperty("versionId") String versionId,
                @JsonProperty("key") String key,
                @JsonProperty("value") Optional<Object> value,
-                @JsonProperty("type") Optional<Type> valueType) {
+                @JsonProperty("type") Optional<GroundType> valueType) {
         this.versionId = versionId;
         this.key = key;
         this.value = value;
@@ -50,7 +50,7 @@ public class Tag {
     }
 
     @JsonProperty
-    public Optional<Type> getValueType() {
+    public Optional<GroundType> getValueType() {
         return this.valueType;
     }
 

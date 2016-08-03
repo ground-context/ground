@@ -1,6 +1,6 @@
 package edu.berkeley.ground.api.versions.gremlin;
 
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.Version;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
@@ -20,17 +20,17 @@ public class GremlinVersionSuccessorFactory extends VersionSuccessorFactory {
         GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, fromId));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
 
         Vertex source = connection.getVertex(predicates);
         predicates.clear();
 
-        predicates.add(new DbDataContainer("id", Type.STRING, toId));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
         Vertex destination = connection.getVertex(predicates);
 
         String dbId = IdGenerator.generateId(fromId + toId);
         List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("successor_id", Type.STRING, dbId));
+        insertions.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
         connection.addEdge("VersionSuccessor", source, destination, insertions);
 
         return VersionSuccessorFactory.construct(dbId, toId, fromId);
@@ -40,7 +40,7 @@ public class GremlinVersionSuccessorFactory extends VersionSuccessorFactory {
         GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("successor_id", Type.STRING, dbId));
+        predicates.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
 
         Edge edge = connection.getEdge(predicates);
 

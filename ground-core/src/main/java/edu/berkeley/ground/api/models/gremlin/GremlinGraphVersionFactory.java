@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.GraphVersion;
 import edu.berkeley.ground.api.models.GraphVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
@@ -52,15 +52,15 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
 
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("graph_id", Type.STRING, graphId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
 
             Vertex versionVertex = connection.addVertex("GraphVersion", insertions);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             for (String edgeVersionId : edgeVersionIds) {
                 List<DbDataContainer> edgeQuery = new ArrayList<>();
-                edgeQuery.add(new DbDataContainer("id", Type.STRING, edgeVersionId));
+                edgeQuery.add(new DbDataContainer("id", GroundType.STRING, edgeVersionId));
                 Vertex edgeVertex = connection.getVertex(edgeQuery);
 
                 connection.addEdge("GraphVersionEdge", versionVertex, edgeVertex, new ArrayList<>());
@@ -86,7 +86,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             Vertex versionVertex = connection.getVertex(predicates);
             String graphId = versionVertex.property("graph_id").value().toString();

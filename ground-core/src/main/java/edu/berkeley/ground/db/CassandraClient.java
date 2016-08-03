@@ -1,7 +1,7 @@
 package edu.berkeley.ground.db;
 
 import com.datastax.driver.core.*;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.JGraphTUtils;
@@ -92,7 +92,7 @@ public class CassandraClient implements DBClient {
 
             int index = 0;
             for (DbDataContainer container : insertValues) {
-                CassandraClient.setValue(statement, container.getValue(), container.getType(), index);
+                CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
 
                 index++;
             }
@@ -124,7 +124,7 @@ public class CassandraClient implements DBClient {
 
             int index = 0;
             for (DbDataContainer container : predicatesAndValues) {
-                CassandraClient.setValue(statement, container.getValue(), container.getType(), index);
+                CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
 
                 index++;
             }
@@ -155,8 +155,8 @@ public class CassandraClient implements DBClient {
         }
     }
 
-    private static void setValue(BoundStatement statement, Object value, Type type, int index) {
-        switch (type) {
+    private static void setValue(BoundStatement statement, Object value, GroundType groundType, int index) {
+        switch (groundType) {
             case STRING:
                 if (value != null) {
                     statement.setString(index, (String) value);

@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models.postgres;
 
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
@@ -38,8 +38,8 @@ public class PostgresNodeFactory extends NodeFactory {
             this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("name", Type.STRING, name));
-            insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
+            insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+            insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
             connection.insert("Nodes", insertions);
 
@@ -59,7 +59,7 @@ public class PostgresNodeFactory extends NodeFactory {
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("name", Type.STRING, name));
+            predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
             QueryResults resultSet = connection.equalitySelect("Nodes", DBClient.SELECT_STAR, predicates);
             String id = resultSet.getString(1);

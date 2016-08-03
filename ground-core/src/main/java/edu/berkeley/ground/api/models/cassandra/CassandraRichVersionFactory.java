@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.RichVersionFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
@@ -40,9 +40,9 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         }
 
         List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("id", Type.STRING, id));
-        insertions.add(new DbDataContainer("structure_id", Type.STRING, structureVersionId.orElse(null)));
-        insertions.add(new DbDataContainer("reference", Type.STRING, reference.orElse(null)));
+        insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+        insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureVersionId.orElse(null)));
+        insertions.add(new DbDataContainer("reference", GroundType.STRING, reference.orElse(null)));
 
         connection.insert("RichVersions", insertions);
 
@@ -51,10 +51,10 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
                 Tag tag = tags.get().get(key);
 
                 List<DbDataContainer> tagInsertion = new ArrayList<>();
-                tagInsertion.add(new DbDataContainer("richversion_id", Type.STRING, id));
-                tagInsertion.add(new DbDataContainer("key", Type.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", Type.STRING, tag.getValue().map(Object::toString).orElse(null)));
-                tagInsertion.add(new DbDataContainer("type", Type.STRING, tag.getValueType().map(Type::toString).orElse(null)));
+                tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+                tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().map(Object::toString).orElse(null)));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().map(GroundType::toString).orElse(null)));
 
                 connection.insert("Tags", tagInsertion);
             }
@@ -65,11 +65,11 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, id));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, id));
         QueryResults resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
 
         List<DbDataContainer> parameterPredicates = new ArrayList<>();
-        parameterPredicates.add(new DbDataContainer("richversion_id", Type.STRING, id));
+        parameterPredicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
         Map<String, String> parametersMap = new HashMap<>();
         Optional<Map<String, String>> parameters;
         try {

@@ -26,7 +26,7 @@ public class GremlinVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, itemId));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, itemId));
 
         Vertex itemVertex = connection.getVertex(predicates);
         List<Edge> gremlinEdges = connection.getDescendantEdgesWithLabel(itemVertex, "VersionSuccessor");

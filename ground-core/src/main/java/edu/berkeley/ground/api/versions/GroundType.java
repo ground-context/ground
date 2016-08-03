@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import edu.berkeley.ground.exceptions.GroundException;
 
-public enum Type {
+public enum GroundType {
     STRING (String.class, "string"),
     INTEGER (Integer.class, "integer"),
     BOOLEAN (Boolean.class, "boolean");
@@ -12,7 +12,7 @@ public enum Type {
     private final Class<?> klass;
     private final String name;
 
-    Type(Class<?> klass, String name) {
+    GroundType(Class<?> klass, String name) {
         this.klass = klass;
         this.name = name;
     }
@@ -22,7 +22,7 @@ public enum Type {
     }
 
     @JsonCreator
-    public static Type fromString(String str) throws GroundException {
+    public static GroundType fromString(String str) throws GroundException {
         if (str == null) {
             return null;
         }
@@ -39,12 +39,12 @@ public enum Type {
     }
 
     @JsonValue
-    public static Object stringToType(String str, Type type) {
+    public static Object stringToType(String str, GroundType groundType) {
         if (str == null) {
             return null;
         }
 
-        switch (type) {
+        switch (groundType) {
             case STRING: return str;
             case INTEGER: return Integer.parseInt(str);
             case BOOLEAN: return Boolean.parseBoolean(str);

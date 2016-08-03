@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models.gremlin;
 
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.gremlin.GremlinItemFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -34,8 +34,8 @@ public class GremlinNodeFactory extends NodeFactory {
             String uniqueId = "Nodes." + name;
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("name", Type.STRING, name));
-            insertions.add(new DbDataContainer("id", Type.STRING, uniqueId));
+            insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, uniqueId));
 
             connection.addVertex("Node", insertions);
 
@@ -55,8 +55,8 @@ public class GremlinNodeFactory extends NodeFactory {
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("name", Type.STRING, name));
-            predicates.add(new DbDataContainer("label", Type.STRING, "Nodes"));
+            predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+            predicates.add(new DbDataContainer("label", GroundType.STRING, "Nodes"));
 
             Vertex vertex = connection.getVertex(predicates);
 

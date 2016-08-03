@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.usage.cassandra;
 
 import edu.berkeley.ground.api.usage.LineageEdge;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
@@ -38,8 +38,8 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
             this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("name", Type.STRING, name));
-            insertions.add(new DbDataContainer("item_id", Type.STRING, uniqueId));
+            insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+            insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
             connection.insert("LineageEdges", insertions);
 
@@ -59,7 +59,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("name", Type.STRING, name));
+            predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
             QueryResults resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
             String id = resultSet.getString(1);

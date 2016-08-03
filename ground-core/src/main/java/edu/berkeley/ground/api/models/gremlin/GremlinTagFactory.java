@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models.gremlin;
 
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
@@ -16,7 +16,7 @@ public class GremlinTagFactory extends TagFactory {
         GremlinClient.GremlinConnection connection = (GremlinClient.GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, id));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
         Vertex versionVertex = connection.getVertex(predicates);
 
@@ -28,7 +28,7 @@ public class GremlinTagFactory extends TagFactory {
             for(Vertex tag : tagVertices) {
                 String key = tag.property("tkey").value().toString();
                 Optional<Object> value = Optional.ofNullable(tag.property("value").value());
-                Optional<Type> type = Optional.ofNullable(Type.fromString(tag.property("type").value().toString()));
+                Optional<GroundType> type = Optional.ofNullable(GroundType.fromString(tag.property("type").value().toString()));
 
                 tags.put(key, new Tag(id, key, value, type));
             }

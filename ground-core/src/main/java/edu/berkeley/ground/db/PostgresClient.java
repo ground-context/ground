@@ -1,6 +1,6 @@
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
@@ -58,7 +58,7 @@ public class PostgresClient implements DBClient {
 
                 int index = 1;
                 for (DbDataContainer container : insertValues) {
-                    PostgresClient.setValue(preparedStatement, container.getValue(), container.getType(), index);
+                    PostgresClient.setValue(preparedStatement, container.getValue(), container.getGroundType(), index);
 
                     index++;
                 }
@@ -98,7 +98,7 @@ public class PostgresClient implements DBClient {
 
                 int index = 1;
                 for (DbDataContainer container : predicatesAndValues) {
-                    PostgresClient.setValue(preparedStatement, container.getValue(), container.getType(), index);
+                    PostgresClient.setValue(preparedStatement, container.getValue(), container.getGroundType(), index);
 
                     index++;
                 }
@@ -163,8 +163,8 @@ public class PostgresClient implements DBClient {
         }
     }
 
-    private static void setValue(PreparedStatement preparedStatement, Object value, Type type, int index) throws SQLException {
-        switch (type) {
+    private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index) throws SQLException {
+        switch (groundType) {
             case STRING:
                 if (value == null) {
                     preparedStatement.setNull(index, Types.VARCHAR);

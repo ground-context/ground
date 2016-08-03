@@ -1,6 +1,6 @@
 package edu.berkeley.ground.api.versions.cassandra;
 
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.Version;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
@@ -23,9 +23,9 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
 
         String dbId = IdGenerator.generateId(fromId + toId);
 
-        insertions.add(new DbDataContainer("successor_id", Type.STRING, dbId));
-        insertions.add(new DbDataContainer("vfrom", Type.STRING, fromId));
-        insertions.add(new DbDataContainer("vto", Type.STRING, toId));
+        insertions.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
+        insertions.add(new DbDataContainer("vfrom", GroundType.STRING, fromId));
+        insertions.add(new DbDataContainer("vto", GroundType.STRING, toId));
 
         connection.insert("VersionSuccessors", insertions);
 
@@ -36,7 +36,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("successor_id", Type.STRING, dbId));
+        predicates.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
 
         QueryResults resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
 

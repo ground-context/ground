@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.usage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import io.dropwizard.jackson.Jackson;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class LineageEdgeVersionTest {
     @Test
     public void serializesToJSON() throws Exception {
         Map<String, Tag> tagsMap = new HashMap<>();
-        tagsMap.put("testtag", new Tag("abcd", "testtag", Optional.of("tag"), Optional.of(Type.STRING)));
+        tagsMap.put("testtag", new Tag("abcd", "testtag", Optional.of("tag"), Optional.of(GroundType.STRING)));
 
         Map<String, String> parametersMap = new HashMap<>();
         parametersMap.put("http", "GET");
@@ -33,7 +33,7 @@ public class LineageEdgeVersionTest {
     @Test
     public void deserializesFromJSON() throws Exception {
         Map<String, Tag> tagsMap = new HashMap<>();
-        tagsMap.put("testtag", new Tag("abcd", "testtag", Optional.of("tag"), Optional.of(Type.STRING)));
+        tagsMap.put("testtag", new Tag("abcd", "testtag", Optional.of("tag"), Optional.of(GroundType.STRING)));
 
         Map<String, String> parametersMap = new HashMap<>();
         parametersMap.put("http", "GET");

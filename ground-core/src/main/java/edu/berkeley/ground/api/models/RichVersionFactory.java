@@ -1,6 +1,6 @@
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -17,7 +17,7 @@ public abstract class RichVersionFactory {
     }
 
     protected static void checkStructureTags(StructureVersion structureVersion, Optional<Map<String, Tag>> tags) throws GroundException {
-        Map<String, Type> structureVersionAttributes = structureVersion.getAttributes();
+        Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 
         if(!tags.isPresent()) {
             throw new GroundException("No tags were specified");

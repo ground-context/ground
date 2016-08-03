@@ -1,6 +1,6 @@
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class ModelCreateUtils {
         return new GraphVersion(id, Optional.<Map<String,Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String,String>>empty(), graphId, edgeVersionIds);
     }
 
-    public static StructureVersion getStructureVersion(String id, String structureId, Map<String, Type> attributes) {
+    public static StructureVersion getStructureVersion(String id, String structureId, Map<String, GroundType> attributes) {
         return new StructureVersion(id,structureId, attributes);
     }
 }

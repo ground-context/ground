@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models.gremlin;
 
 import edu.berkeley.ground.api.models.Graph;
 import edu.berkeley.ground.api.models.GraphFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.gremlin.GremlinItemFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -36,8 +36,8 @@ public class GremlinGraphFactory extends GraphFactory {
             this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("name", Type.STRING, name));
-            insertions.add(new DbDataContainer("id", Type.STRING, uniqueId));
+            insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, uniqueId));
 
             connection.addVertex("Graph", insertions);
 
@@ -57,7 +57,7 @@ public class GremlinGraphFactory extends GraphFactory {
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("name", Type.STRING, name));
+            predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
             Vertex vertex = connection.getVertex(predicates);
             String id = vertex.property("id").value().toString();

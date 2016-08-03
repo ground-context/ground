@@ -1,7 +1,7 @@
 package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.ItemFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
@@ -27,7 +27,7 @@ public class CassandraItemFactory extends ItemFactory {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
 
         List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("id", Type.STRING, id));
+        insertions.add(new DbDataContainer("id", GroundType.STRING, id));
 
         connection.insert("Items", insertions);
     }

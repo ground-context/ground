@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.GraphVersion;
 import edu.berkeley.ground.api.models.GraphVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
@@ -54,15 +54,15 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("graph_id", Type.STRING, graphId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
 
             connection.insert("GraphVersions", insertions);
 
             for (String edgeVersionId : edgeVersionIds) {
                 List<DbDataContainer> edgeInsertion = new ArrayList<>();
-                edgeInsertion.add(new DbDataContainer("gvid", Type.STRING, id));
-                edgeInsertion.add(new DbDataContainer("evid", Type.STRING, edgeVersionId));
+                edgeInsertion.add(new DbDataContainer("gvid", GroundType.STRING, id));
+                edgeInsertion.add(new DbDataContainer("evid", GroundType.STRING, edgeVersionId));
 
                 connection.insert("GraphVersionEdges", edgeInsertion);
             }
@@ -87,10 +87,10 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             List<DbDataContainer> edgePredicate = new ArrayList<>();
-            edgePredicate.add(new DbDataContainer("gvid", Type.STRING, id));
+            edgePredicate.add(new DbDataContainer("gvid", GroundType.STRING, id));
 
             QueryResults resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
             String graphId = resultSet.getString(2);

@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models.gremlin;
 
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.StructureVersionFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
@@ -26,23 +26,23 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
     }
 
     public StructureVersion create(String structureId,
-                                   Map<String, Type> attributes,
+                                   Map<String, GroundType> attributes,
                                    Optional<String> parentId) throws GroundException {
 
         GremlinConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(structureId);
 
         List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("id", Type.STRING, id));
-        insertions.add(new DbDataContainer("structure_id", Type.STRING, structureId));
+        insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+        insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureId));
 
         Vertex versionVertex = connection.addVertex("StructureVersion", insertions);
 
         for (String key : attributes.keySet()) {
             List<DbDataContainer> itemInsertions = new ArrayList<>();
-            itemInsertions.add(new DbDataContainer("svid", Type.STRING, id));
-            itemInsertions.add(new DbDataContainer("skey", Type.STRING, key));
-            itemInsertions.add(new DbDataContainer("type", Type.STRING, attributes.get(key).toString()));
+            itemInsertions.add(new DbDataContainer("svid", GroundType.STRING, id));
+            itemInsertions.add(new DbDataContainer("skey", GroundType.STRING, key));
+            itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
 
             Vertex itemVertex = connection.addVertex("StructureVersionItem", itemInsertions);
             connection.addEdge("StructureVersionItemConnection", versionVertex, itemVertex, new ArrayList<>());
@@ -60,14 +60,14 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
         GremlinConnection connection = this.dbClient.getConnection();
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, id));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, id));
         Vertex versionVertex = connection.getVertex(predicates);
 
         List<Vertex> adjacentVetices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "StructureVersionItemConnection");
-        Map<String, Type> attributes = new HashMap<>();
+        Map<String, GroundType> attributes = new HashMap<>();
 
         for(Vertex gremlinVertex : adjacentVetices) {
-            attributes.put(gremlinVertex.property("skey").value().toString(), Type.fromString(gremlinVertex.property("type").value().toString()));
+            attributes.put(gremlinVertex.property("skey").value().toString(), GroundType.fromString(gremlinVertex.property("type").value().toString()));
         }
 
         String structureId = versionVertex.property("structure_id").toString();

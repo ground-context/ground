@@ -1,7 +1,7 @@
 package edu.berkeley.ground.api.models.postgres;
 
 import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
@@ -52,10 +52,10 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("edge_id", Type.STRING, edgeId));
-            insertions.add(new DbDataContainer("endpoint_one", Type.STRING, fromId));
-            insertions.add(new DbDataContainer("endpoint_two", Type.STRING, toId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("edge_id", GroundType.STRING, edgeId));
+            insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
+            insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
 
             connection.insert("EdgeVersions", insertions);
 
@@ -78,7 +78,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             QueryResults resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
             String edgeId = resultSet.getString(2);

@@ -1,7 +1,7 @@
 package edu.berkeley.ground.api.models;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import io.dropwizard.jackson.Jackson;
 import org.junit.Test;
 
@@ -16,9 +16,9 @@ public class StructureVersionTest {
 
     @Test
     public void serializesToJSON() throws Exception {
-        Map<String, Type> attributes = new HashMap<>();
-        attributes.put("tag1", Type.INTEGER);
-        attributes.put("tag2", Type.STRING);
+        Map<String, GroundType> attributes = new HashMap<>();
+        attributes.put("tag1", GroundType.INTEGER);
+        attributes.put("tag2", GroundType.STRING);
 
         StructureVersion structureVersion = new StructureVersion("abcd", "Structures.test", attributes);
 
@@ -28,9 +28,9 @@ public class StructureVersionTest {
 
     @Test
     public void deserializesFromJSON() throws Exception {
-        Map<String, Type> attributes = new HashMap<>();
-        attributes.put("tag1", Type.INTEGER);
-        attributes.put("tag2", Type.STRING);
+        Map<String, GroundType> attributes = new HashMap<>();
+        attributes.put("tag1", GroundType.INTEGER);
+        attributes.put("tag2", GroundType.STRING);
 
         StructureVersion structureVersion = new StructureVersion("abcd", "Structures.test", attributes);
 

@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.NodeVersion;
 import edu.berkeley.ground.api.models.NodeVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
@@ -55,8 +55,8 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("node_id", Type.STRING, nodeId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
 
             connection.insert("NodeVersions", insertions);
 
@@ -80,7 +80,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             QueryResults resultSet = connection.equalitySelect("NodeVersions", DBClient.SELECT_STAR, predicates);
             String nodeId = resultSet.getString(1);

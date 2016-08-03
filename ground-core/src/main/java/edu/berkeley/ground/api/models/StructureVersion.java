@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.Version;
 
 import java.util.*;
@@ -12,12 +12,12 @@ public class StructureVersion extends Version {
     private String structureId;
 
     // the map of attribute names to types
-    private Map<String, Type> attributes;
+    private Map<String, GroundType> attributes;
 
     @JsonCreator
     protected StructureVersion(@JsonProperty("id") String id,
                                @JsonProperty("structureId") String structureId,
-                               @JsonProperty("attributes") Map<String, Type> attributes) {
+                               @JsonProperty("attributes") Map<String, GroundType> attributes) {
         super(id);
 
         this.structureId = structureId;
@@ -30,7 +30,7 @@ public class StructureVersion extends Version {
     }
 
     @JsonProperty
-    public Map<String, Type> getAttributes() {
+    public Map<String, GroundType> getAttributes() {
         return this.attributes;
     }
 

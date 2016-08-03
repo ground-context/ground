@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
@@ -53,20 +53,20 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
 
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("edge_id", Type.STRING, edgeId));
-            insertions.add(new DbDataContainer("endpoint_one", Type.STRING, fromId));
-            insertions.add(new DbDataContainer("endpoint_two", Type.STRING, toId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("edge_id", GroundType.STRING, edgeId));
+            insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
+            insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
 
             Vertex vertex = connection.addVertex("EdgeVersion", insertions);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, fromId));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
             Vertex fromVertex = connection.getVertex(predicates);
 
             predicates.clear();
-            predicates.add(new DbDataContainer("id", Type.STRING, toId));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
             Vertex toVertex = connection.getVertex(predicates);
 
             predicates.clear();
@@ -92,7 +92,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             Vertex versionVertex = connection.getVertex(predicates);
             String edgeId = versionVertex.property("edge_id").value().toString();
