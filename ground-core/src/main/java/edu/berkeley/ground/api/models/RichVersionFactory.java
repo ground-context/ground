@@ -26,7 +26,6 @@ public abstract class RichVersionFactory {
         Map<String, Tag> tagsMap = tags.get();
 
         for (String key : structureVersionAttributes.keySet()) {
-
             // check if such a tag exists
             if(!tagsMap.keySet().contains(key)) {
                 throw new GroundException("No tag with key " + key + " was specified.");

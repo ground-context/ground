@@ -1,4 +1,4 @@
-package edu.berkeley.ground.api.models.gremlin;
+package edu.berkeley.ground.api.models.neo4j;
 
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.RichVersionFactory;
@@ -7,27 +7,25 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Type;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.db.Neo4jClient;
+import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.neo4j.driver.internal.value.StringValue;
+import org.neo4j.driver.v1.Record;
 
 import java.util.*;
 
-public class GremlinRichVersionFactory extends RichVersionFactory {
-    private GremlinStructureVersionFactory structureVersionFactory;
-    private GremlinTagFactory tagFactory;
+public class Neo4jRichVersionFactory extends RichVersionFactory {
+    private Neo4jStructureVersionFactory structureVersionFactory;
+    private Neo4jTagFactory tagFactory;
 
-    public GremlinRichVersionFactory(GremlinStructureVersionFactory structureVersionFactory, GremlinTagFactory tagFactory) {
+    public Neo4jRichVersionFactory(Neo4jStructureVersionFactory structureVersionFactory, Neo4jTagFactory tagFactory) {
         this.structureVersionFactory = structureVersionFactory;
         this.tagFactory = tagFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
-        GremlinConnection connection = (GremlinConnection) connectionPointer;
-
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, id));
-        Vertex versionVertex = connection.getVertex(predicates);
+    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+        Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
         if (structureVersionId.isPresent()) {
             StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId.get());
@@ -45,19 +43,18 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
                 insertions.add(new DbDataContainer("pkey", Type.STRING, key));
                 insertions.add(new DbDataContainer("value", Type.STRING, value));
 
-                Vertex parameterVertex = connection.addVertex("RichVersionExternalParameter", insertions);
+                connection.addVertexAndEdge("RichVersionExternalParameter", insertions, "RichVersionExternalParameterConnection", id, new ArrayList<>());
 
                 insertions.clear();
-                connection.addEdge("RichVersionExternalParameterConnection", versionVertex, parameterVertex, insertions);
             }
         }
 
         if (structureVersionId.isPresent()) {
-            versionVertex.property("structureversion_id", structureVersionId.get());
+            connection.setProperty(id, "structure_id", structureVersionId.get(), true);
         }
 
         if (reference.isPresent()) {
-            versionVertex.property("reference", reference.get());
+            connection.setProperty(id, "reference", reference.get(), true);
         }
 
         if (tags.isPresent()) {
@@ -70,27 +67,30 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
                 tagInsertion.add(new DbDataContainer("value", Type.STRING, tag.getValue().map(Object::toString).orElse(null)));
                 tagInsertion.add(new DbDataContainer("type", Type.STRING, tag.getValueType().map(Object::toString).orElse(null)));
 
-                Vertex tagVertex = connection.addVertex("Tag", tagInsertion);
-                connection.addEdge("TagConnection", versionVertex, tagVertex, new ArrayList<>());
+                connection.addVertexAndEdge("Tag", tagInsertion, "TagConnection", id, new ArrayList<>());
             }
         }
     }
 
     public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
-        GremlinConnection connection = (GremlinConnection) connectionPointer;
+        Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", Type.STRING, id));
-        Vertex versionVertex = connection.getVertex(predicates);
+        Record record = connection.getVertex(predicates);
 
-        List<Vertex> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "RichVersionExternalParameterConnection");
+        List<String> returnFields = new ArrayList<>();
+        returnFields.add("pkey");
+        returnFields.add("value");
+
+        List<Record> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(id, "RichVersionExternalParameterConnection", returnFields);
         Optional<Map<String, String>> parameters;
 
         if (!parameterVertices.isEmpty()) {
             Map<String, String> parametersMap = new HashMap<>();
 
-            for (Vertex parameter : parameterVertices) {
-                parametersMap.put(parameter.property("pkey").value().toString(), parameter.property("value").value().toString());
+            for (Record parameter : parameterVertices) {
+                parametersMap.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
             }
 
             parameters = Optional.of(parametersMap);
@@ -100,8 +100,8 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
 
         Optional<Map<String, Tag>> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
 
-        Optional<String> reference = Optional.ofNullable(versionVertex.property("reference").toString());
-        Optional<String> structureVersionId = Optional.ofNullable(versionVertex.property("structureversion_id").value().toString());
+        Optional<String> reference = Optional.ofNullable(record.get("reference").toString());
+        Optional<String> structureVersionId = Optional.ofNullable(record.get("structure_id").toString());
 
         return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
     }

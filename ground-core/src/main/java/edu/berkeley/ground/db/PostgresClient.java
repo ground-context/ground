@@ -129,7 +129,7 @@ public class PostgresClient implements DBClient {
                                                     "    (select p.vfrom, ev.endpoint_two\n" +
                                                     "    from paths p, edgeversions ev\n" +
                                                     "    where p.vto = ev.endpoint_one)\n" +
-                                                    ") select * from paths;"); */
+                                                    ") select vto from paths;"); */
 
                 PreparedStatement statement = this.connection.prepareStatement("select reachable(?);");
                 statement.setString(1, nodeVersionId);
