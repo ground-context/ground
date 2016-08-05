@@ -26,7 +26,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dropwizard version -->
-        <dropwizard.version>1.0.0-rc3</dropwizard.version>
+        <dropwizard.version>1.0.0</dropwizard.version>
 
         <!-- Cassandra version -->
         <cassandra.version>3.0.0</cassandra.version>
