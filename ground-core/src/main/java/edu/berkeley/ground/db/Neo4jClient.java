@@ -5,6 +5,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Neo4jClient implements DBClient {
@@ -225,7 +226,16 @@ public class Neo4jClient implements DBClient {
         }
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
-            return null;
+            String query = "MATCH (a {id: '" + nodeVersionId + "'})";
+            query += "MATCH (a)-[:EdgeVersionConnection*]->(b)";
+            query += "RETURN b.id";
+
+            List<String> result = new ArrayList<>();
+            List<Record> records = this.transaction.run(query).list();
+
+            records.stream().forEach(record -> result.add(getStringFromValue((StringValue) record.get("b.id"))));
+
+            return result;
         }
 
         public void setProperty(String id, String key, Object value, boolean isString) {
@@ -243,6 +253,6 @@ public class Neo4jClient implements DBClient {
 
     public static String getStringFromValue(StringValue value) {
         String stringWithQuotes = value.toString();
-        return stringWithQuotes.toString().substring(1, stringWithQuotes.length() - 1);
+        return stringWithQuotes.substring(1, stringWithQuotes.length() - 1);
     }
 }

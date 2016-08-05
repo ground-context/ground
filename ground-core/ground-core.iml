@@ -16,6 +16,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.neo4j.driver:neo4j-java-driver:1.0.3" level="project" />
     <orderEntry type="library" name="Maven: io.dropwizard:dropwizard-core:1.0.0-rc3" level="project" />
     <orderEntry type="library" name="Maven: io.dropwizard:dropwizard-util:1.0.0-rc3" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.7.4" level="project" />
