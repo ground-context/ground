@@ -131,3 +131,23 @@ create table LineageEdgeVersions (
 /* CREATE EMPTY VERSION */
 
 insert into Versions(id) values ('EMPTY');
+
+/* CREATE FUNCTION FOR ITERATION */
+create function reachable(vstart varchar) returns table(dest varchar) as $$ 
+  declare cnt integer;
+  declare prev_cnt integer;
+
+  begin
+    drop table if exists paths;
+    create temp table paths as select endpoint_one, endpoint_two from edgeversions where endpoint_one = vstart;
+    select into cnt count(*) from paths;
+
+    while prev_cnt != cnt loop
+      create temp table new_paths as select endpoint_two, endpoint_two from paths, edgeversions where endpoint_two = endpoint_one;
+      alter table paths rename to old_paths;
+      create table paths as select * from new_paths union select * from old_paths;
+    end loop;
+    return query select endpoint_two from paths;
+  end;
+$$ language plpgsql;
+

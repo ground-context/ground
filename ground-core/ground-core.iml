@@ -16,6 +16,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.neo4j.driver:neo4j-java-driver:1.0.3" level="project" />
     <orderEntry type="library" name="Maven: io.dropwizard:dropwizard-core:1.0.0-rc3" level="project" />
     <orderEntry type="library" name="Maven: io.dropwizard:dropwizard-util:1.0.0-rc3" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.7.4" level="project" />
@@ -291,6 +292,7 @@
     <orderEntry type="library" name="Maven: org.antlr:antlr-runtime:3.2" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:stringtemplate:3.2" level="project" />
     <orderEntry type="library" name="Maven: antlr:antlr:2.7.7" level="project" />
+    <orderEntry type="library" name="Maven: org.neo4j.driver:neo4j-java-driver:1.0.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: io.dropwizard:dropwizard-testing:1.0.0-rc3" level="project" />
     <orderEntry type="library" name="Maven: junit:junit:4.12" level="project" />
     <orderEntry type="library" name="Maven: org.hamcrest:hamcrest-core:1.3" level="project" />

@@ -122,20 +122,23 @@ public class PostgresClient implements DBClient {
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
             try {
+                /*
                 PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
                                                     "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
                                                     "    union\n" +
                                                     "    (select p.vfrom, ev.endpoint_two\n" +
                                                     "    from paths p, edgeversions ev\n" +
                                                     "    where p.vto = ev.endpoint_one)\n" +
-                                                    ") select * from paths;");
+                                                    ") select vto from paths;"); */
+
+                PreparedStatement statement = this.connection.prepareStatement("select reachable(?);");
                 statement.setString(1, nodeVersionId);
 
                 ResultSet resultSet = statement.executeQuery();
 
                 List<String> result = new ArrayList<>();
                 while (resultSet.next()) {
-                    result.add(resultSet.getString(2));
+                    result.add(resultSet.getString(1));
                 }
 
                 return result;

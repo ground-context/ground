@@ -21,3 +21,4 @@ drop table items;
 drop table versionsuccessors;
 drop table versions;
 
+drop function reachable(varchar);

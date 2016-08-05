@@ -1,26 +1,22 @@
-package edu.berkeley.ground.api.versions.gremlin;
+package edu.berkeley.ground.api.versions.neo4j;
 
 import edu.berkeley.ground.api.versions.ItemFactory;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class GremlinItemFactory extends ItemFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GremlinItemFactory.class);
+public class Neo4jItemFactory extends ItemFactory {
+    private Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
 
-    private GremlinVersionHistoryDAGFactory versionHistoryDAGFactory;
-
-    public GremlinItemFactory(GremlinVersionHistoryDAGFactory versionHistoryDAGFactory) {
+    public Neo4jItemFactory(Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory) {
         this.versionHistoryDAGFactory = versionHistoryDAGFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException {
         // DO NOTHING
     }
 
@@ -55,7 +51,6 @@ public class GremlinItemFactory extends ItemFactory {
         if (parent.isPresent() && !dag.checkItemInDag(parentId)) {
             String errorString = "Parent " + parent + " is not in Item " + itemId + ".";
 
-            LOGGER.error(errorString);
             throw new GroundException(errorString);
         }
 

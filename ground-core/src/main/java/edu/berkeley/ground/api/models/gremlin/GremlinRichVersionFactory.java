@@ -53,7 +53,7 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
         }
 
         if (structureVersionId.isPresent()) {
-            versionVertex.property("structure_id", structureVersionId.get());
+            versionVertex.property("structureversion_id", structureVersionId.get());
         }
 
         if (reference.isPresent()) {

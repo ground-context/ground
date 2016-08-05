@@ -1,11 +1,13 @@
 package edu.berkeley.ground;
 
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
+import edu.berkeley.ground.util.Neo4jFactories;
 import edu.berkeley.ground.util.PostgresFactories;
 import edu.berkeley.ground.util.GremlinFactories;
 import org.junit.Before;
@@ -14,7 +16,7 @@ import java.io.File;
 
 
 public class GroundResourceTest {
-    private static final String BACKING_STORE_TYPE = "postgres";
+    private static final String BACKING_STORE_TYPE = "neo4j";
     private static final String TEST_DB_NAME = "test";
 
     protected NodesResource nodesResource;
@@ -30,7 +32,7 @@ public class GroundResourceTest {
                 case "postgres": {
                     setBackingStore();
 
-                    Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py test " + TEST_DB_NAME, null, new File("scripts/postgres/"));
+                    Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py test " + TEST_DB_NAME, null, new File("ground-core/scripts/postgres/"));
                     p.waitFor();
 
                     break;
@@ -47,6 +49,15 @@ public class GroundResourceTest {
 
                 case "gremlin": {
                     Process p = Runtime.getRuntime().exec("$TITAN_HOME/bin/gremlin.sh delete_gremlin.groovy", null, new File("scripts/gremlin/"));
+                    p.waitFor();
+
+                    setBackingStore();
+
+                    break;
+                }
+
+                case "neo4j": {
+                    Process p = Runtime.getRuntime().exec("neo4j-shell -file delete_data.cypher", null, new File("scripts/neo4j/"));
                     p.waitFor();
 
                     setBackingStore();
@@ -88,6 +99,19 @@ public class GroundResourceTest {
             case "grermlin": {
                 GremlinClient dbClient = new GremlinClient();
                 GremlinFactories factoryGenerator = new GremlinFactories(dbClient);
+
+                nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
+                edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());
+                graphsResource = new GraphsResource(factoryGenerator.getGraphFactory(), factoryGenerator.getGraphVersionFactory());
+                lineageEdgesResource = new LineageEdgesResource(factoryGenerator.getLineageEdgeFactory(), factoryGenerator.getLineageEdgeVersionFactory());
+                structuresResource = new StructuresResource(factoryGenerator.getStructureFactory(), factoryGenerator.getStructureVersionFactory());
+
+                break;
+            }
+
+            case "neo4j": {
+                Neo4jClient neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
+                Neo4jFactories factoryGenerator = new Neo4jFactories(neo4jClient);
 
                 nodesResource = new NodesResource(factoryGenerator.getNodeFactory(), factoryGenerator.getNodeVersionFactory());
                 edgesResource = new EdgesResource(factoryGenerator.getEdgeFactory(), factoryGenerator.getEdgeVersionFactory());

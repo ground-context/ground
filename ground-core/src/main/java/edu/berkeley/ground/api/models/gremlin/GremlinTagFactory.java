@@ -5,7 +5,7 @@ import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.GremlinClient;
+import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
@@ -13,7 +13,7 @@ import java.util.*;
 
 public class GremlinTagFactory extends TagFactory {
     public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
-        GremlinClient.GremlinConnection connection = (GremlinClient.GremlinConnection) connectionPointer;
+        GremlinConnection connection = (GremlinConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
