@@ -1,0 +1,14 @@
+job.name=PullFromKafka106
+job.group=GobblinKafka
+job.description=Kafka Ground Pipeline
+
+kafka.brokers=localhost:9092
+topic.whitelist=Flower,HdfsMetadata
+bootstrap.with.offset=earliest
+
+source.class=gobblin.source.extractor.extract.kafka.KafkaSimpleSource
+extract.namespace=gobblin.extract.kafka
+data.publisher.type=edu.berkeley.ground.ingest.TestNoopPublisher
+
+writer.builder.class=edu.berkeley.ground.ingest.GroundDataWriterBuilder
+
