@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.NodeVersion;
 import edu.berkeley.ground.api.models.NodeVersionFactory;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
@@ -51,8 +51,8 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             );
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("node_id", Type.STRING, nodeId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
 
             connection.addVertex("NodeVersion", insertions);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
@@ -77,7 +77,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             Record record = connection.getVertex(predicates);
             String nodeId = record.get("node_id").toString();

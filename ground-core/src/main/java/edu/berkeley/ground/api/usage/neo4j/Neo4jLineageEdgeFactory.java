@@ -2,7 +2,7 @@ package edu.berkeley.ground.api.usage.neo4j;
 
 import edu.berkeley.ground.api.usage.LineageEdge;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.neo4j.Neo4jItemFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -37,8 +37,8 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
             this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("name", Type.STRING, name));
-            insertions.add(new DbDataContainer("id", Type.STRING, uniqueId));
+            insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, uniqueId));
 
             connection.addVertex("LineageEdges", insertions);
 
@@ -58,7 +58,7 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("name", Type.STRING, name));
+            predicates.add(new DbDataContainer("name", GroundType.STRING, name));
             Record record = connection.getVertex(predicates);
             String id = record.get("id").toString();
 

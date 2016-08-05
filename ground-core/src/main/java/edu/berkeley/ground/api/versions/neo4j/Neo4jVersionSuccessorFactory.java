@@ -1,6 +1,6 @@
 package edu.berkeley.ground.api.versions.neo4j;
 
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.Version;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
@@ -13,7 +13,6 @@ import org.neo4j.driver.v1.Record;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, String fromId, String toId) throws GroundException {
@@ -21,7 +20,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
         String dbId = IdGenerator.generateId(fromId + toId);
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, dbId));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
 
         connection.addEdge("VersionSuccessor", fromId, toId, predicates);
 
@@ -32,7 +31,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String dbId) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, dbId));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
 
         Record result = connection.getEdge("VersionSuccessor", predicates);
 

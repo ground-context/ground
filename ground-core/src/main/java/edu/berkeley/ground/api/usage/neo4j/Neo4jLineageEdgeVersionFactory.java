@@ -5,7 +5,7 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.neo4j.Neo4jRichVersionFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersion;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
@@ -54,10 +54,10 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             );
 
             List<DbDataContainer> insertions = new ArrayList<>();
-            insertions.add(new DbDataContainer("id", Type.STRING, id));
-            insertions.add(new DbDataContainer("lineageedge_id", Type.STRING, lineageEdgeId));
-            insertions.add(new DbDataContainer("endpoint_one", Type.STRING, fromId));
-            insertions.add(new DbDataContainer("endpoint_two", Type.STRING, toId));
+            insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("lineageedge_id", GroundType.STRING, lineageEdgeId));
+            insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
+            insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
 
             connection.addVertex("LineageEdgeVersions", insertions);
 
@@ -85,7 +85,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
             List<DbDataContainer> predicates = new ArrayList<>();
-            predicates.add(new DbDataContainer("id", Type.STRING, id));
+            predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
             Record versionRecord = connection.getVertex(predicates);
             String lineageEdgeId = versionRecord.get("lineageedge_id").toString();

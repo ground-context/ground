@@ -4,7 +4,7 @@ import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.RichVersionFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.Type;
+import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
@@ -39,9 +39,9 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
                 String value = parametersMap.get(key);
 
                 List<DbDataContainer> insertions = new ArrayList<>();
-                insertions.add(new DbDataContainer("id", Type.STRING, id));
-                insertions.add(new DbDataContainer("pkey", Type.STRING, key));
-                insertions.add(new DbDataContainer("value", Type.STRING, value));
+                insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+                insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
+                insertions.add(new DbDataContainer("value", GroundType.STRING, value));
 
                 connection.addVertexAndEdge("RichVersionExternalParameter", insertions, "RichVersionExternalParameterConnection", id, new ArrayList<>());
 
@@ -62,10 +62,10 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
                 Tag tag = tags.get().get(key);
 
                 List<DbDataContainer> tagInsertion = new ArrayList<>();
-                tagInsertion.add(new DbDataContainer("id", Type.STRING, id));
-                tagInsertion.add(new DbDataContainer("tkey", Type.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", Type.STRING, tag.getValue().map(Object::toString).orElse(null)));
-                tagInsertion.add(new DbDataContainer("type", Type.STRING, tag.getValueType().map(Object::toString).orElse(null)));
+                tagInsertion.add(new DbDataContainer("id", GroundType.STRING, id));
+                tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().map(Object::toString).orElse(null)));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().map(Object::toString).orElse(null)));
 
                 connection.addVertexAndEdge("Tag", tagInsertion, "TagConnection", id, new ArrayList<>());
             }
@@ -76,7 +76,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", Type.STRING, id));
+        predicates.add(new DbDataContainer("id", GroundType.STRING, id));
         Record record = connection.getVertex(predicates);
 
         List<String> returnFields = new ArrayList<>();

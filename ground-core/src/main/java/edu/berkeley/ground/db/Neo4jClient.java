@@ -33,7 +33,7 @@ public class Neo4jClient implements DBClient {
             for (DbDataContainer container : attributes) {
                 insert += container.getField() + " : ";
 
-                switch (container.getType()) {
+                switch (container.getGroundType()) {
                     case STRING: insert += "'" + container.getValue().toString() + "'"; break;
                     case INTEGER: insert += (int) container.getValue(); break;
                     case BOOLEAN: insert += container.getValue(); break;
@@ -58,7 +58,7 @@ public class Neo4jClient implements DBClient {
             for (DbDataContainer container : attributes) {
                 insert += container.getField() + " : ";
 
-                switch (container.getType()) {
+                switch (container.getGroundType()) {
                     case STRING: insert += "'" + container.getValue().toString() + "'"; break;
                     case INTEGER: insert += (int) container.getValue(); break;
                     case BOOLEAN: insert += container.getValue(); break;
@@ -82,7 +82,7 @@ public class Neo4jClient implements DBClient {
             for (DbDataContainer container : attributes) {
                 insert += container.getField() + " : ";
 
-                switch (container.getType()) {
+                switch (container.getGroundType()) {
                     case STRING: insert += "'" + container.getValue().toString() + "'"; break;
                     case INTEGER: insert += (int) container.getValue(); break;
                     case BOOLEAN: insert += container.getValue(); break;
@@ -101,7 +101,7 @@ public class Neo4jClient implements DBClient {
             for (DbDataContainer container : edgeAttributes) {
                 insert += container.getField() + " : ";
 
-                switch (container.getType()) {
+                switch (container.getGroundType()) {
                     case STRING: insert += "'" + container.getValue().toString() + "'"; break;
                     case INTEGER: insert += (int) container.getValue(); break;
                     case BOOLEAN: insert += container.getValue(); break;
@@ -134,7 +134,7 @@ public class Neo4jClient implements DBClient {
             for (DbDataContainer container : attributes) {
                 query += container.getField() + " : ";
 
-                switch (container.getType()) {
+                switch (container.getGroundType()) {
                     case STRING: query += "'" + container.getValue().toString() + "'"; break;
                     case INTEGER: query += (int) container.getValue(); break;
                     case BOOLEAN: query += container.getValue(); break;
@@ -163,7 +163,7 @@ public class Neo4jClient implements DBClient {
             for (DbDataContainer container : attributes) {
                 query += container.getField() + " : ";
 
-                switch (container.getType()) {
+                switch (container.getGroundType()) {
                     case STRING: query += "'" + container.getValue().toString() + "'"; break;
                     case INTEGER: query += (int) container.getValue(); break;
                     case BOOLEAN: query += container.getValue(); break;
