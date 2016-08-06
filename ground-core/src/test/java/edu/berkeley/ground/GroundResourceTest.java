@@ -16,7 +16,7 @@ import java.io.File;
 
 
 public class GroundResourceTest {
-    private static final String BACKING_STORE_TYPE = "postgres";
+    private static final String BACKING_STORE_TYPE = "neo4j";
     private static final String TEST_DB_NAME = "test";
 
     protected NodesResource nodesResource;
@@ -48,8 +48,8 @@ public class GroundResourceTest {
                 }
 
                 case "gremlin": {
-                    Process p = Runtime.getRuntime().exec("$TITAN_HOME/bin/gremlin.sh delete_gremlin.groovy", null, new File("scripts/gremlin/"));
-                    p.waitFor();
+
+                    Process p = Runtime.getRuntime().exec("/Users/vikram/code/titan/bin/gremlin.sh delete_gremlin.groovy", null, new File("scripts/gremlin/"));
 
                     setBackingStore();
 

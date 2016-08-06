@@ -74,6 +74,6 @@ public class Neo4jEdgeFactory extends EdgeFactory {
 
 
     public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
-        this.itemFactory.update(connection, "Edges." +  itemId, childId, parentIds);
+        this.itemFactory.update(connection, itemId, childId, parentIds);
     }
 }

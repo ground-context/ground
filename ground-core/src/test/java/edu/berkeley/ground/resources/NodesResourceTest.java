@@ -57,10 +57,13 @@ public class NodesResourceTest extends GroundResourceTest {
 
         NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
 
+        System.out.println("nodeVersion's ID: " + nodeVersion.getId());
         List<String> parents = new ArrayList<>();
         parents.add(nodeVersion.getId());
         NodeVersion nodeVersionChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        System.out.println("nodeVersionChild's ID: " + nodeVersionChild.getId());
         NodeVersion nodeVersionOtherChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        System.out.println("nodeVersionOtherChild's ID: " + nodeVersionOtherChild.getId());
 
         parents.clear();
         parents.add(nodeVersionChild.getId());

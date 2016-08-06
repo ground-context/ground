@@ -74,6 +74,6 @@ public class Neo4jGraphFactory extends GraphFactory {
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
-        this.itemFactory.update(connection, "Graphs." + itemId, childId, parentIds);
+        this.itemFactory.update(connection, itemId, childId, parentIds);
     }
 }

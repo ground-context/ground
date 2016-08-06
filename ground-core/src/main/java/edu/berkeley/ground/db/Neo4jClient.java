@@ -2,8 +2,11 @@ package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
+import org.neo4j.driver.internal.value.ListValue;
+import org.neo4j.driver.internal.value.RelationshipValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -156,8 +159,8 @@ public class Neo4jClient implements DBClient {
             return null;
         }
 
-        public Record getEdge(String label, List<DbDataContainer> attributes) {
-            String query = "MATCH (v)-(e:" + label + "{";
+        public Relationship getEdge(String label, List<DbDataContainer> attributes) {
+            String query = "MATCH (v)-[e:" + label + "{";
 
             int count = 0;
             for (DbDataContainer container : attributes) {
@@ -174,25 +177,41 @@ public class Neo4jClient implements DBClient {
                 }
             }
 
-            query += "})->(w) RETURN e";
+            query += "}]->(w) RETURN e";
 
             StatementResult result = this.transaction.run(query);
 
             if (result.hasNext()) {
-                return result.next();
+                Record r = result.next();
+
+                return r.get("e").asRelationship();
             }
 
             return null;
         }
 
-        public List<Record> getDescendantEdgesByLabel(String startId, String label) {
+        public List<Relationship> getDescendantEdgesByLabel(String startId, String label) {
             String query = "MATCH (a {id: '" + startId + "' })";
             query += "MATCH (a)-[e:" + label + "*]->(b)";
             query += "RETURN e";
 
             StatementResult result = this.transaction.run(query);
 
-            return result.list();
+            List<Relationship> response = new ArrayList<>();
+
+            List<Record> resultList = result.list();
+
+            if (!resultList.isEmpty()) {
+                for (Record r : resultList) {
+                    ListValue lv = (ListValue) r.get("e");
+
+                    for (int i = 0; i < lv.size(); i++) {
+                        response.add(lv.get(i).asRelationship());
+                    }
+                }
+            }
+
+            return response;
         }
 
         public List<Record> getAdjacentVerticesByEdgeLabel(String edgeLabel, String id, List<String> returnFields) {
@@ -210,8 +229,6 @@ public class Neo4jClient implements DBClient {
             }
 
             StatementResult result = this.transaction.run(query);
-
-
             return result.list();
         }
 

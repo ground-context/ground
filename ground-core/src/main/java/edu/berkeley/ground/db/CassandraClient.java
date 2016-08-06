@@ -72,7 +72,8 @@ public class CassandraClient implements DBClient {
                     }
                 }
 
-                JGraphTUtils.addEdge(graph, nvFromId, nvToId);
+                JGraphTUtils.addVertex(this.graph, nvToId);
+                JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
             }
 
             String insertString = "insert into " + table + "(";
