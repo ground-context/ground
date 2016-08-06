@@ -12,14 +12,17 @@ wikipedia.avro.schema={"namespace": "example.wikipedia.avro","type": "record","n
 converter.classes=edu.berkeley.ground.ingest.WikiConverter,edu.berkeley.ground.ingest.GroundConverter
 extract.namespace=edu.berkeley.ground.ingest
 
+writer.builder.class=gobblin.kafka.writer.KafkaDataWriterBuilder
+writer.kafka.topic=WikipediaGroundTopic
+writer.kafka.producerConfig.bootstrap.servers=localhost:9092
 writer.destination.type=KAFKA
 writer.output.format=AVRO
 writer.partitioner.class=edu.berkeley.ground.ingest.WikiPartitioner
+data.publisher.type=gobblin.publisher.NoopPublisher
 
-data.publisher.type=edu.berkeley.ground.ingest.BaseDataPublisher
-
-writer.kafka.topic=KafkaTopic
-writer.kafka.brokers=localhost:9092
-
+#Use Confluent Schema Registry and serializers
+writer.kafka.producerConfig.value.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
+writer.kafka.producerConfig.key.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
+writer.kafka.producerConfig.schema.registry.url=http://localhost:8081
 
 
