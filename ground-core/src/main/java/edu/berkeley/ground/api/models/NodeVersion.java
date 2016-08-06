@@ -28,7 +28,7 @@ public class NodeVersion extends RichVersion {
     private String nodeId;
 
     @JsonCreator
-    protected NodeVersion(
+    public NodeVersion(
             @JsonProperty("id") String id,
             @JsonProperty("tags") Map<String, Tag> tags,
             @JsonProperty("structureVersionId") String structureVersionId,
