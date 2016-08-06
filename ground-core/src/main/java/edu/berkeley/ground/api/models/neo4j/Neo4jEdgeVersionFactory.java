@@ -40,7 +40,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
                               String edgeId,
                               String fromId,
                               String toId,
-                              Optional<String> parentId) throws GroundException {
+                              List<String> parentIds) throws GroundException {
 
         Neo4jConnection connection = this.dbClient.getConnection();
 
@@ -64,7 +64,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
             connection.addEdge("EdgeVersionConnection", fromId, id, new ArrayList<>());
             connection.addEdge("EdgeVersionConnection", id, toId, new ArrayList<>());
 
-            this.edgeFactory.update(connection, edgeId, id, parentId);
+            this.edgeFactory.update(connection, edgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");

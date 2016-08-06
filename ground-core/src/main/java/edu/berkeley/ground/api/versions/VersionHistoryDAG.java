@@ -16,7 +16,7 @@ public class VersionHistoryDAG<T extends Version> {
     private List<String> edgeIds;
 
     // map of parents to children
-    private Map<String, String> parentChildMap;
+    private Map<String, List<String>> parentChildMap;
 
     protected VersionHistoryDAG(String itemId, List<VersionSuccessor<T>> edges) {
         this.itemId = itemId;
@@ -25,7 +25,8 @@ public class VersionHistoryDAG<T extends Version> {
 
         for (VersionSuccessor<T> edge : edges) {
             edgeIds.add(edge.getId());
-            parentChildMap.put(edge.getFromId(), edge.getToId());
+
+            this.addToParentChildMap(edge.getFromId(), edge.getToId());
         }
     }
 
@@ -46,7 +47,7 @@ public class VersionHistoryDAG<T extends Version> {
      * @return true if id is in the DAG, false otherwise
      */
     public boolean checkItemInDag(String id) {
-        return this.parentChildMap.keySet().contains(id) || this.parentChildMap.values().contains(id);
+        return this.parentChildMap.keySet().contains(id) || this.getLeaves().contains(id);
     }
 
     /**
@@ -58,7 +59,7 @@ public class VersionHistoryDAG<T extends Version> {
      */
     public void addEdge(String parentId, String childId, String successorId) {
         edgeIds.add(successorId);
-        parentChildMap.put(parentId, childId);
+        this.addToParentChildMap(parentId, childId);
     }
 
     /**
@@ -67,9 +68,23 @@ public class VersionHistoryDAG<T extends Version> {
      * @return the list of the IDs of the leaves of this DAG
      */
     public List<String> getLeaves() {
-        List<String> leaves = new ArrayList<>(this.parentChildMap.values());
+        List<String> leaves = new ArrayList<>();
+        for (List<String> values : parentChildMap.values()) {
+            leaves.addAll(values);
+        }
+
         leaves.removeAll(this.parentChildMap.keySet());
 
         return leaves;
+    }
+
+    private void addToParentChildMap(String parent, String child) {
+        List<String> childList = this.parentChildMap.get(parent);
+        if (childList == null) {
+            childList = new ArrayList<>();
+        }
+
+        childList.add(child);
+        this.parentChildMap.put(parent, childList);
     }
 }

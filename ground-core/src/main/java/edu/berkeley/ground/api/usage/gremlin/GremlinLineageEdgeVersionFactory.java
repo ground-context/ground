@@ -42,7 +42,7 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
-                                     Optional<String> parentId) throws GroundException {
+                                     List<String> parentIds) throws GroundException {
 
         GremlinConnection connection = this.dbClient.getConnection();
 
@@ -61,7 +61,6 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
 
             Vertex versionVertex = connection.addVertex("LineageEdgeVersions", insertions);
 
-            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentId);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             List<DbDataContainer> predicates = new ArrayList<>();
@@ -75,6 +74,8 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
             predicates.clear();
             connection.addEdge("LineageEdgeVersionConnection", fromVertex, versionVertex, predicates);
             connection.addEdge("LineageEdgeVersionConnection", versionVertex, toVertex, predicates);
+
+            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");

@@ -42,7 +42,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
-                                     Optional<String> parentId) throws GroundException {
+                                     List<String> parentIds) throws GroundException {
 
         Neo4jConnection connection = this.dbClient.getConnection();
 
@@ -61,7 +61,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
 
             connection.addVertex("LineageEdgeVersions", insertions);
 
-            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentId);
+            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
             connection.addEdge("LineageEdgeVersionConnection", fromId, id, new ArrayList<>());

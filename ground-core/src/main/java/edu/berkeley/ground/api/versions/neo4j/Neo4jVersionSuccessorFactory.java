@@ -6,10 +6,13 @@ import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +24,12 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
+        predicates.add(new DbDataContainer("fromId", GroundType.STRING, fromId));
+        predicates.add(new DbDataContainer("toId", GroundType.STRING, toId));
 
         connection.addEdge("VersionSuccessor", fromId, toId, predicates);
 
-        return VersionSuccessorFactory.construct(dbId, toId, fromId);
+        return VersionSuccessorFactory.construct(dbId, fromId, toId);
     }
 
 
@@ -33,12 +38,16 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
 
-        Record result = connection.getEdge("VersionSuccessor", predicates);
+        Relationship result = connection.getEdge("VersionSuccessor", predicates);
 
-        return this.constructFromRecord(result);
+        return this.constructFromRelationship(result);
     }
 
-    protected <T extends Version> VersionSuccessor<T> constructFromRecord(Record r) {
-        return VersionSuccessorFactory.construct(r.get("id").toString(), r.get("fromId").toString(), r.get("toId").toString());
+    protected <T extends Version> VersionSuccessor<T> constructFromRelationship(Relationship r) {
+        String id = Neo4jClient.getStringFromValue((StringValue) r.get("id"));
+        String fromId = Neo4jClient.getStringFromValue((StringValue) r.get("fromId"));
+        String toId = Neo4jClient.getStringFromValue((StringValue) r.get("toId"));
+
+        return VersionSuccessorFactory.construct(id, fromId, toId);
     }
 }

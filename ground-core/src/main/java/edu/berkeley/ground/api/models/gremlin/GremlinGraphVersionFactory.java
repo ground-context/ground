@@ -39,7 +39,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
                                Optional<Map<String, String>> parameters,
                                String graphId,
                                List<String> edgeVersionIds,
-                               Optional<String> parentId) throws GroundException {
+                               List<String> parentIds) throws GroundException {
 
         GremlinConnection connection = this.dbClient.getConnection();
 
@@ -66,7 +66,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
                 connection.addEdge("GraphVersionEdge", versionVertex, edgeVertex, new ArrayList<>());
             }
 
-            this.graphFactory.update(connection, graphId, id, parentId);
+            this.graphFactory.update(connection, graphId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");

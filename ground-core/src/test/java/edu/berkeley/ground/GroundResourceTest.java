@@ -48,8 +48,9 @@ public class GroundResourceTest {
                 }
 
                 case "gremlin": {
-                    Process p = Runtime.getRuntime().exec("$TITAN_HOME/bin/gremlin.sh delete_gremlin.groovy", null, new File("scripts/gremlin/"));
-                    p.waitFor();
+                    Process p = Runtime.getRuntime().exec("/Users/vikram/code/titan/bin/gremlin.sh -e delete_gremlin.groovy", null, new File("scripts/gremlin/"));
+                    Thread.sleep(5000);
+                    p.destroy();
 
                     setBackingStore();
 
@@ -96,7 +97,7 @@ public class GroundResourceTest {
                 break;
             }
 
-            case "grermlin": {
+            case "gremlin": {
                 GremlinClient dbClient = new GremlinClient();
                 GremlinFactories factoryGenerator = new GremlinFactories(dbClient);
 

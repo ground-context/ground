@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/graphs")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,7 +55,7 @@ public class GraphsResource {
     @POST
     @Timed
     @Path("/versions")
-    public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion, @QueryParam("parent")NonEmptyStringParam parentId) throws GroundException {
+    public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
         LOGGER.info("Creating graph version in graph " + graphVersion.getGraphId() + ".");
         return this.graphVersionFactory.create(graphVersion.getTags(),
                                                graphVersion.getStructureVersionId(),
@@ -62,6 +63,6 @@ public class GraphsResource {
                                                graphVersion.getParameters(),
                                                graphVersion.getGraphId(),
                                                graphVersion.getEdgeVersionIds(),
-                                               parentId.get());
+                                               parentIds);
     }
 }

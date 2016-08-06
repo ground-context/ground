@@ -41,7 +41,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
                               String edgeId,
                               String fromId,
                               String toId,
-                              Optional<String> parentId) throws GroundException {
+                              List<String> parentIds) throws GroundException {
 
         CassandraConnection connection = this.dbClient.getConnection();
 
@@ -62,7 +62,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
 
             connection.insert("EdgeVersions", insertions);
 
-            this.edgeFactory.update(connection, edgeId, id, parentId);
+            this.edgeFactory.update(connection, edgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");

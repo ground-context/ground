@@ -75,7 +75,7 @@ public class PostgresStructureFactory extends StructureFactory {
         }
     }
 
-    public void update(GroundDBConnection connection, String itemId, String childId, Optional<String> parent) throws GroundException {
-        this.itemFactory.update(connection, itemId, childId, parent);
+    public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+        this.itemFactory.update(connection, itemId, childId, parentIds);
     }
 }

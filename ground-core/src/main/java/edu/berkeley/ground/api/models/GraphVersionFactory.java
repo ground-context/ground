@@ -13,7 +13,7 @@ public abstract class GraphVersionFactory {
                                         Optional<Map<String, String>> parameters,
                                         String graphId,
                                         List<String> edgeVersionIds,
-                                        Optional<String> parentId) throws GroundException;
+                                        List<String> parentIds) throws GroundException;
 
     public abstract GraphVersion retrieveFromDatabase(String id) throws GroundException;
 

@@ -3,13 +3,13 @@ package edu.berkeley.ground.api.models;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public abstract class StructureVersionFactory {
     public abstract StructureVersion create(String structureId,
                                             Map<String, GroundType> attributes,
-                                            Optional<String> parentId) throws GroundException;
+                                            List<String> parentIds) throws GroundException;
 
     public abstract StructureVersion retrieveFromDatabase(String id) throws GroundException;
 

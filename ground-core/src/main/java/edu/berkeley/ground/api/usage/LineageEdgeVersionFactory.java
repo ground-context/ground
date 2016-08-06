@@ -3,6 +3,7 @@ package edu.berkeley.ground.api.usage;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -14,7 +15,7 @@ public abstract class LineageEdgeVersionFactory {
                                               String fromId,
                                               String toId,
                                               String lineageEdgeId,
-                                              Optional<String> parentId) throws GroundException;
+                                              List<String> parentIds) throws GroundException;
 
     public abstract LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException;
 

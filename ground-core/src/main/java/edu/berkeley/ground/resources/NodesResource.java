@@ -56,14 +56,14 @@ public class NodesResource {
     @POST
     @Timed
     @Path("/versions")
-    public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parent") NonEmptyStringParam parentId) throws GroundException {
+    public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parents") List<String> parentIds) throws GroundException {
         LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
         return this.nodeVersionFactory.create(nodeVersion.getTags(),
                                               nodeVersion.getStructureVersionId(),
                                               nodeVersion.getReference(),
                                               nodeVersion.getParameters(),
                                               nodeVersion.getNodeId(),
-                                              parentId.get());
+                                              parentIds);
     }
 
     @GET

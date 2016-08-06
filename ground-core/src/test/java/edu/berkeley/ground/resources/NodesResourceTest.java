@@ -9,9 +9,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +19,7 @@ public class NodesResourceTest extends GroundResourceTest {
         Node node = nodesResource.createNode("test");
         assertThat(node.getName()).isEqualTo("test");
 
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
         assertThat(nodeVersion.getNodeId()).isEqualTo(node.getId());
 
         assertThat(nodeVersion.getParameters()).isEmpty();
@@ -40,7 +38,7 @@ public class NodesResourceTest extends GroundResourceTest {
         parametersMap.put("http", "GET");
         Optional<Map<String, String>> parameters = Optional.of(parametersMap);
 
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), reference, parameters, node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), reference, parameters, node.getId()), new ArrayList<>());
         assertThat(nodeVersion.getNodeId()).isEqualTo(node.getId());
 
         assertThat(nodeVersion.getReference()).isPresent();
@@ -51,5 +49,25 @@ public class NodesResourceTest extends GroundResourceTest {
         assertThat(nodeVersion.getParameters().get().keySet()).contains("http");
         assertThat(nodeVersion.getParameters().get().get("http")).isEqualTo("GET");
 
+    }
+
+    @Test
+    public void nodeWithMultipleParents() throws GroundException {
+        Node node = nodesResource.createNode("test");
+
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
+
+        System.out.println("nodeVersion's ID: " + nodeVersion.getId());
+        List<String> parents = new ArrayList<>();
+        parents.add(nodeVersion.getId());
+        NodeVersion nodeVersionChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        System.out.println("nodeVersionChild's ID: " + nodeVersionChild.getId());
+        NodeVersion nodeVersionOtherChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        System.out.println("nodeVersionOtherChild's ID: " + nodeVersionOtherChild.getId());
+
+        parents.clear();
+        parents.add(nodeVersionChild.getId());
+        parents.add(nodeVersionOtherChild.getId());
+        NodeVersion finalChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
     }
 }

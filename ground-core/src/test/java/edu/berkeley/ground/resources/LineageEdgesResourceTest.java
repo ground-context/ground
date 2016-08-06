@@ -9,6 +9,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,13 +19,13 @@ public class LineageEdgesResourceTest extends GroundResourceTest {
     @Test
     public void createLineageEdge() throws GroundException {
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
 
         Edge edge = edgesResource.createEdge("test");
-        EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new NonEmptyStringParam(null));
+        EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new ArrayList<>());
 
         LineageEdge lineageEdge = lineageEdgesResource.createLineageEdge("test");
-        LineageEdgeVersion lineageEdgeVersion = lineageEdgesResource.createLineageEdgeVersion(UsageCreateUtils.getLineageEdgeVersion("id", lineageEdge.getId(), nodeVersion.getId(), edgeVersion.getId()), new NonEmptyStringParam(null));
+        LineageEdgeVersion lineageEdgeVersion = lineageEdgesResource.createLineageEdgeVersion(UsageCreateUtils.getLineageEdgeVersion("id", lineageEdge.getId(), nodeVersion.getId(), edgeVersion.getId()), new ArrayList<>());
         assertThat(lineageEdgeVersion.getLineageEdgeId()).isEqualTo(lineageEdge.getId());
         assertThat(lineageEdgeVersion.getFromId()).isEqualTo(nodeVersion.getId());
         assertThat(lineageEdgeVersion.getToId()).isEqualTo(edgeVersion.getId());

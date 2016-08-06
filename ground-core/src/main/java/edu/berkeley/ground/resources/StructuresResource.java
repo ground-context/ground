@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/structures")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,10 +55,10 @@ public class StructuresResource {
     @POST
     @Timed
     @Path("/versions")
-    public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion, @QueryParam("parent") NonEmptyStringParam parentId) throws GroundException {
+    public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
         LOGGER.info("Creating structure version in structure " + structureVersion.getStructureId() + ".");
         return this.structureVersionFactory.create(structureVersion.getStructureId(),
                                                    structureVersion.getAttributes(),
-                                                   parentId.get());
+                                                   parentIds);
     }
 }

@@ -40,7 +40,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
                               String edgeId,
                               String fromId,
                               String toId,
-                              Optional<String> parentId) throws GroundException {
+                              List<String> parentIds) throws GroundException {
 
         GremlinConnection connection = this.dbClient.getConnection();
 
@@ -73,7 +73,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
             connection.addEdge("EdgeVersionConnection", fromVertex, vertex, predicates);
             connection.addEdge("EdgeVersionConnection", vertex, toVertex, predicates);
 
-            this.edgeFactory.update(connection, edgeId, id, parentId);
+            this.edgeFactory.update(connection, edgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");

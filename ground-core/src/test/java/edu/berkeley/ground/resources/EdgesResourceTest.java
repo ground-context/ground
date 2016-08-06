@@ -6,6 +6,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,11 +16,11 @@ public class EdgesResourceTest extends GroundResourceTest {
     @Test
     public void createEdgeVersion() throws GroundException {
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
 
         Edge edge = edgesResource.createEdge("test");
         assertThat(edge.getName()).isEqualTo("test");
-        EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new NonEmptyStringParam(null));
+        EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new ArrayList<>());
 
         assertThat(edgeVersion.getEdgeId()).isEqualTo(edge.getId());
         assertThat(edgeVersion.getFromId()).isEqualTo(nodeVersion.getId());

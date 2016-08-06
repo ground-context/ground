@@ -27,7 +27,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
         this.structureFactory = structureFactory;
     }
 
-    public StructureVersion create(String structureId, Map<String, GroundType> attributes, Optional<String> parentId) throws GroundException {
+    public StructureVersion create(String structureId, Map<String, GroundType> attributes, List<String> parentIds) throws GroundException {
         Neo4jConnection connection = this.dbClient.getConnection();
 
         String id = IdGenerator.generateId(structureId);
@@ -47,7 +47,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
             connection.addVertexAndEdge("StructureVersionItem", itemInsertions, "StructureVersionItemConnection", id, new ArrayList<>());
         }
 
-        this.structureFactory.update(connection, structureId, id, parentId);
+        this.structureFactory.update(connection, structureId, id, parentIds);
 
         connection.commit();
         LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");

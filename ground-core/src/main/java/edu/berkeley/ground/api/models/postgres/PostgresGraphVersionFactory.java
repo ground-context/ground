@@ -40,7 +40,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                                Optional<Map<String, String>> parameters,
                                String graphId,
                                List<String> edgeVersionIds,
-                               Optional<String> parentId) throws GroundException {
+                               List<String> parentIds) throws GroundException {
 
         PostgresConnection connection = this.dbClient.getConnection();
 
@@ -67,7 +67,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                 connection.insert("GraphVersionEdges", edgeInsertion);
             }
 
-            this.graphFactory.update(connection, graphId, id, parentId);
+            this.graphFactory.update(connection, graphId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");

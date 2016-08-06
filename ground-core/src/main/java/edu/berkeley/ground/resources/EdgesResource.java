@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/edges")
 @Produces(MediaType.APPLICATION_JSON)
@@ -55,7 +56,7 @@ public class EdgesResource {
     @POST
     @Timed
     @Path("/versions")
-    public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion, @QueryParam("parent") @UnwrapValidatedValue NonEmptyStringParam parentId) throws GroundException {
+    public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
         LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
         return this.edgeVersionFactory.create(edgeVersion.getTags(),
                                               edgeVersion.getStructureVersionId(),
@@ -64,6 +65,6 @@ public class EdgesResource {
                                               edgeVersion.getEdgeId(),
                                               edgeVersion.getFromId(),
                                               edgeVersion.getToId(),
-                                              parentId.get());
+                                              parentIds);
     }
 }

@@ -5,9 +5,12 @@ import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.api.versions.VersionHistoryDAGFactory;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +28,7 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
 
     public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String itemId) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
-        List<Record> result = connection.getDescendantEdgesByLabel(itemId, "VersionSuccessor");
+        List<Relationship> result = connection.getDescendantEdgesByLabel(itemId, "VersionSuccessor");
 
         if (result.isEmpty()) {
             throw new GroundException("No results found for query");
@@ -33,8 +36,8 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
 
-        for (Record record : result) {
-            edges.add(this.versionSuccessorFactory.constructFromRecord(record));
+        for (Relationship relationship : result) {
+            edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, Neo4jClient.getStringFromValue((StringValue) relationship.get("id"))));
         }
 
         return construct(itemId, edges);

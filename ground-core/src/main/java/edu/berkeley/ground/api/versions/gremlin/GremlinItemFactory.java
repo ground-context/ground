@@ -24,20 +24,16 @@ public class GremlinItemFactory extends ItemFactory {
         // DO NOTHING
     }
 
-    public void update(GroundDBConnection connectionPointer, String itemId, String childId, Optional<String> parent) throws GroundException {
-        String parentId;
-
+    public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
         // If a parent is specified, great. If it's not specified and there is only one leaf, great.
         // If it's not specified, there are either 0 or > 1 leaves, then make it a child of EMPTY.
         // Eventually, there should be a specification about empty-child?
-        if (parent.isPresent()) {
-            parentId = parent.get();
-        } else {
+        if (parentIds.isEmpty()) {
             List<String> leaves = this.getLeaves(connectionPointer, itemId);
             if (leaves.size() == 1) {
-                parentId = leaves.get(0);
+                parentIds.add(leaves.get(0));
             } else {
-                parentId = itemId;
+                parentIds.add(itemId);
             }
         }
 
@@ -52,14 +48,16 @@ public class GremlinItemFactory extends ItemFactory {
             dag = this.versionHistoryDAGFactory.create(itemId);
         }
 
-        if (parent.isPresent() && !dag.checkItemInDag(parentId)) {
-            String errorString = "Parent " + parent + " is not in Item " + itemId + ".";
+        for (String parentId : parentIds) {
+            if (!parentId.equals(itemId) && !dag.checkItemInDag(parentId)) {
+                String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
 
-            LOGGER.error(errorString);
-            throw new GroundException(errorString);
+                LOGGER.error(errorString);
+                throw new GroundException(errorString);
+            }
+
+            this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
         }
-
-        this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
     }
 
     private List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
