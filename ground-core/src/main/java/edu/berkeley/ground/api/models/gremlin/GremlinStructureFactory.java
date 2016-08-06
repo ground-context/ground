@@ -74,6 +74,6 @@ public class GremlinStructureFactory extends StructureFactory {
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
-        this.itemFactory.update(connection, "Structures." + itemId, childId, parentIds);
+        this.itemFactory.update(connection, itemId, childId, parentIds);
     }
 }
