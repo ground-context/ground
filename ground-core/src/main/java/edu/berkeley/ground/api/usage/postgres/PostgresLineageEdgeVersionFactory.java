@@ -43,7 +43,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
-                                     Optional<String> parentId) throws GroundException {
+                                     List<String> parentIds) throws GroundException {
 
         PostgresConnection connection = this.dbClient.getConnection();
 
@@ -64,7 +64,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
 
             connection.insert("LineageEdgeVersions", insertions);
 
-            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentId);
+            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");

@@ -40,7 +40,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
                               Optional<String> reference,
                               Optional<Map<String, String>> parameters,
                               String nodeId,
-                              Optional<String> parentId) throws GroundException {
+                              List<String> parentIds) throws GroundException {
 
         CassandraConnection connection = this.dbClient.getConnection();
 
@@ -60,7 +60,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
 
             connection.insert("NodeVersions", insertions);
 
-            this.nodeFactory.update(connection, nodeId, id, parentId);
+            this.nodeFactory.update(connection, nodeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");

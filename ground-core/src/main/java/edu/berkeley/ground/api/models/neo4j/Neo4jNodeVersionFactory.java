@@ -38,7 +38,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
                               Optional<String> reference,
                               Optional<Map<String, String>> parameters,
                               String nodeId,
-                              Optional<String> parentId) throws GroundException {
+                              List<String> parentIds) throws GroundException {
 
         Neo4jConnection connection = this.dbClient.getConnection();
 
@@ -57,7 +57,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             connection.addVertex("NodeVersion", insertions);
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
-            this.nodeFactory.update(connection, nodeId, id, parentId);
+            this.nodeFactory.update(connection, nodeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");

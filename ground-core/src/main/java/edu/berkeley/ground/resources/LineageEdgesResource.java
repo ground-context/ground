@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/lineage")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,7 +55,7 @@ public class LineageEdgesResource {
     @POST
     @Timed
     @Path("/versions")
-    public LineageEdgeVersion createLineageEdgeVersion(@Valid LineageEdgeVersion lineageEdgeVersion, @QueryParam("parent") NonEmptyStringParam parentId) throws GroundException {
+    public LineageEdgeVersion createLineageEdgeVersion(@Valid LineageEdgeVersion lineageEdgeVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
         LOGGER.info("Creating lineage edge version in lineage edge " + lineageEdgeVersion.getLineageEdgeId() + ".");
         return this.lineageEdgeVersionFactory.create(lineageEdgeVersion.getTags(),
                                                      lineageEdgeVersion.getStructureVersionId(),
@@ -63,6 +64,6 @@ public class LineageEdgesResource {
                                                      lineageEdgeVersion.getFromId(),
                                                      lineageEdgeVersion.getToId(),
                                                      lineageEdgeVersion.getLineageEdgeId(),
-                                                     parentId.get());
+                                                     parentIds);
     }
 }

@@ -2,6 +2,7 @@ package edu.berkeley.ground.api.models;
 
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -13,7 +14,7 @@ public abstract class EdgeVersionFactory {
                                        String edgeId,
                                        String fromId,
                                        String toId,
-                                       Optional<String> parentId) throws GroundException;
+                                       List<String> parentIds) throws GroundException;
 
 
     public abstract EdgeVersion retrieveFromDatabase(String id) throws GroundException;

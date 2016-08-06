@@ -38,7 +38,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
                               String edgeId,
                               String fromId,
                               String toId,
-                              Optional<String> parentId) throws GroundException {
+                              List<String> parentIds) throws GroundException {
 
         PostgresConnection connection = this.dbClient.getConnection();
 
@@ -59,7 +59,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
 
             connection.insert("EdgeVersions", insertions);
 
-            this.edgeFactory.update(connection, edgeId, id, parentId);
+            this.edgeFactory.update(connection, edgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");

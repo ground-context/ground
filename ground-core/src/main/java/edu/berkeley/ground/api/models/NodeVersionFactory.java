@@ -12,7 +12,7 @@ public abstract class NodeVersionFactory {
                                        Optional<String> reference,
                                        Optional<Map<String, String>> parameters,
                                        String nodeId,
-                                       Optional<String> parentId) throws GroundException;
+                                       List<String> parentIds) throws GroundException;
 
     public abstract NodeVersion retrieveFromDatabase(String id) throws GroundException;
 

@@ -27,7 +27,7 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
 
     public StructureVersion create(String structureId,
                                    Map<String, GroundType> attributes,
-                                   Optional<String> parentId) throws GroundException {
+                                   List<String> parentIds) throws GroundException {
 
         GremlinConnection connection = this.dbClient.getConnection();
         String id = IdGenerator.generateId(structureId);
@@ -48,7 +48,7 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
             connection.addEdge("StructureVersionItemConnection", versionVertex, itemVertex, new ArrayList<>());
         }
 
-        this.structureFactory.update(connection, structureId, id, parentId);
+        this.structureFactory.update(connection, structureId, id, parentIds);
 
         connection.commit();
         LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");

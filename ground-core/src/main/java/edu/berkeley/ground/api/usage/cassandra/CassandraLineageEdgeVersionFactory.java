@@ -43,7 +43,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
-                                     Optional<String> parentId) throws GroundException {
+                                     List<String> parentIds) throws GroundException {
 
         CassandraConnection connection = this.dbClient.getConnection();
 
@@ -64,7 +64,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
 
             connection.insert("LineageEdgeVersions", insertions);
 
-            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentId);
+            this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
