@@ -9,6 +9,7 @@
 
     <modules>
         <module>ground-core</module>
+        <module>ground-ingest</module>
         <module>plugins/hive-plugin</module>
     </modules>
 
