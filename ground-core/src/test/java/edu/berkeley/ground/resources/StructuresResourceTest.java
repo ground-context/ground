@@ -7,6 +7,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +21,7 @@ public class StructuresResourceTest extends GroundResourceTest {
         Map<String, GroundType> attributes = new HashMap<>();
         attributes.put("test", GroundType.STRING);
 
-        StructureVersion structureVersion = structuresResource.createStructureVersion(ModelCreateUtils.getStructureVersion("id", structure.getId(), attributes), new NonEmptyStringParam(null));
+        StructureVersion structureVersion = structuresResource.createStructureVersion(ModelCreateUtils.getStructureVersion("id", structure.getId(), attributes), new ArrayList<>());
 
         assertThat(structureVersion.getStructureId()).isEqualTo(structure.getId());
         assertThat(structureVersion.getAttributes().size()).isEqualTo(1);
@@ -34,13 +35,13 @@ public class StructuresResourceTest extends GroundResourceTest {
         Map<String, GroundType> attributes = new HashMap<>();
         attributes.put("test", GroundType.STRING);
 
-        StructureVersion structureVersion = structuresResource.createStructureVersion(ModelCreateUtils.getStructureVersion("id", structure.getId(), attributes), new NonEmptyStringParam(null));
+        StructureVersion structureVersion = structuresResource.createStructureVersion(ModelCreateUtils.getStructureVersion("id", structure.getId(), attributes), new ArrayList<>());
 
         Map<String, Tag> tagsMap = new HashMap<>();
         tagsMap.put("test", new Tag(null, "test", Optional.of("a"), Optional.of(GroundType.STRING)));
 
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.of(tagsMap), Optional.of(structureVersion.getId()), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new NonEmptyStringParam(null));
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.of(tagsMap), Optional.of(structureVersion.getId()), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
 
         assertThat(nodeVersion.getStructureVersionId()).isPresent();
         assertThat(nodeVersion.getStructureVersionId().get()).isEqualTo(structureVersion.getId());
