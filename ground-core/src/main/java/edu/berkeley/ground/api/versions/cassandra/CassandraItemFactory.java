@@ -33,16 +33,9 @@ public class CassandraItemFactory extends ItemFactory {
     }
 
     public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
-        // If a parent is specified, great. If it's not specified and there is only one leaf, great.
-        // If it's not specified, there are either 0 or > 1 leaves, then make it a child of EMPTY.
-        // Eventually, there should be a specification about empty-child?
+        // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
         if (parentIds.isEmpty()) {
-            List<String> leaves = this.getLeaves(connectionPointer, itemId);
-            if (leaves.size() == 1) {
-                parentIds.add(leaves.get(0));
-            } else {
-                parentIds.add("EMPTY");
-            }
+            parentIds.add("EMPTY");
         }
 
         VersionHistoryDAG dag;

@@ -25,16 +25,9 @@ public class GremlinItemFactory extends ItemFactory {
     }
 
     public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
-        // If a parent is specified, great. If it's not specified and there is only one leaf, great.
-        // If it's not specified, there are either 0 or > 1 leaves, then make it a child of EMPTY.
-        // Eventually, there should be a specification about empty-child?
+        // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
         if (parentIds.isEmpty()) {
-            List<String> leaves = this.getLeaves(connectionPointer, itemId);
-            if (leaves.size() == 1) {
-                parentIds.add(leaves.get(0));
-            } else {
-                parentIds.add(itemId);
-            }
+            parentIds.add(itemId);
         }
 
         VersionHistoryDAG dag;
@@ -59,19 +52,4 @@ public class GremlinItemFactory extends ItemFactory {
             this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
         }
     }
-
-    private List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
-        try {
-            VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
-
-            return dag.getLeaves();
-        } catch (GroundException e) {
-            if (!e.getMessage().contains("No results found for query")) {
-                throw e;
-            }
-
-            return new ArrayList<>();
-        }
-    }
-
 }
