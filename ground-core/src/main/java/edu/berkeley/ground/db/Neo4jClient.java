@@ -6,6 +6,7 @@ import org.neo4j.driver.internal.value.ListValue;
 import org.neo4j.driver.internal.value.RelationshipValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
@@ -265,6 +266,24 @@ public class Neo4jClient implements DBClient {
             }
 
             this.transaction.run(insert);
+        }
+
+
+        public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+            String query = "MATCH (n {id: '" + nodeVersionId + "'})";
+            query += "MATCH (n)-[e: EdgeVersionConnection]->(evn) where evn.edge_id =~ '.*" + edgeNameRegex + ".*'";
+            query += "MATCH (evn)-[f: EdgeVersionConnection]->(dst)";
+            query += "return dst";
+
+            List<String> result = new ArrayList<>();
+            List<Record> records = this.transaction.run(query).list();
+
+            records.stream().forEach(record -> {
+                Node node = record.get("dst").asNode();
+                result.add(node.get("id").asString());
+            });
+
+            return result;
         }
     }
 

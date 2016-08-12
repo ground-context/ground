@@ -100,4 +100,12 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
         connection.commit();
         return result;
     }
+
+    public List<String> getAdjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+        PostgresConnection connection = this.dbClient.getConnection();
+        List<String> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+
+        connection.commit();
+        return result;
+    }
 }

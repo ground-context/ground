@@ -18,6 +18,8 @@ public abstract class NodeVersionFactory {
 
     public abstract List<String> getTransitiveClosure(String nodeVersionId) throws GroundException;
 
+    public abstract List<String> getAdjacentNodes(String nodeVersionId, String edgeNameLike) throws GroundException;
+
     public static NodeVersion construct(String id,
                                         Optional<Map<String, Tag>> tags,
                                         Optional<String> structureVersionId,

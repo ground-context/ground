@@ -10,6 +10,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraClient implements DBClient {
@@ -58,6 +59,16 @@ public class CassandraClient implements DBClient {
 
         public void insert(String table, List<DbDataContainer> insertValues) {
             // hack to keep JGraphT up to date
+            if (table.equals("NodeVersions")) {
+                String id = null;
+                for (DbDataContainer container : insertValues) {
+                    if (container.getField().equals("id")) {
+                        id = container.getValue().toString();
+                    }
+                }
+
+                JGraphTUtils.addVertex(this.graph, id);
+            }
             if (table.equals("EdgeVersions")) {
                 String nvFromId = null;
                 String nvToId = null;
@@ -72,7 +83,6 @@ public class CassandraClient implements DBClient {
                     }
                 }
 
-                JGraphTUtils.addVertex(this.graph, nvToId);
                 JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
             }
 
@@ -143,8 +153,29 @@ public class CassandraClient implements DBClient {
         }
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
-
             return JGraphTUtils.iterate(this.graph, nodeVersionId);
+        }
+
+        public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+            edgeNameRegex = edgeNameRegex;
+
+            String query = "select endpoint_two, edge_id from EdgeVersions where endpoint_one = ? allow filtering;";
+
+            BoundStatement statement = new BoundStatement(this.session.prepare(query));
+
+            statement.setString(0, nodeVersionId);
+
+            ResultSet resultSet = this.session.execute(statement);
+
+            List<String> result = new ArrayList<>();
+
+            for (Row row : resultSet) {
+                if (row.getString(1).contains(edgeNameRegex)) {
+                    result.add(row.getString(0));
+                }
+            }
+
+            return result;
         }
 
         public void commit() throws GroundDBException {

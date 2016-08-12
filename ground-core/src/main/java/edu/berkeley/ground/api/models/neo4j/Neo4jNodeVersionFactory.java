@@ -106,4 +106,12 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             throw e;
         }
     }
+
+    public List<String> getAdjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+        Neo4jConnection connection = this.dbClient.getConnection();
+        List<String> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+
+        connection.commit();
+        return result;
+    }
 }

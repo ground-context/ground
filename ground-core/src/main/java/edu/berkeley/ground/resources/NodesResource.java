@@ -74,4 +74,13 @@ public class NodesResource {
 
         return this.nodeVersionFactory.getTransitiveClosure(nodeVersionId);
     }
+
+    @GET
+    @Timed
+    @Path("/adjacent/{id}/{edgeName}")
+    public List<String> adjacentNodes(@PathParam("id") String nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
+        LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");
+
+        return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);
+    }
 }

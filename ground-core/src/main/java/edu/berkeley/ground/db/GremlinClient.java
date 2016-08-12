@@ -1,6 +1,8 @@
 package edu.berkeley.ground.db;
 
+import com.thinkaurelius.titan.graphdb.vertices.CacheVertex;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.*;
@@ -101,6 +103,22 @@ public class GremlinClient implements DBClient {
         public List<Vertex> getAdjacentVerticesByEdgeLabel(Vertex vertex, String edgeLabel) {
             List<Vertex> result = new ArrayList<>();
             vertex.vertices(Direction.BOTH, edgeLabel).forEachRemaining(result::add);
+
+            return result;
+        }
+
+        public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+            GraphTraversal traversal = this.graph.traversal().V().has("id", nodeVersionId);
+            List<String> result = new ArrayList<>();
+
+            traversal.outE().inV().forEachRemaining( object -> {
+                CacheVertex edgeVertex = (CacheVertex) object;
+
+                if (edgeVertex.property("edge_id").value().toString().contains(edgeNameRegex)) {
+                    Vertex dst = edgeVertex.edges(Direction.OUT, "EdgeVersionConnection").next().inVertex();
+                    result.add(dst.property("id").value().toString());
+                }
+            });
 
             return result;
         }

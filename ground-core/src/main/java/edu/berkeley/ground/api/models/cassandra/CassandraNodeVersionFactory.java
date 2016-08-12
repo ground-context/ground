@@ -103,4 +103,12 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
         connection.commit();
         return result;
     }
+
+    public List<String> getAdjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+        CassandraConnection connection = this.dbClient.getConnection();
+        List<String> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+
+        connection.commit();
+        return result;
+    }
 }

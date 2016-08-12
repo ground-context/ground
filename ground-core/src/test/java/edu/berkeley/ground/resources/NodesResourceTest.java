@@ -1,10 +1,7 @@
 package edu.berkeley.ground.resources;
 
 import edu.berkeley.ground.GroundResourceTest;
-import edu.berkeley.ground.api.models.ModelCreateUtils;
-import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
@@ -57,17 +54,36 @@ public class NodesResourceTest extends GroundResourceTest {
 
         NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
 
-        System.out.println("nodeVersion's ID: " + nodeVersion.getId());
         List<String> parents = new ArrayList<>();
         parents.add(nodeVersion.getId());
         NodeVersion nodeVersionChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
-        System.out.println("nodeVersionChild's ID: " + nodeVersionChild.getId());
         NodeVersion nodeVersionOtherChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
-        System.out.println("nodeVersionOtherChild's ID: " + nodeVersionOtherChild.getId());
 
         parents.clear();
         parents.add(nodeVersionChild.getId());
         parents.add(nodeVersionOtherChild.getId());
-        NodeVersion finalChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+    }
+
+    @Test
+    public void getAdjacentNodes() throws GroundException {
+        Node source = nodesResource.createNode("source");
+        Node first = nodesResource.createNode("first");
+        Node second = nodesResource.createNode("second");
+
+        NodeVersion sourceVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), source.getId()), new ArrayList<>());
+        NodeVersion firstVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), first.getId()), new ArrayList<>());
+        NodeVersion secondVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), second.getId()), new ArrayList<>());
+
+        Edge firstEdge = edgesResource.createEdge("firstConnection");
+        Edge secondEdge = edgesResource.createEdge("secondConnection");
+
+        edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", firstEdge.getId(), sourceVersion.getId(), firstVersion.getId()), new ArrayList<>());
+        edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", secondEdge.getId(), sourceVersion.getId(), secondVersion.getId()), new ArrayList<>());
+
+        List<String> result = nodesResource.adjacentNodes(sourceVersion.getId(), "Connection");
+
+        assertThat(result.contains(firstVersion.getId())).isTrue();
+        assertThat(result.contains(secondVersion.getId())).isTrue();
     }
 }

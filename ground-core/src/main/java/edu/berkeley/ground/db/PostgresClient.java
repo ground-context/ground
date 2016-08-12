@@ -147,6 +147,31 @@ public class PostgresClient implements DBClient {
             }
         }
 
+        public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+            String query = "select nv.id from NodeVersions nv, EdgeVersions ev where ev.endpoint_one = ?";
+            query += " and ev.endpoint_two = nv.id";
+            query += " and ev.edge_id like ?;";
+
+            edgeNameRegex = '%' + edgeNameRegex + '%';
+
+            try {
+                PreparedStatement statement = this.connection.prepareStatement(query);
+                statement.setString(1, nodeVersionId);
+                statement.setString(2, edgeNameRegex);
+
+                ResultSet resultSet = statement.executeQuery();
+                List<String> result = new ArrayList<>();
+
+                while (resultSet.next()) {
+                    result.add(resultSet.getString(1));
+                }
+
+                return result;
+            } catch (SQLException e) {
+                throw new GroundException(e);
+            }
+        }
+
         public void commit() throws GroundDBException {
             try {
                 this.connection.commit();
