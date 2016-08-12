@@ -148,8 +148,7 @@ public class PostgresClient implements DBClient {
         }
 
         public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
-            String query = "select nv.id from NodeVersions nv, EdgeVersions ev where ev.endpoint_one = ?";
-            query += " and ev.endpoint_two = nv.id";
+            String query = "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?";
             query += " and ev.edge_id like ?;";
 
             edgeNameRegex = '%' + edgeNameRegex + '%';
