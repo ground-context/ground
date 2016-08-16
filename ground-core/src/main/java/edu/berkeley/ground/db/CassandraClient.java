@@ -11,16 +11,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CassandraClient implements DBClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
     private Cluster cluster;
-
     private String keyspace;
-
     private DirectedGraph<String, DefaultEdge> graph;
+    private PreparedStatement adjacencyStatement;
 
     public CassandraClient(String host, int port, String dbName, String username, String password) throws GroundDBException {
         cluster = Cluster.builder()
@@ -42,19 +43,23 @@ public class CassandraClient implements DBClient {
         for (Row r : resultSet.all()) {
             JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
         }
+
+        this.adjacencyStatement = this.cluster.connect().prepare("select endpoint_two, edge_id from EdgeVersions where endpoint_one = ? allow filtering;");
     }
 
     public CassandraConnection getConnection() throws GroundDBException {
-        return new CassandraConnection(this.cluster.connect(this.keyspace), this.graph);
+        return new CassandraConnection(this.cluster.connect(this.keyspace), this.graph, this.adjacencyStatement);
     }
 
     public class CassandraConnection extends GroundDBConnection {
         private Session session;
         private DirectedGraph<String, DefaultEdge> graph;
+        private PreparedStatement adjacencyStatement;
 
-        public CassandraConnection(Session session, DirectedGraph<String, DefaultEdge> graph) {
+        public CassandraConnection(Session session, DirectedGraph<String, DefaultEdge> graph, PreparedStatement adjacencyStatement) {
             this.session = session;
             this.graph = graph;
+            this.adjacencyStatement = adjacencyStatement;
         }
 
         public void insert(String table, List<DbDataContainer> insertValues) {
@@ -157,11 +162,7 @@ public class CassandraClient implements DBClient {
         }
 
         public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
-            edgeNameRegex = edgeNameRegex;
-
-            String query = "select endpoint_two, edge_id from EdgeVersions where endpoint_one = ? allow filtering;";
-
-            BoundStatement statement = new BoundStatement(this.session.prepare(query));
+            BoundStatement statement = new BoundStatement(this.adjacencyStatement);
 
             statement.setString(0, nodeVersionId);
 
@@ -186,6 +187,43 @@ public class CassandraClient implements DBClient {
             // do nothing; Cassandra doesn't have txns
         }
     }
+
+    private PreparedStatement prepareInsert(String table, int numFields) {
+        String insertString = "insert into " + table + "(";
+        String valuesString = "values (";
+
+        for (int i = 0 ; i < numFields ; i++) {
+            insertString += "?, ";
+            valuesString += "?, ";
+        }
+
+        insertString = insertString.substring(0, insertString.length() - 2) + ")";
+        valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
+
+        return this.cluster.connect().prepare(insertString + valuesString + ";");
+    }
+
+    private PreparedStatement prepareSelect(String table, List<String> selects, List<String> predicateFields) {
+        String select = "select ";
+        for (String s : selects) {
+            select += s + ", ";
+        }
+
+        select = select.substring(0, select.length() - 2) + " from " + table;
+
+        if (predicateFields.size() > 0) {
+            select += " where ";
+
+            for (String predicateField : predicateFields) {
+                select += predicateField + " = ? and ";
+            }
+
+            select = select.substring(0, select.length() - 4);
+        }
+
+        return this.cluster.connect().prepare(select + ";");
+    }
+
 
     private static void setValue(BoundStatement statement, Object value, GroundType groundType, int index) {
         switch (groundType) {
