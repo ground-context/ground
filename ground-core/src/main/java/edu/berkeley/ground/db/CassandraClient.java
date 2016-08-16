@@ -44,7 +44,7 @@ public class CassandraClient implements DBClient {
             JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
         }
 
-        this.adjacencyStatement = this.cluster.connect().prepare("select endpoint_two, edge_id from EdgeVersions where endpoint_one = ? allow filtering;");
+        this.adjacencyStatement = this.cluster.connect(this.keyspace).prepare("select endpoint_two, edge_id from EdgeVersions where endpoint_one = ? allow filtering;");
     }
 
     public CassandraConnection getConnection() throws GroundDBException {
@@ -200,7 +200,7 @@ public class CassandraClient implements DBClient {
         insertString = insertString.substring(0, insertString.length() - 2) + ")";
         valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
 
-        return this.cluster.connect().prepare(insertString + valuesString + ";");
+        return this.cluster.connect(this.keyspace).prepare(insertString + valuesString + ";");
     }
 
     private PreparedStatement prepareSelect(String table, List<String> selects, List<String> predicateFields) {
@@ -221,7 +221,7 @@ public class CassandraClient implements DBClient {
             select = select.substring(0, select.length() - 4);
         }
 
-        return this.cluster.connect().prepare(select + ";");
+        return this.cluster.connect(this.keyspace).prepare(select + ";");
     }
 
 
