@@ -25,9 +25,11 @@ public class Neo4jClient implements DBClient {
 
     public class Neo4jConnection extends GroundDBConnection {
         private Transaction transaction;
+        private Session session;
 
         public Neo4jConnection(Session session) {
             this.transaction = session.beginTransaction();
+            this.session = session;
         }
 
         public void addVertex(String label, List<DbDataContainer> attributes) {
@@ -236,11 +238,13 @@ public class Neo4jClient implements DBClient {
         public void commit() throws GroundDBException {
             this.transaction.success();
             this.transaction.close();
+            this.session.close();
         }
 
         public void abort() throws GroundDBException {
             this.transaction.failure();
             this.transaction.close();
+            this.session.close();
         }
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
@@ -271,7 +275,7 @@ public class Neo4jClient implements DBClient {
 
         public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
             String query = "MATCH (n {id: '" + nodeVersionId + "'})";
-            query += "MATCH (n)-[e: EdgeVersionConnection]->(evn) where evn.edge_id =~ '.*" + edgeNameRegex + ".*'";
+            query += "MATCH (n)-[e: EdgeVersionConnection]->(evn: EdgeVersion) where evn.edge_id =~ '.*" + edgeNameRegex + ".*'";
             query += "MATCH (evn)-[f: EdgeVersionConnection]->(dst)";
             query += "return dst";
 

@@ -64,6 +64,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
             case "neo4j":
                 Neo4jClient neo4jClient = new Neo4jClient(configuration.getDbHost(), configuration.getDbUser(), configuration.getDbPassword());
                 setNeo4jFactories(neo4jClient);
+                break;
 
             default: throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
         }
