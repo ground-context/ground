@@ -1,6 +1,6 @@
-dbType: cassandra
+dbType: postgres
 dbName: ground
 dbHost: localhost
-dbPort: 7000
+dbPort: 5432
 dbUser: ground
 dbPassword: metadata
