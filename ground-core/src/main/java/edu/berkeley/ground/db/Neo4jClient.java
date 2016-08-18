@@ -248,8 +248,7 @@ public class Neo4jClient implements DBClient {
         }
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
-            String query = "MATCH (a {id: '" + nodeVersionId + "'})";
-            query += "MATCH (a)-[:EdgeVersionConnection*]->(b)";
+            String query = "MATCH (a: NodeVersion {id: '" + nodeVersionId + "'})-[:EdgeVersionConnection*]->(b)";
             query += "RETURN b.id";
 
             List<String> result = new ArrayList<>();
