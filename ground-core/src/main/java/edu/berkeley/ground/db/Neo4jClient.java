@@ -274,17 +274,16 @@ public class Neo4jClient implements DBClient {
 
 
         public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
-            String query = "MATCH (n {id: '" + nodeVersionId + "'})";
-            query += "MATCH (n)-[e: EdgeVersionConnection]->(evn: EdgeVersion) where evn.edge_id =~ '.*" + edgeNameRegex + ".*'";
+            String query = "MATCH (n: NodeVersion {id: '" + nodeVersionId + "'})";
+            query += "-[e: EdgeVersionConnection]->(evn: EdgeVersion) where evn.edge_id =~ '.*" + edgeNameRegex + ".*'";
             query += "MATCH (evn)-[f: EdgeVersionConnection]->(dst)";
-            query += "return dst";
+            query += "return dst.id";
 
             List<String> result = new ArrayList<>();
             List<Record> records = this.transaction.run(query).list();
 
             records.stream().forEach(record -> {
-                Node node = record.get("dst").asNode();
-                result.add(node.get("id").asString());
+                result.add(record.get("dst.id").asString());
             });
 
             return result;
