@@ -145,6 +145,12 @@
                     <artifactId>hadoop-core</artifactId>
                 </exclusion>
 
+                <!-- Exclude titan-hadoop that breaks Gobblin due to scala 2.10 -->
+                <exclusion>
+                  <groupId>com.thinkaurelius.titan</groupId>
+                  <artifactId>titan-hadoop</artifactId>
+                </exclusion>
+
             </exclusions>
         </dependency>
 
