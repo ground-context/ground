@@ -3,6 +3,8 @@ dependency-reduced-pom.xml
 .settings/
 target/
 *.iml
+*.ipr
+*.iws
 .classpath
 .project
 *.log
