@@ -111,7 +111,7 @@ public class GremlinClient implements DBClient {
             GraphTraversal traversal = this.graph.traversal().V().has("id", nodeVersionId);
             List<String> result = new ArrayList<>();
 
-            traversal.outE().inV().forEachRemaining( object -> {
+            traversal.outE("EdgeVersionConnection").inV().forEachRemaining( object -> {
                 CacheVertex edgeVertex = (CacheVertex) object;
 
                 if (edgeVertex.property("edge_id").value().toString().contains(edgeNameRegex)) {
