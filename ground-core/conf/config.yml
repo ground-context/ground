@@ -1,6 +1,13 @@
-dbType: postgres
+dbType: neo4j
 dbName: ground
 dbHost: localhost
-dbPort: 5432
-dbUser: ground
-dbPassword: metadata
+dbPort: 7474
+dbUser: neo4j
+dbPassword: password
+server:
+  applicationConnectors:
+    - type: http
+      port: 9090
+  adminConnectors:
+    - type: http
+      port: 9091

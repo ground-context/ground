@@ -173,7 +173,7 @@
     <orderEntry type="module-library">
       <library name="Maven: com.thinkaurelius.titan:titan-all:1.1.0-SNAPSHOT">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../titan/titan-all/target/titan-all-1.1.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../pub/titan/titan-all/target/titan-all-1.1.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -202,7 +202,7 @@
     <orderEntry type="module-library">
       <library name="Maven: org.apache.hive:hive-metastore:2.2.0-SNAPSHOT">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../hive/metastore/target/hive-metastore-2.2.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../pub/hive/metastore/target/hive-metastore-2.2.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -211,7 +211,7 @@
     <orderEntry type="module-library">
       <library name="Maven: org.apache.hive:hive-common:2.2.0-SNAPSHOT">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../hive/common/target/hive-common-2.2.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../pub/hive/common/target/hive-common-2.2.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

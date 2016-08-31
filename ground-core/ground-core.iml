@@ -181,7 +181,7 @@
     <orderEntry type="module-library">
       <library name="Maven: com.thinkaurelius.titan:titan-all:1.1.0-SNAPSHOT">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../titan/titan-all/target/titan-all-1.1.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../pub/titan/titan-all/target/titan-all-1.1.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
