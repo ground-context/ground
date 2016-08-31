@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class EdgeVersionFactory {
-    public abstract EdgeVersion create(Optional<Map<String, Tag>> tags,
-                                       Optional<String> structureVersionId,
-                                       Optional<String> reference,
-                                       Optional<Map<String, String>> parameters,
+    public abstract EdgeVersion create(Map<String, Tag> tags,
+                                       String structureVersionId,
+                                       String reference,
+                                       Map<String, String> parameters,
                                        String edgeId,
                                        String fromId,
                                        String toId,
@@ -34,10 +34,10 @@ public abstract class EdgeVersionFactory {
     public abstract EdgeVersion retrieveFromDatabase(String id) throws GroundException;
 
     protected static EdgeVersion construct(String id,
-                                           Optional<Map<String, Tag>> tags,
-                                           Optional<String> structureVersionId,
-                                           Optional<String> reference,
-                                           Optional<Map<String, String>> parameters,
+                                           Map<String, Tag> tags,
+                                           String structureVersionId,
+                                           String reference,
+                                           Map<String, String> parameters,
                                            String edgeId,
                                            String fromId,
                                            String toId) throws GroundException {

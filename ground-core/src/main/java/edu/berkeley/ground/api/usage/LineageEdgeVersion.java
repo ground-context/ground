@@ -38,10 +38,10 @@ public class LineageEdgeVersion extends RichVersion {
 
     @JsonCreator
     protected LineageEdgeVersion(@JsonProperty("id") String id,
-                                 @JsonProperty("tags") Optional<Map<String, Tag>> tags,
-                                 @JsonProperty("structureVersionId") Optional<String> structureVersionId,
-                                 @JsonProperty("reference") Optional<String> reference,
-                                 @JsonProperty("parameters") Optional<Map<String, String>> parameters,
+                                 @JsonProperty("tags") Map<String, Tag> tags,
+                                 @JsonProperty("structureVersionId") String structureVersionId,
+                                 @JsonProperty("reference") String reference,
+                                 @JsonProperty("parameters") Map<String, String> parameters,
                                  @JsonProperty("fromId") String fromId,
                                  @JsonProperty("toId") String toId,
                                  @JsonProperty("lineageEdgeId") String lineageEdgeId) {

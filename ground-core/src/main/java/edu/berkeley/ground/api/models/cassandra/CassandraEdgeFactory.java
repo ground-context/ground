@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class CassandraEdgeFactory extends EdgeFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
@@ -44,7 +43,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
     }
 
     public Edge create(String name) throws GroundException {
-        CassandraConnection connection = dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             String uniqueId = "Edges." + name;
@@ -68,7 +67,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
     }
 
     public Edge retrieveFromDatabase(String name) throws GroundException {
-        CassandraConnection connection = dbClient.getConnection();
+        CassandraConnection connection = this.dbClient.getConnection();
 
         try {
             List<DbDataContainer> predicates = new ArrayList<>();

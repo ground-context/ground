@@ -24,6 +24,7 @@ import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ public class LineageEdgesResourceTest extends GroundResourceTest {
     @Test
     public void createLineageEdge() throws GroundException {
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), new ArrayList<>());
 
         Edge edge = edgesResource.createEdge("test");
         EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new ArrayList<>());
@@ -45,8 +46,8 @@ public class LineageEdgesResourceTest extends GroundResourceTest {
         assertThat(lineageEdgeVersion.getToId()).isEqualTo(edgeVersion.getId());
 
         assertThat(lineageEdgeVersion.getParameters()).isEmpty();
-        assertThat(lineageEdgeVersion.getReference()).isEmpty();
-        assertThat(lineageEdgeVersion.getStructureVersionId()).isEmpty();
+        assertThat(lineageEdgeVersion.getReference()).isNull();
+        assertThat(lineageEdgeVersion.getStructureVersionId()).isNull();
         assertThat(lineageEdgeVersion.getTags()).isEmpty();
     }
 }

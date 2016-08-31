@@ -30,7 +30,7 @@ import java.io.File;
 
 
 public class GroundResourceTest {
-    private static final String BACKING_STORE_TYPE = "neo4j";
+    private static final String BACKING_STORE_TYPE = "postgres";
     private static final String TEST_DB_NAME = "test";
 
     protected NodesResource nodesResource;

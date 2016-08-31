@@ -27,7 +27,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class CassandraTagFactory extends TagFactory {
-    public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -38,18 +38,14 @@ public class CassandraTagFactory extends TagFactory {
 
         do {
             String key = resultSet.getString(1);
-            Optional<GroundType> type = Optional.ofNullable(GroundType.fromString(resultSet.getString(3)));
+            GroundType type = GroundType.fromString(resultSet.getString(3));
 
             String valueString = resultSet.getString(2);
-            Optional<Object> value = type.map(t -> GroundType.stringToType(valueString, t));
+            Object value = GroundType.stringToType(valueString, type);
 
             result.put(key, new Tag(id, key, value, type));
         } while (resultSet.next());
 
-        if (result.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(result);
-        }
+        return result;
     }
 }

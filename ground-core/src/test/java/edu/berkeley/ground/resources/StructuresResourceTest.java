@@ -52,17 +52,15 @@ public class StructuresResourceTest extends GroundResourceTest {
         StructureVersion structureVersion = structuresResource.createStructureVersion(ModelCreateUtils.getStructureVersion("id", structure.getId(), attributes), new ArrayList<>());
 
         Map<String, Tag> tagsMap = new HashMap<>();
-        tagsMap.put("test", new Tag(null, "test", Optional.of("a"), Optional.of(GroundType.STRING)));
+        tagsMap.put("test", new Tag(null, "test", "a", GroundType.STRING));
 
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.of(tagsMap), Optional.of(structureVersion.getId()), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", tagsMap, structureVersion.getId(), null, new HashMap<>(), node.getId()), new ArrayList<>());
 
-        assertThat(nodeVersion.getStructureVersionId()).isPresent();
-        assertThat(nodeVersion.getStructureVersionId().get()).isEqualTo(structureVersion.getId());
-        assertThat(nodeVersion.getTags()).isPresent();
-        assertThat(nodeVersion.getTags().get()).containsKey("test");
-        assertThat(nodeVersion.getTags().get().get("test").getValue()).isPresent();
-        assertThat(nodeVersion.getTags().get().get("test").getValue().get()).isEqualTo("a");
-
+        assertThat(nodeVersion.getStructureVersionId()).isNotNull();
+        assertThat(nodeVersion.getStructureVersionId()).isEqualTo(structureVersion.getId());
+        assertThat(nodeVersion.getTags()).isNotNull();
+        assertThat(nodeVersion.getTags()).containsKey("test");
+        assertThat(nodeVersion.getTags().get("test").getValue()).isEqualTo("a");
     }
 }

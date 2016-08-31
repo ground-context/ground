@@ -28,7 +28,7 @@ import org.neo4j.driver.v1.Record;
 import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
-    public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -42,29 +42,25 @@ public class Neo4jTagFactory extends TagFactory {
 
         Map<String, Tag> tags = new HashMap<>();
 
-        if(tagsRecords.isEmpty()) {
-            return Optional.empty();
-        }
-
         for (Record record : tagsRecords) {
             String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
 
-            Optional<Object> value;
+            Object value;
             if (record.containsKey("value")) {
-                value = Optional.of(Neo4jClient.getStringFromValue((StringValue) record.get("value")));
+                value = Neo4jClient.getStringFromValue((StringValue) record.get("value"));
             } else {
-                value = Optional.empty();
+                value = null;
             }
-            Optional<GroundType> type;
+            GroundType type;
             if (record.containsKey("type")) {
-                 type = Optional.of(GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type"))));
+                 type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
             } else {
-                type = Optional.empty();
+                type = null;
             }
 
             tags.put(key, new Tag(id, key, value, type));
         }
 
-        return Optional.of(tags);
+        return tags;
     }
 }

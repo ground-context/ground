@@ -22,25 +22,25 @@ import java.util.*;
 
 public class RichVersion extends Version {
     // the map of Keys to Tags associated with this RichVersion
-    private Optional<Map<String, Tag>> tags;
+    private Map<String, Tag> tags;
 
     @UnwrapValidatedValue
-    // the optional StructureVersion associated with this RichVersion
-    private Optional<String> structureVersionId;
+    // the StructureVersion associated with this RichVersion
+    private String structureVersionId;
 
     @UnwrapValidatedValue
     // the optional reference associated with this RichVersion
-    private Optional<String> reference;
+    private String reference;
 
     @UnwrapValidatedValue
     // the optional parameters associated with this RichVersion if there is a reference
-    private Optional<Map<String, String>> parameters;
+    private Map<String, String> parameters;
 
     protected RichVersion(String id,
-                          Optional<Map<String, Tag>> tags,
-                          Optional<String> structureVersionId,
-                          Optional<String> reference,
-                          Optional<Map<String, String>> parameters) {
+                          Map<String, Tag> tags,
+                          String structureVersionId,
+                          String reference,
+                          Map<String, String> parameters) {
 
         super(id);
 
@@ -51,22 +51,22 @@ public class RichVersion extends Version {
     }
 
     @JsonProperty
-    public Optional<Map<String, Tag>> getTags() {
+    public Map<String, Tag> getTags() {
         return this.tags;
     }
 
     @JsonProperty
-    public Optional<String> getStructureVersionId() {
+    public String getStructureVersionId() {
         return this.structureVersionId;
     }
 
     @JsonProperty
-    public Optional<String> getReference() {
+    public String getReference() {
         return this.reference;
     }
 
     @JsonProperty
-    public Optional<Map<String, String>> getParameters() {
+    public Map<String, String> getParameters() {
         return this.parameters;
     }
 

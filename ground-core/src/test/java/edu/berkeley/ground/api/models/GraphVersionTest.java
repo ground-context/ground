@@ -30,7 +30,7 @@ public class GraphVersionTest {
     @Test
     public void serializesToJSON() throws Exception {
         Map<String, Tag> tagsMap = new HashMap<>();
-        tagsMap.put("testtag", new Tag("abcd", "testtag", Optional.of("tag"), Optional.of(GroundType.STRING)));
+        tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
 
         Map<String, String> parametersMap = new HashMap<>();
         parametersMap.put("http", "GET");
@@ -39,7 +39,7 @@ public class GraphVersionTest {
         edgeVersionIds.add("abc");
         edgeVersionIds.add("def");
 
-        GraphVersion graphVersion = new GraphVersion("abcd", Optional.of(tagsMap), Optional.<String>empty(), Optional.of("http://www.google.com"), Optional.of(parametersMap), "Graphs.test", edgeVersionIds);
+        GraphVersion graphVersion = new GraphVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Graphs.test", edgeVersionIds);
 
         final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class));
         assertThat(MAPPER.writeValueAsString(graphVersion)).isEqualTo(expected);
@@ -48,7 +48,7 @@ public class GraphVersionTest {
     @Test
     public void deserializesFromJSON() throws Exception {
         Map<String, Tag> tagsMap = new HashMap<>();
-        tagsMap.put("testtag", new Tag("abcd", "testtag", Optional.of("tag"), Optional.of(GroundType.STRING)));
+        tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
 
         Map<String, String> parametersMap = new HashMap<>();
         parametersMap.put("http", "GET");
@@ -57,7 +57,7 @@ public class GraphVersionTest {
         edgeVersionIds.add("abc");
         edgeVersionIds.add("def");
 
-        GraphVersion graphVersion = new GraphVersion("abcd", Optional.of(tagsMap), Optional.<String>empty(), Optional.of("http://www.google.com"), Optional.of(parametersMap), "Graphs.test", edgeVersionIds);
+        GraphVersion graphVersion = new GraphVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Graphs.test", edgeVersionIds);
 
         assertThat(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class)).isEqualToComparingFieldByField(graphVersion);
     }

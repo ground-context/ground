@@ -27,7 +27,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class PostgresTagFactory extends TagFactory {
-    public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         PostgresConnection connection = (PostgresConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -38,18 +38,14 @@ public class PostgresTagFactory extends TagFactory {
 
         do {
             String key = resultSet.getString(2);
-            Optional<GroundType> type = Optional.ofNullable(GroundType.fromString(resultSet.getString(4)));
+            GroundType type = GroundType.fromString(resultSet.getString(4));
 
             String valueString = resultSet.getString(3);
-            Optional<Object> value = type.map(t -> GroundType.stringToType(valueString, t));
+            Object value = GroundType.stringToType(valueString, type);
 
             result.put(key, new Tag(id, key, value, type));
         } while (resultSet.next());
 
-        if (result.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(result);
-        }
+        return result;
     }
 }

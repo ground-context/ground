@@ -30,12 +30,12 @@ public class NodesResourceTest extends GroundResourceTest {
         Node node = nodesResource.createNode("test");
         assertThat(node.getName()).isEqualTo("test");
 
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), new ArrayList<>());
         assertThat(nodeVersion.getNodeId()).isEqualTo(node.getId());
 
         assertThat(nodeVersion.getParameters()).isEmpty();
-        assertThat(nodeVersion.getReference()).isEmpty();
-        assertThat(nodeVersion.getStructureVersionId()).isEmpty();
+        assertThat(nodeVersion.getReference()).isNull();
+        assertThat(nodeVersion.getStructureVersionId()).isNull();
         assertThat(nodeVersion.getTags()).isEmpty();
     }
 
@@ -43,22 +43,21 @@ public class NodesResourceTest extends GroundResourceTest {
     public void testReferences() throws GroundException {
         Node node = nodesResource.createNode("test");
 
-        Optional<String> reference = Optional.of("http://www.google.com");
+        String reference = "http://www.google.com";
 
-        Map<String, String> parametersMap = new HashMap<>();
-        parametersMap.put("http", "GET");
-        Optional<Map<String, String>> parameters = Optional.of(parametersMap);
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("http", "GET");
 
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), reference, parameters, node.getId()), new ArrayList<>());
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, reference, parameters, node.getId()), new ArrayList<>());
         assertThat(nodeVersion.getNodeId()).isEqualTo(node.getId());
 
-        assertThat(nodeVersion.getReference()).isPresent();
-        assertThat(nodeVersion.getParameters()).isPresent();
+        assertThat(nodeVersion.getReference()).isNotNull();
+        assertThat(nodeVersion.getParameters()).isNotEmpty();
 
-        assertThat(nodeVersion.getReference().get()).isEqualTo("http://www.google.com");
-        assertThat(nodeVersion.getParameters().get().size()).isEqualTo(1);
-        assertThat(nodeVersion.getParameters().get().keySet()).contains("http");
-        assertThat(nodeVersion.getParameters().get().get("http")).isEqualTo("GET");
+        assertThat(nodeVersion.getReference()).isEqualTo("http://www.google.com");
+        assertThat(nodeVersion.getParameters().size()).isEqualTo(1);
+        assertThat(nodeVersion.getParameters().keySet()).contains("http");
+        assertThat(nodeVersion.getParameters().get("http")).isEqualTo("GET");
 
     }
 
@@ -66,17 +65,17 @@ public class NodesResourceTest extends GroundResourceTest {
     public void nodeWithMultipleParents() throws GroundException {
         Node node = nodesResource.createNode("test");
 
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), new ArrayList<>());
 
         List<String> parents = new ArrayList<>();
         parents.add(nodeVersion.getId());
-        NodeVersion nodeVersionChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
-        NodeVersion nodeVersionOtherChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        NodeVersion nodeVersionChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), parents);
+        NodeVersion nodeVersionOtherChild = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), parents);
 
         parents.clear();
         parents.add(nodeVersionChild.getId());
         parents.add(nodeVersionOtherChild.getId());
-        nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), parents);
+        nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), parents);
     }
 
     @Test
@@ -85,9 +84,9 @@ public class NodesResourceTest extends GroundResourceTest {
         Node first = nodesResource.createNode("first");
         Node second = nodesResource.createNode("second");
 
-        NodeVersion sourceVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), source.getId()), new ArrayList<>());
-        NodeVersion firstVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), first.getId()), new ArrayList<>());
-        NodeVersion secondVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), second.getId()), new ArrayList<>());
+        NodeVersion sourceVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), source.getId()), new ArrayList<>());
+        NodeVersion firstVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), first.getId()), new ArrayList<>());
+        NodeVersion secondVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), second.getId()), new ArrayList<>());
 
         Edge firstEdge = edgesResource.createEdge("firstConnection");
         Edge secondEdge = edgesResource.createEdge("secondConnection");

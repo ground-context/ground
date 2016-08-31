@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
@@ -49,10 +48,10 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     }
 
 
-    public LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
-                                     Optional<String> structureVersionId,
-                                     Optional<String> reference,
-                                     Optional<Map<String, String>> parameters,
+    public LineageEdgeVersion create(Map<String, Tag> tags,
+                                     String structureVersionId,
+                                     String reference,
+                                     Map<String, String> parameters,
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
@@ -63,9 +62,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
         try {
             String id = IdGenerator.generateId(lineageEdgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));

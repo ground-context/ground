@@ -21,6 +21,7 @@ import io.dropwizard.jersey.params.NonEmptyStringParam;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +32,7 @@ public class GraphsResourceTest extends GroundResourceTest {
     @Test
     public void createGraphVersion() throws GroundException {
         Node node = nodesResource.createNode("test");
-        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", Optional.<Map<String, Tag>>empty(), Optional.<String>empty(), Optional.<String>empty(), Optional.<Map<String, String>>empty(), node.getId()), new ArrayList<>());
+        NodeVersion nodeVersion = nodesResource.createNodeVersion(ModelCreateUtils.getNodeVersion("id", new HashMap<>(), null, null, new HashMap<>(), node.getId()), new ArrayList<>());
 
         Edge edge = edgesResource.createEdge("test");
         EdgeVersion edgeVersion = edgesResource.createEdgeVersion(ModelCreateUtils.getEdgeVersion("id", edge.getId(), nodeVersion.getId(), nodeVersion.getId()), new ArrayList<>());
@@ -47,8 +48,8 @@ public class GraphsResourceTest extends GroundResourceTest {
         assertThat(graphVersion.getEdgeVersionIds().get(0)).isEqualTo(edgeVersion.getId());
 
         assertThat(graphVersion.getParameters()).isEmpty();
-        assertThat(graphVersion.getReference()).isEmpty();
-        assertThat(graphVersion.getStructureVersionId()).isEmpty();
+        assertThat(graphVersion.getReference()).isNull();
+        assertThat(graphVersion.getStructureVersionId()).isNull();
         assertThat(graphVersion.getTags()).isEmpty();
     }
 }

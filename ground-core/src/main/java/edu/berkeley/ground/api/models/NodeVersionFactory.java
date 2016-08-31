@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class NodeVersionFactory {
-    public abstract NodeVersion create(Optional<Map<String, Tag>> tags,
-                                       Optional<String> structureVersionId,
-                                       Optional<String> reference,
-                                       Optional<Map<String, String>> parameters,
+    public abstract NodeVersion create(Map<String, Tag> tags,
+                                       String structureVersionId,
+                                       String reference,
+                                       Map<String, String> parameters,
                                        String nodeId,
                                        List<String> parentIds) throws GroundException;
 
@@ -35,10 +35,10 @@ public abstract class NodeVersionFactory {
     public abstract List<String> getAdjacentNodes(String nodeVersionId, String edgeNameLike) throws GroundException;
 
     public static NodeVersion construct(String id,
-                                        Optional<Map<String, Tag>> tags,
-                                        Optional<String> structureVersionId,
-                                        Optional<String> reference,
-                                        Optional<Map<String, String>> parameters,
+                                        Map<String, Tag> tags,
+                                        String structureVersionId,
+                                        String reference,
+                                        Map<String, String> parameters,
                                         String nodeId) {
 
         return new NodeVersion(id, tags, structureVersionId, reference, parameters, nodeId);

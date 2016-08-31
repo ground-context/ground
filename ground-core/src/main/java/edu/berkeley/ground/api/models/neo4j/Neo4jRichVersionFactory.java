@@ -38,16 +38,22 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
         this.tagFactory = tagFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+    public void insertIntoDatabase(GroundDBConnection connectionPointer,
+                                   String id,
+                                   Map<String, Tag> tags,
+                                   String structureVersionId,
+                                   String reference,
+                                   Map<String, String> parameters
+    ) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
-        if (structureVersionId.isPresent()) {
-            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId.get());
+        if (structureVersionId != null) {
+            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
             RichVersionFactory.checkStructureTags(structureVersion, tags);
         }
 
-        if (parameters.isPresent()) {
-            Map<String, String> parametersMap = parameters.get();
+        if (!parameters.isEmpty()) {
+            Map<String, String> parametersMap = parameters;
 
             for (String key : parametersMap.keySet()) {
                 String value = parametersMap.get(key);
@@ -63,23 +69,23 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
             }
         }
 
-        if (structureVersionId.isPresent()) {
-            connection.setProperty(id, "structure_id", structureVersionId.get(), true);
+        if (structureVersionId != null) {
+            connection.setProperty(id, "structure_id", structureVersionId, true);
         }
 
-        if (reference.isPresent()) {
-            connection.setProperty(id, "reference", reference.get(), true);
+        if (reference != null) {
+            connection.setProperty(id, "reference", reference, true);
         }
 
-        if (tags.isPresent()) {
-            for (String key : tags.get().keySet()) {
-                Tag tag = tags.get().get(key);
+        if (!tags.isEmpty()) {
+            for (String key : tags.keySet()) {
+                Tag tag = tags.get(key);
 
                 List<DbDataContainer> tagInsertion = new ArrayList<>();
                 tagInsertion.add(new DbDataContainer("id", GroundType.STRING, id));
                 tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().map(Object::toString).orElse(null)));
-                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().map(Object::toString).orElse(null)));
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue()));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType()));
 
                 connection.addVertexAndEdge("Tag", tagInsertion, "TagConnection", id, new ArrayList<>());
             }
@@ -98,24 +104,18 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
         returnFields.add("value");
 
         List<Record> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(id, "RichVersionExternalParameterConnection", returnFields);
-        Optional<Map<String, String>> parameters;
+        Map<String, String> parameters = new HashMap<>();
 
         if (!parameterVertices.isEmpty()) {
-            Map<String, String> parametersMap = new HashMap<>();
-
             for (Record parameter : parameterVertices) {
-                parametersMap.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
+                parameters.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
             }
-
-            parameters = Optional.of(parametersMap);
-        } else {
-            parameters = Optional.empty();
         }
 
-        Optional<Map<String, Tag>> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
+        Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
 
-        Optional<String> reference = Optional.ofNullable(record.get("reference").toString());
-        Optional<String> structureVersionId = Optional.ofNullable(record.get("structure_id").toString());
+        String reference = record.get("reference").toString();
+        String structureVersionId = record.get("structure_id").toString();
 
         return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
     }

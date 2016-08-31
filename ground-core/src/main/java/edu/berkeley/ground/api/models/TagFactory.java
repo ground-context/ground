@@ -21,5 +21,5 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class TagFactory {
-    public abstract Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connection, String id) throws GroundException;
+    public abstract Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connection, String id) throws GroundException;
 }

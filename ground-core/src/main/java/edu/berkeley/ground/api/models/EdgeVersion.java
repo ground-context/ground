@@ -33,10 +33,10 @@ public class EdgeVersion extends RichVersion {
     @JsonCreator
     protected EdgeVersion(
             @JsonProperty("id") String id,
-            @JsonProperty("tags") Optional<Map<String, Tag>> tags,
-            @JsonProperty("structureVersionId") Optional<String> structureVersionId,
-            @JsonProperty("reference") Optional<String> reference,
-            @JsonProperty("parameters") Optional<Map<String, String>> parameters,
+            @JsonProperty("tags") Map<String, Tag> tags,
+            @JsonProperty("structureVersionId") String structureVersionId,
+            @JsonProperty("reference") String reference,
+            @JsonProperty("parameters") Map<String, String> parameters,
             @JsonProperty("edgeId") String edgeId,
             @JsonProperty("fromId") String fromId,
             @JsonProperty("toId") String toId) {

@@ -49,10 +49,10 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     }
 
 
-    public NodeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public NodeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> parameters,
                               String nodeId,
                               List<String> parentIds) throws GroundException {
 
@@ -62,9 +62,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             String id = IdGenerator.generateId(nodeId);
 
             // add the id of the version to the tag
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
