@@ -1,8 +1,10 @@
 dependency-reduced-pom.xml
-.idea/
-.settings/
-target/
+**.idea
+.settings
+target
 *.iml
 .classpath
 .project
 *.log
+.DS_Store
+.DS_Store?
