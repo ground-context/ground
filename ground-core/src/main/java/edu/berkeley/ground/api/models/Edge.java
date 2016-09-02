@@ -38,4 +38,15 @@ public class Edge extends Item<EdgeVersion> {
     public static String idToName(String id) {
         return id.substring(6);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Edge)) {
+            return false;
+        }
+
+        Edge otherEdge = (Edge) other;
+
+        return this.name.equals(otherEdge.name) && this.getId().equals(otherEdge.getId());
+    }
 }

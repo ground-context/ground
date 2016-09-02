@@ -48,4 +48,16 @@ public class StructureVersion extends Version {
         return this.attributes;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof StructureVersion)) {
+            return false;
+        }
+
+        StructureVersion otherStructureVersion = (StructureVersion) other;
+
+        return this.structureId.equals(otherStructureVersion.structureId) &&
+                this.attributes.equals(otherStructureVersion.attributes) &&
+                this.getId().equals(otherStructureVersion.getId());
+    }
 }

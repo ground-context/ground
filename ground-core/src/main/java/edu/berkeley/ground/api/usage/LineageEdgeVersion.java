@@ -67,4 +67,18 @@ public class LineageEdgeVersion extends RichVersion {
         return this.toId;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof LineageEdgeVersion)) {
+            return false;
+        }
+
+        LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
+
+        return this.lineageEdgeId.equals(otherLineageEdgeVersion.lineageEdgeId) &&
+                this.fromId.equals(otherLineageEdgeVersion.fromId) &&
+                this.toId.equals(otherLineageEdgeVersion.toId) &&
+                this.getId().equals(otherLineageEdgeVersion.getId()) &&
+                super.equals(other);
+    }
 }

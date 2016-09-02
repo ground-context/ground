@@ -42,4 +42,15 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
     public static String idToName(String id) {
         return id.substring(13);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof LineageEdge)) {
+            return false;
+        }
+
+        LineageEdge otherLineageEdge = (LineageEdge) other;
+
+        return this.name.equals(otherLineageEdge.name) && this.getId().equals(otherLineageEdge.getId());
+    }
 }

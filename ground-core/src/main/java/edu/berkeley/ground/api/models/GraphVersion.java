@@ -29,7 +29,7 @@ public class GraphVersion extends RichVersion {
     // the id of the Graph that contains this Version
     private String graphId;
 
-    // the list of ids of EdgeVersions in this GraphVersion
+    // the list of ids of GraphVersions in this GraphVersion
     private List<String> edgeVersionIds;
 
     @JsonCreator
@@ -53,8 +53,20 @@ public class GraphVersion extends RichVersion {
     }
 
     @JsonProperty
-    public List<String> getEdgeVersionIds() {
+    public List<String> getGraphVersionIds() {
         return this.edgeVersionIds;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof GraphVersion)) {
+            return false;
+        }
+
+        GraphVersion otherGraphVersion = (GraphVersion) other;
+
+        return this.graphId.equals(otherGraphVersion.graphId) &&
+                this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds) &&
+                super.equals(other);
+    }
 }

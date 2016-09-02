@@ -43,4 +43,15 @@ public class Node extends Item<NodeVersion> {
     public static String idToName(String id) {
         return id.substring(6);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Node)) {
+            return false;
+        }
+
+        Node otherNode = (Node) other;
+
+        return this.name.equals(otherNode.name) && this.getId().equals(otherNode.getId());
+    }
 }

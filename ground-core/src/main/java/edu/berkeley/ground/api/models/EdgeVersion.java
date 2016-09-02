@@ -63,4 +63,18 @@ public class EdgeVersion extends RichVersion {
         return this.toId;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof EdgeVersion)) {
+            return false;
+        }
+
+        EdgeVersion otherEdgeVersion = (EdgeVersion) other;
+
+        return this.edgeId.equals(otherEdgeVersion.edgeId) &&
+                this.fromId.equals(otherEdgeVersion.fromId) &&
+                this.toId.equals(otherEdgeVersion.toId) &&
+                this.getId().equals(otherEdgeVersion.getId()) &&
+                super.equals(other);
+    }
 }

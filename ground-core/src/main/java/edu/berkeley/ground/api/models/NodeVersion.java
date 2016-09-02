@@ -46,4 +46,15 @@ public class NodeVersion extends RichVersion {
         return this.nodeId;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof NodeVersion)) {
+            return false;
+        }
+
+        NodeVersion otherNodeVersion = (NodeVersion) other;
+
+        return this.nodeId.equals(otherNodeVersion.nodeId) &&
+                super.equals(other);
+    }
 }

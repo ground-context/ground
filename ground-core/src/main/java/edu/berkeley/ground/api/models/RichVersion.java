@@ -70,4 +70,18 @@ public class RichVersion extends Version {
         return this.parameters;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof RichVersion)) {
+            return false;
+        }
+
+        RichVersion otherRichVersion = (RichVersion) other;
+
+        return this.getId().equals(otherRichVersion.getId()) &&
+                this.tags.equals(otherRichVersion.tags) &&
+                this.structureVersionId.equals(otherRichVersion.structureVersionId) &&
+                this.reference.equals(otherRichVersion.reference) &&
+                this.parameters.equals(otherRichVersion.parameters);
+    }
 }

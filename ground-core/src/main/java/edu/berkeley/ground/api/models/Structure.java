@@ -38,4 +38,15 @@ public class Structure extends Item<StructureVersion> {
     public static String idToName(String id) {
         return id.substring(11);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Structure)) {
+            return false;
+        }
+
+        Structure otherStructure = (Structure) other;
+
+        return this.name.equals(otherStructure.name) && this.getId().equals(otherStructure.getId());
+    }
 }
