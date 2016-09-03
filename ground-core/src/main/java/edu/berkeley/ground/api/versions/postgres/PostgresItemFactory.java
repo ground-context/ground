@@ -74,4 +74,19 @@ public class PostgresItemFactory extends ItemFactory {
             this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
         }
     }
+
+    public List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
+        try {
+            VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
+
+            return dag.getLeaves();
+        } catch (GroundException e) {
+            if (!e.getMessage().contains("No results found for query:")) {
+                throw e;
+            }
+
+            return new ArrayList<>();
+        }
+    }
+
 }

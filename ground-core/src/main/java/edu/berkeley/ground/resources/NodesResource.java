@@ -82,6 +82,14 @@ public class NodesResource {
 
     @GET
     @Timed
+    @Path("/{name}/latest")
+    public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
+        LOGGER.info("Retrieving the latest version of node " + name + ".");
+        return this.nodeFactory.getLeaves(name);
+    }
+
+    @GET
+    @Timed
     @Path("/closure/{id}")
     public List<String> transitiveClosure(@PathParam("id") String nodeVersionId) throws GroundException {
         LOGGER.info("Running transitive closure on node version  " + nodeVersionId + ".");
