@@ -15,6 +15,7 @@
 package edu.berkeley.ground;
 
 import edu.berkeley.ground.api.models.*;
+import edu.berkeley.ground.api.models.gh.GithubWebhookFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
@@ -42,6 +43,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     private NodeVersionFactory nodeVersionFactory;
     private StructureFactory structureFactory;
     private StructureVersionFactory structureVersionFactory;
+    private GithubWebhookFactory githubWebhookFactory;
 
     public static void main(String [] args) throws Exception {
         new GroundServer().run(args);
@@ -88,12 +90,14 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
         final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
         final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
+        final GithubWebhookResource githubWebhookResource = new GithubWebhookResource(githubWebhookFactory, "{\"json\":\"json\"}");
 
         environment.jersey().register(edgesResource);
         environment.jersey().register(graphsResource);
         environment.jersey().register(lineageEdgesResource);
         environment.jersey().register(nodesResource);
         environment.jersey().register(structuresResource);
+        environment.jersey().register(githubWebhookResource);
     }
 
     private void setPostgresFactories(PostgresClient postgresClient) {
