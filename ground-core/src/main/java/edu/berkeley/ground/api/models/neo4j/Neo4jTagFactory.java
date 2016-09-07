@@ -67,4 +67,13 @@ public class Neo4jTagFactory extends TagFactory {
 
         return Optional.of(tags);
     }
+
+    public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+        Neo4jConnection connection = (Neo4jConnection) connectionPointer;
+
+        List<DbDataContainer> predicates = new ArrayList<>();
+        predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
+
+        return connection.getVerticesByLabel(predicates);
+    }
 }

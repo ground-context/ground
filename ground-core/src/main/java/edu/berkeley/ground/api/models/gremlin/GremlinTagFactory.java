@@ -52,4 +52,17 @@ public class GremlinTagFactory extends TagFactory {
             return Optional.empty();
         }
     }
+
+    public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+        GremlinConnection connection = (GremlinConnection) connectionPointer;
+
+        List<Vertex> taggedVertices = connection.getVerticesByLabel("tkey", tag);
+
+        List<String> ids = new ArrayList<>();
+        taggedVertices.forEach(vertex -> {
+            ids.add(vertex.property("id").value().toString());
+        });
+
+        return ids;
+    }
 }
