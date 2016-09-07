@@ -18,6 +18,7 @@ import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.api.models.gh.GithubWebhook;
 import edu.berkeley.ground.api.models.gh.GithubWebhookFactory;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.KafkaProduce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +71,7 @@ public class GithubWebhookResource {
         LOGGER.info("Pusher:"+githubWebhook.getPusher());
         LOGGER.info("Sender:"+githubWebhook.getSender());
 
-        return new GithubWebhook(githubWebhook.getRef(),
+        GithubWebhook ghwh = new GithubWebhook(githubWebhook.getRef(),
                 githubWebhook.getBefore(),
                 githubWebhook.getAfter(),
                 githubWebhook.getCreated(),
@@ -84,7 +85,12 @@ public class GithubWebhookResource {
                 githubWebhook.getPusher(),
                 githubWebhook.getSender());
 
-        //TODO: use githubWebhookFactory
+        KafkaProduce.push("github", ghwh.getRepository().getName(), ghwh);
+
+
+        return ghwh;
+
+        //TODO: use githubWebhookFactory?
 /*        return this.githubWebhookFactory.create(githubWebhook.getRef(),
                 githubWebhook.getBefore(),
                 githubWebhook.getAfter(),

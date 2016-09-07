@@ -1,5 +1,8 @@
 package edu.berkeley.ground.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.berkeley.ground.api.models.gh.GithubWebhook;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -8,14 +11,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class KafkaProduce {
-    public static void main(String[] args){
-        if (args.length != 3) {
-            System.out.println("Please provide command line arguments: topic, key, value");
-            System.exit(-1);
+    public static String push(String topic, String key, GithubWebhook ghwh){
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = "";
+        try {
+            json = mapper.writeValueAsString(ghwh);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
-        String topic = args[0];
-        String key = args[1];
-        byte[] value = args[2].getBytes(StandardCharsets.UTF_8);
+
+
+        byte[] value = json.getBytes(StandardCharsets.UTF_8);
 
         Properties props = new Properties();
         props.put("bootstrap.servers", "localhost:9092");
@@ -29,6 +36,7 @@ public class KafkaProduce {
         producer.send(new ProducerRecord<>(topic, key, value));
 
         producer.close();
+        return "pushed";
 
     }
 }
