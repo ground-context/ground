@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -45,15 +46,25 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
         QueryResults resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
-        do {
+
+        while (resultSet.next()) {
             edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getString(1)));
-        } while (resultSet.next());
+        }
 
         return VersionHistoryDAGFactory.construct(itemId, edges);
     }
 
+    // TODO: Change usage of `CassandraResults` so that you have to call next() first
     public void addEdge(GroundDBConnection connectionPointer, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
+
+        // Check to see if the item exists
+        List<DbDataContainer> predicates = new ArrayList<>();
+        predicates.add(new DbDataContainer("id", GroundType.STRING, itemId));
+        QueryResults results = connection.equalitySelect("Items", DBClient.SELECT_STAR, predicates);
+        if (!results.next()) {
+            throw new GroundException("Item \"" + itemId + "\" not found.");
+        }
 
         VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 
