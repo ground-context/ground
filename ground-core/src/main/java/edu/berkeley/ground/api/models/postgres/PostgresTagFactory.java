@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -51,5 +52,25 @@ public class PostgresTagFactory extends TagFactory {
         } else {
             return Optional.of(result);
         }
+    }
+
+    public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+        PostgresConnection connection = (PostgresConnection) connectionPointer;
+
+        List<DbDataContainer> predicates = new ArrayList<>();
+        predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
+
+        List<String> projections = new ArrayList<>();
+        projections.add("richversion_id");
+
+        QueryResults queryResult = connection.equalitySelect("Tags", projections, predicates);
+
+        List<String> result = new ArrayList<>();
+
+        while (queryResult.next()) {
+            result.add(queryResult.getString(1));
+        }
+
+        return result;
     }
 }

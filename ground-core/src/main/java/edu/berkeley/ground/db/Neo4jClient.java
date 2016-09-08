@@ -141,6 +141,36 @@ public class Neo4jClient implements DBClient {
             return this.getVertex(null, attributes);
         }
 
+        public List<String> getVerticesByLabel(List<DbDataContainer> attributes) {
+            String query = "MATCH (f {";
+
+            int count = 0;
+            for (DbDataContainer container : attributes) {
+                query += container.getField() + " : ";
+
+                switch (container.getGroundType()) {
+                    case STRING: query += "'" + container.getValue().toString() + "'"; break;
+                    case INTEGER: query += (int) container.getValue(); break;
+                    case BOOLEAN: query += container.getValue(); break;
+                }
+
+                if (++count < attributes.size()) {
+                    query += ", ";
+                }
+            }
+
+            query += "}) return f";
+
+            StatementResult queryResult = this.session.run(query);
+
+            List<String> result = new ArrayList<>();
+            while (queryResult.hasNext()) {
+                result.add(queryResult.next().get("f").asNode().get("id").toString());
+            }
+
+            return result;
+        }
+
         public Record getVertex(String label, List<DbDataContainer> attributes) {
             String query;
             if (label == null) {

@@ -28,7 +28,7 @@ public class CassandraResults implements QueryResults {
 
     public CassandraResults(ResultSet resultSet) {
         this.resultSet = resultSet;
-        this.currentRow = resultSet.one();
+        this.currentRow = null;
     }
 
     public String getString(int index) throws GroundException {

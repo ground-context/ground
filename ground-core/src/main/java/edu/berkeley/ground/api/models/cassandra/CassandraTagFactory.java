@@ -18,6 +18,7 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -51,5 +52,25 @@ public class CassandraTagFactory extends TagFactory {
         } else {
             return Optional.of(result);
         }
+    }
+
+    public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+        CassandraConnection connection = (CassandraConnection) connectionPointer;
+
+        List<DbDataContainer> predicates = new ArrayList<>();
+        predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
+
+        List<String> projections = new ArrayList<>();
+        projections.add("richversion_id");
+
+        QueryResults queryResult = connection.equalitySelect("Tags", projections, predicates);
+
+        List<String> result = new ArrayList<>();
+
+        while (queryResult.next()) {
+            result.add(queryResult.getString(0));
+        }
+
+        return result;
     }
 }

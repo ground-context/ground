@@ -96,6 +96,15 @@ public class GremlinClient implements DBClient {
             return null;
         }
 
+        public List<Vertex> getVerticesByLabel(String key, String value) {
+            GraphTraversal traversal = this.graph.traversal().V();
+            List<Vertex> vertices = new ArrayList<>();
+
+            traversal.has(key, value).forEachRemaining(vertex -> {vertices.add((Vertex) vertex);});
+
+            return vertices;
+        }
+
         public List<Edge> getDescendantEdgesWithLabel(Vertex vertex, String label) {
             List<Edge> result = new ArrayList<>();
             LinkedList<Vertex> queue = new LinkedList<>();

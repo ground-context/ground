@@ -19,6 +19,8 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.JGraphTUtils;
+
+import org.apache.cassandra.thrift.Cassandra;
 import org.jgrapht.*;
 import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
@@ -132,7 +134,7 @@ public class CassandraClient implements DBClient {
             this.session.execute(statement);
         }
 
-        public QueryResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
+        public CassandraResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
             String select = "select ";
             for (String item : projection) {
                 select += item + ", ";
