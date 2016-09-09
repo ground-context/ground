@@ -21,7 +21,7 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
             String fromId = "testFromId";
             String toId = "testToId";
 
-             CassandraConnection connection = super.cassandraClient.getConnection();
+            CassandraConnection connection = super.cassandraClient.getConnection();
             super.versionFactory.insertIntoDatabase(connection, fromId);
             super.versionFactory.insertIntoDatabase(connection, toId);
 

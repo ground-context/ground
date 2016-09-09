@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -91,7 +92,12 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("NodeVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("NodeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + id + ".");
+            }
             String nodeId = resultSet.getString(2);
 
             connection.commit();

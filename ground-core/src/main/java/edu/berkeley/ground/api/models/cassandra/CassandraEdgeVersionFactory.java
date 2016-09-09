@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -95,10 +96,20 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
-            String edgeId = resultSet.getString(1);
-            String fromId = resultSet.getString(2);
-            String toId = resultSet.getString(3);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
+
+            if (!resultSet.next()) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
+
+            String edgeId = resultSet.getString("edge_id");
+            String fromId = resultSet.getString("endpoint_one");
+            String toId = resultSet.getString("endpoint_two");
 
             connection.commit();
             LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");

@@ -29,7 +29,7 @@ public class PostgresTest {
     protected PostgresTagFactory tagFactory;
 
     public PostgresTest() throws GroundDBException {
-        this.cassandraClient = new PostgresClient("localhost", 9160, "test", "test", "");
+        this.cassandraClient = new PostgresClient("localhost", 5432, "test", "test", "");
         this.factories = new PostgresFactories(cassandraClient);
 
         this.versionFactory = new PostgresVersionFactory();
@@ -44,8 +44,8 @@ public class PostgresTest {
 
     @Before
     public void setup() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("python2.7 cassandra_setup.py " + TEST_DB_NAME, null,
-                new File("scripts/cassandra/"));
+        Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py " + TEST_DB_NAME + " test"
+                , null, new File("scripts/postgres/"));
         p.waitFor();
     }
 }

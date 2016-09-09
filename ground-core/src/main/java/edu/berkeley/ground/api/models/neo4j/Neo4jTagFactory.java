@@ -22,6 +22,8 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+
+import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 
@@ -46,14 +48,16 @@ public class Neo4jTagFactory extends TagFactory {
             String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
 
             Object value;
-            if (record.containsKey("value")) {
+            if (record.containsKey("value") && !(record.get("value") instanceof NullValue)) {
                 value = Neo4jClient.getStringFromValue((StringValue) record.get("value"));
             } else {
                 value = null;
             }
+
             GroundType type;
-            if (record.containsKey("type")) {
-                 type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+            if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
+                type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+                value = GroundType.stringToType((String) value, type);
             } else {
                 type = null;
             }

@@ -53,7 +53,7 @@ public class GraphVersion extends RichVersion {
     }
 
     @JsonProperty
-    public List<String> getGraphVersionIds() {
+    public List<String> getEdgeVersionIds() {
         return this.edgeVersionIds;
     }
 

@@ -22,6 +22,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.neo4j.driver.internal.value.StringValue;
@@ -68,13 +69,19 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
             insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
 
             connection.addVertex("GraphVersion", insertions);
+
+            connection.commit(); connection = this.dbClient.getConnection();
+
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+
+            connection.commit(); connection = this.dbClient.getConnection();
 
             for (String edgeVersionId : edgeVersionIds) {
                 connection.addEdge("GraphVersionEdge", id, edgeVersionId, new ArrayList<>());
             }
 
             this.graphFactory.update(connection, graphId, id, parentIds);
+
 
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
@@ -96,13 +103,20 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record versionRecord = connection.getVertex(predicates);
-            String graphId = versionRecord.get("graph_id").toString();
+            Record versionRecord = null;
+            try {
+                versionRecord = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
+
+            String graphId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v")
+                    .asNode().get("graph_id"));
 
             List<String> returnFields = new ArrayList<>();
             returnFields.add("id");
 
-            List<Record> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel(id, "GraphVersionEdge", returnFields);
+            List<Record> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel("GraphVersionEdge", id, returnFields);
             List<String> edgeVersionIds = new ArrayList<>();
 
             edgeVersionVertices.stream().forEach(edgeVersionVertex -> edgeVersionIds.add(Neo4jClient.getStringFromValue((StringValue) edgeVersionVertex.get("id"))));

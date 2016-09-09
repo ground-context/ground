@@ -29,7 +29,6 @@ public class DbDataContainer {
 
     public DbDataContainer(String field, GroundType groundType, Object value) throws GroundException {
         if (value != null && !(value.getClass().equals(groundType.getTypeClass()))) {
-
             throw new GroundException("Value of type " + value.getClass().toString() + " does not correspond to type of " + groundType.getTypeClass().toString() + ".");
         }
 

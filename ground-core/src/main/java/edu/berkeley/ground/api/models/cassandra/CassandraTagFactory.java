@@ -22,6 +22,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
@@ -33,18 +34,26 @@ public class CassandraTagFactory extends TagFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
 
-        QueryResults resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
         Map<String, Tag> result = new HashMap<>();
 
-        do {
-            String key = resultSet.getString(1);
-            GroundType type = GroundType.fromString(resultSet.getString(3));
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            // this means that there are no tags
+            return result;
+        }
 
-            String valueString = resultSet.getString(2);
+        while (resultSet.next()) {
+            String key = resultSet.getString("key");
+
+            GroundType type = GroundType.fromString(resultSet.getString("type"));
+
+            String valueString = resultSet.getString("value");
             Object value = GroundType.stringToType(valueString, type);
 
             result.put(key, new Tag(id, key, value, type));
-        } while (resultSet.next());
+        }
 
         return result;
     }

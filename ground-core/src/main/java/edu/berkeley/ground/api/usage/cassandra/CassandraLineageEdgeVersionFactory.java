@@ -25,6 +25,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -98,11 +99,20 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("LineageEdgeVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("LineageEdgeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
+            }
 
-            String lineageEdgeId = resultSet.getString(2);
-            String fromId = resultSet.getString(3);
-            String toId = resultSet.getString(4);
+            if (!resultSet.next()) {
+                throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
+            }
+
+            String lineageEdgeId = resultSet.getString("lineageedge_id");
+            String fromId = resultSet.getString("endpoint_one");
+            String toId = resultSet.getString("endpoint_two");
 
             connection.commit();
             LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");

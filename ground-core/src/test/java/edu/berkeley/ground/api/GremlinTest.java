@@ -1,6 +1,8 @@
 package edu.berkeley.ground.api;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +20,9 @@ import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.GremlinFactories;
 
 public class GremlinTest {
-    /* Note: In Gremlin, we don't create explicit Versions beacuse all of the logic is wrapped in
-    * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
-    * Versions. */
+    /* Note: In Gremlin, we don't create explicit (Rich)Versions because all of the logic is wrapped in
+     * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
+     * Versions. */
 
     protected GremlinClient gremlinClient;
     protected GremlinFactories factories;
@@ -42,9 +44,25 @@ public class GremlinTest {
                 (GremlinStructureVersionFactory) factories.getStructureVersionFactory(), this.tagFactory);
     }
 
+    @BeforeClass
+    public static void startTitan() throws IOException, InterruptedException {
+        Process p = Runtime.getRuntime().exec("bin/titan.sh start", null,
+                new File(System.getenv("TITAN_HOME")));
+        p.waitFor();
+    }
+
+    @AfterClass
+    public static void stopTitan() throws IOException, InterruptedException {
+        Process p = Runtime.getRuntime().exec("bin/titan.sh stop", null,
+                new File(System.getenv("TITAN_HOME")));
+        p.waitFor();
+    }
+
+
     @Before
     public void setup() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("/Users/vikram/code/titan/bin/gremlin.sh -e delete_gremlin.groovy", null, new File("scripts/gremlin/"));
+        Process p = Runtime.getRuntime().exec(System.getenv("TITAN_HOME") + "/bin/gremlin.sh -e delete_gremlin.groovy",
+                null, new File("scripts/gremlin/"));
         Thread.sleep(5000);
         p.destroy();
     }

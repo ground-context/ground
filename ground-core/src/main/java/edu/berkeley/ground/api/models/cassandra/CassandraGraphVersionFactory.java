@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -104,11 +105,27 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> edgePredicate = new ArrayList<>();
             edgePredicate.add(new DbDataContainer("gvid", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
+
+            if (!resultSet.next()) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
+
             String graphId = resultSet.getString(1);
 
-            QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
-            List<String> edgeVersionIds = edgeSet.getStringList(1);
+            List<String> edgeVersionIds = new ArrayList<>();
+            try {
+                QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
+                edgeVersionIds = edgeSet.getStringList(1);
+            } catch (EmptyResultException eer) {
+                // do nothing; this means that the graph is empty
+            }
+
 
             connection.commit();
             LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

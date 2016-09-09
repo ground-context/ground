@@ -22,8 +22,11 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,10 +99,19 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record versionRecord = connection.getVertex(predicates);
-            String edgeId = versionRecord.get("edge_id").toString();
-            String fromId = versionRecord.get("endpoint_one").toString();
-            String toId = versionRecord.get("endpoint_two").toString();
+            Record versionRecord = null;
+            try {
+                versionRecord = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
+
+            String edgeId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v").asNode()
+                    .get("edge_id"));
+            String fromId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v").asNode()
+                    .get("endpoint_one"));
+            String toId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v").asNode()
+                    .get("endpoint_two"));
 
             connection.commit();
             LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");

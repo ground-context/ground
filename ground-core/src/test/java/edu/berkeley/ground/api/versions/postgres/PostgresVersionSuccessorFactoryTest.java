@@ -15,12 +15,13 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
     }
 
     @Test
-    public void testVersionSuccessorCreation() {
+    public void testVersionSuccessorCreation() throws GroundException {
+        PostgresConnection connection = null;
         try {
             String fromId = "testFromId";
             String toId = "testToId";
 
-            PostgresConnection connection = super.cassandraClient.getConnection();
+            connection = super.cassandraClient.getConnection();
             super.versionFactory.insertIntoDatabase(connection, fromId);
             super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -31,27 +32,32 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
 
             assertEquals(fromId, retrieved.getFromId());
             assertEquals(toId, retrieved.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test(expected = GroundException.class)
     public void testBadVersionSuccessorCreation() throws GroundException {
-        String fromId = "testFromId";
-        String toId = "testToId";
         PostgresConnection connection = null;
 
-        // Catch exceptions for these two lines because they should not fal
         try {
-            // the main difference is that we're not creating a Version for the toId
-            connection = super.cassandraClient.getConnection();
-            super.versionFactory.insertIntoDatabase(connection, fromId);
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
-        }
+            String fromId = "testFromId";
+            String toId = "testToId";
 
-        // This statement should fail because toId is not in the database
-        super.versionSuccessorFactory.create(connection, fromId, toId);
+            // Catch exceptions for these two lines because they should not fal
+            try {
+                // the main difference is that we're not creating a Version for the toId
+                connection = super.cassandraClient.getConnection();
+                super.versionFactory.insertIntoDatabase(connection, fromId);
+            } catch (GroundException ge) {
+                fail(ge.getMessage());
+            }
+
+            // This statement should fail because toId is not in the database
+            super.versionSuccessorFactory.create(connection, fromId, toId);
+        } finally {
+            connection.abort();
+        }
     }
 }

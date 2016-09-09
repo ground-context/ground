@@ -18,45 +18,58 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
     }
 
     @Test
-    public void testCorrectUpdateWithParent() {
+    public void testCorrectUpdateWithParent() throws GroundException {
+        Neo4jConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            Neo4jConnection connection = super.neo4jClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.neo4jClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
-            String fromId = super.createNodeVersion();
-            String toId = super.createNodeVersion();
+            String fromNodeId = super.factories.getNodeFactory().create("testFromNode").getId();
+            String toNodeId = super.factories.getNodeFactory().create("testToNode").getId();
+            String fromId = super.createNodeVersion(fromNodeId);
+            String toId = super.createNodeVersion(toNodeId);
 
             List<String> parentIds = new ArrayList<>();
-            parentIds.add(fromId);
 
+            super.itemFactory.update(connection, testId, fromId, parentIds);
+
+            parentIds.clear();
+            parentIds.add(fromId);
             super.itemFactory.update(connection, testId, toId, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
                     testId);
 
-            assertEquals(1, dag.getEdgeIds().size());
+            assertEquals(2, dag.getEdgeIds().size());
             assertEquals(toId, dag.getLeaves().get(0));
 
-            VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
-                    connection, dag.getEdgeIds().get(0));
+            VersionSuccessor<?> successor = null;
+            for (String id : dag.getEdgeIds()) {
+                successor = super.versionSuccessorFactory.retrieveFromDatabase(connection, id);
 
-            assertEquals(fromId , successor.getFromId());
+                if (!successor.getFromId().equals(testId)) {
+                    break;
+                }
+            }
+
+            assertEquals(fromId, successor.getFromId());
             assertEquals(toId, successor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test
-    public void testCorrectUpdateWithoutParent() {
+    public void testCorrectUpdateWithoutParent() throws GroundException {
+        Neo4jConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            Neo4jConnection connection = super.neo4jClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.neo4jClient.getConnection();
 
-            super.itemFactory.insertIntoDatabase(connection, testId);
-            String toId = super.createNodeVersion();
+            String toNodeId = super.factories.getNodeFactory().create("testToNode").getId();
+            String toId = super.createNodeVersion(toNodeId);
 
             List<String> parentIds = new ArrayList<>();
 
@@ -73,36 +86,42 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
             VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(0));
 
-            assertEquals("EMPTY" , successor.getFromId());
+            assertEquals(testId , successor.getFromId());
             assertEquals(toId, successor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test
-    public void testCorrectUpdateWithLinearHistory() {
+    public void testCorrectUpdateWithLinearHistory() throws GroundException {
+        Neo4jConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            Neo4jConnection connection = super.neo4jClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.neo4jClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
-            String fromId = super.createNodeVersion();
-            String toId = super.createNodeVersion();
+            String fromNodeId = super.factories.getNodeFactory().create("testFromNode").getId();
+            String toNodeId = super.factories.getNodeFactory().create("testToNode").getId();
+
+
+            String fromId = super.createNodeVersion(fromNodeId);
+            String toId = super.createNodeVersion(toNodeId);
 
             List<String> parentIds = new ArrayList<>();
 
             // first, make from a child of EMPTY
-            super.itemFactory.update(connection, testId, toId, parentIds);
+            super.itemFactory.update(connection, testId, fromId, parentIds);
 
             // then, add to as a child and make sure that it becomes a child of from
+            parentIds.clear();
+            parentIds.add(fromId);
             super.itemFactory.update(connection, testId, toId, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
                     testId);
 
-            assertEquals(2, dag.getEdgeIds().size());
             assertEquals(toId, dag.getLeaves().get(0));
 
             VersionSuccessor<?> fromSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
@@ -111,50 +130,68 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
             VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(1));
 
-            assertEquals("EMPTY" , fromSuccessor.getFromId());
+            if (!fromSuccessor.getFromId().equals(testId)) {
+                VersionSuccessor<?> tmp = fromSuccessor;
+                fromSuccessor = toSuccessor;
+                toSuccessor = tmp;
+            }
+
+            assertEquals(testId , fromSuccessor.getFromId());
             assertEquals(fromId, fromSuccessor.getToId());
 
             assertEquals(fromId, toSuccessor.getFromId());
-            assertEquals(toId, fromSuccessor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+            assertEquals(toId, toSuccessor.getToId());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test(expected = GroundException.class)
     public void testIncorrectUpdate() throws GroundException {
-        String testId = "Nodes.test";
-        String fromId = "someRandomId";
-        String toId = null;
         Neo4jConnection connection = null;
 
         try {
-            connection = super.neo4jClient.getConnection();
-            super.itemFactory.insertIntoDatabase(connection, testId);
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            String fromId = "someRandomId";
+            String toId = null;
 
-            toId = super.createNodeVersion();
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+            try {
+                connection = super.neo4jClient.getConnection();
+                super.itemFactory.insertIntoDatabase(connection, testId);
+
+                String nodeToId = super.factories.getNodeFactory().create("testToNode").getId();
+                toId = super.createNodeVersion(nodeToId);
+            } catch (GroundException ge) {
+                fail(ge.getMessage());
+            }
+
+            List<String> parentIds = new ArrayList<>();
+            parentIds.add(fromId);
+
+            // this should fail because fromId is not a valid version
+            super.itemFactory.update(connection, testId, toId, parentIds);
+        } finally {
+            connection.abort();
         }
-
-        List<String> parentIds = new ArrayList<>();
-        parentIds.add(fromId);
-
-        // this should fail because fromId is not a valid version
-        super.itemFactory.update(connection, testId, toId, parentIds);
     }
 
     @Test
-    public void testMultipleParents() {
+    public void testMultipleParents() throws GroundException {
+        Neo4jConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            Neo4jConnection connection = super.neo4jClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.neo4jClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
-            String parentOne = super.createNodeVersion();
-            String parentTwo = super.createNodeVersion();
-            String child = super.createNodeVersion();
+            String parentOneNodeId = super.factories.getNodeFactory().create("testParentOneNode").getId();
+            String parentTwoNodeId = super.factories.getNodeFactory().create("testParentTwoNode").getId();
+
+            String parentOne = super.createNodeVersion(parentOneNodeId);
+            String parentTwo = super.createNodeVersion(parentTwoNodeId);
+
+            String childNodeId = super.factories.getNodeFactory().create("testChildNode").getId();
+            String child = super.createNodeVersion(childNodeId);
 
             List<String> parentIds = new ArrayList<>();
 
@@ -162,9 +199,11 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
             super.itemFactory.update(connection, testId, parentOne, parentIds);
             super.itemFactory.update(connection, testId, parentTwo, parentIds);
 
+            // then, add to as a child and make sure that it becomes a child of from
+            parentIds.clear();
             parentIds.add(parentOne);
             parentIds.add(parentTwo);
-            // then, add to as a child and make sure that it becomes a child of from
+
             super.itemFactory.update(connection, testId, child, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
@@ -172,34 +211,8 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
 
             assertEquals(4, dag.getEdgeIds().size());
             assertEquals(child, dag.getLeaves().get(0));
-
-            // Retrieve all the version successors and check that they have the correct data.
-            VersionSuccessor<?> parentOneSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
-                    connection, dag.getEdgeIds().get(0));
-
-            VersionSuccessor<?> parentTwoSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
-                    connection, dag.getEdgeIds().get(1));
-
-            VersionSuccessor<?> childOneSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
-                    connection, dag.getEdgeIds().get(2));
-
-            VersionSuccessor<?> childTwoSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
-                    connection, dag.getEdgeIds().get(3));
-
-            assertEquals("EMPTY" , parentOneSuccessor.getFromId());
-            assertEquals(parentOne, parentOneSuccessor.getToId());
-
-            assertEquals("EMPTY", parentTwoSuccessor.getFromId());
-            assertEquals(parentTwo, parentTwoSuccessor.getToId());
-
-            assertEquals(parentOne, childOneSuccessor.getFromId());
-            assertEquals(child, childOneSuccessor.getToId());
-
-            assertEquals(parentTwo, childTwoSuccessor.getFromId());
-            assertEquals(child, childTwoSuccessor.getToId());
-            assertEquals(child, childTwoSuccessor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 }

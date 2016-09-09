@@ -18,6 +18,10 @@ import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.Neo4jFactories;
 
 public class Neo4jTest {
+    /* Note: In Neo4j, we don't create explicit (Rich)Versions because all of the logic is wrapped in
+     * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
+     * Versions. */
+
     protected Neo4jClient neo4jClient;
     protected Neo4jFactories factories;
     protected Neo4jVersionSuccessorFactory versionSuccessorFactory;
@@ -44,12 +48,14 @@ public class Neo4jTest {
     }
 
     /**
-     * Because we don't have simple versions, we're masking the creation of
+     * Because we don't have simple versions, we're masking the creation of RichVersions by creating
+     * empty NodeVersions. This is a bad hack that requires us creating a Node for each NodeVersion,
+     * but tests right now are small. Eventually, if we mock a database, we can avoid this.
      *
      * @return A new, random NodeVersion's id.
      */
-    protected String createNodeVersion() throws GroundException {
+    protected String createNodeVersion(String nodeId) throws GroundException {
         return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
-                new HashMap<>(), null, new ArrayList<>()).getId();
+                new HashMap<>(), nodeId, new ArrayList<>()).getId();
     }
 }

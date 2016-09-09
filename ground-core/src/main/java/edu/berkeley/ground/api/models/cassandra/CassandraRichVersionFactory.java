@@ -25,6 +25,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
@@ -71,10 +72,25 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
             List<DbDataContainer> tagInsertion = new ArrayList<>();
             tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
             tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
-            tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue()));
-            tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType()));
+
+            if (tag.getValue() != null) {
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+            } else {
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+            }
 
             connection.insert("Tags", tagInsertion);
+        }
+
+        for (String key : parameters.keySet()) {
+            List<DbDataContainer> parameterInsertion = new ArrayList<>();
+            parameterInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+            parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+            parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, parameters.get(key)));
+
+            connection.insert("RichVersionExternalParameters", parameterInsertion);
         }
     }
 
@@ -83,7 +99,17 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        QueryResults resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
+
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No RichVersion found with id " + id + ".");
+        }
+
+        if (!resultSet.next()) {
+            throw new GroundException("No RichVersion found with id " + id + ".");
+        }
 
         List<DbDataContainer> parameterPredicates = new ArrayList<>();
         parameterPredicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
@@ -91,19 +117,17 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         try {
             QueryResults parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
 
-            do {
-                parameters.put(parameterSet.getString(0), parameterSet.getString(1));
-            } while (parameterSet.next());
-        } catch (GroundException e) {
-            if (!e.getMessage().contains("No results found for query")) {
-                throw e;
+            while (parameterSet.next()) {
+                parameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
             }
+        } catch (EmptyResultException eer) {
+            // do nothing; this just means that there are no parameters
         }
 
         Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
 
-        String reference = resultSet.getString(2);
-        String structureVersionId = resultSet.getString(1);
+        String reference = resultSet.getString("reference");
+        String structureVersionId = resultSet.getString("structure_id");
 
         return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
     }

@@ -76,6 +76,26 @@ public class Tag {
 
         Tag that = (Tag) other;
 
-        return this.key.equals(that.key) && this.value.equals(that.value) && this.valueType.equals(that.valueType);
+        if (!this.key.equals(that.key)) {
+            return false;
+        }
+
+        if (this.value == null && that.value != null) {
+            return false;
+        }
+
+        if (this.value != null && !this.value.equals(that.value)) {
+            return false;
+        }
+
+        if (this.valueType == null && that.valueType != null) {
+            return false;
+        }
+
+        if (this.valueType != null && !this.valueType.equals(that.valueType)) {
+            return false;
+        }
+
+        return true;
     }
 }

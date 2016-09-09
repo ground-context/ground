@@ -19,10 +19,12 @@ public class PostgresItemFactoryTest extends PostgresTest {
     }
 
     @Test
-    public void testCorrectUpdateWithParent() {
+    public void testCorrectUpdateWithParent() throws GroundException {
+        PostgresConnection connection = null;
+
         try {
             String testId = "Nodes.test";
-            PostgresConnection connection = super.cassandraClient.getConnection();
+            connection = super.cassandraClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
@@ -33,31 +35,40 @@ public class PostgresItemFactoryTest extends PostgresTest {
             super.versionFactory.insertIntoDatabase(connection, toId);
 
             List<String> parentIds = new ArrayList<>();
-            parentIds.add(fromId);
+            super.itemFactory.update(connection, testId, fromId, parentIds);
 
+            parentIds.clear();
+            parentIds.add(fromId);
             super.itemFactory.update(connection, testId, toId, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
                     testId);
 
-            assertEquals(1, dag.getEdgeIds().size());
+            assertEquals(2, dag.getEdgeIds().size());
             assertEquals(toId, dag.getLeaves().get(0));
 
-            VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
-                    connection, dag.getEdgeIds().get(0));
+            VersionSuccessor<?> successor = null;
+            for (String id : dag.getEdgeIds()) {
+                successor = super.versionSuccessorFactory.retrieveFromDatabase(connection, id);
 
-            assertEquals(fromId , successor.getFromId());
+                if (!successor.getFromId().equals("EMPTY")) {
+                    break;
+                }
+            }
+            assertEquals(fromId, successor.getFromId());
             assertEquals(toId, successor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test
-    public void testCorrectUpdateWithoutParent() {
+    public void testCorrectUpdateWithoutParent() throws GroundException {
+        PostgresConnection connection = null;
+
         try {
             String testId = "Nodes.test";
-            PostgresConnection connection = super.cassandraClient.getConnection();
+            connection = super.cassandraClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
             String toId = "testToId";
@@ -78,18 +89,19 @@ public class PostgresItemFactoryTest extends PostgresTest {
             VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(0));
 
-            assertEquals("EMPTY" , successor.getFromId());
+            assertEquals("EMPTY", successor.getFromId());
             assertEquals(toId, successor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test
-    public void testCorrectUpdateWithLinearHistory() {
+    public void testCorrectUpdateWithLinearHistory() throws GroundException {
+        PostgresConnection connection = null;
         try {
             String testId = "Nodes.test";
-            PostgresConnection connection = super.cassandraClient.getConnection();
+            connection = super.cassandraClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
@@ -101,9 +113,11 @@ public class PostgresItemFactoryTest extends PostgresTest {
             List<String> parentIds = new ArrayList<>();
 
             // first, make from a child of EMPTY
-            super.itemFactory.update(connection, testId, toId, parentIds);
+            super.itemFactory.update(connection, testId, fromId, parentIds);
 
             // then, add to as a child and make sure that it becomes a child of from
+            parentIds.clear();
+            parentIds.add(fromId);
             super.itemFactory.update(connection, testId, toId, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
@@ -118,46 +132,58 @@ public class PostgresItemFactoryTest extends PostgresTest {
             VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(1));
 
-            assertEquals("EMPTY" , fromSuccessor.getFromId());
+            if (!fromSuccessor.getFromId().equals("EMPTY")) {
+                VersionSuccessor<?> tmp = fromSuccessor;
+                fromSuccessor = toSuccessor;
+                toSuccessor = tmp;
+            }
+
+            assertEquals("EMPTY", fromSuccessor.getFromId());
             assertEquals(fromId, fromSuccessor.getToId());
 
             assertEquals(fromId, toSuccessor.getFromId());
-            assertEquals(toId, fromSuccessor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+            assertEquals(toId, toSuccessor.getToId());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test(expected = GroundException.class)
     public void testIncorrectUpdate() throws GroundException {
-        String testId = "Nodes.test";
-        String fromId = "testFromId";
-        String toId = "testToId";
         PostgresConnection connection = null;
 
         try {
-            connection = super.cassandraClient.getConnection();
+            String testId = "Nodes.test";
+            String fromId = "testFromId";
+            String toId = "testToId";
 
-            super.itemFactory.insertIntoDatabase(connection, testId);
+            try {
+                connection = super.cassandraClient.getConnection();
 
-            super.versionFactory.insertIntoDatabase(connection, toId);
+                super.itemFactory.insertIntoDatabase(connection, testId);
 
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+                super.versionFactory.insertIntoDatabase(connection, toId);
+
+            } catch (GroundException ge) {
+                fail(ge.getMessage());
+            }
+
+            List<String> parentIds = new ArrayList<>();
+            parentIds.add(fromId);
+
+            // this should fail because fromId is not a valid version
+            super.itemFactory.update(connection, testId, toId, parentIds);
+        } finally {
+            connection.abort();
         }
-
-        List<String> parentIds = new ArrayList<>();
-        parentIds.add(fromId);
-
-        // this should fail because fromId is not a valid version
-        super.itemFactory.update(connection, testId, toId, parentIds);
     }
 
     @Test
-    public void testMultipleParents() {
+    public void testMultipleParents() throws GroundException {
+        PostgresConnection connection = null;
         try {
             String testId = "Nodes.test";
-            PostgresConnection connection = super.cassandraClient.getConnection();
+            connection = super.cassandraClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
@@ -174,9 +200,10 @@ public class PostgresItemFactoryTest extends PostgresTest {
             super.itemFactory.update(connection, testId, parentOne, parentIds);
             super.itemFactory.update(connection, testId, parentTwo, parentIds);
 
+            // then, add to as a child and make sure that it becomes a child of from
+            parentIds.clear();
             parentIds.add(parentOne);
             parentIds.add(parentTwo);
-            // then, add to as a child and make sure that it becomes a child of from
             super.itemFactory.update(connection, testId, child, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
@@ -198,7 +225,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
             VersionSuccessor<?> childTwoSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(3));
 
-            assertEquals("EMPTY" , parentOneSuccessor.getFromId());
+            assertEquals("EMPTY", parentOneSuccessor.getFromId());
             assertEquals(parentOne, parentOneSuccessor.getToId());
 
             assertEquals("EMPTY", parentTwoSuccessor.getFromId());
@@ -210,8 +237,8 @@ public class PostgresItemFactoryTest extends PostgresTest {
             assertEquals(parentTwo, childTwoSuccessor.getFromId());
             assertEquals(child, childTwoSuccessor.getToId());
             assertEquals(child, childTwoSuccessor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 }

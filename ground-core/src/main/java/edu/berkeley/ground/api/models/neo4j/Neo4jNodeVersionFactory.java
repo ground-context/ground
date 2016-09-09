@@ -22,8 +22,11 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +75,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             this.nodeFactory.update(connection, nodeId, id, parentIds);
 
             connection.commit();
+
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
             return NodeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, nodeId);
@@ -91,8 +95,15 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record record = connection.getVertex(predicates);
-            String nodeId = record.get("node_id").toString();
+            Record record = null;
+            try {
+                record = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + id + ".");
+            }
+
+            String nodeId = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode().
+                    get("node_id"));
 
             connection.commit();
             LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");

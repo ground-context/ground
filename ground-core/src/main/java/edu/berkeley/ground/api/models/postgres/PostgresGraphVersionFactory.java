@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -104,11 +105,23 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> edgePredicate = new ArrayList<>();
             edgePredicate.add(new DbDataContainer("gvid", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
+
             String graphId = resultSet.getString(2);
 
-            QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
-            List<String> edgeVersionIds = edgeSet.getStringList(2);
+            QueryResults edgeSet;
+            List<String> edgeVersionIds = new ArrayList<>();
+            try {
+                edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
+                edgeVersionIds = edgeSet.getStringList(2);
+            } catch (EmptyResultException eer) {
+                // do nothing; this just means that there are no edges in the GraphVersion
+            }
 
             connection.commit();
             LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

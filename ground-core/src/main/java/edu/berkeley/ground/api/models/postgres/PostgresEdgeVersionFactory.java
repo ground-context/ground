@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -92,7 +93,12 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
             String edgeId = resultSet.getString(2);
             String fromId = resultSet.getString(3);
             String toId = resultSet.getString(4);

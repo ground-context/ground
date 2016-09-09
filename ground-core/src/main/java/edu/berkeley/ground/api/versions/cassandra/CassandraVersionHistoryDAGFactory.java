@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
@@ -42,8 +43,13 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
-
-        QueryResults resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet = null;
+        try {
+            resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            // do nothing' this just means that no versions have been added yet.
+            return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+        }
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
 
@@ -54,17 +60,8 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
         return VersionHistoryDAGFactory.construct(itemId, edges);
     }
 
-    // TODO: Change usage of `CassandraResults` so that you have to call next() first
     public void addEdge(GroundDBConnection connectionPointer, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
-
-        // Check to see if the item exists
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", GroundType.STRING, itemId));
-        QueryResults results = connection.equalitySelect("Items", DBClient.SELECT_STAR, predicates);
-        if (!results.next()) {
-            throw new GroundException("Item \"" + itemId + "\" not found.");
-        }
 
         VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 

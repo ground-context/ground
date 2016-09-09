@@ -25,6 +25,7 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
@@ -65,18 +66,32 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
         connection.insert("RichVersions", insertions);
 
-        if (!tags.isEmpty()) {
-            for (String key : tags.keySet()) {
-                Tag tag = tags.get(key);
+        for (String key : tags.keySet()) {
+            Tag tag = tags.get(key);
 
-                List<DbDataContainer> tagInsertion = new ArrayList<>();
-                tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
-                tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue()));
+            List<DbDataContainer> tagInsertion = new ArrayList<>();
+            tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+            tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+
+            if (tag.getValue() != null) {
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
                 tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
-
-                connection.insert("Tags", tagInsertion);
+            } else {
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
             }
+
+            connection.insert("Tags", tagInsertion);
+        }
+
+        for (String key : parameters.keySet()) {
+            List<DbDataContainer> parameterInsertion = new ArrayList<>();
+
+            parameterInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+            parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+            parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, parameters.get(key)));
+
+            connection.insert("RichVersionExternalParameters", parameterInsertion);
         }
     }
 
@@ -85,7 +100,13 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        QueryResults resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
+
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No RichVersion found with id " + id + ".");
+        }
 
         List<DbDataContainer> parameterPredicates = new ArrayList<>();
         parameterPredicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
@@ -97,10 +118,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             do {
                 parameters.put(parameterSet.getString(2), parameterSet.getString(3));
             } while (parameterSet.next());
-        } catch (GroundException e) {
-            if (!e.getMessage().contains("No results found for query")) {
-                throw e;
-            }
+        } catch (EmptyResultException eer) {
+            // do nothing; there are no parameters
         }
 
         Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);

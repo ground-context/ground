@@ -22,6 +22,7 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
@@ -33,8 +34,14 @@ public class PostgresTagFactory extends TagFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
 
-        QueryResults resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
         Map<String, Tag> result = new HashMap<>();
+
+        QueryResults resultSet = null;
+        try {
+            resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            return new HashMap<>();
+        }
 
         do {
             String key = resultSet.getString(2);

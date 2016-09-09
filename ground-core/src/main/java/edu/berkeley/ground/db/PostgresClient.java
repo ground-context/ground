@@ -15,6 +15,7 @@
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
@@ -88,7 +89,9 @@ public class PostgresClient implements DBClient {
 
         }
 
-        public QueryResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
+        public QueryResults equalitySelect(String table, List<String> projection,
+                                           List<DbDataContainer> predicatesAndValues)
+                throws GroundDBException, EmptyResultException {
             String select = "select ";
 
             for (String item : projection) {
@@ -121,7 +124,7 @@ public class PostgresClient implements DBClient {
 
                 ResultSet resultSet = preparedStatement.executeQuery();
                 if (!resultSet.isBeforeFirst()) {
-                    throw new GroundDBException("No results found for query: " + preparedStatement.toString());
+                    throw new EmptyResultException("No results found for query: " + preparedStatement.toString());
                 }
 
                 // Moves the cursor to the first element so that data can be accessed directly.

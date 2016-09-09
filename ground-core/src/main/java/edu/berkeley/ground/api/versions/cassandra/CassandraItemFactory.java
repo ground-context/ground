@@ -57,7 +57,7 @@ public class CassandraItemFactory extends ItemFactory {
         try {
             dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connectionPointer, itemId);
         } catch (GroundException e) {
-            if (!e.getMessage().contains("No results found for query:")) {
+            if (!e.getMessage().contains("No VersionHistoryDAG for Item")) {
                 throw e;
             }
 
@@ -71,6 +71,7 @@ public class CassandraItemFactory extends ItemFactory {
                 LOGGER.error(errorString);
                 throw new GroundException(errorString);
             }
+
             this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
         }
     }
