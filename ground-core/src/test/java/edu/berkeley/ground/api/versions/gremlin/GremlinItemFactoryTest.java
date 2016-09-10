@@ -1,5 +1,7 @@
 package edu.berkeley.ground.api.versions.gremlin;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -12,21 +14,26 @@ import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import static org.junit.Assert.*;
 
+@NotThreadSafe
 public class GremlinItemFactoryTest extends GremlinTest {
     public GremlinItemFactoryTest() throws GroundException {
         super();
     }
 
     @Test
-    public void testCorrectUpdateWithParent() {
+    public void testCorrectUpdateWithParent() throws GroundException {
+        GremlinConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            GremlinConnection connection = super.gremlinClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.gremlinClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
-            String fromId = super.createNodeVersion();
-            String toId = super.createNodeVersion();
+            String fromNodeId = super.factories.getNodeFactory().create("testFromId").getId();
+            String toNodeId = super.factories.getNodeFactory().create("testToId").getId();
+
+            String fromId = super.createNodeVersion(fromNodeId);
+            String toId = super.createNodeVersion(toNodeId);
 
             List<String> parentIds = new ArrayList<>();
             parentIds.add(fromId);
@@ -42,21 +49,25 @@ public class GremlinItemFactoryTest extends GremlinTest {
             VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(0));
 
-            assertEquals(fromId , successor.getFromId());
+            assertEquals(fromId, successor.getFromId());
             assertEquals(toId, successor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test
-    public void testCorrectUpdateWithoutParent() {
+    public void testCorrectUpdateWithoutParent() throws GroundException {
+        GremlinConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            GremlinConnection connection = super.gremlinClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.gremlinClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
-            String toId = super.createNodeVersion();
+
+            String toNodeId = super.factories.getNodeFactory().create("testToId").getId();
+
+            String toId = super.createNodeVersion(toNodeId);
 
             List<String> parentIds = new ArrayList<>();
 
@@ -73,30 +84,33 @@ public class GremlinItemFactoryTest extends GremlinTest {
             VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(0));
 
-            assertEquals("EMPTY" , successor.getFromId());
+            assertEquals(testId, successor.getFromId());
             assertEquals(toId, successor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test
-    public void testCorrectUpdateWithLinearHistory() {
+    public void testCorrectUpdateWithLinearHistory() throws GroundException {
+        GremlinConnection connection = null;
         try {
-            String testId = "Nodes.test";
-            GremlinConnection connection = super.gremlinClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            String fromNodeId = super.factories.getNodeFactory().create("testFromId").getId();
+            String toNodeId = super.factories.getNodeFactory().create("testToId").getId();
 
-            super.itemFactory.insertIntoDatabase(connection, testId);
+            String fromId = super.createNodeVersion(fromNodeId);
+            String toId = super.createNodeVersion(toNodeId);
 
-            String fromId = super.createNodeVersion();
-            String toId = super.createNodeVersion();
-
+            connection = super.gremlinClient.getConnection();
             List<String> parentIds = new ArrayList<>();
 
             // first, make from a child of EMPTY
-            super.itemFactory.update(connection, testId, toId, parentIds);
+            super.itemFactory.update(connection, testId, fromId, parentIds);
 
             // then, add to as a child and make sure that it becomes a child of from
+            parentIds.clear();
+            parentIds.add(fromId);
             super.itemFactory.update(connection, testId, toId, parentIds);
 
             VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
@@ -111,50 +125,60 @@ public class GremlinItemFactoryTest extends GremlinTest {
             VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(1));
 
-            assertEquals("EMPTY" , fromSuccessor.getFromId());
+            assertEquals(testId, fromSuccessor.getFromId());
             assertEquals(fromId, fromSuccessor.getToId());
 
             assertEquals(fromId, toSuccessor.getFromId());
-            assertEquals(toId, fromSuccessor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+            assertEquals(toId, toSuccessor.getToId());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test(expected = GroundException.class)
     public void testIncorrectUpdate() throws GroundException {
-        String testId = "Nodes.test";
-        String fromId = "someRandomId";
-        String toId = null;
         GremlinConnection connection = null;
 
         try {
-            connection = super.gremlinClient.getConnection();
-            super.itemFactory.insertIntoDatabase(connection, testId);
+            String testId = super.factories.getNodeFactory().create("testNodeId").getId();
+            String fromId = "someRandomId";
+            String toId = null;
 
-            toId = super.createNodeVersion();
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+            try {
+                connection = super.gremlinClient.getConnection();
+                super.itemFactory.insertIntoDatabase(connection, testId);
+
+                toId = super.createNodeVersion(testId);
+            } catch (GroundException ge) {
+                fail(ge.getMessage());
+            }
+
+            List<String> parentIds = new ArrayList<>();
+            parentIds.add(fromId);
+
+            // this should fail because fromId is not a valid version
+            super.itemFactory.update(connection, testId, toId, parentIds);
+        } finally {
+            connection.abort();
         }
-
-        List<String> parentIds = new ArrayList<>();
-        parentIds.add(fromId);
-
-        // this should fail because fromId is not a valid version
-        super.itemFactory.update(connection, testId, toId, parentIds);
     }
 
     @Test
-    public void testMultipleParents() {
+    public void testMultipleParents() throws GroundException {
+        GremlinConnection connection = null;
+
         try {
-            String testId = "Nodes.test";
-            GremlinConnection connection = super.gremlinClient.getConnection();
+            String testId = super.factories.getNodeFactory().create("test").getId();
+            connection = super.gremlinClient.getConnection();
 
             super.itemFactory.insertIntoDatabase(connection, testId);
 
-            String parentOne = super.createNodeVersion();
-            String parentTwo = super.createNodeVersion();
-            String child = super.createNodeVersion();
+            String parentOneNodeId = super.factories.getNodeFactory().create("parentOneNode").getId();
+            String parentTwoNodeId = super.factories.getNodeFactory().create("parentOneNode").getId();
+            String childNodeId = super.factories.getNodeFactory().create("parentOneNode").getId();
+            String parentOne = super.createNodeVersion(parentOneNodeId);
+            String parentTwo = super.createNodeVersion(parentTwoNodeId);
+            String child = super.createNodeVersion(childNodeId);
 
             List<String> parentIds = new ArrayList<>();
 
@@ -162,6 +186,7 @@ public class GremlinItemFactoryTest extends GremlinTest {
             super.itemFactory.update(connection, testId, parentOne, parentIds);
             super.itemFactory.update(connection, testId, parentTwo, parentIds);
 
+            parentIds.clear();
             parentIds.add(parentOne);
             parentIds.add(parentTwo);
             // then, add to as a child and make sure that it becomes a child of from
@@ -186,10 +211,10 @@ public class GremlinItemFactoryTest extends GremlinTest {
             VersionSuccessor<?> childTwoSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
                     connection, dag.getEdgeIds().get(3));
 
-            assertEquals("EMPTY" , parentOneSuccessor.getFromId());
+            assertEquals(testId, parentOneSuccessor.getFromId());
             assertEquals(parentOne, parentOneSuccessor.getToId());
 
-            assertEquals("EMPTY", parentTwoSuccessor.getFromId());
+            assertEquals(testId, parentTwoSuccessor.getFromId());
             assertEquals(parentTwo, parentTwoSuccessor.getToId());
 
             assertEquals(parentOne, childOneSuccessor.getFromId());
@@ -198,8 +223,8 @@ public class GremlinItemFactoryTest extends GremlinTest {
             assertEquals(parentTwo, childTwoSuccessor.getFromId());
             assertEquals(child, childTwoSuccessor.getToId());
             assertEquals(child, childTwoSuccessor.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 }

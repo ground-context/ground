@@ -182,6 +182,13 @@
             <version>${dropwizard.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -192,8 +199,6 @@
                 <version>2.19.1</version>
 
                 <configuration>
-                    <forkCount>0</forkCount>
-
                     <excludes>
                         <!-- Exclude the Gremlin tests by default because they try to fork Cassandra
                           and it fails because Cassandra is already running. -->

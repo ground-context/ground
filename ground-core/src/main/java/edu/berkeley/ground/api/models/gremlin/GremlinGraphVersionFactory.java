@@ -22,6 +22,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -72,7 +73,12 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             for (String edgeVersionId : edgeVersionIds) {
                 List<DbDataContainer> edgeQuery = new ArrayList<>();
                 edgeQuery.add(new DbDataContainer("id", GroundType.STRING, edgeVersionId));
-                Vertex edgeVertex = connection.getVertex(edgeQuery);
+                Vertex edgeVertex = null;
+                try {
+                    edgeVertex = connection.getVertex(edgeQuery);
+                } catch (EmptyResultException eer) {
+                    throw new GroundException("No EdgeVersion found with id " + edgeVersionId + ".");
+                }
 
                 connection.addEdge("GraphVersionEdge", versionVertex, edgeVertex, new ArrayList<>());
             }
@@ -99,7 +105,12 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Vertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = null;
+            try {
+                versionVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
             String graphId = versionVertex.property("graph_id").value().toString();
 
             List<Vertex> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "GraphVersionEdge");

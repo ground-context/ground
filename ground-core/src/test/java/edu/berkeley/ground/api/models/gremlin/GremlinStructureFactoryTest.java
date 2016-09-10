@@ -14,18 +14,14 @@ public class GremlinStructureFactoryTest extends GremlinTest {
     }
 
     @Test
-    public void testStructureCreation() {
-        try {
-            String testName = "test";
-            GremlinStructureFactory edgeFactory = (GremlinStructureFactory) super.factories.getStructureFactory();
-            edgeFactory.create(testName);
+    public void testStructureCreation() throws GroundException {
+        String testName = "test";
+        GremlinStructureFactory structureFactory = (GremlinStructureFactory) super.factories.getStructureFactory();
+        structureFactory.create(testName);
 
-            Structure edge = edgeFactory.retrieveFromDatabase(testName);
+        Structure structure = structureFactory.retrieveFromDatabase(testName);
 
-            assertEquals(testName, edge.getName());
-            assertEquals("Structures." + testName, edge.getId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
-        }
+        assertEquals(testName, structure.getName());
+        assertEquals("Structures." + testName, structure.getId());
     }
 }

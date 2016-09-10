@@ -22,8 +22,10 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.util.*;
 
@@ -48,7 +50,13 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        Vertex versionVertex = connection.getVertex(predicates);
+
+        Vertex versionVertex = null;
+        try {
+            versionVertex = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No RichVersion found with id " + id + ".");
+        }
 
         if (structureVersionId != null) {
             StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
@@ -62,7 +70,7 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
                 String value = parametersMap.get(key);
 
                 List<DbDataContainer> insertions = new ArrayList<>();
-                insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+                insertions.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
                 insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
                 insertions.add(new DbDataContainer("value", GroundType.STRING, value));
 
@@ -86,10 +94,13 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
                 Tag tag = tags.get(key);
 
                 List<DbDataContainer> tagInsertion = new ArrayList<>();
-                tagInsertion.add(new DbDataContainer("id", GroundType.STRING, id));
+                tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
                 tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue()));
-                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType()));
+
+                if (tag.getValue() != null) {
+                    tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+                    tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+                }
 
                 Vertex tagVertex = connection.addVertex("Tag", tagInsertion);
                 connection.addEdge("TagConnection", versionVertex, tagVertex, new ArrayList<>());
@@ -102,21 +113,33 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        Vertex versionVertex = connection.getVertex(predicates);
+
+        Vertex versionVertex = null;
+        try {
+            versionVertex = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No RichVersion found with id " + id + ".");
+        }
 
         List<Vertex> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "RichVersionExternalParameterConnection");
         Map<String, String> parameters = new HashMap<>();
 
-        if (!parameterVertices.isEmpty()) {
-            for (Vertex parameter : parameterVertices) {
-                parameters.put(parameter.property("pkey").value().toString(), parameter.property("value").value().toString());
-            }
+        for (Vertex parameter : parameterVertices) {
+            parameters.put(parameter.property("pkey").value().toString(), parameter.property("value").value().toString());
         }
 
         Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
 
-        String reference = versionVertex.property("reference").toString();
-        String structureVersionId = versionVertex.property("structureversion_id").value().toString();
+        String reference = null;
+        if (versionVertex.property("reference").isPresent()) {
+            reference = versionVertex.property("reference").value().toString();
+        }
+
+
+        String structureVersionId = null;
+        if (versionVertex.property("structureversion_id").isPresent()) {
+            structureVersionId = versionVertex.property("structureversion_id").value().toString();
+        }
 
         return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
     }

@@ -42,7 +42,7 @@ public class GremlinGraphVersionFactoryTest extends GremlinTest {
             List<String> edgeVersionIds = new ArrayList<>();
             edgeVersionIds.add(edgeVersionId);
 
-            String graphId = "testGraph";
+            String graphId = super.factories.getGraphFactory().create("testGraph").getId();
 
             String structureName = "testStructure";
             String structureId =  super.factories.getStructureFactory().create(structureName).getId();

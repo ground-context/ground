@@ -21,6 +21,7 @@ import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -36,11 +37,22 @@ public class GremlinVersionSuccessorFactory extends VersionSuccessorFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
 
-        Vertex source = connection.getVertex(predicates);
+        Vertex source = null;
+        try {
+            source = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No source vertex found with id " + fromId + ".");
+        }
         predicates.clear();
 
         predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
-        Vertex destination = connection.getVertex(predicates);
+
+        Vertex destination = null;
+        try {
+            destination = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No destination vertex found with id " + toId + ".");
+        }
 
         String dbId = IdGenerator.generateId(fromId + toId);
         List<DbDataContainer> insertions = new ArrayList<>();
@@ -56,7 +68,12 @@ public class GremlinVersionSuccessorFactory extends VersionSuccessorFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
 
-        Edge edge = connection.getEdge(predicates);
+        Edge edge;
+        try {
+            edge = connection.getEdge(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
+        }
 
         return VersionSuccessorFactory.construct(dbId, (String) edge.outVertex().property("id").value(), (String) edge.inVertex().property("id").value());
     }

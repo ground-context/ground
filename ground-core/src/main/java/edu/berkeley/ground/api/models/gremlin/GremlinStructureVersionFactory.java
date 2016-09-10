@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -75,7 +76,13 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        Vertex versionVertex = connection.getVertex(predicates);
+
+        Vertex versionVertex = null;
+        try {
+            versionVertex = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No StructureVersion found with id " + id + ".");
+        }
 
         List<Vertex> adjacentVetices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "StructureVersionItemConnection");
         Map<String, GroundType> attributes = new HashMap<>();
@@ -84,7 +91,7 @@ public class GremlinStructureVersionFactory extends StructureVersionFactory {
             attributes.put(gremlinVertex.property("skey").value().toString(), GroundType.fromString(gremlinVertex.property("type").value().toString()));
         }
 
-        String structureId = versionVertex.property("structure_id").toString();
+        String structureId = versionVertex.property("structure_id").value().toString();
 
         connection.commit();
         LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");

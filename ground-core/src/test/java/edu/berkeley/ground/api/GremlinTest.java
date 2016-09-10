@@ -1,8 +1,6 @@
 package edu.berkeley.ground.api;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,37 +42,23 @@ public class GremlinTest {
                 (GremlinStructureVersionFactory) factories.getStructureVersionFactory(), this.tagFactory);
     }
 
-    @BeforeClass
-    public static void startTitan() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("bin/titan.sh start", null,
-                new File(System.getenv("TITAN_HOME")));
-        p.waitFor();
-    }
-
-    @AfterClass
-    public static void stopTitan() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("bin/titan.sh stop", null,
-                new File(System.getenv("TITAN_HOME")));
-        p.waitFor();
-    }
-
-
     @Before
     public void setup() throws IOException, InterruptedException {
         Process p = Runtime.getRuntime().exec(System.getenv("TITAN_HOME") + "/bin/gremlin.sh -e delete_gremlin.groovy",
                 null, new File("scripts/gremlin/"));
-        Thread.sleep(5000);
-        p.destroy();
+
+        p.waitFor();
     }
 
 
     /**
-     * Because we don't have simple versions, we're masking the creation of
+     * Because we don't have simple versions, we're masking the creation of RichVersions with
+     * NodeVersions. This is bad hack and should be removed once we can mock databases.
      *
      * @return A new, random NodeVersion's id.
      */
-    protected String createNodeVersion() throws GroundException {
+    protected String createNodeVersion(String nodeId) throws GroundException {
         return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
-                new HashMap<>(), null, new ArrayList<>()).getId();
+                new HashMap<>(), nodeId, new ArrayList<>()).getId();
     }
 }

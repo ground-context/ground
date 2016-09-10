@@ -22,6 +22,7 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
@@ -70,9 +71,13 @@ public class GremlinNodeFactory extends NodeFactory {
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-            predicates.add(new DbDataContainer("label", GroundType.STRING, "Nodes"));
 
-            Vertex vertex = connection.getVertex(predicates);
+            Vertex vertex;
+            try {
+                vertex = connection.getVertex("Node", predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No Node found with name " + name + ".");
+            }
 
             String id = (String) vertex.property("id").value();
 

@@ -18,11 +18,15 @@ public class GremlinVersionSuccessorFactoryTest extends GremlinTest {
     }
 
     @Test
-    public void testVersionSuccessorCreation() {
+    public void testVersionSuccessorCreation() throws GroundException {
+        GremlinConnection connection = null;
         try {
-            GremlinConnection connection = super.gremlinClient.getConnection();
-            String fromId = super.createNodeVersion();
-            String toId = super.createNodeVersion();
+            connection = super.gremlinClient.getConnection();
+            String fromNodeId = super.factories.getNodeFactory().create("testFromId").getId();
+            String toNodeId = super.factories.getNodeFactory().create("testToId").getId();
+
+            String fromId = super.createNodeVersion(fromNodeId);
+            String toId = super.createNodeVersion(toNodeId);
 
             String vsId = super.versionSuccessorFactory.create(connection, fromId, toId).getId();
 
@@ -31,24 +35,29 @@ public class GremlinVersionSuccessorFactoryTest extends GremlinTest {
 
             assertEquals(fromId, retrieved.getFromId());
             assertEquals(toId, retrieved.getToId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
+        } finally {
+            connection.abort();
         }
     }
 
     @Test(expected = GroundException.class)
     public void testBadVersionSuccesorCreation() throws GroundException {
         GremlinConnection connection = null;
-        String toId = null;
-
         try {
-            connection = super.gremlinClient.getConnection();
-            toId = super.createNodeVersion();
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
-        }
+            String toId = null;
 
-        // this statement should be fail because the fromId does not exist
-        super.versionSuccessorFactory.create(connection, "someBadId", toId).getId();
+            try {
+                connection = super.gremlinClient.getConnection();
+                String toNodeId = super.factories.getNodeFactory().create("testToId").getId();
+                toId = super.createNodeVersion(toNodeId);
+            } catch (GroundException ge) {
+                fail(ge.getMessage());
+            }
+
+            // this statement should be fail because the fromId does not exist
+            super.versionSuccessorFactory.create(connection, "someBadId", toId).getId();
+        } finally {
+            connection.abort();
+        }
     }
 }

@@ -14,18 +14,14 @@ public class GremlinNodeFactoryTest extends GremlinTest {
     }
 
     @Test
-    public void testNodeCreation() {
-        try {
-            String testName = "test";
-            GremlinNodeFactory edgeFactory = (GremlinNodeFactory) super.factories.getNodeFactory();
-            edgeFactory.create(testName);
+    public void testNodeCreation() throws GroundException {
+        String testName = "test";
+        GremlinNodeFactory nodeFactory = (GremlinNodeFactory) super.factories.getNodeFactory();
+        nodeFactory.create(testName).getId();
 
-            Node edge = edgeFactory.retrieveFromDatabase(testName);
+        Node node = nodeFactory.retrieveFromDatabase(testName);
 
-            assertEquals(testName, edge.getName());
-            assertEquals("Nodes." + testName, edge.getId());
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
-        }
+        assertEquals(testName, node.getName());
+        assertEquals("Nodes." + testName, node.getId());
     }
 }

@@ -23,6 +23,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -76,11 +77,23 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
-            Vertex fromVertex = connection.getVertex(predicates);
+
+            Vertex fromVertex = null;
+            Vertex toVertex = null;
+
+            try {
+                fromVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No RichVersion found with id " + fromId + ".");
+            }
 
             predicates.clear();
             predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
-            Vertex toVertex = connection.getVertex(predicates);
+            try {
+                toVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No RichVersion found with id " + toId + ".");
+            }
 
             predicates.clear();
             connection.addEdge("LineageEdgeVersionConnection", fromVertex, versionVertex, predicates);
@@ -108,7 +121,13 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Vertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = null;
+            try {
+                versionVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdge found with id " + id + ".");
+            }
+
             String lineageEdgeId = versionVertex.property("lineageedge_id").value().toString();
             String fromId = versionVertex.property("endpoint_one").value().toString();
             String toId = versionVertex.property("endpoint_two").value().toString();
