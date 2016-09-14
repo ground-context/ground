@@ -6,10 +6,14 @@ import os
 import git
 import requests
 from kafka import KafkaConsumer
+import configparser
 
 # TODO make this faster
 # TODO kafka params
-consumer = KafkaConsumer('github')  # name of topic to consume
+config = configparser.ConfigParser()
+config.read('config.ini')
+consumer = KafkaConsumer(config['Kafka']['topic'], bootstrap_servers=[config['Kafka']['url']+":"+config['Kafka']['port']])
+
 for msg in consumer:
     # print (msg)
     parsed_msg = json.loads(msg.value.decode("utf-8"))
@@ -19,6 +23,7 @@ for msg in consumer:
 
     # gitUrl = "git@github.com:ground-context/ground.git"
     gitUrl = parsed_msg['repository']['git_url']  # value from kafka > into json
+    #gitUrl = 'https://github.kdc.capitalone.com/gryzzl/cartographer.git'
     # repoId = "12341234"
     repoId = msg.key.decode("utf-8")  # key from kakfa
 
@@ -34,32 +39,41 @@ for msg in consumer:
         repo = git.Repo(repoId)
         # origin = repo.remotes.origin
 
-    # TODO only need branch committed to
+    # TODO get most recent commit from ground, get commits that have happened since
     repo.remotes.origin.fetch()  # update repo metadata, change to fetch --all, but not important
     g = git.Git(repoId)
 
-    # parse the log and turn it into a dict
-    log = g.log('--all', '--format="%H%x1f%P%x1e"')  # get all commits
-    log = log.replace("\"\n\"", "").replace("\"", "").strip('\n\x1e').split(
-        "\x1e")  # removes extra chars, split by row delimiter
-    log = [row.strip().split("\x1f") for row in
-           log]  # remove whitespace, split by field delimiter
+    l0 = g.log('--all', '--format="%H,%P"')
+    l1 = l0.replace("\"", "").split("\n")
+    l2 = [row.strip().split(",") for row in l1]
+    l2[-1:] = [[l2[-1:][0][0], ""]]
+    l3 = [[row[0], row[1].split()] for row in l2]
 
-    for row in log:
-        if len(row) == 2:
-            row[1].split()
-            log is
+    r0 = g.log('--all', '--source', '--format=oneline')
+    r1 = r0.split("\n")
+    r2 = [row.split("\t")[1] for row in r1]
+    r3 = [[row.split(" ")[0]] for row in r2]
 
-    GIT_COMMIT_FIELDS = ['commitHash', 'parentHashes']
-    log = [dict(zip(GIT_COMMIT_FIELDS, row)) for row in log]
-    print(log)
+    t = list(zip(r3, l3))
+    t1 = [[row[0][0], row[1][0], row[1][1]] for row in list(t)]
+    GIT_COMMIT_FIELDS = ['branch', 'commitHash', 'parentHashes']
+    di = [dict(zip(GIT_COMMIT_FIELDS, row)) for row in t1]
+
+
+    for commit in di:
+        print(commit['branch'])
+        # for each commit, create a node version. include the parents of the commit
+        # ?first=1&second=12&third=5
+
+
+
 
     lineageName = 'lineageTest'
 
     nodeUrl = 'localhost:9090/nodes/' + repoId
     nodeVUrl = 'localhost:9090/nodes/versions/'
-    lineageUrl = 'localhost:9090/lineage/' + lineageName
-    lineageVUrl = 'localhost:9090/lineage/versions'
+    edgeUrl = 'localhost:9090/edges/' + lineageName
+    edgeVUrl = 'localhost:9090/edges/versions'
 
     nodeData = {
         "id": "Nodes." + repoId,
@@ -79,7 +93,12 @@ for msg in consumer:
         "nodeId": "Nodes.ground"
     }
 
-    lineageVData = {
+    edgeData = {
+        "id": "Edges." + repoId,
+        "name": repoId
+    }
+
+    edgeVData = {
         "id": "abcd",
         "tags": {
             "testtag": {
@@ -102,7 +121,19 @@ for msg in consumer:
         "toId": "456"
     }
 
-    r = requests.post(url, data=json.dumps(data), )
+    #r = requests.post(url, data=json.dumps(data), )
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # for each repo ref
@@ -118,7 +149,11 @@ for msg in consumer:
 #     for parent in commit.iter_parents():
 #         print("parent: ", parent)
 
-
+# git --no-pager log --no-color --all --source --format=oneline
+# 28347a5c3f84b6e5bcff130e4c88b60f1f1a7713  refs/remotes/origin/master Add README
+#
+# git rev-list --remotes --parents --all
+# 9b08df6f57603e57f562427b6ecb870ae04256a9 96d4c4b88d7c10df373024beb8e4a7ca237c32f8 7c68804f0875d97b7b44d4ccb554e9362ffb9eb4
 # Pretend as if all the refs in refs/ are listed on the command line as <commit>.
 # git rev-list --all #lists all commits
 

@@ -27,7 +27,11 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Path("/nodes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -85,7 +89,9 @@ public class NodesResource {
     @Path("/{name}/latest")
     public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving the latest version of node " + name + ".");
-        return this.nodeFactory.getLeaves(name);
+        List<String> leaves = this.nodeFactory.getLeaves(name);
+        Set<String> set = new HashSet<>(leaves); //Dedup the leaves
+        return new ArrayList<>(set);
     }
 
     @GET
