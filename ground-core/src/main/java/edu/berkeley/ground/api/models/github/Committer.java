@@ -1,5 +1,5 @@
 
-package edu.berkeley.ground.api.models.gh;
+package edu.berkeley.ground.api.models.github;
 
 import com.fasterxml.jackson.annotation.*;
 
@@ -9,8 +9,8 @@ import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
-@JsonPropertyOrder({"name", "email"})
-public class Owner {
+@JsonPropertyOrder({"name", "email", "username"})
+public class Committer {
 
   @JsonProperty("name")
   private String name;
@@ -18,18 +18,23 @@ public class Owner {
   @JsonProperty("email")
   private String email;
 
+  @JsonProperty("username")
+  private String username;
+
   @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
   /** No args constructor for use in serialization */
-  public Owner() {}
+  public Committer() {}
 
   /**
+   * @param username
    * @param email
    * @param name
    */
-  public Owner(String name, String email) {
+  public Committer(String name, String email, String username) {
     this.name = name;
     this.email = email;
+    this.username = username;
   }
 
   /** @return The name */
@@ -54,6 +59,18 @@ public class Owner {
   @JsonProperty("email")
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  /** @return The username */
+  @JsonProperty("username")
+  public String getUsername() {
+    return username;
+  }
+
+  /** @param username The username */
+  @JsonProperty("username")
+  public void setUsername(String username) {
+    this.username = username;
   }
 
   @JsonAnyGetter

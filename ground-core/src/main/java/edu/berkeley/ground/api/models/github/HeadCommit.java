@@ -1,5 +1,5 @@
 
-package edu.berkeley.ground.api.models.gh;
+package edu.berkeley.ground.api.models.github;
 
 import com.fasterxml.jackson.annotation.*;
 
@@ -24,7 +24,7 @@ import java.util.Map;
   "removed",
   "modified"
 })
-public class Commit {
+public class HeadCommit {
 
   @JsonProperty("id")
   private String id;
@@ -62,7 +62,7 @@ public class Commit {
   @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
   /** No args constructor for use in serialization */
-  public Commit() {}
+  public HeadCommit() {}
 
   /**
    * @param timestamp
@@ -77,7 +77,7 @@ public class Commit {
    * @param modified
    * @param distinct
    */
-  public Commit(
+  public HeadCommit(
       String id,
       String treeId,
       Boolean distinct,

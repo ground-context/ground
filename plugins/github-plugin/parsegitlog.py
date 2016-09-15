@@ -95,6 +95,7 @@ for msg in consumer:
 
     for commit in commitsDict:
         parents = commitsDict[commit]['parentHashes']
+        parentNodes = []
         for parent in parents:
             parentNode = requests.get(nodeUrl)  # TODO get the parent node id
             parentNodes = [parentNode if x == parent else x for x in parents]

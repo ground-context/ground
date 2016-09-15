@@ -1,5 +1,5 @@
 
-package edu.berkeley.ground.api.models.gh;
+package edu.berkeley.ground.api.models.github;
 
 import com.fasterxml.jackson.annotation.*;
 

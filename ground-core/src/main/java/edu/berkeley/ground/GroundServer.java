@@ -15,7 +15,7 @@
 package edu.berkeley.ground;
 
 import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.gh.GithubWebhookFactory;
+import edu.berkeley.ground.api.models.github.GithubWebhookFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
@@ -90,7 +90,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
         final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
         final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
-        final GithubWebhookResource githubWebhookResource = new GithubWebhookResource(githubWebhookFactory, "{\"json\":\"json\"}");
+        final GithubWebhookResource githubWebhookResource = new GithubWebhookResource();
 
         environment.jersey().register(edgesResource);
         environment.jersey().register(graphsResource);
