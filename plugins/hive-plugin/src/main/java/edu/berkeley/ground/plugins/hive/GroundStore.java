@@ -33,7 +33,7 @@ import edu.berkeley.ground.api.models.Graph;
 import edu.berkeley.ground.api.models.GraphFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 
-public abstract class GroundStore implements RawStore, Configurable {
+public class GroundStore implements RawStore, Configurable {
 
     static final private Logger LOG = LoggerFactory.getLogger(GroundStore.class.getName());
 

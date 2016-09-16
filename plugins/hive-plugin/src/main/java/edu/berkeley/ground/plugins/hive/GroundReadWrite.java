@@ -14,18 +14,19 @@
 
 package edu.berkeley.ground.plugins.hive;
 
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.GraphFactory;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundDBException;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scala.xml.factory.NodeFactory;
-
-import java.io.IOException;
 
 public class GroundReadWrite {
 
