@@ -39,6 +39,12 @@ public class GroundServerConfiguration extends Configuration {
     @NotEmpty
     private String dbPassword;
 
+    @NotEmpty
+    private String kafkaHost;
+
+    @NotEmpty
+    private String kafkaPort;
+
     @JsonProperty
     public String getDbType() {
         return this.dbType;
@@ -97,5 +103,25 @@ public class GroundServerConfiguration extends Configuration {
     @JsonProperty
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    @JsonProperty
+    public String getKafkaHost() {
+        return this.kafkaHost;
+    }
+
+    @JsonProperty
+    public void setKafkaHost(String kafkaHost) {
+        this.kafkaHost = kafkaHost;
+    }
+
+    @JsonProperty
+    public String getKafkaPort() {
+        return this.kafkaPort;
+    }
+
+    @JsonProperty
+    public void setKafkaPort(String kafkaPort) {
+        this.kafkaPort = kafkaPort;
     }
 }

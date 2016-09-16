@@ -12,6 +12,9 @@
 package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.berkeley.ground.api.models.github.GithubWebhook;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.KafkaProduce;
@@ -29,7 +32,12 @@ import javax.ws.rs.core.MediaType;
 public class GithubWebhookResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(GithubWebhookResource.class);
 
-  public GithubWebhookResource() {
+    private String kafkaHost;
+    private String kafkaPort;
+
+    public GithubWebhookResource(String kafkaHost, String kafkaPort) {
+        this.kafkaHost = kafkaHost;
+        this.kafkaPort = kafkaPort;
   }
 
   @POST
@@ -55,7 +63,15 @@ public class GithubWebhookResource {
             githubWebhook.getPusher(),
             githubWebhook.getSender());
 
-    KafkaProduce.push("github", ghwh.getRepository().getName(), ghwh);
+    ObjectMapper mapper = new ObjectMapper();
+    String json = "";
+    try {
+      json = mapper.writeValueAsString(ghwh);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
+    }
+
+    KafkaProduce.push(kafkaHost, kafkaPort, "github", ghwh.getRepository().getName(), json);
 
     return ghwh;
   }

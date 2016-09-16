@@ -4,6 +4,8 @@ dbHost: localhost
 dbPort: 7474
 dbUser: neo4j
 dbPassword: password
+kafkaHost: localhost
+kafkaPort: 9092
 server:
   applicationConnectors:
     - type: http

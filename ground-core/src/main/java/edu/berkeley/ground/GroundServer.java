@@ -90,7 +90,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
         final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
         final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
-        final GithubWebhookResource githubWebhookResource = new GithubWebhookResource();
+        final GithubWebhookResource githubWebhookResource = new GithubWebhookResource(configuration.getKafkaHost(), configuration.getKafkaPort());
 
         environment.jersey().register(edgesResource);
         environment.jersey().register(graphsResource);
