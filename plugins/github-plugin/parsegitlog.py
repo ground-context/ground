@@ -9,10 +9,9 @@ import requests
 from kafka import KafkaConsumer
 import configparser
 
-# TODO manage the kafka offset for restarts
+# TODO manage the kafka offset for restarts, error handling 
 config = configparser.ConfigParser()
 config.read('config.ini')
-# consumer = KafkaConsumer('github')
 consumer = KafkaConsumer(config['Kafka']['topic'],
                          bootstrap_servers=[config['Kafka']['url'] + ":" + config['Kafka']['port']])
 url = 'http://' + config['Ground']['url'] + ':' + config['Ground']['port']
@@ -53,7 +52,8 @@ for msg in consumer:
     sourceLog = sourceLog.split("\n")
     sourceLog = [[row.split("\t")[0], row.split("\t")[1].split(" ")[0]] for row in sourceLog]
 
-    latests = requests.get(latestUrl)  # get latest commits
+    latests = requests.get(latestUrl).text  # get latest commits
+
     # latests = ['91f8afaae21b6a360ac1e150ddbca342bdb4edfd']
     for latest in latests:  # remove commits from before the latest commit
         for item in sourceLog:
@@ -69,10 +69,13 @@ for msg in consumer:
     commitsDict = [[row[0][0], row[1][0], row[1][1]] for row in list(commitsDict)]
     commitsDict = [OrderedDict(zip(GIT_COMMIT_FIELDS, row)) for row in commitsDict]
     firstCommit = commitsDict[-1:][0]
-    # reorganize dict
-    commitsDict = {a['commitHash']: {'parentHashes': a['parentHashes'], 'branch': a['branch']}
-                   for a in commitsDict}
-    # TODO this needs to be an OrderedDict
+    i = len(commitsDict)
+    for commit in commitsDict:
+        commit.update({'num': i})
+        i -= 1
+    commitsDict = {a['commitHash']: {'parentHashes': a['parentHashes'],
+                                     'branch': a['branch'], 'num': int(a['num'])} for a in
+                   commitsDict}
 
     if latests == '[]':
         requests.post(nodeUrl)  # create initial node in ground
@@ -91,13 +94,18 @@ for msg in consumer:
             },
             "nodeId": "Nodes." + repoId
         }
-        r = requests.post(nodeVUrl, data=json.dumps(nodeVData))  # create v1 of node
+        headers = {
+            'content-type': "application/json"
+        }
+        r = requests.post(nodeVUrl, data=json.dumps(nodeVData), headers=headers)
+        nodeId = r.json()['id']
+        commitsDict[firstCommit['commitHash']].update({'nodeId': nodeId})
 
     for commit in commitsDict:
         parents = commitsDict[commit]['parentHashes']
         parentNodes = []
         for parent in parents:
-            parentNode = requests.get(nodeUrl)  # TODO get the parent node id
+            parentNode = commitsDict[parent]['nodeId']
             parentNodes = [parentNode if x == parent else x for x in parents]
         params = {'parents': parentNodes}
 
@@ -110,11 +118,15 @@ for msg in consumer:
                 },
                 "commit": {
                     "key": "commit",
-                    "value": commitsDict[commit]['commitHash'],
+                    "value": commit,
                     "type": "string"
                 },
             },
             "nodeId": "Nodes." + repoId
         }
-
-        requests.post(nodeVUrl, params=params, data=json.dumps(nodeVData))
+        headers = {
+            'content-type': "application/json"
+        }
+        r = requests.post(nodeVUrl, params=params, data=json.dumps(nodeVData), headers=headers)
+        nodeId = r.json()['id']
+        commitsDict[commit].update({'nodeId': nodeId})
