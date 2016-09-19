@@ -69,6 +69,12 @@ public class PostgresNodeFactory extends NodeFactory {
         }
     }
 
+    public List<String> getLeaves(String name) throws GroundException {
+        PostgresConnection connection = this.dbClient.getConnection();
+        return this.itemFactory.getLeaves(connection, name);
+    }
+
+
     public Node retrieveFromDatabase(String name) throws GroundException {
         PostgresConnection connection = this.dbClient.getConnection();
 

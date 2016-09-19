@@ -1,7 +1,5 @@
 package edu.berkeley.ground.api.versions.gremlin;
 
-import net.jcip.annotations.NotThreadSafe;
-
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -14,7 +12,6 @@ import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import static org.junit.Assert.*;
 
-@NotThreadSafe
 public class GremlinItemFactoryTest extends GremlinTest {
     public GremlinItemFactoryTest() throws GroundException {
         super();

@@ -18,6 +18,7 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -53,6 +54,31 @@ public class CassandraTagFactory extends TagFactory {
             Object value = GroundType.stringToType(valueString, type);
 
             result.put(key, new Tag(id, key, value, type));
+        }
+
+        return result;
+    }
+
+    public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+        CassandraConnection connection = (CassandraConnection) connectionPointer;
+        List<String> result = new ArrayList<>();
+
+        List<DbDataContainer> predicates = new ArrayList<>();
+        predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
+
+        List<String> projections = new ArrayList<>();
+        projections.add("richversion_id");
+
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            // this means that there are no tags
+            return result;
+        }
+
+        while (resultSet.next()) {
+            result.add(resultSet.getString(0));
         }
 
         return result;

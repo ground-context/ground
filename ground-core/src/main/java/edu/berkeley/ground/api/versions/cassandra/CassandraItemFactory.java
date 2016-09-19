@@ -76,7 +76,7 @@ public class CassandraItemFactory extends ItemFactory {
         }
     }
 
-    private List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
+    public List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
         try {
             VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
 

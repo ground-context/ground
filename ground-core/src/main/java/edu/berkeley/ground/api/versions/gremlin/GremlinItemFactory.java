@@ -38,6 +38,20 @@ public class GremlinItemFactory extends ItemFactory {
         // DO NOTHING
     }
 
+    public List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
+        try {
+            VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
+
+            return dag.getLeaves();
+        } catch (GroundException e) {
+            if (!e.getMessage().contains("No results found for query:")) {
+                throw e;
+            }
+
+            return new ArrayList<>();
+        }
+    }
+
     public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
         // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
         if (parentIds.isEmpty()) {

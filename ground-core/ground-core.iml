@@ -303,6 +303,5 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.glassfish.jersey.test-framework:jersey-test-framework-core:2.23.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.23.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.ow2.asm:asm-debug-all:5.0.4" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: net.jcip:jcip-annotations:1.0" level="project" />
   </component>
 </module>

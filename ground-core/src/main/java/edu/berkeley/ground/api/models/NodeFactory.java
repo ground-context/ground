@@ -26,6 +26,8 @@ public abstract class NodeFactory {
 
     public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parent) throws GroundException;
 
+    public abstract List<String> getLeaves(String name) throws GroundException;
+
     protected static Node construct(String id, String name) {
         return new Node(id, name);
     }
