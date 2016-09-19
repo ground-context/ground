@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 package edu.berkeley.ground;
 
 import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.github.GithubWebhookFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
@@ -43,7 +42,6 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     private NodeVersionFactory nodeVersionFactory;
     private StructureFactory structureFactory;
     private StructureVersionFactory structureVersionFactory;
-    private GithubWebhookFactory githubWebhookFactory;
 
     public static void main(String [] args) throws Exception {
         new GroundServer().run(args);
@@ -90,14 +88,14 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
         final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
         final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
-        final GithubWebhookResource githubWebhookResource = new GithubWebhookResource(configuration.getKafkaHost(), configuration.getKafkaPort());
+        final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(), configuration.getKafkaPort());
 
         environment.jersey().register(edgesResource);
         environment.jersey().register(graphsResource);
         environment.jersey().register(lineageEdgesResource);
         environment.jersey().register(nodesResource);
         environment.jersey().register(structuresResource);
-        environment.jersey().register(githubWebhookResource);
+        environment.jersey().register(kafkaResource);
     }
 
     private void setPostgresFactories(PostgresClient postgresClient) {

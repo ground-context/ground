@@ -1,16 +1,5 @@
 package edu.berkeley.ground.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import edu.berkeley.ground.GroundServer;
-import edu.berkeley.ground.GroundServerConfiguration;
-import edu.berkeley.ground.api.models.github.GithubWebhook;
-import edu.berkeley.ground.resources.GithubWebhookResource;
-import io.dropwizard.Application;
-import io.dropwizard.cli.ConfiguredCommand;
-import io.dropwizard.setup.Bootstrap;
-
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -23,8 +12,8 @@ import java.util.Properties;
 public class KafkaProduce {
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaProduce.class);
 
-    public static String push(String kafkaHost, String kafkaPort, String topic, String key, String value){
-
+    public static void push(String kafkaHost, String kafkaPort, String topic, String key, String value){
+        LOGGER.info("Sending kafka message...");
         byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
 
         Properties props = new Properties();
@@ -39,8 +28,6 @@ public class KafkaProduce {
         producer.send(new ProducerRecord<>(topic, key, valueBytes));
 
         producer.close();
-        return "pushed";
-
     }
 
 

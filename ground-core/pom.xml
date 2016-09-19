@@ -186,9 +186,9 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>0.10.0.1</version>
+            <version>${kafka.version}</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>2.8.2</version>
@@ -202,7 +202,7 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>2.8.2</version>
-        </dependency>
+        </dependency>-->
     </dependencies>
 
     <build>

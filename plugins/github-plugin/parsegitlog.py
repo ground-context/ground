@@ -9,7 +9,7 @@ import requests
 from kafka import KafkaConsumer
 import configparser
 
-# TODO manage the kafka offset for restarts, error handling 
+# TODO manage the kafka offset for restarts, error handling
 config = configparser.ConfigParser()
 config.read('config.ini')
 consumer = KafkaConsumer(config['Kafka']['topic'],
@@ -52,7 +52,7 @@ for msg in consumer:
     sourceLog = sourceLog.split("\n")
     sourceLog = [[row.split("\t")[0], row.split("\t")[1].split(" ")[0]] for row in sourceLog]
 
-    latests = requests.get(latestUrl).text  # get latest commits
+    latests = requests.get(latestUrl).text  # get latest commits # TODO get the latest commit
 
     # latests = ['91f8afaae21b6a360ac1e150ddbca342bdb4edfd']
     for latest in latests:  # remove commits from before the latest commit
