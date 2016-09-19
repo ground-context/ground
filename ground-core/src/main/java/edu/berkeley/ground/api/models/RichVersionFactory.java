@@ -22,30 +22,37 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class RichVersionFactory {
-    public abstract void insertIntoDatabase(GroundDBConnection connection, String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException;
+    public abstract void insertIntoDatabase(GroundDBConnection connection,
+                                            String id,
+                                            Map<String, Tag>tags,
+                                            String structureVersionId,
+                                            String reference,
+                                            Map<String, String> parameters) throws GroundException;
 
     public abstract RichVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException;
 
-    protected static RichVersion construct(String id, Optional<Map<String, Tag>>tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) {
+    protected static RichVersion construct(String id,
+                                           Map<String, Tag>tags,
+                                           String structureVersionId,
+                                           String reference,
+                                           Map<String, String> parameters) {
         return new RichVersion(id, tags, structureVersionId, reference, parameters);
     }
 
-    protected static void checkStructureTags(StructureVersion structureVersion, Optional<Map<String, Tag>> tags) throws GroundException {
+    protected static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags) throws GroundException {
         Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 
-        if(!tags.isPresent()) {
+        if(tags.isEmpty()) {
             throw new GroundException("No tags were specified");
         }
 
-        Map<String, Tag> tagsMap = tags.get();
-
         for (String key : structureVersionAttributes.keySet()) {
             // check if such a tag exists
-            if(!tagsMap.keySet().contains(key)) {
+            if(!tags.keySet().contains(key)) {
                 throw new GroundException("No tag with key " + key + " was specified.");
-            } else if (!tagsMap.get(key).getValueType().isPresent()) { // check that value type is specified
+            } else if (tags.get(key).getValueType() == null) { // check that value type is specified
                 throw new GroundException("Tag with key " + key + " did not have a value.");
-            } else if (!tagsMap.get(key).getValueType().get().equals(structureVersionAttributes.get(key))) { // check that the value type is the same
+            } else if (!tags.get(key).getValueType().equals(structureVersionAttributes.get(key))) { // check that the value type is the same
                 throw new GroundException("Tag with key " + key + " did not have a value of the correct type.");
             }
         }

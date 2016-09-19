@@ -45,7 +45,8 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         List<Relationship> result = connection.getDescendantEdgesByLabel(itemId, "VersionSuccessor");
 
         if (result.isEmpty()) {
-            throw new GroundException("No results found for query");
+            // do nothing' this just means that no versions have been added yet.
+            return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
         }
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();

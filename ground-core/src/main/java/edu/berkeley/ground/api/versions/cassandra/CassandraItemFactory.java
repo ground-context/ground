@@ -46,6 +46,7 @@ public class CassandraItemFactory extends ItemFactory {
         connection.insert("Items", insertions);
     }
 
+    // TODO: Refactor logic for parent into function in ItemFactory
     public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
         // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
         if (parentIds.isEmpty()) {
@@ -56,7 +57,7 @@ public class CassandraItemFactory extends ItemFactory {
         try {
             dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connectionPointer, itemId);
         } catch (GroundException e) {
-            if (!e.getMessage().contains("No results found for query:")) {
+            if (!e.getMessage().contains("No VersionHistoryDAG for Item")) {
                 throw e;
             }
 
@@ -70,6 +71,7 @@ public class CassandraItemFactory extends ItemFactory {
                 LOGGER.error(errorString);
                 throw new GroundException(errorString);
             }
+
             this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
         }
     }

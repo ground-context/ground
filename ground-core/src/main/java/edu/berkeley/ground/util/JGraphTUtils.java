@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JGraphTUtils {
-    public static DirectedGraph<String, DefaultEdge> createGraph() throws GroundDBException {
+    public static DirectedGraph<String, DefaultEdge> createGraph() {
         return new DefaultDirectedGraph<>(DefaultEdge.class);
     }
 
@@ -36,7 +36,7 @@ public class JGraphTUtils {
         graph.addEdge(from, to);
     }
 
-    public static List<String> iterate(DirectedGraph<String, DefaultEdge> graph, String start) throws GroundDBException {
+    public static List<String> iterate(DirectedGraph<String, DefaultEdge> graph, String start) {
         DepthFirstIterator<String, DefaultEdge> iterator = new DepthFirstIterator<>(graph, start);
 
         List<String> result = new ArrayList<>();

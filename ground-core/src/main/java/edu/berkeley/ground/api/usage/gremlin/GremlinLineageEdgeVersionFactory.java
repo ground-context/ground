@@ -23,6 +23,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
@@ -49,10 +49,10 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
     }
 
 
-    public LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
-                                     Optional<String> structureVersionId,
-                                     Optional<String> reference,
-                                     Optional<Map<String, String>> parameters,
+    public LineageEdgeVersion create(Map<String, Tag> tags,
+                                     String structureVersionId,
+                                     String reference,
+                                     Map<String, String> parameters,
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
@@ -63,9 +63,7 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
         try {
             String id = IdGenerator.generateId(lineageEdgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -79,11 +77,23 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
-            Vertex fromVertex = connection.getVertex(predicates);
+
+            Vertex fromVertex = null;
+            Vertex toVertex = null;
+
+            try {
+                fromVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No RichVersion found with id " + fromId + ".");
+            }
 
             predicates.clear();
             predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
-            Vertex toVertex = connection.getVertex(predicates);
+            try {
+                toVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No RichVersion found with id " + toId + ".");
+            }
 
             predicates.clear();
             connection.addEdge("LineageEdgeVersionConnection", fromVertex, versionVertex, predicates);
@@ -111,7 +121,13 @@ public class GremlinLineageEdgeVersionFactory extends LineageEdgeVersionFactory 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Vertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = null;
+            try {
+                versionVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdge found with id " + id + ".");
+            }
+
             String lineageEdgeId = versionVertex.property("lineageedge_id").value().toString();
             String fromId = versionVertex.property("endpoint_one").value().toString();
             String toId = versionVertex.property("endpoint_two").value().toString();

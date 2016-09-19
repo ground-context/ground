@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.db;
 
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.neo4j.driver.internal.value.ListValue;
@@ -24,7 +25,9 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Neo4jClient implements DBClient {
     private Driver driver;
@@ -51,17 +54,28 @@ public class Neo4jClient implements DBClient {
 
             int count = 0;
             for (DbDataContainer container : attributes) {
-                insert += container.getField() + " : ";
+                if (container.getValue() != null) {
+                    insert += container.getField() + " : ";
 
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            insert += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            insert += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            insert += container.getValue();
+                            break;
+                    }
 
-                if (++count < attributes.size()) {
                     insert += ", ";
+                    count++;
                 }
+            }
+
+            if (count > 0) {
+                insert = insert.substring(0, insert.length() - 2);
             }
 
             insert += "})";
@@ -76,17 +90,28 @@ public class Neo4jClient implements DBClient {
 
             int count = 0;
             for (DbDataContainer container : attributes) {
-                insert += container.getField() + " : ";
+                if (container.getValue() != null) {
+                    insert += container.getField() + " : ";
 
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            insert += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            insert += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            insert += container.getValue();
+                            break;
+                    }
 
-                if (++count < attributes.size()) {
                     insert += ", ";
+                    count++;
                 }
+            }
+
+            if (count > 0) {
+                insert = insert.substring(0, insert.length() - 2);
             }
 
             insert += "}]->(t)";
@@ -100,36 +125,57 @@ public class Neo4jClient implements DBClient {
 
             int count = 0;
             for (DbDataContainer container : attributes) {
-                insert += container.getField() + " : ";
+                if (container.getValue() != null) {
+                    insert += container.getField() + " : ";
 
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            insert += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            insert += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            insert += container.getValue();
+                            break;
+                    }
 
-                if (++count < attributes.size()) {
                     insert += ", ";
+                    count++;
                 }
             }
 
-            insert += "})";
+            if (count > 0) {
+                insert = insert.substring(0, insert.length() - 2);
+            }
 
+            insert += "})";
             insert += "CREATE (f)-[e: " + edgeLabel + "{";
 
             count = 0;
             for (DbDataContainer container : edgeAttributes) {
-                insert += container.getField() + " : ";
+                if (container.getValue() != null) {
+                    insert += container.getField() + " : ";
 
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            insert += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            insert += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            insert += container.getValue();
+                            break;
+                    }
 
-                if (++count < attributes.size()) {
                     insert += ", ";
+                    count++;
                 }
+            }
+
+            if (count > 0) {
+                insert = insert.substring(0, insert.length() - 2);
             }
 
             insert += "}]->(t)";
@@ -137,7 +183,7 @@ public class Neo4jClient implements DBClient {
             this.transaction.run(insert);
         }
 
-        public Record getVertex(List<DbDataContainer> attributes) {
+        public Record getVertex(List<DbDataContainer> attributes) throws EmptyResultException {
             return this.getVertex(null, attributes);
         }
 
@@ -171,7 +217,7 @@ public class Neo4jClient implements DBClient {
             return result;
         }
 
-        public Record getVertex(String label, List<DbDataContainer> attributes) {
+        public Record getVertex(String label, List<DbDataContainer> attributes) throws EmptyResultException {
             String query;
             if (label == null) {
                 query = "MATCH (v {";
@@ -182,17 +228,28 @@ public class Neo4jClient implements DBClient {
 
             int count = 0;
             for (DbDataContainer container : attributes) {
-                query += container.getField() + " : ";
+                if (container.getValue() != null) {
+                    query += container.getField() + " : ";
 
-                switch (container.getGroundType()) {
-                    case STRING: query += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: query += (int) container.getValue(); break;
-                    case BOOLEAN: query += container.getValue(); break;
-                }
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            query += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            query += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            query += container.getValue();
+                            break;
+                    }
 
-                if (++count < attributes.size()) {
+                    count ++;
                     query += ", ";
                 }
+            }
+
+            if (count > 0) {
+                query = query.substring(0, query.length() - 2);
             }
 
             query += "}) RETURN v";
@@ -203,27 +260,37 @@ public class Neo4jClient implements DBClient {
                 return result.next();
             }
 
-            return null;
+            throw new EmptyResultException("No results found for query: " + query);
         }
 
-        public Relationship getEdge(String label, List<DbDataContainer> attributes) {
+        public Relationship getEdge(String label, List<DbDataContainer> attributes) throws EmptyResultException {
             String query = "MATCH (v)-[e:" + label + "{";
 
             int count = 0;
             for (DbDataContainer container : attributes) {
-                query += container.getField() + " : ";
+                if (container.getValue() != null) {
+                    query += container.getField() + " : ";
 
-                switch (container.getGroundType()) {
-                    case STRING: query += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: query += (int) container.getValue(); break;
-                    case BOOLEAN: query += container.getValue(); break;
-                }
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            query += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            query += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            query += container.getValue();
+                            break;
+                    }
 
-                if (++count < attributes.size()) {
+                    count++;
                     query += ", ";
                 }
             }
 
+            if (count > 0) {
+                query = query.substring(0, query.length() - 2);
+            }
             query += "}]->(w) RETURN e";
 
             StatementResult result = this.transaction.run(query);
@@ -234,7 +301,7 @@ public class Neo4jClient implements DBClient {
                 return r.get("e").asRelationship();
             }
 
-            return null;
+            throw new EmptyResultException("No results found for query: " + query);
         }
 
         public List<Relationship> getDescendantEdgesByLabel(String startId, String label) {
@@ -244,7 +311,7 @@ public class Neo4jClient implements DBClient {
 
             StatementResult result = this.transaction.run(query);
 
-            List<Relationship> response = new ArrayList<>();
+            Set<Relationship> response = new HashSet<>();
 
             List<Record> resultList = result.list();
 
@@ -258,7 +325,7 @@ public class Neo4jClient implements DBClient {
                 }
             }
 
-            return response;
+            return new ArrayList<>(response);
         }
 
         public List<Record> getAdjacentVerticesByEdgeLabel(String edgeLabel, String id, List<String> returnFields) {

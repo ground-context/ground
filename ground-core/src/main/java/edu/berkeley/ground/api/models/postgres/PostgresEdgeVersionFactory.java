@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -45,10 +46,10 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
         this.richVersionFactory = richVersionFactory;
     }
 
-    public EdgeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public EdgeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> parameters,
                               String edgeId,
                               String fromId,
                               String toId,
@@ -59,9 +60,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
         try {
             String id = IdGenerator.generateId(edgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
 
@@ -94,7 +93,12 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
             String edgeId = resultSet.getString(2);
             String fromId = resultSet.getString(3);
             String toId = resultSet.getString(4);

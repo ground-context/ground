@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
@@ -33,7 +34,34 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, String fromId, String toId) throws GroundException {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
 
+        // check to see if both are valid ids since we don't have foreign key constraints
+        QueryResults results;
+        List<DbDataContainer> predicates = new ArrayList<>();
+
+        predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
+        try {
+            results = connection.equalitySelect("Versions", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("Id " + fromId + " is not valid.");
+        }
+
+        if (!results.next()) {
+            throw new GroundException("Id " + fromId + " is not valid.");
+        }
+
+        predicates.clear();
+        predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
+        try {
+            results = connection.equalitySelect("Versions", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("Id " + toId + " is not valid.");
+        }
+        if (!results.next()) {
+            throw new GroundException("Id " + toId + " is not valid.");
+        }
+
         List<DbDataContainer> insertions = new ArrayList<>();
+
 
         String dbId = IdGenerator.generateId(fromId + toId);
 
@@ -52,11 +80,20 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
 
-        QueryResults resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
+        }
 
-        String fromId = resultSet.getString(1);
-        String toId = resultSet.getString(2);
+        if (!resultSet.next()) {
+            throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
+        }
 
-        return VersionSuccessorFactory.construct(dbId, toId, fromId);
+        String fromId = resultSet.getString("vfrom");
+        String toId = resultSet.getString("vto");
+
+        return VersionSuccessorFactory.construct(dbId, fromId, toId);
     }
 }

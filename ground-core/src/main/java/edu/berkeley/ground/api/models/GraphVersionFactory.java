@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class GraphVersionFactory {
-    public abstract GraphVersion create(Optional<Map<String, Tag>> tags,
-                                        Optional<String> structureVersionId,
-                                        Optional<String> reference,
-                                        Optional<Map<String, String>> parameters,
+    public abstract GraphVersion create(Map<String, Tag> tags,
+                                        String structureVersionId,
+                                        String reference,
+                                        Map<String, String> parameters,
                                         String graphId,
                                         List<String> edgeVersionIds,
                                         List<String> parentIds) throws GroundException;
@@ -32,10 +32,10 @@ public abstract class GraphVersionFactory {
     public abstract GraphVersion retrieveFromDatabase(String id) throws GroundException;
 
     protected static GraphVersion construct(String id,
-                                            Optional<Map<String, Tag>> tags,
-                                            Optional<String> structureVersionId,
-                                            Optional<String> reference,
-                                            Optional<Map<String, String>> parameters,
+                                            Map<String, Tag> tags,
+                                            String structureVersionId,
+                                            String reference,
+                                            Map<String, String> parameters,
                                             String graphId,
                                             List<String> edgeVersionIds) {
 

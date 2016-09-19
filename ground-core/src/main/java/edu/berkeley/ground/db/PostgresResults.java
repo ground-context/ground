@@ -15,6 +15,8 @@
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.exceptions.GroundException;
+
+import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +50,10 @@ public class PostgresResults implements QueryResults {
 
             throw new GroundException(e);
         }
+    }
+
+    public String getString(String field) throws GroundException {
+        throw new NotImplementedException();
     }
 
     public int getInt(int index) throws GroundException {

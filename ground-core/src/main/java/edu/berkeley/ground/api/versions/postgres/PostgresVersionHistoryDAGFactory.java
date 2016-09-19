@@ -20,6 +20,7 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
@@ -42,7 +43,13 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
 
-        QueryResults resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            // do nothing' this just means that no versions have been added yet.
+            return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+        }
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
         do {

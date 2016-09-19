@@ -22,13 +22,15 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+
+import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 
 import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
-    public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
@@ -42,30 +44,28 @@ public class Neo4jTagFactory extends TagFactory {
 
         Map<String, Tag> tags = new HashMap<>();
 
-        if(tagsRecords.isEmpty()) {
-            return Optional.empty();
-        }
-
         for (Record record : tagsRecords) {
             String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
 
-            Optional<Object> value;
-            if (record.containsKey("value")) {
-                value = Optional.of(Neo4jClient.getStringFromValue((StringValue) record.get("value")));
+            Object value;
+            if (record.containsKey("value") && !(record.get("value") instanceof NullValue)) {
+                value = Neo4jClient.getStringFromValue((StringValue) record.get("value"));
             } else {
-                value = Optional.empty();
+                value = null;
             }
-            Optional<GroundType> type;
-            if (record.containsKey("type")) {
-                 type = Optional.of(GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type"))));
+
+            GroundType type;
+            if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
+                type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+                value = GroundType.stringToType((String) value, type);
             } else {
-                type = Optional.empty();
+                type = null;
             }
 
             tags.put(key, new Tag(id, key, value, type));
         }
 
-        return Optional.of(tags);
+        return tags;
     }
 
     public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {

@@ -23,35 +23,38 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
 
 public class PostgresTagFactory extends TagFactory {
-    public Optional<Map<String, Tag>> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         PostgresConnection connection = (PostgresConnection) connectionPointer;
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
 
-        QueryResults resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
         Map<String, Tag> result = new HashMap<>();
+
+        QueryResults resultSet = null;
+        try {
+            resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            return new HashMap<>();
+        }
 
         do {
             String key = resultSet.getString(2);
-            Optional<GroundType> type = Optional.ofNullable(GroundType.fromString(resultSet.getString(4)));
+            GroundType type = GroundType.fromString(resultSet.getString(4));
 
             String valueString = resultSet.getString(3);
-            Optional<Object> value = type.map(t -> GroundType.stringToType(valueString, t));
+            Object value = GroundType.stringToType(valueString, type);
 
             result.put(key, new Tag(id, key, value, type));
         } while (resultSet.next());
 
-        if (result.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(result);
-        }
+        return result;
     }
 
     public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
@@ -63,12 +66,17 @@ public class PostgresTagFactory extends TagFactory {
         List<String> projections = new ArrayList<>();
         projections.add("richversion_id");
 
-        QueryResults queryResult = connection.equalitySelect("Tags", projections, predicates);
+        QueryResults resultSet = null;
+        try {
+            resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            return new ArrayList<>();
+        }
 
         List<String> result = new ArrayList<>();
 
-        while (queryResult.next()) {
-            result.add(queryResult.getString(1));
+        while (resultSet.next()) {
+            result.add(resultSet.getString(1));
         }
 
         return result;

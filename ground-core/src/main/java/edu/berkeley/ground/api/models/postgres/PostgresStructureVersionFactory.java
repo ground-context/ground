@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -80,11 +81,22 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        QueryResults resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No StructureVersion found with id " + id + ".");
+        }
 
         List<DbDataContainer> attributePredicates = new ArrayList<>();
         attributePredicates.add(new DbDataContainer("svid", GroundType.STRING, id));
-        QueryResults attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+
+        QueryResults attributesSet;
+        try {
+            attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
+        }
 
         Map<String, GroundType> attributes = new HashMap<>();
 

@@ -23,8 +23,11 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
@@ -49,10 +51,10 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     }
 
 
-    public LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
-                                     Optional<String> structureVersionId,
-                                     Optional<String> reference,
-                                     Optional<Map<String, String>> parameters,
+    public LineageEdgeVersion create(Map<String, Tag> tags,
+                                     String structureVersionId,
+                                     String reference,
+                                     Map<String, String> parameters,
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
@@ -63,9 +65,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
         try {
             String id = IdGenerator.generateId(lineageEdgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -101,15 +101,26 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record versionRecord = connection.getVertex(predicates);
-            String lineageEdgeId = versionRecord.get("lineageedge_id").toString();
-            String fromId = versionRecord.get("endpoint_one").toString();
-            String toId = versionRecord.get("endpoint_two").toString();
+            Record versionRecord = null;
+            try {
+                versionRecord = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
+            }
+
+            String lineageEdgeId = Neo4jClient.getStringFromValue((StringValue) versionRecord.
+                    get("v").asNode().get("lineageedge_id"));
+            String fromId = Neo4jClient.getStringFromValue((StringValue) versionRecord.
+                    get("v").asNode().get("endpoint_one"));
+            String toId = Neo4jClient.getStringFromValue((StringValue) versionRecord.
+                    get("v").asNode().get("endpoint_two"));
 
             connection.commit();
             LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-            return LineageEdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);
+            return LineageEdgeVersionFactory.construct(id, version.getTags(),
+                    version.getStructureVersionId(), version.getReference(), version.getParameters(),
+                    fromId, toId, lineageEdgeId);
         } catch (GroundException e) {
             connection.abort();
 

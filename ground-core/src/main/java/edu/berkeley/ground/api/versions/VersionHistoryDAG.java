@@ -19,8 +19,10 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class VersionHistoryDAG<T extends Version> {
     // the id of the Version that's at the rootId of this DAG
@@ -89,7 +91,11 @@ public class VersionHistoryDAG<T extends Version> {
 
         leaves.removeAll(this.parentChildMap.keySet());
 
-        return leaves;
+        Set<String> leafSet = new HashSet<>(leaves);
+        List<String> result = new ArrayList<>();
+        result.addAll(leafSet);
+
+        return result;
     }
 
     private void addToParentChildMap(String parent, String child) {

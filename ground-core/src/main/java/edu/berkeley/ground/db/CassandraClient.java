@@ -16,6 +16,7 @@ package edu.berkeley.ground.db;
 
 import com.datastax.driver.core.*;
 import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.JGraphTUtils;
@@ -134,7 +135,7 @@ public class CassandraClient implements DBClient {
             this.session.execute(statement);
         }
 
-        public CassandraResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
+        public CassandraResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws EmptyResultException, GroundDBException {
             String select = "select ";
             for (String item : projection) {
                 select += item + ", ";
@@ -152,7 +153,7 @@ public class CassandraClient implements DBClient {
                 select = select.substring(0, select.length() - 4);
             }
 
-            BoundStatement statement = new BoundStatement(this.session.prepare(select + ";"));
+            BoundStatement statement = new BoundStatement(this.session.prepare(select + "ALLOW FILTERING;"));
 
             int index = 0;
             for (DbDataContainer container : predicatesAndValues) {
@@ -167,7 +168,7 @@ public class CassandraClient implements DBClient {
             ResultSet resultSet = this.session.execute(statement);
 
             if(resultSet == null || resultSet.isExhausted()) {
-                throw new GroundDBException("No results found for query: " + statement.toString());
+                throw new EmptyResultException("No results found for query: " + statement.toString());
             }
 
             return new CassandraResults(resultSet);

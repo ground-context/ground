@@ -38,4 +38,15 @@ public class Graph extends Item<GraphVersion> {
     public static String idToName(String id) {
         return id.substring(7);
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Graph)) {
+            return false;
+        }
+
+        Graph otherGraph = (Graph) other;
+
+        return this.name.equals(otherGraph.name) && this.getId().equals(otherGraph.getId());
+    }
 }

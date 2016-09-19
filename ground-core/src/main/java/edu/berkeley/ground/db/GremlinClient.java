@@ -15,6 +15,8 @@
 package edu.berkeley.ground.db;
 
 import com.thinkaurelius.titan.graphdb.vertices.CacheVertex;
+
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -31,7 +33,7 @@ public class GremlinClient implements DBClient {
     private Graph graph;
 
     public GremlinClient() {
-        this.graph = GraphFactory.open("conf/titan-cassandra.properties");
+        this.graph = GraphFactory.open("/Users/Vikram/Code/titan/conf/titan-cassandra.properties");
     }
 
     public GremlinConnection getConnection() throws GroundDBException {
@@ -43,6 +45,7 @@ public class GremlinClient implements DBClient {
 
         protected GremlinConnection(Graph graph) {
             this.graph = graph;
+            graph.tx();
         }
 
         public Vertex addVertex(String label, List<DbDataContainer> attributes) {
@@ -68,7 +71,7 @@ public class GremlinClient implements DBClient {
             source.addEdge(label, destination, attributesArray);
         }
 
-        public Vertex getVertex(List<DbDataContainer> predicates) {
+        public Vertex getVertex(List<DbDataContainer> predicates) throws EmptyResultException {
             GraphTraversal traversal = this.graph.traversal().V();
 
             for (DbDataContainer predicate : predicates) {
@@ -79,10 +82,25 @@ public class GremlinClient implements DBClient {
                 return (Vertex) traversal.next();
             }
 
-            return null;
+            throw new EmptyResultException("No matches for query.");
         }
 
-        public Edge getEdge(List<DbDataContainer> predicates) {
+        public Vertex getVertex(String label, List<DbDataContainer> predicates) throws EmptyResultException {
+            GraphTraversal traversal = this.graph.traversal().V();
+
+            traversal.has(T.label, label);
+            for (DbDataContainer predicate : predicates) {
+                traversal = traversal.has(predicate.getField(), predicate.getValue());
+            }
+
+            if (traversal.hasNext()) {
+                return (Vertex) traversal.next();
+            }
+
+            throw new EmptyResultException("No matches for query.");
+        }
+
+        public Edge getEdge(List<DbDataContainer> predicates) throws EmptyResultException {
             GraphTraversal traversal = this.graph.traversal().E();
 
             for (DbDataContainer predicate : predicates) {
@@ -93,7 +111,7 @@ public class GremlinClient implements DBClient {
                 return (Edge) traversal.next();
             }
 
-            return null;
+            throw new EmptyResultException("No matches for quesry");
         }
 
         public List<Vertex> getVerticesByLabel(String key, String value) {
@@ -125,7 +143,7 @@ public class GremlinClient implements DBClient {
 
         public List<Vertex> getAdjacentVerticesByEdgeLabel(Vertex vertex, String edgeLabel) {
             List<Vertex> result = new ArrayList<>();
-            vertex.vertices(Direction.BOTH, edgeLabel).forEachRemaining(result::add);
+            vertex.vertices(Direction.OUT, edgeLabel).forEachRemaining(result::add);
 
             return result;
         }

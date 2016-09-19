@@ -22,6 +22,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -47,10 +48,10 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
         this.richVersionFactory = richVersionFactory;
     }
 
-    public EdgeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public EdgeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> parameters,
                               String edgeId,
                               String fromId,
                               String toId,
@@ -61,9 +62,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
         try {
             String id = IdGenerator.generateId(edgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
 
             List<DbDataContainer> insertions = new ArrayList<>();
@@ -77,11 +76,21 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
-            Vertex fromVertex = connection.getVertex(predicates);
+            Vertex fromVertex;
+            Vertex toVertex;
+            try {
+                fromVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + fromId + ".") ;
+            }
 
             predicates.clear();
             predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
-            Vertex toVertex = connection.getVertex(predicates);
+            try {
+                toVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + toId + ".") ;
+            }
 
             predicates.clear();
             connection.addEdge("EdgeVersionConnection", fromVertex, vertex, predicates);
@@ -108,7 +117,13 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Vertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = null;
+            try {
+                versionVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
+
             String edgeId = versionVertex.property("edge_id").value().toString();
             String fromId = versionVertex.property("endpoint_one").value().toString();
             String toId = versionVertex.property("endpoint_two").value().toString();
