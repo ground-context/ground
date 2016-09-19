@@ -128,5 +128,6 @@ for msg in consumer:
             'content-type': "application/json"
         }
         r = requests.post(nodeVUrl, params=params, data=json.dumps(nodeVData), headers=headers)
+        print(commit)
         nodeId = r.json()['id']
         commitsDict[commit].update({'nodeId': nodeId})

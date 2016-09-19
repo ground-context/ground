@@ -1,0 +1,15 @@
+dbType: neo4j
+dbName: ground
+dbHost: localhost
+dbPort: 7474
+dbUser: neo4j
+dbPassword: password
+kafkaHost: localhost
+kafkaPort: 9092
+server:
+  applicationConnectors:
+    - type: http
+      port: 9090
+  adminConnectors:
+    - type: http
+      port: 9091

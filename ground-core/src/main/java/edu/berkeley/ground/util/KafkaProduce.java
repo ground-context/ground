@@ -14,6 +14,8 @@ public class KafkaProduce {
 
     public static void push(String kafkaHost, String kafkaPort, String topic, String key, String value){
         LOGGER.info("Sending kafka message...");
+        LOGGER.info("Key: "+key);
+        LOGGER.info("Topic: "+topic);
         byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
 
         Properties props = new Properties();
