@@ -4,6 +4,7 @@ jdk: oraclejdk8
 services:
     - postgresql
     - cassandra
+    - neo4j
 
 before_script: 
     - createdb test

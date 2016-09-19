@@ -202,9 +202,7 @@
                     <excludes>
                         <!-- Exclude the Gremlin tests by default because they try to fork Cassandra
                           and it fails because Cassandra is already running. -->
-                        <exclude>**/Cassandr*.java</exclude>
-                        <exclude>**/Postgres*.java</exclude>
-                        <exclude>**/Neo4j*.java</exclude>
+                        <exclude>**/Gremlin*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
