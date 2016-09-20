@@ -44,7 +44,7 @@ public class PostgresTest {
 
     @Before
     public void setup() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py " + TEST_DB_NAME + " test"
+        Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py " + TEST_DB_NAME + " test drop"
                 , null, new File("scripts/postgres/"));
         p.waitFor();
     }

@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/ground-context/ground.svg?branch=master)](https://travis-ci.org/ground-context/ground)
+[![CircleCI](https://circleci.com/gh/ground-context/ground.png?circle-token=4b494a01575da18eecdbbb180b89c2d8bd18cdb0)](https://circleci.com/gh/ground-context/ground-cntext)
+
 
 # Ground
 
