@@ -1,6 +1,9 @@
 language: java
 jdk: oraclejdk8
 
+sudo: required
+dist: trusty
+
 services:
     - postgresql
     - cassandra
@@ -9,10 +12,13 @@ services:
 before_script: 
     - createdb test
     - createuser test -d -s
-    - cqlsh -e "SHOW VERSION;"
     - |- 
         cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
     - cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
     - cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../../..
 
 script: mvn clean test
+
+after_success: 
+  - mvn clean test jacoco:report coveralls:report
+  
