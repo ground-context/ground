@@ -14,8 +14,8 @@ before_install:
   - java -version
   - sudo rm -rf /var/lib/cassandra/*
   - wget http://www.us.apache.org/dist/cassandra/3.7/apache-cassandra-3.7-bin.tar.gz && tar -xvzf apache-cassandra-3.7-bin.tar.gz
-  - sudo sh ./apache-cassandra-3.7/bin/cassandra -R
-  - sleep 20
+  - sudo sh ./apache-cassandra-3.7/bin/cassandra -R >> /dev/null
+  - sleep 60
 
 services:
     - postgresql
