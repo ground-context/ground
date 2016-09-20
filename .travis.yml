@@ -1,19 +1,23 @@
 language: java
 jdk: oraclejdk8
 
+sudo: required
+
 # install Neo4j manually because Neo4j as a service doesn't work
-before_install:
-  - wget dist.neo4j.org/neo4j-community-3.0.6-unix.tar.gz
-  - tar -xzf neo4j-community-3.0.6-unix.tar.gz
-  - neo4j-community-3.0.6/bin/neo4j start
+#before_install:
+#  - wget dist.neo4j.org/neo4j-community-3.0.6-unix.tar.gz
+#  - tar -xzf neo4j-community-3.0.6-unix.tar.gz
+#  - neo4j-community-3.0.6/bin/neo4j start
   
 services:
     - postgresql
     - cassandra
+    - neo4j
 
 before_script: 
     - createdb test
     - createuser test -d -s
+    - cqlsh -e "SHOW VERSION;"
     - |- 
         cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
     - cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
