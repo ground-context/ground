@@ -74,6 +74,6 @@ public class Neo4jTagFactory extends TagFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
 
-        return connection.getVerticesByLabel(predicates);
+        return connection.getVerticesByAttributes(predicates);
     }
 }

@@ -48,6 +48,7 @@ public class CassandraTagFactory extends TagFactory {
         while (resultSet.next()) {
             String key = resultSet.getString("key");
 
+            // these methods will return null if the input is null, so there's no need to check
             GroundType type = GroundType.fromString(resultSet.getString("type"));
 
             String valueString = resultSet.getString("value");
@@ -71,7 +72,7 @@ public class CassandraTagFactory extends TagFactory {
 
         QueryResults resultSet;
         try {
-            resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+            resultSet = connection.equalitySelect("Tags", projections, predicates);
         } catch (EmptyResultException eer) {
             // this means that there are no tags
             return result;

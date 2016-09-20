@@ -54,7 +54,7 @@ public class JGraphTUtilsTest {
         JGraphTUtils.addEdge(this.graph, idOne, idTwo);
         JGraphTUtils.addEdge(this.graph, idTwo, idThree);
 
-        List<String> reachable = JGraphTUtils.iterate(this.graph, idOne);
+        List<String> reachable = JGraphTUtils.runDFS(this.graph, idOne);
 
         assertEquals(3, reachable.size());
         assert(reachable).contains(idTwo);

@@ -46,6 +46,8 @@ public class PostgresTagFactory extends TagFactory {
 
         do {
             String key = resultSet.getString(2);
+
+            // these methods will return null if the input is null, so there's no need to check
             GroundType type = GroundType.fromString(resultSet.getString(4));
 
             String valueString = resultSet.getString(3);

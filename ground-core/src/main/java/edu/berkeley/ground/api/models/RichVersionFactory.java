@@ -39,6 +39,13 @@ public abstract class RichVersionFactory {
         return new RichVersion(id, tags, structureVersionId, reference, parameters);
     }
 
+    /**
+     * Validate that the given Tags satisfy the StructureVersion's requirements.
+     *
+     * @param structureVersion the StructureVersion to check against
+     * @param tags the provided tags
+     * @throws GroundException
+     */
     protected static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags) throws GroundException {
         Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 

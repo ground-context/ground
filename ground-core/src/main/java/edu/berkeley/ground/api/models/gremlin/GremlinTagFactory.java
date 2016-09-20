@@ -23,7 +23,6 @@ import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.util.*;
 
@@ -68,7 +67,7 @@ public class GremlinTagFactory extends TagFactory {
     public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
         GremlinConnection connection = (GremlinConnection) connectionPointer;
 
-        List<Vertex> taggedVertices = connection.getVerticesByLabel("tkey", tag);
+        List<Vertex> taggedVertices = connection.getVerticesByAttribute("tkey", tag);
 
         List<String> ids = new ArrayList<>();
         taggedVertices.forEach(vertex -> {

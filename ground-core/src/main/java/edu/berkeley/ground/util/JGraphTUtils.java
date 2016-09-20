@@ -36,7 +36,14 @@ public class JGraphTUtils {
         graph.addEdge(from, to);
     }
 
-    public static List<String> iterate(DirectedGraph<String, DefaultEdge> graph, String start) {
+    /**
+     * Run transitive closure from start.
+     *
+     * @param graph the graph to query
+     * @param start the start version
+     * @return the list of reachable nodes
+     */
+    public static List<String> runDFS(DirectedGraph<String, DefaultEdge> graph, String start) {
         DepthFirstIterator<String, DefaultEdge> iterator = new DepthFirstIterator<>(graph, start);
 
         List<String> result = new ArrayList<>();

@@ -21,16 +21,13 @@ import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.JGraphTUtils;
 
-import org.apache.cassandra.thrift.Cassandra;
 import org.jgrapht.*;
 import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CassandraClient implements DBClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
@@ -48,6 +45,7 @@ public class CassandraClient implements DBClient {
 
         this.keyspace = dbName;
 
+        // at startup, load all nodes & edges into JGraphT for later in-memory processing
         ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select id from nodeversions;");
         this.graph = JGraphTUtils.createGraph();
 
@@ -79,6 +77,12 @@ public class CassandraClient implements DBClient {
             this.adjacencyStatement = adjacencyStatement;
         }
 
+        /**
+         * Insert a new row into table with insertValues.
+         *
+         * @param table the table to update
+         * @param insertValues the values to put into table
+         */
         public void insert(String table, List<DbDataContainer> insertValues) {
             // hack to keep JGraphT up to date
             if (table.equals("NodeVersions")) {
@@ -135,6 +139,16 @@ public class CassandraClient implements DBClient {
             this.session.execute(statement);
         }
 
+        /**
+         * Retrieve rows based on a set of predicates.
+         *
+         * @param table the table to query
+         * @param projection the set of columns to retrieve
+         * @param predicatesAndValues the predicates
+         * @return
+         * @throws EmptyResultException
+         * @throws GroundDBException
+         */
         public CassandraResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws EmptyResultException, GroundDBException {
             String select = "select ";
             for (String item : projection) {
@@ -175,7 +189,7 @@ public class CassandraClient implements DBClient {
         }
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
-            return JGraphTUtils.iterate(this.graph, nodeVersionId);
+            return JGraphTUtils.runDFS(this.graph, nodeVersionId);
         }
 
         public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
@@ -204,43 +218,6 @@ public class CassandraClient implements DBClient {
             // do nothing; Cassandra doesn't have txns
         }
     }
-
-    private PreparedStatement prepareInsert(String table, int numFields) {
-        String insertString = "insert into " + table + "(";
-        String valuesString = "values (";
-
-        for (int i = 0 ; i < numFields ; i++) {
-            insertString += "?, ";
-            valuesString += "?, ";
-        }
-
-        insertString = insertString.substring(0, insertString.length() - 2) + ")";
-        valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
-
-        return this.cluster.connect(this.keyspace).prepare(insertString + valuesString + ";");
-    }
-
-    private PreparedStatement prepareSelect(String table, List<String> selects, List<String> predicateFields) {
-        String select = "select ";
-        for (String s : selects) {
-            select += s + ", ";
-        }
-
-        select = select.substring(0, select.length() - 2) + " from " + table;
-
-        if (predicateFields.size() > 0) {
-            select += " where ";
-
-            for (String predicateField : predicateFields) {
-                select += predicateField + " = ? and ";
-            }
-
-            select = select.substring(0, select.length() - 4);
-        }
-
-        return this.cluster.connect(this.keyspace).prepare(select + ";");
-    }
-
 
     private static void setValue(BoundStatement statement, Object value, GroundType groundType, int index) {
         switch (groundType) {

@@ -22,5 +22,16 @@ import java.util.List;
 public abstract class ItemFactory {
     public abstract void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException;
 
+    /**
+     * Add a new Version to this Item. The provided parentIds will be the parents of this particular
+     * version. What's provided in the default case varies based on which database we are writing
+     * into.
+     *
+     * @param connection
+     * @param itemId the id of the Item we're updating
+     * @param childId the new version's id
+     * @param parentIds the ids of the parents of the child
+     * @throws GroundException
+     */
     public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
 }

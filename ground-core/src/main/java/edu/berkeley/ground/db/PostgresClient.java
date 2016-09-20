@@ -56,6 +56,12 @@ public class PostgresClient implements DBClient {
         }
 
 
+        /**
+         * Insert a new row into table with insertValues.
+         *
+         * @param table the table to update
+         * @param insertValues the values to put into table
+         */
         public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
             String insertString = "insert into " + table + "(";
             String valuesString = "values (";
@@ -89,6 +95,16 @@ public class PostgresClient implements DBClient {
 
         }
 
+        /**
+         * Retrieve rows based on a set of predicates.
+         *
+         * @param table the table to query
+         * @param projection the set of columns to retrieve
+         * @param predicatesAndValues the predicates
+         * @return
+         * @throws EmptyResultException
+         * @throws GroundDBException
+         */
         public QueryResults equalitySelect(String table, List<String> projection,
                                            List<DbDataContainer> predicatesAndValues)
                 throws GroundDBException, EmptyResultException {
@@ -139,6 +155,7 @@ public class PostgresClient implements DBClient {
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
             try {
+                // recursive query implementation
                 /*
                 PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
                                                     "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
