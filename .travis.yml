@@ -5,7 +5,6 @@ jdk: oraclejdk8
 before_install:
   - wget dist.neo4j.org/neo4j-community-3.0.6-unix.tar.gz
   - tar -xzf neo4j-community-3.0.6-unix.tar.gz
-  - sed -i.bak s/dbms.security.auth_enabled=true/dbms.security.auth_enabled=false/g neo4j-community-3.0.6/conf/neo4j-server.properties
   - neo4j-community-3.0.6/bin/neo4j start
   
 services:
