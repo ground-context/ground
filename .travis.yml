@@ -21,6 +21,9 @@ before_script:
 
 script: mvn clean test
 
+after_script:
+    - cat /home/travis/build/ground-context/ground/neo4j-community-3.0.6/logs/neo4j.log
+
 after_success: 
-  - mvn clean test jacoco:report coveralls:report
+    - mvn clean test jacoco:report coveralls:report
   
