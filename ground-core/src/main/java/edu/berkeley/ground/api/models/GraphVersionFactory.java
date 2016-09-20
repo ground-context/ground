@@ -24,7 +24,7 @@ public abstract class GraphVersionFactory {
     public abstract GraphVersion create(Map<String, Tag> tags,
                                         String structureVersionId,
                                         String reference,
-                                        Map<String, String> parameters,
+                                        Map<String, String> referenceParameters,
                                         String graphId,
                                         List<String> edgeVersionIds,
                                         List<String> parentIds) throws GroundException;

@@ -33,10 +33,10 @@ public class NodeVersion extends RichVersion {
             @JsonProperty("tags") Map<String, Tag> tags,
             @JsonProperty("structureVersionId") String structureVersionId,
             @JsonProperty("reference") String reference,
-            @JsonProperty("parameters") Map<String, String> parameters,
+            @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
             @JsonProperty("nodeId") String nodeId) {
 
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.nodeId = nodeId;
     }

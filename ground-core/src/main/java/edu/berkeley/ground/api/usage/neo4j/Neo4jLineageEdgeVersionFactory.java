@@ -54,7 +54,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     public LineageEdgeVersion create(Map<String, Tag> tags,
                                      String structureVersionId,
                                      String reference,
-                                     Map<String, String> parameters,
+                                     Map<String, String> referenceParameters,
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
@@ -76,7 +76,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             connection.addVertex("LineageEdgeVersions", insertions);
 
             this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             connection.addEdge("LineageEdgeVersionConnection", fromId, id, new ArrayList<>());
             connection.addEdge("LineageEdgeVersionConnection", id, toId, new ArrayList<>());
@@ -84,7 +84,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             connection.commit();
             LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-            return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, fromId, toId, lineageEdgeId);
+            return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
         } catch (GroundException e) {
             connection.abort();
 

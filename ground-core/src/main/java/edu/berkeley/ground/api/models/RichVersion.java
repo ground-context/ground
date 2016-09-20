@@ -40,14 +40,14 @@ public class RichVersion extends Version {
                           Map<String, Tag> tags,
                           String structureVersionId,
                           String reference,
-                          Map<String, String> parameters) {
+                          Map<String, String> referenceParameters) {
 
         super(id);
 
         this.tags = tags;
         this.structureVersionId = structureVersionId;
         this.reference = reference;
-        this.parameters = parameters;
+        this.parameters = referenceParameters;
     }
 
     @JsonProperty

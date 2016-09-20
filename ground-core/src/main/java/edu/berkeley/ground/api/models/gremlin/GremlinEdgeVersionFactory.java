@@ -51,7 +51,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
     public EdgeVersion create(Map<String, Tag> tags,
                               String structureVersionId,
                               String reference,
-                              Map<String, String> parameters,
+                              Map<String, String> referenceParameters,
                               String edgeId,
                               String fromId,
                               String toId,
@@ -72,7 +72,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
             insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
 
             Vertex vertex = connection.addVertex("EdgeVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
@@ -101,7 +101,7 @@ public class GremlinEdgeVersionFactory extends EdgeVersionFactory {
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, edgeId, fromId, toId);
+            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
         } catch (GroundException e) {
             connection.abort();
             throw e;

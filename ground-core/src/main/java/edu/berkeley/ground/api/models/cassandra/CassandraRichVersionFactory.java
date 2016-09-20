@@ -49,7 +49,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
                                    Map<String, Tag>tags,
                                    String structureVersionId,
                                    String reference,
-                                   Map<String, String> parameters) throws GroundException {
+                                   Map<String, String> referenceParameters) throws GroundException {
         CassandraConnection connection = (CassandraConnection) connectionPointer;
         this.versionFactory.insertIntoDatabase(connection, id);
 
@@ -84,11 +84,11 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
             connection.insert("Tags", tagInsertion);
         }
 
-        for (String key : parameters.keySet()) {
+        for (String key : referenceParameters.keySet()) {
             List<DbDataContainer> parameterInsertion = new ArrayList<>();
             parameterInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
             parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
-            parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, parameters.get(key)));
+            parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
 
             connection.insert("RichVersionExternalParameters", parameterInsertion);
         }
@@ -113,15 +113,15 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> parameterPredicates = new ArrayList<>();
         parameterPredicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, String> referenceParameters = new HashMap<>();
         try {
             QueryResults parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
 
             while (parameterSet.next()) {
-                parameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
+                referenceParameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
             }
         } catch (EmptyResultException eer) {
-            // do nothing; this just means that there are no parameters
+            // do nothing; this just means that there are no referenceParameters
         }
 
         Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
@@ -129,6 +129,6 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         String reference = resultSet.getString("reference");
         String structureVersionId = resultSet.getString("structure_id");
 
-        return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
+        return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
     }
 }

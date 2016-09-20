@@ -25,7 +25,7 @@ public abstract class LineageEdgeVersionFactory {
     public abstract LineageEdgeVersion create(Map<String, Tag> tags,
                                               String structureVersionId,
                                               String reference,
-                                              Map<String, String> parameters,
+                                              Map<String, String> referenceParameters,
                                               String fromId,
                                               String toId,
                                               String lineageEdgeId,
@@ -37,10 +37,10 @@ public abstract class LineageEdgeVersionFactory {
                                                   Map<String, Tag> tags,
                                                   String structureVersionId,
                                                   String reference,
-                                                  Map<String, String> parameters,
+                                                  Map<String, String> referenceParameters,
                                                   String fromId,
                                                   String toId,
                                                   String lineageEdgeId) {
-        return new LineageEdgeVersion(id, tags, structureVersionId, reference, parameters, fromId, toId, lineageEdgeId);
+        return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
     }
 }

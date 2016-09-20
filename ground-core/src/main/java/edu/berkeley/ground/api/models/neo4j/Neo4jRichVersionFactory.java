@@ -46,7 +46,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
                                    Map<String, Tag> tags,
                                    String structureVersionId,
                                    String reference,
-                                   Map<String, String> parameters
+                                   Map<String, String> referenceParameters
     ) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
@@ -55,8 +55,8 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
             RichVersionFactory.checkStructureTags(structureVersion, tags);
         }
 
-        for (String key : parameters.keySet()) {
-            String value = parameters.get(key);
+        for (String key : referenceParameters.keySet()) {
+            String value = referenceParameters.get(key);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
@@ -114,11 +114,11 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
         returnFields.add("value");
 
         List<Record> parameterVertices = connection.getAdjacentVerticesByEdgeLabel("RichVersionExternalParameterConnection", id, returnFields);
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, String> referenceParameters = new HashMap<>();
 
         if (!parameterVertices.isEmpty()) {
             for (Record parameter : parameterVertices) {
-                parameters.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
+                referenceParameters.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
             }
         }
 
@@ -140,6 +140,6 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
                     .get("structure_id"));
         }
 
-        return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
+        return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
     }
 }

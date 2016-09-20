@@ -49,7 +49,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
     public EdgeVersion create(Map<String, Tag> tags,
                               String structureVersionId,
                               String reference,
-                              Map<String, String> parameters,
+                              Map<String, String> referenceParameters,
                               String edgeId,
                               String fromId,
                               String toId,
@@ -62,7 +62,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
 
             tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -77,7 +77,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, edgeId, fromId, toId);
+            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
         } catch (GroundException e) {
             connection.abort();
             throw e;

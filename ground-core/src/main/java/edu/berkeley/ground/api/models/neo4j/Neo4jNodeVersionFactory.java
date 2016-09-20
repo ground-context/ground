@@ -53,7 +53,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     public NodeVersion create(Map<String, Tag> tags,
                               String structureVersionId,
                               String reference,
-                              Map<String, String> parameters,
+                              Map<String, String> referenceParameters,
                               String nodeId,
                               List<String> parentIds) throws GroundException {
 
@@ -70,7 +70,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
 
             connection.addVertex("NodeVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             this.nodeFactory.update(connection, nodeId, id, parentIds);
 
@@ -78,7 +78,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
 
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
-            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, nodeId);
+            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
         } catch (GroundException e) {
             connection.abort();
 

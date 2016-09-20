@@ -27,7 +27,7 @@ public abstract class RichVersionFactory {
                                             Map<String, Tag>tags,
                                             String structureVersionId,
                                             String reference,
-                                            Map<String, String> parameters) throws GroundException;
+                                            Map<String, String> referenceParameters) throws GroundException;
 
     public abstract RichVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException;
 

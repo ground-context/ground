@@ -36,12 +36,12 @@ public class EdgeVersion extends RichVersion {
             @JsonProperty("tags") Map<String, Tag> tags,
             @JsonProperty("structureVersionId") String structureVersionId,
             @JsonProperty("reference") String reference,
-            @JsonProperty("parameters") Map<String, String> parameters,
+            @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
             @JsonProperty("edgeId") String edgeId,
             @JsonProperty("fromId") String fromId,
             @JsonProperty("toId") String toId) {
 
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.edgeId = edgeId;
         this.fromId = fromId;

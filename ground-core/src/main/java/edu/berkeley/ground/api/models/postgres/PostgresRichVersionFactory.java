@@ -49,7 +49,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
                                    Map<String, Tag> tags,
                                    String structureVersionId,
                                    String reference,
-                                   Map<String, String> parameters) throws GroundException {
+                                   Map<String, String> referenceParameters) throws GroundException {
         PostgresConnection connection = (PostgresConnection) connectionPointer;
 
         this.versionFactory.insertIntoDatabase(connection, id);
@@ -84,12 +84,12 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
             connection.insert("Tags", tagInsertion);
         }
 
-        for (String key : parameters.keySet()) {
+        for (String key : referenceParameters.keySet()) {
             List<DbDataContainer> parameterInsertion = new ArrayList<>();
 
             parameterInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
             parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
-            parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, parameters.get(key)));
+            parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
 
             connection.insert("RichVersionExternalParameters", parameterInsertion);
         }
@@ -110,16 +110,16 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> parameterPredicates = new ArrayList<>();
         parameterPredicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, String> referenceParameters = new HashMap<>();
 
         try {
             QueryResults parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
 
             do {
-                parameters.put(parameterSet.getString(2), parameterSet.getString(3));
+                referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
             } while (parameterSet.next());
         } catch (EmptyResultException eer) {
-            // do nothing; there are no parameters
+            // do nothing; there are no referenceParameters
         }
 
         Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
@@ -127,6 +127,6 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
         String reference = resultSet.getString(3);
         String structureVersionId = resultSet.getString(2);
 
-        return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
+        return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
     }
 }

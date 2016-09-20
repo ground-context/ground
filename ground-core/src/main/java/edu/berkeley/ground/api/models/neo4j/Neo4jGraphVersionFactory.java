@@ -52,7 +52,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
     public GraphVersion create(Map<String, Tag> tags,
                                String structureVersionId,
                                String reference,
-                               Map<String, String> parameters,
+                               Map<String, String> referenceParameters,
                                String graphId,
                                List<String> edgeVersionIds,
                                List<String> parentIds) throws GroundException {
@@ -72,7 +72,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
 
             connection.commit(); connection = this.dbClient.getConnection();
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             connection.commit(); connection = this.dbClient.getConnection();
 
@@ -86,7 +86,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
-            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
         } catch (GroundException e) {
             connection.abort();
 

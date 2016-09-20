@@ -53,7 +53,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
     public EdgeVersion create(Map<String, Tag> tags,
                               String structureVersionId,
                               String reference,
-                              Map<String, String> parameters,
+                              Map<String, String> referenceParameters,
                               String edgeId,
                               String fromId,
                               String toId,
@@ -73,7 +73,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
             insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
 
             connection.addVertex("EdgeVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             connection.addEdge("EdgeVersionConnection", fromId, id, new ArrayList<>());
             connection.addEdge("EdgeVersionConnection", id, toId, new ArrayList<>());
@@ -83,7 +83,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, edgeId, fromId, toId);
+            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
         } catch (GroundException e) {
             connection.abort();
             throw e;

@@ -24,7 +24,7 @@ public abstract class NodeVersionFactory {
     public abstract NodeVersion create(Map<String, Tag> tags,
                                        String structureVersionId,
                                        String reference,
-                                       Map<String, String> parameters,
+                                       Map<String, String> referenceParameters,
                                        String nodeId,
                                        List<String> parentIds) throws GroundException;
 

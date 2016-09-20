@@ -50,7 +50,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
     public NodeVersion create(Map<String, Tag> tags,
                               String structureVersionId,
                               String reference,
-                              Map<String, String> parameters,
+                              Map<String, String> referenceParameters,
                               String nodeId,
                               List<String> parentIds) throws GroundException {
 
@@ -62,7 +62,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
             // add the id of the version to the tag
             tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -75,7 +75,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
             connection.commit();
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
-            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, nodeId);
+            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
         } catch (GroundException e) {
             connection.abort();
 

@@ -52,7 +52,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
     public GraphVersion create(Map<String, Tag> tags,
                                String structureVersionId,
                                String reference,
-                               Map<String, String> parameters,
+                               Map<String, String> referenceParameters,
                                String graphId,
                                List<String> edgeVersionIds,
                                List<String> parentIds) throws GroundException {
@@ -64,7 +64,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
 
             tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -85,7 +85,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
-            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
         } catch (GroundException e) {
             connection.abort();
 

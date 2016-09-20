@@ -37,11 +37,11 @@ public class GraphVersion extends RichVersion {
                            @JsonProperty("tags") Map<String, Tag> tags,
                            @JsonProperty("structureVersionId") String structureVersionId,
                            @JsonProperty("reference") String reference,
-                           @JsonProperty("parameters") Map<String, String> parameters,
+                           @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
                            @JsonProperty("graphId") String graphId,
                            @JsonProperty("edgeVersionIds") List<String> edgeVersionIds)  {
 
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.graphId = graphId;
         this.edgeVersionIds = edgeVersionIds;

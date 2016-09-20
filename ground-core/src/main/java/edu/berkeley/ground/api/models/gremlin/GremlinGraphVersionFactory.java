@@ -51,7 +51,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
     public GraphVersion create(Map<String, Tag> tags,
                                String structureVersionId,
                                String reference,
-                               Map<String, String> parameters,
+                               Map<String, String> referenceParameters,
                                String graphId,
                                List<String> edgeVersionIds,
                                List<String> parentIds) throws GroundException {
@@ -68,7 +68,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
 
             Vertex versionVertex = connection.addVertex("GraphVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             for (String edgeVersionId : edgeVersionIds) {
                 List<DbDataContainer> edgeQuery = new ArrayList<>();
@@ -88,7 +88,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
-            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
         } catch (GroundException e) {
             connection.abort();
 

@@ -44,7 +44,7 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
                                    Map<String, Tag>tags,
                                    String structureVersionId,
                                    String reference,
-                                   Map<String, String> parameters
+                                   Map<String, String> referenceParameters
     ) throws GroundException {
         GremlinConnection connection = (GremlinConnection) connectionPointer;
 
@@ -63,11 +63,11 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
             RichVersionFactory.checkStructureTags(structureVersion, tags);
         }
 
-        if (!parameters.isEmpty()) {
-            Map<String, String> parametersMap = parameters;
+        if (!referenceParameters.isEmpty()) {
+            Map<String, String> referenceParametersMap = referenceParameters;
 
-            for (String key : parametersMap.keySet()) {
-                String value = parametersMap.get(key);
+            for (String key : referenceParametersMap.keySet()) {
+                String value = referenceParametersMap.get(key);
 
                 List<DbDataContainer> insertions = new ArrayList<>();
                 insertions.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
@@ -122,10 +122,10 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
         }
 
         List<Vertex> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "RichVersionExternalParameterConnection");
-        Map<String, String> parameters = new HashMap<>();
+        Map<String, String> referenceParameters = new HashMap<>();
 
         for (Vertex parameter : parameterVertices) {
-            parameters.put(parameter.property("pkey").value().toString(), parameter.property("value").value().toString());
+            referenceParameters.put(parameter.property("pkey").value().toString(), parameter.property("value").value().toString());
         }
 
         Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
@@ -141,6 +141,6 @@ public class GremlinRichVersionFactory extends RichVersionFactory {
             structureVersionId = versionVertex.property("structureversion_id").value().toString();
         }
 
-        return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
+        return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
     }
 }

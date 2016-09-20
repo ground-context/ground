@@ -54,7 +54,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
     public LineageEdgeVersion create(Map<String, Tag> tags,
                                      String structureVersionId,
                                      String reference,
-                                     Map<String, String> parameters,
+                                     Map<String, String> referenceParameters,
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
@@ -67,7 +67,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
 
             tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -82,7 +82,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
             connection.commit();
             LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-            return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, fromId, toId, lineageEdgeId);
+            return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
         } catch (GroundException e) {
             connection.abort();
 

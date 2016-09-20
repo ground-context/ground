@@ -24,7 +24,7 @@ public class Graph extends Item<GraphVersion> {
 
     @JsonCreator
     protected Graph(@JsonProperty("id") String id,
-                  @JsonProperty("name") String name) {
+                    @JsonProperty("name") String name) {
         super(id);
 
         this.name = name;
