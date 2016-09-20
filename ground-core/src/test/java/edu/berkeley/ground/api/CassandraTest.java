@@ -44,7 +44,7 @@ public class CassandraTest {
 
     @Before
     public void setup() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("python2.7 cassandra_setup.py " + TEST_DB_NAME, null,
+        Process p = Runtime.getRuntime().exec("python2.7 cassandra_setup.py " + TEST_DB_NAME  + " drop", null,
                 new File("scripts/cassandra/"));
         p.waitFor();
     }
