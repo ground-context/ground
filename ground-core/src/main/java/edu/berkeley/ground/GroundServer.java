@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,8 @@ import edu.berkeley.ground.util.GremlinFactories;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 
 public class GroundServer extends Application<GroundServerConfiguration> {
     private EdgeFactory edgeFactory;
@@ -52,10 +54,17 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         return "ground-server";
     }
 
+
     @Override
     public void initialize(Bootstrap<GroundServerConfiguration> bootstrap){
-        // nothing
+        bootstrap.addBundle(new SwaggerBundle<GroundServerConfiguration>() {
+            @Override
+            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(GroundServerConfiguration configuration) {
+                return configuration.swaggerBundleConfiguration;
+            }
+        });
     }
+
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) throws GroundException {

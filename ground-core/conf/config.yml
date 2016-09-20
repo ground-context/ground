@@ -6,6 +6,8 @@ dbUser: neo4j
 dbPassword: password
 kafkaHost: localhost
 kafkaPort: 9092
+swagger:
+  resourcePackage: edu.berkeley.ground.resources
 server:
   applicationConnectors:
     - type: http

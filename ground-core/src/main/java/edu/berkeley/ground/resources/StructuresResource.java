@@ -21,6 +21,8 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
+import io.swagger.annotations.Api;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/structures")
+@Api(value = "/structures", description = "Interact with the structures in the graph")
 @Produces(MediaType.APPLICATION_JSON)
 public class StructuresResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructuresResource.class);
