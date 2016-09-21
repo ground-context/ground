@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -49,10 +50,10 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     }
 
 
-    public NodeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public NodeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> referenceParameters,
                               String nodeId,
                               List<String> parentIds) throws GroundException {
 
@@ -62,11 +63,9 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             String id = IdGenerator.generateId(nodeId);
 
             // add the id of the version to the tag
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -79,7 +78,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             connection.commit();
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
-            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, nodeId);
+            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
         } catch (GroundException e) {
             connection.abort();
 
@@ -96,7 +95,17 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("NodeVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("NodeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + id + ".");
+            }
+
+            if (!resultSet.next()) {
+                throw new GroundException("No NodeVersion found with id " + id + ".");
+            }
+
             String nodeId = resultSet.getString(1);
 
             connection.commit();

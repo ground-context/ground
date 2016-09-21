@@ -21,6 +21,8 @@ import java.util.List;
 public interface QueryResults {
     String getString(int index) throws GroundException;
 
+    String getString(String field) throws GroundException;
+
     int getInt(int index) throws GroundException;
 
     boolean getBoolean(int index) throws GroundException;

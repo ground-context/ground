@@ -33,15 +33,15 @@ public class EdgeVersion extends RichVersion {
     @JsonCreator
     protected EdgeVersion(
             @JsonProperty("id") String id,
-            @JsonProperty("tags") Optional<Map<String, Tag>> tags,
-            @JsonProperty("structureVersionId") Optional<String> structureVersionId,
-            @JsonProperty("reference") Optional<String> reference,
-            @JsonProperty("parameters") Optional<Map<String, String>> parameters,
+            @JsonProperty("tags") Map<String, Tag> tags,
+            @JsonProperty("structureVersionId") String structureVersionId,
+            @JsonProperty("reference") String reference,
+            @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
             @JsonProperty("edgeId") String edgeId,
             @JsonProperty("fromId") String fromId,
             @JsonProperty("toId") String toId) {
 
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.edgeId = edgeId;
         this.fromId = fromId;
@@ -63,4 +63,18 @@ public class EdgeVersion extends RichVersion {
         return this.toId;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof EdgeVersion)) {
+            return false;
+        }
+
+        EdgeVersion otherEdgeVersion = (EdgeVersion) other;
+
+        return this.edgeId.equals(otherEdgeVersion.edgeId) &&
+                this.fromId.equals(otherEdgeVersion.fromId) &&
+                this.toId.equals(otherEdgeVersion.toId) &&
+                this.getId().equals(otherEdgeVersion.getId()) &&
+                super.equals(other);
+    }
 }

@@ -25,6 +25,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -50,10 +51,10 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
     }
 
 
-    public LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
-                                     Optional<String> structureVersionId,
-                                     Optional<String> reference,
-                                     Optional<Map<String, String>> parameters,
+    public LineageEdgeVersion create(Map<String, Tag> tags,
+                                     String structureVersionId,
+                                     String reference,
+                                     Map<String, String> referenceParameters,
                                      String fromId,
                                      String toId,
                                      String lineageEdgeId,
@@ -64,11 +65,9 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
         try {
             String id = IdGenerator.generateId(lineageEdgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -83,7 +82,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
             connection.commit();
             LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-            return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, fromId, toId, lineageEdgeId);
+            return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
         } catch (GroundException e) {
             connection.abort();
 
@@ -100,11 +99,20 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("LineageEdgeVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("LineageEdgeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
+            }
 
-            String lineageEdgeId = resultSet.getString(2);
-            String fromId = resultSet.getString(3);
-            String toId = resultSet.getString(4);
+            if (!resultSet.next()) {
+                throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
+            }
+
+            String lineageEdgeId = resultSet.getString("lineageedge_id");
+            String fromId = resultSet.getString("endpoint_one");
+            String toId = resultSet.getString("endpoint_two");
 
             connection.commit();
             LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");

@@ -31,6 +31,13 @@ public interface DBClient {
 
         public abstract void abort() throws GroundDBException;
 
+        /**
+         * Run transitive closure from nodeVersionId.
+         *
+         * @param nodeVersionId the start id
+         * @return the list of reachable ids
+         * @throws GroundException
+         */
         public abstract List<String> transitiveClosure(String nodeVersionId) throws GroundException;
     }
 }

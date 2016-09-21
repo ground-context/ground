@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -80,17 +81,31 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        QueryResults resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
 
-        List<DbDataContainer> attributePredicates = new ArrayList<>();
-        attributePredicates.add(new DbDataContainer("svid", GroundType.STRING, id));
-        QueryResults attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No StructureVersion found with id " + id + ".");
+        }
+
+        if (!resultSet.next()) {
+            throw new GroundException("No StructureVersion found with id " + id + ".");
+        }
 
         Map<String, GroundType> attributes = new HashMap<>();
 
-        do {
-            attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet.getString(2)));
-        } while (attributesSet.next());
+        try {
+            List<DbDataContainer> attributePredicates = new ArrayList<>();
+            attributePredicates.add(new DbDataContainer("svid", GroundType.STRING, id));
+            QueryResults attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+
+            while (attributesSet.next()) {
+                attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet.getString(2)));
+            }
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No StructureVersion attributes found for id " + id + ".");
+        }
 
         String structureId = resultSet.getString(1);
 

@@ -34,14 +34,14 @@ public class GraphVersion extends RichVersion {
 
     @JsonCreator
     protected GraphVersion(@JsonProperty("id") String id,
-                           @JsonProperty("tags") Optional<Map<String, Tag>> tags,
-                           @JsonProperty("structureVersionId") Optional<String> structureVersionId,
-                           @JsonProperty("reference") Optional<String> reference,
-                           @JsonProperty("parameters") Optional<Map<String, String>> parameters,
+                           @JsonProperty("tags") Map<String, Tag> tags,
+                           @JsonProperty("structureVersionId") String structureVersionId,
+                           @JsonProperty("reference") String reference,
+                           @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
                            @JsonProperty("graphId") String graphId,
                            @JsonProperty("edgeVersionIds") List<String> edgeVersionIds)  {
 
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.graphId = graphId;
         this.edgeVersionIds = edgeVersionIds;
@@ -57,4 +57,16 @@ public class GraphVersion extends RichVersion {
         return this.edgeVersionIds;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof GraphVersion)) {
+            return false;
+        }
+
+        GraphVersion otherGraphVersion = (GraphVersion) other;
+
+        return this.graphId.equals(otherGraphVersion.graphId) &&
+                this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds) &&
+                super.equals(other);
+    }
 }

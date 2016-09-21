@@ -15,6 +15,7 @@
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
@@ -55,6 +56,12 @@ public class PostgresClient implements DBClient {
         }
 
 
+        /**
+         * Insert a new row into table with insertValues.
+         *
+         * @param table the table to update
+         * @param insertValues the values to put into table
+         */
         public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
             String insertString = "insert into " + table + "(";
             String valuesString = "values (";
@@ -88,7 +95,19 @@ public class PostgresClient implements DBClient {
 
         }
 
-        public QueryResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws GroundDBException {
+        /**
+         * Retrieve rows based on a set of predicates.
+         *
+         * @param table the table to query
+         * @param projection the set of columns to retrieve
+         * @param predicatesAndValues the predicates
+         * @return
+         * @throws EmptyResultException
+         * @throws GroundDBException
+         */
+        public QueryResults equalitySelect(String table, List<String> projection,
+                                           List<DbDataContainer> predicatesAndValues)
+                throws GroundDBException, EmptyResultException {
             String select = "select ";
 
             for (String item : projection) {
@@ -121,7 +140,7 @@ public class PostgresClient implements DBClient {
 
                 ResultSet resultSet = preparedStatement.executeQuery();
                 if (!resultSet.isBeforeFirst()) {
-                    throw new GroundDBException("No results found for query: " + preparedStatement.toString());
+                    throw new EmptyResultException("No results found for query: " + preparedStatement.toString());
                 }
 
                 // Moves the cursor to the first element so that data can be accessed directly.
@@ -136,6 +155,7 @@ public class PostgresClient implements DBClient {
 
         public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
             try {
+                // recursive query implementation
                 /*
                 PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
                                                     "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +

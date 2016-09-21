@@ -16,10 +16,12 @@ package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
@@ -41,13 +43,19 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
-
-        QueryResults resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet = null;
+        try {
+            resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            // do nothing' this just means that no versions have been added yet.
+            return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+        }
 
         List<VersionSuccessor<T>> edges = new ArrayList<>();
-        do {
+
+        while (resultSet.next()) {
             edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getString(1)));
-        } while (resultSet.next());
+        }
 
         return VersionHistoryDAGFactory.construct(itemId, edges);
     }

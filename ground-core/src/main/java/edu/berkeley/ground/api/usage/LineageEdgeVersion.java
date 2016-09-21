@@ -38,14 +38,14 @@ public class LineageEdgeVersion extends RichVersion {
 
     @JsonCreator
     protected LineageEdgeVersion(@JsonProperty("id") String id,
-                                 @JsonProperty("tags") Optional<Map<String, Tag>> tags,
-                                 @JsonProperty("structureVersionId") Optional<String> structureVersionId,
-                                 @JsonProperty("reference") Optional<String> reference,
-                                 @JsonProperty("parameters") Optional<Map<String, String>> parameters,
+                                 @JsonProperty("tags") Map<String, Tag> tags,
+                                 @JsonProperty("structureVersionId") String structureVersionId,
+                                 @JsonProperty("reference") String reference,
+                                 @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
                                  @JsonProperty("fromId") String fromId,
                                  @JsonProperty("toId") String toId,
                                  @JsonProperty("lineageEdgeId") String lineageEdgeId) {
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.lineageEdgeId = lineageEdgeId;
         this.fromId = fromId;
@@ -67,4 +67,18 @@ public class LineageEdgeVersion extends RichVersion {
         return this.toId;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof LineageEdgeVersion)) {
+            return false;
+        }
+
+        LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
+
+        return this.lineageEdgeId.equals(otherLineageEdgeVersion.lineageEdgeId) &&
+                this.fromId.equals(otherLineageEdgeVersion.fromId) &&
+                this.toId.equals(otherLineageEdgeVersion.toId) &&
+                this.getId().equals(otherLineageEdgeVersion.getId()) &&
+                super.equals(other);
+    }
 }

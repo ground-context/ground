@@ -23,7 +23,10 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+
+import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 
@@ -38,51 +41,58 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
         this.tagFactory = tagFactory;
     }
 
-    public void insertIntoDatabase(GroundDBConnection connectionPointer, String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters) throws GroundException {
+    public void insertIntoDatabase(GroundDBConnection connectionPointer,
+                                   String id,
+                                   Map<String, Tag> tags,
+                                   String structureVersionId,
+                                   String reference,
+                                   Map<String, String> referenceParameters
+    ) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
-        if (structureVersionId.isPresent()) {
-            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId.get());
+        if (structureVersionId != null) {
+            StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
             RichVersionFactory.checkStructureTags(structureVersion, tags);
         }
 
-        if (parameters.isPresent()) {
-            Map<String, String> parametersMap = parameters.get();
+        for (String key : referenceParameters.keySet()) {
+            String value = referenceParameters.get(key);
 
-            for (String key : parametersMap.keySet()) {
-                String value = parametersMap.get(key);
+            List<DbDataContainer> insertions = new ArrayList<>();
+            insertions.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+            insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
+            insertions.add(new DbDataContainer("value", GroundType.STRING, value));
 
-                List<DbDataContainer> insertions = new ArrayList<>();
-                insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-                insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
-                insertions.add(new DbDataContainer("value", GroundType.STRING, value));
+            connection.addVertexAndEdge("RichVersionExternalParameter", insertions, "RichVersionExternalParameterConnection", id, new ArrayList<>());
 
-                connection.addVertexAndEdge("RichVersionExternalParameter", insertions, "RichVersionExternalParameterConnection", id, new ArrayList<>());
+            insertions.clear();
+        }
 
-                insertions.clear();
+        if (structureVersionId != null) {
+            connection.setProperty(id, "structure_id", structureVersionId, true);
+        }
+
+        if (reference != null) {
+            connection.setProperty(id, "reference", reference, true);
+        }
+
+        for (String key : tags.keySet()) {
+            Tag tag = tags.get(key);
+
+            List<DbDataContainer> tagInsertion = new ArrayList<>();
+            tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+            tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
+
+            if (tag.getValue() != null) {
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+            } else {
+                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
+                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
             }
-        }
 
-        if (structureVersionId.isPresent()) {
-            connection.setProperty(id, "structure_id", structureVersionId.get(), true);
-        }
-
-        if (reference.isPresent()) {
-            connection.setProperty(id, "reference", reference.get(), true);
-        }
-
-        if (tags.isPresent()) {
-            for (String key : tags.get().keySet()) {
-                Tag tag = tags.get().get(key);
-
-                List<DbDataContainer> tagInsertion = new ArrayList<>();
-                tagInsertion.add(new DbDataContainer("id", GroundType.STRING, id));
-                tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
-                tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().map(Object::toString).orElse(null)));
-                tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().map(Object::toString).orElse(null)));
-
-                connection.addVertexAndEdge("Tag", tagInsertion, "TagConnection", id, new ArrayList<>());
-            }
+            connection.addVertexAndEdge("Tag", tagInsertion, "TagConnection", id, new ArrayList<>());
+            tagInsertion.clear();
         }
     }
 
@@ -91,32 +101,45 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        Record record = connection.getVertex(predicates);
+        Record record = null;
+
+        try {
+            record = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No RichVersion found with id " + id + ".");
+        }
 
         List<String> returnFields = new ArrayList<>();
         returnFields.add("pkey");
         returnFields.add("value");
 
-        List<Record> parameterVertices = connection.getAdjacentVerticesByEdgeLabel(id, "RichVersionExternalParameterConnection", returnFields);
-        Optional<Map<String, String>> parameters;
+        List<Record> parameterVertices = connection.getAdjacentVerticesByEdgeLabel("RichVersionExternalParameterConnection", id, returnFields);
+        Map<String, String> referenceParameters = new HashMap<>();
 
         if (!parameterVertices.isEmpty()) {
-            Map<String, String> parametersMap = new HashMap<>();
-
             for (Record parameter : parameterVertices) {
-                parametersMap.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
+                referenceParameters.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
             }
-
-            parameters = Optional.of(parametersMap);
-        } else {
-            parameters = Optional.empty();
         }
 
-        Optional<Map<String, Tag>> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
+        Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
 
-        Optional<String> reference = Optional.ofNullable(record.get("reference").toString());
-        Optional<String> structureVersionId = Optional.ofNullable(record.get("structure_id").toString());
+        String reference;
+        if (record.get("v").asNode().get("reference") instanceof NullValue) {
+            reference = null;
+        } else {
+            reference = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode()
+                    .get("reference"));
+        }
 
-        return RichVersionFactory.construct(id, tags, structureVersionId, reference, parameters);
+        String structureVersionId;
+        if (record.get("v").asNode().get("structure_id") instanceof  NullValue) {
+            structureVersionId = null;
+        } else {
+            structureVersionId = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode()
+                    .get("structure_id"));
+        }
+
+        return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
     }
 }

@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -48,10 +49,10 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
         this.richVersionFactory = richVersionFactory;
     }
 
-    public EdgeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public EdgeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> referenceParameters,
                               String edgeId,
                               String fromId,
                               String toId,
@@ -62,11 +63,9 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
         try {
             String id = IdGenerator.generateId(edgeId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -81,7 +80,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
             connection.commit();
             LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, edgeId, fromId, toId);
+            return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
         } catch (GroundException e) {
             connection.abort();
             throw e;
@@ -97,10 +96,20 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
-            String edgeId = resultSet.getString(1);
-            String fromId = resultSet.getString(2);
-            String toId = resultSet.getString(3);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
+
+            if (!resultSet.next()) {
+                throw new GroundException("No EdgeVersion found with id " + id + ".");
+            }
+
+            String edgeId = resultSet.getString("edge_id");
+            String fromId = resultSet.getString("endpoint_one");
+            String toId = resultSet.getString("endpoint_two");
 
             connection.commit();
             LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");

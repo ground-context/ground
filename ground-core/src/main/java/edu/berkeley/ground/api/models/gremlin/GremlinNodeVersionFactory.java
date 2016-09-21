@@ -22,6 +22,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -48,10 +49,10 @@ public class GremlinNodeVersionFactory extends NodeVersionFactory {
     }
 
 
-    public NodeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public NodeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> referenceParameters,
                               String nodeId,
                               List<String> parentIds) throws GroundException {
 
@@ -61,23 +62,21 @@ public class GremlinNodeVersionFactory extends NodeVersionFactory {
             String id = IdGenerator.generateId(nodeId);
 
             // add the id of the version to the tag
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
             insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
 
             connection.addVertex("NodeVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             this.nodeFactory.update(connection, nodeId, id, parentIds);
 
             connection.commit();
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
-            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, nodeId);
+            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
         } catch (GroundException e) {
             connection.abort();
 
@@ -94,7 +93,13 @@ public class GremlinNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Vertex vertex = connection.getVertex(predicates);
+            Vertex vertex = null;
+            try {
+                vertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + id + ".");
+            }
+
             String nodeId = vertex.property("node_id").value().toString();
 
             connection.commit();

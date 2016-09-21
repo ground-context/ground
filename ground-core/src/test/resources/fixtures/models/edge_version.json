@@ -10,7 +10,7 @@
     },
     
     "reference": "http://www.google.com",
-    "parameters": {
+    "referenceParameters": {
         "http": "GET"
     }, 
 

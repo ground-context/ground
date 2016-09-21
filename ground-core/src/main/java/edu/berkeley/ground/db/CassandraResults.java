@@ -39,6 +39,14 @@ public class CassandraResults implements QueryResults {
         }
     }
 
+    public String getString(String field) throws GroundException {
+        try {
+            return this.currentRow.getString(field);
+        } catch (Exception e) {
+            throw new GroundException(e);
+        }
+    }
+
     public int getInt(int index) throws GroundException {
         try {
             return this.currentRow.getInt(index);

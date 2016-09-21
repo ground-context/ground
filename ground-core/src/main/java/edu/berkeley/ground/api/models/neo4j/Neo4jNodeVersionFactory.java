@@ -22,8 +22,11 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +50,10 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
         this.richVersionFactory = richVersionFactory;
     }
 
-    public NodeVersion create(Optional<Map<String, Tag>> tags,
-                              Optional<String> structureVersionId,
-                              Optional<String> reference,
-                              Optional<Map<String, String>> parameters,
+    public NodeVersion create(Map<String, Tag> tags,
+                              String structureVersionId,
+                              String reference,
+                              Map<String, String> referenceParameters,
                               String nodeId,
                               List<String> parentIds) throws GroundException {
 
@@ -60,23 +63,22 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             String id = IdGenerator.generateId(nodeId);
 
             // add the id of the version to the tag
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
             insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
 
             connection.addVertex("NodeVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             this.nodeFactory.update(connection, nodeId, id, parentIds);
 
             connection.commit();
+
             LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
-            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, parameters, nodeId);
+            return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
         } catch (GroundException e) {
             connection.abort();
 
@@ -93,8 +95,15 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record record = connection.getVertex(predicates);
-            String nodeId = record.get("node_id").toString();
+            Record record = null;
+            try {
+                record = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No NodeVersion found with id " + id + ".");
+            }
+
+            String nodeId = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode().
+                    get("node_id"));
 
             connection.commit();
             LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");

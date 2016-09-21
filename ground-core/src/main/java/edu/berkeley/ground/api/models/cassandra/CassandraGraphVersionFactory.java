@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.slf4j.Logger;
@@ -48,10 +49,10 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
         this.richVersionFactory = richVersionFactory;
     }
 
-    public GraphVersion create(Optional<Map<String, Tag>> tags,
-                               Optional<String> structureVersionId,
-                               Optional<String> reference,
-                               Optional<Map<String, String>> parameters,
+    public GraphVersion create(Map<String, Tag> tags,
+                               String structureVersionId,
+                               String reference,
+                               Map<String, String> referenceParameters,
                                String graphId,
                                List<String> edgeVersionIds,
                                List<String> parentIds) throws GroundException {
@@ -61,11 +62,9 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
         try {
             String id = IdGenerator.generateId(graphId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
@@ -86,7 +85,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
-            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
         } catch (GroundException e) {
             connection.abort();
 
@@ -106,11 +105,27 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> edgePredicate = new ArrayList<>();
             edgePredicate.add(new DbDataContainer("gvid", GroundType.STRING, id));
 
-            QueryResults resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
+
+            if (!resultSet.next()) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
+
             String graphId = resultSet.getString(1);
 
-            QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
-            List<String> edgeVersionIds = edgeSet.getStringList(1);
+            List<String> edgeVersionIds = new ArrayList<>();
+            try {
+                QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
+                edgeVersionIds = edgeSet.getStringList(1);
+            } catch (EmptyResultException eer) {
+                // do nothing; this means that the graph is empty
+            }
+
 
             connection.commit();
             LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

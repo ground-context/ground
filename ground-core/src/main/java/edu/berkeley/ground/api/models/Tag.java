@@ -31,17 +31,17 @@ public class Tag {
 
     @UnwrapValidatedValue
     // the optional Value of the Tag
-    private Optional<Object> value;
+    private Object value;
 
     @UnwrapValidatedValue
     // the Type of the Value if it exists
-    private Optional<GroundType> valueType;
+    private GroundType valueType;
 
     @JsonCreator
     public Tag(@JsonProperty("versionId") String versionId,
                @JsonProperty("key") String key,
-               @JsonProperty("value") Optional<Object> value,
-                @JsonProperty("type") Optional<GroundType> valueType) {
+               @JsonProperty("value") Object value,
+               @JsonProperty("type") GroundType valueType) {
         this.versionId = versionId;
         this.key = key;
         this.value = value;
@@ -59,12 +59,12 @@ public class Tag {
     }
 
     @JsonProperty
-    public Optional<Object> getValue() {
+    public Object getValue() {
         return this.value;
     }
 
     @JsonProperty
-    public Optional<GroundType> getValueType() {
+    public GroundType getValueType() {
         return this.valueType;
     }
 
@@ -76,6 +76,26 @@ public class Tag {
 
         Tag that = (Tag) other;
 
-        return this.key.equals(that.key) && this.value.equals(that.value) && this.valueType.equals(that.valueType);
+        if (!this.key.equals(that.key)) {
+            return false;
+        }
+
+        if (this.value == null && that.value != null) {
+            return false;
+        }
+
+        if (this.value != null && !this.value.equals(that.value)) {
+            return false;
+        }
+
+        if (this.valueType == null && that.valueType != null) {
+            return false;
+        }
+
+        if (this.valueType != null && !this.valueType.equals(that.valueType)) {
+            return false;
+        }
+
+        return true;
     }
 }

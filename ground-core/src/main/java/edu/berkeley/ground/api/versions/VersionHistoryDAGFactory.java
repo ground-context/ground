@@ -25,6 +25,16 @@ public abstract class VersionHistoryDAGFactory {
 
     public abstract <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connection, String itemId) throws GroundException;
 
+    /**
+     * Add a new edge between parentId and childId in DAG
+     *
+     * @param connection
+     * @param dag the DAG to update
+     * @param parentId the parent's id
+     * @param childId the child's id
+     * @param itemId the id of the Item whose DAG we're updating
+     * @throws GroundException
+     */
     public abstract void addEdge(GroundDBConnection connection, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException;
 
     protected static <T extends Version> VersionHistoryDAG<T> construct(String itemId) {

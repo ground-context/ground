@@ -30,13 +30,13 @@ public class NodeVersion extends RichVersion {
     @JsonCreator
     protected NodeVersion(
             @JsonProperty("id") String id,
-            @JsonProperty("tags") Optional<Map<String, Tag>> tags,
-            @JsonProperty("structureVersionId") Optional<String> structureVersionId,
-            @JsonProperty("reference") Optional<String> reference,
-            @JsonProperty("parameters") Optional<Map<String, String>> parameters,
+            @JsonProperty("tags") Map<String, Tag> tags,
+            @JsonProperty("structureVersionId") String structureVersionId,
+            @JsonProperty("reference") String reference,
+            @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
             @JsonProperty("nodeId") String nodeId) {
 
-        super(id, tags, structureVersionId, reference, parameters);
+        super(id, tags, structureVersionId, reference, referenceParameters);
 
         this.nodeId = nodeId;
     }
@@ -46,4 +46,15 @@ public class NodeVersion extends RichVersion {
         return this.nodeId;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof NodeVersion)) {
+            return false;
+        }
+
+        NodeVersion otherNodeVersion = (NodeVersion) other;
+
+        return this.nodeId.equals(otherNodeVersion.nodeId) &&
+                super.equals(other);
+    }
 }

@@ -22,7 +22,10 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+
+import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +76,15 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
         try {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-            Record record = connection.getVertex(predicates);
-            String id = record.get("id").toString();
+
+            Record record = null;
+            try {
+                record = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdge found with name " + name + ".");
+            }
+
+            String id = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode().get("id"));
 
             connection.commit();
             LOGGER.info("Retrieved lineage edge " + name + ".");

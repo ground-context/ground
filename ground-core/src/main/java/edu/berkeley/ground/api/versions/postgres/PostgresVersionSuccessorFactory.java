@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
@@ -52,7 +53,12 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
 
-        QueryResults resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
+        QueryResults resultSet;
+        try {
+            resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
+        }
 
         String toId = resultSet.getString(2);
         String fromId = resultSet.getString(3);

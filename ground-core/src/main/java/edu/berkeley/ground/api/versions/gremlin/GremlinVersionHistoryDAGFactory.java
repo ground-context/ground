@@ -18,6 +18,7 @@ import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -42,9 +43,15 @@ public class GremlinVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, itemId));
 
-        Vertex itemVertex = connection.getVertex(predicates);
+        Vertex itemVertex = null;
+        try {
+            itemVertex = connection.getVertex(predicates);
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No item found with id " + itemId + ".") ;
+        }
+
         if (itemVertex == null) {
-            throw new GroundException("No results found for query");
+            throw new GroundException("No item found with id " + itemId + ".") ;
         }
 
         List<Edge> gremlinEdges = connection.getDescendantEdgesWithLabel(itemVertex, "VersionSuccessor");
@@ -52,7 +59,7 @@ public class GremlinVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
         List<VersionSuccessor<T>> edges = new ArrayList<>();
 
         for (Edge gremlinEdge : gremlinEdges) {
-            edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, (String) gremlinEdge.property("successor_id").value()));
+            edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection,  gremlinEdge.property("successor_id").value().toString()));
         }
 
         return VersionHistoryDAGFactory.construct(itemId, edges);

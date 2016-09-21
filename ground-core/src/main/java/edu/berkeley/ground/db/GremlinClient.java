@@ -15,6 +15,8 @@
 package edu.berkeley.ground.db;
 
 import com.thinkaurelius.titan.graphdb.vertices.CacheVertex;
+
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
@@ -31,7 +33,7 @@ public class GremlinClient implements DBClient {
     private Graph graph;
 
     public GremlinClient() {
-        this.graph = GraphFactory.open("conf/titan-cassandra.properties");
+        this.graph = GraphFactory.open("/Users/Vikram/Code/titan/conf/titan-cassandra.properties");
     }
 
     public GremlinConnection getConnection() throws GroundDBException {
@@ -43,8 +45,16 @@ public class GremlinClient implements DBClient {
 
         protected GremlinConnection(Graph graph) {
             this.graph = graph;
+            graph.tx();
         }
 
+        /**
+         * Add a new vertex to the graph.
+         *
+         * @param label the vertex label
+         * @param attributes the vertex's attributes
+         * @return the created vertex
+         */
         public Vertex addVertex(String label, List<DbDataContainer> attributes) {
             Object[] attributesArray = new Object[(attributes.size() + 1) * 2];
             for(int i = 1; i < attributes.size() + 1; i++) {
@@ -58,6 +68,14 @@ public class GremlinClient implements DBClient {
             return this.graph.addVertex(attributesArray);
         }
 
+        /**
+         * Add a new edge to the graph.
+         *
+         * @param label the edge label
+         * @param source the source of the edge
+         * @param destination the destination of the edge
+         * @param attributes the edge's attributes
+         */
         public void addEdge(String label, Vertex source, Vertex destination, List<DbDataContainer> attributes) {
             Object[] attributesArray = new Object[attributes.size() * 2];
             for(int i = 0; i < attributes.size(); i++) {
@@ -68,7 +86,14 @@ public class GremlinClient implements DBClient {
             source.addEdge(label, destination, attributesArray);
         }
 
-        public Vertex getVertex(List<DbDataContainer> predicates) {
+        /**
+         * Retrieve a vertex without a label.
+         *
+         * @param predicates the predicates to check
+         * @return a vertex if one exists
+         * @throws EmptyResultException
+         */
+        public Vertex getVertex(List<DbDataContainer> predicates) throws EmptyResultException {
             GraphTraversal traversal = this.graph.traversal().V();
 
             for (DbDataContainer predicate : predicates) {
@@ -79,10 +104,33 @@ public class GremlinClient implements DBClient {
                 return (Vertex) traversal.next();
             }
 
-            return null;
+            throw new EmptyResultException("No matches for query.");
         }
 
-        public Edge getEdge(List<DbDataContainer> predicates) {
+        /**
+         * Retrieve a vertex with a label.
+         *
+         * @param label the vertex label
+         * @param predicates the predicates to check
+         * @return a vertex if one exists
+         * @throws EmptyResultException
+         */
+        public Vertex getVertex(String label, List<DbDataContainer> predicates) throws EmptyResultException {
+            GraphTraversal traversal = this.graph.traversal().V();
+
+            traversal.has(T.label, label);
+            for (DbDataContainer predicate : predicates) {
+                traversal = traversal.has(predicate.getField(), predicate.getValue());
+            }
+
+            if (traversal.hasNext()) {
+                return (Vertex) traversal.next();
+            }
+
+            throw new EmptyResultException("No matches for query.");
+        }
+
+        public Edge getEdge(List<DbDataContainer> predicates) throws EmptyResultException {
             GraphTraversal traversal = this.graph.traversal().E();
 
             for (DbDataContainer predicate : predicates) {
@@ -93,10 +141,17 @@ public class GremlinClient implements DBClient {
                 return (Edge) traversal.next();
             }
 
-            return null;
+            throw new EmptyResultException("No matches for quesry");
         }
 
-        public List<Vertex> getVerticesByLabel(String key, String value) {
+        /**
+         * Get all vertices that have a particular attribute.
+         *
+         * @param key the key of the attribute
+         * @param value the value of the attribute
+         * @return the vertices, if any exist
+         */
+        public List<Vertex> getVerticesByAttribute(String key, String value) {
             GraphTraversal traversal = this.graph.traversal().V();
             List<Vertex> vertices = new ArrayList<>();
 
@@ -105,6 +160,14 @@ public class GremlinClient implements DBClient {
             return vertices;
         }
 
+        /**
+         * Get all the edges with a particular label that are reachable from a particular
+         * starting vertex.
+         *
+         * @param vertex the starting point for the query
+         * @param label the edge label we are looking for
+         * @return the list of valid edges
+         */
         public List<Edge> getDescendantEdgesWithLabel(Vertex vertex, String label) {
             List<Edge> result = new ArrayList<>();
             LinkedList<Vertex> queue = new LinkedList<>();
@@ -123,9 +186,17 @@ public class GremlinClient implements DBClient {
             return result;
         }
 
+        /**
+         * Get all vertices that are one edge away, where the edge connecting them has a
+         * particular label.
+         *
+         * @param vertex the vertex to start from
+         * @param edgeLabel the edge label we are looking for
+         * @return a list of adjacent vertices related by edgeLabel
+         */
         public List<Vertex> getAdjacentVerticesByEdgeLabel(Vertex vertex, String edgeLabel) {
             List<Vertex> result = new ArrayList<>();
-            vertex.vertices(Direction.BOTH, edgeLabel).forEachRemaining(result::add);
+            vertex.vertices(Direction.OUT, edgeLabel).forEachRemaining(result::add);
 
             return result;
         }

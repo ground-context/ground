@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,8 +76,18 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
-            QueryResults resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
-            String id = resultSet.getString(1);
+            QueryResults resultSet;
+            try {
+                resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No LineageEdge found with name " + name + ".");
+            }
+
+            if (!resultSet.next()) {
+                throw new GroundException("No LineageEdge found with name " + name + ".");
+            }
+
+            String id = resultSet.getString("item_id");
 
             connection.commit();
             LOGGER.info("Retrieved lineage edge " + name + ".");
@@ -90,6 +101,6 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     }
 
     public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
-        this.itemFactory.update(connection, "LineageEdges." + itemId, childId, parentIds);
+        this.itemFactory.update(connection, itemId, childId, parentIds);
     }
 }

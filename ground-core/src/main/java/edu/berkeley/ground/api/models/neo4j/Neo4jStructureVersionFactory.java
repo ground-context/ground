@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.neo4j.driver.internal.value.StringValue;
@@ -75,7 +76,14 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-        String structureId = connection.getVertex(predicates).get("structure_id").toString();
+        String structureId = null;
+
+        try {
+            structureId = Neo4jClient.getStringFromValue((StringValue) connection
+                    .getVertex(predicates).get("v").asNode().get("structure_id"));
+        } catch (EmptyResultException eer) {
+            throw new GroundException("No StructureVersion found with id " + id + ".");
+        }
         List<String> returnFields = new ArrayList<>();
         returnFields.add("svid");
         returnFields.add("skey");

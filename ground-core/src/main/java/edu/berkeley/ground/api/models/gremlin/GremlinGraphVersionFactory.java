@@ -22,6 +22,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.db.GremlinClient.GremlinConnection;
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -47,10 +48,10 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
         this.richVersionFactory = richVersionFactory;
     }
 
-    public GraphVersion create(Optional<Map<String, Tag>> tags,
-                               Optional<String> structureVersionId,
-                               Optional<String> reference,
-                               Optional<Map<String, String>> parameters,
+    public GraphVersion create(Map<String, Tag> tags,
+                               String structureVersionId,
+                               String reference,
+                               Map<String, String> referenceParameters,
                                String graphId,
                                List<String> edgeVersionIds,
                                List<String> parentIds) throws GroundException {
@@ -60,22 +61,24 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
         try {
             String id = IdGenerator.generateId(graphId);
 
-            tags = tags.map(tagsMap ->
-                                    tagsMap.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())))
-            );
-
+            tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
             List<DbDataContainer> insertions = new ArrayList<>();
             insertions.add(new DbDataContainer("id", GroundType.STRING, id));
             insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
 
             Vertex versionVertex = connection.addVertex("GraphVersion", insertions);
-            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, parameters);
+            this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
             for (String edgeVersionId : edgeVersionIds) {
                 List<DbDataContainer> edgeQuery = new ArrayList<>();
                 edgeQuery.add(new DbDataContainer("id", GroundType.STRING, edgeVersionId));
-                Vertex edgeVertex = connection.getVertex(edgeQuery);
+                Vertex edgeVertex = null;
+                try {
+                    edgeVertex = connection.getVertex(edgeQuery);
+                } catch (EmptyResultException eer) {
+                    throw new GroundException("No EdgeVersion found with id " + edgeVersionId + ".");
+                }
 
                 connection.addEdge("GraphVersionEdge", versionVertex, edgeVertex, new ArrayList<>());
             }
@@ -85,7 +88,7 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             connection.commit();
             LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
-            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+            return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
         } catch (GroundException e) {
             connection.abort();
 
@@ -102,7 +105,12 @@ public class GremlinGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Vertex versionVertex = connection.getVertex(predicates);
+            Vertex versionVertex = null;
+            try {
+                versionVertex = connection.getVertex(predicates);
+            } catch (EmptyResultException eer) {
+                throw new GroundException("No GraphVersion found with id " + id + ".");
+            }
             String graphId = versionVertex.property("graph_id").value().toString();
 
             List<Vertex> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel(versionVertex, "GraphVersionEdge");

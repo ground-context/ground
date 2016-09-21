@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.db;
 
+import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.neo4j.driver.internal.value.ListValue;
@@ -24,7 +25,9 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Neo4jClient implements DBClient {
     private Driver driver;
@@ -46,119 +49,116 @@ public class Neo4jClient implements DBClient {
             this.session = session;
         }
 
+        private String addValuesToStatement(String statement, List<DbDataContainer> values) {
+            int count = 0;
+            for (DbDataContainer container : values) {
+                if (container.getValue() != null) {
+                    statement += container.getField() + " : ";
+
+                    switch (container.getGroundType()) {
+                        case STRING:
+                            statement += "'" + container.getValue().toString() + "'";
+                            break;
+                        case INTEGER:
+                            statement += (int) container.getValue();
+                            break;
+                        case BOOLEAN:
+                            statement += container.getValue();
+                            break;
+                    }
+
+                    statement += ", ";
+                    count++;
+                }
+            }
+
+            if (count > 0) {
+                statement = statement.substring(0, statement.length() - 2);
+            }
+
+            return statement;
+        }
+
+        /**
+         * Add a new vertex to the graph.
+         *
+         * @param label the vertex label
+         * @param attributes the vertex's attributes
+         */
         public void addVertex(String label, List<DbDataContainer> attributes) {
             String insert = "CREATE (: " + label + " {";
 
-            int count = 0;
-            for (DbDataContainer container : attributes) {
-                insert += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    insert += ", ";
-                }
-            }
+            insert = this.addValuesToStatement(insert, attributes);
 
             insert += "})";
 
             this.transaction.run(insert);
         }
 
+        /**
+         * Add a new edge to the graph.
+         *
+         * @param label the edge label
+         * @param fromId the id of the source vertex
+         * @param toId the id of the destination vertex
+         * @param attributes the edge's attributes
+         */
         public void addEdge(String label, String fromId, String toId, List<DbDataContainer> attributes) {
             String insert = "MATCH (f" + "{id : '" + fromId + "' })";
             insert += "MATCH (t" + "{id : '" + toId + "' })";
             insert += "CREATE (f)-[:" + label + "{";
 
-            int count = 0;
-            for (DbDataContainer container : attributes) {
-                insert += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    insert += ", ";
-                }
-            }
+            insert = this.addValuesToStatement(insert, attributes);
 
             insert += "}]->(t)";
 
             this.transaction.run(insert);
         }
 
+        /**
+         * Add a new vertex and an edge connecting it to another vertex
+         *
+         * @param label the vertex label
+         * @param attributes the vertex's attributes
+         * @param edgeLabel the edge label
+         * @param fromId the source of the edge
+         * @param edgeAttributes the edge's attributes
+         */
         public void addVertexAndEdge(String label, List<DbDataContainer> attributes, String edgeLabel, String fromId, List<DbDataContainer> edgeAttributes) {
             String insert = "MATCH (f {id: '" + fromId  + "'})";
             insert += "CREATE (t: " + label + "{";
 
-            int count = 0;
-            for (DbDataContainer container : attributes) {
-                insert += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    insert += ", ";
-                }
-            }
-
+            insert = this.addValuesToStatement(insert, attributes);
             insert += "})";
-
             insert += "CREATE (f)-[e: " + edgeLabel + "{";
 
-            count = 0;
-            for (DbDataContainer container : edgeAttributes) {
-                insert += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: insert += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: insert += (int) container.getValue(); break;
-                    case BOOLEAN: insert += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    insert += ", ";
-                }
-            }
-
+            insert = this.addValuesToStatement(insert, edgeAttributes);
             insert += "}]->(t)";
 
             this.transaction.run(insert);
         }
 
-        public Record getVertex(List<DbDataContainer> attributes) {
+        /**
+         * Retrieve a vertex.
+         *
+         * @param attributes the set of attributes to filter
+         * @return the Record of the vertex
+         * @throws EmptyResultException
+         */
+        public Record getVertex(List<DbDataContainer> attributes) throws EmptyResultException {
             return this.getVertex(null, attributes);
         }
 
-        public List<String> getVerticesByLabel(List<DbDataContainer> attributes) {
+        /**
+         * Get all vertices with a certain set of attributes.
+         *
+         * @param attributes the attributes to filter by
+         * @return
+         */
+        public List<String> getVerticesByAttributes(List<DbDataContainer> attributes) {
             String query = "MATCH (f {";
 
-            int count = 0;
-            for (DbDataContainer container : attributes) {
-                query += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: query += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: query += (int) container.getValue(); break;
-                    case BOOLEAN: query += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    query += ", ";
-                }
-            }
-
+            query = this.addValuesToStatement(query, attributes);
             query += "}) return f";
 
             StatementResult queryResult = this.session.run(query);
@@ -171,7 +171,15 @@ public class Neo4jClient implements DBClient {
             return result;
         }
 
-        public Record getVertex(String label, List<DbDataContainer> attributes) {
+        /**
+         * Get a vertex with a set of attributes and with a particular label.
+         *
+         * @param label the vertex label
+         * @param attributes the attributes to filter by
+         * @return the Record with the vertex
+         * @throws EmptyResultException
+         */
+        public Record getVertex(String label, List<DbDataContainer> attributes) throws EmptyResultException {
             String query;
             if (label == null) {
                 query = "MATCH (v {";
@@ -180,21 +188,7 @@ public class Neo4jClient implements DBClient {
                 query = "MATCH (v:" + label + "{";
             }
 
-            int count = 0;
-            for (DbDataContainer container : attributes) {
-                query += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: query += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: query += (int) container.getValue(); break;
-                    case BOOLEAN: query += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    query += ", ";
-                }
-            }
-
+            query = this.addValuesToStatement(query, attributes);
             query += "}) RETURN v";
 
             StatementResult result = this.transaction.run(query);
@@ -203,27 +197,21 @@ public class Neo4jClient implements DBClient {
                 return result.next();
             }
 
-            return null;
+            throw new EmptyResultException("No results found for query: " + query);
         }
 
-        public Relationship getEdge(String label, List<DbDataContainer> attributes) {
+        /**
+         * Retrieve an edge.
+         *
+         * @param label the edge label
+         * @param attributes the attributes to filter by
+         * @return the Neo4j Relationship for this edge
+         * @throws EmptyResultException
+         */
+        public Relationship getEdge(String label, List<DbDataContainer> attributes) throws EmptyResultException {
             String query = "MATCH (v)-[e:" + label + "{";
 
-            int count = 0;
-            for (DbDataContainer container : attributes) {
-                query += container.getField() + " : ";
-
-                switch (container.getGroundType()) {
-                    case STRING: query += "'" + container.getValue().toString() + "'"; break;
-                    case INTEGER: query += (int) container.getValue(); break;
-                    case BOOLEAN: query += container.getValue(); break;
-                }
-
-                if (++count < attributes.size()) {
-                    query += ", ";
-                }
-            }
-
+            query = this.addValuesToStatement(query, attributes);
             query += "}]->(w) RETURN e";
 
             StatementResult result = this.transaction.run(query);
@@ -234,9 +222,17 @@ public class Neo4jClient implements DBClient {
                 return r.get("e").asRelationship();
             }
 
-            return null;
+            throw new EmptyResultException("No results found for query: " + query);
         }
 
+        /**
+         * Get all the edges with a particular label that are reachable from a particular
+         * starting vertex.
+         *
+         * @param startId the starting point for the query
+         * @param label the edge label we are looking for
+         * @return the list of valid edges
+         */
         public List<Relationship> getDescendantEdgesByLabel(String startId, String label) {
             String query = "MATCH (a {id: '" + startId + "' })";
             query += "MATCH (a)-[e:" + label + "*]->(b)";
@@ -244,7 +240,7 @@ public class Neo4jClient implements DBClient {
 
             StatementResult result = this.transaction.run(query);
 
-            List<Relationship> response = new ArrayList<>();
+            Set<Relationship> response = new HashSet<>();
 
             List<Record> resultList = result.list();
 
@@ -258,9 +254,18 @@ public class Neo4jClient implements DBClient {
                 }
             }
 
-            return response;
+            return new ArrayList<>(response);
         }
 
+        /**
+         * Get all vertices that are one edge away, where the edge connecting them has a
+         * particular label.
+         *
+         * @param id the vertex to start from
+         * @param edgeLabel the edge label we are looking for
+         * @param returnFields the list of fields we want to select
+         * @return a list of adjacent vertices related by edgeLabel
+         */
         public List<Record> getAdjacentVerticesByEdgeLabel(String edgeLabel, String id, List<String> returnFields) {
             String query = "MATCH (a {id: '" + id + "' })";
             query += "MATCH (a)-[:" + edgeLabel + "]->(b)";
@@ -303,6 +308,14 @@ public class Neo4jClient implements DBClient {
             return result;
         }
 
+        /**
+         * For a particular object, set a given attribute.
+         *
+         * @param id the id of the object
+         * @param key the key of the attribute
+         * @param value the value of the attribute
+         * @param isString deteremines whether or not to encapsulate value in quotes
+         */
         public void setProperty(String id, String key, Object value, boolean isString) {
             String insert = "MATCH (n {id: '" + id  + "' })";
 

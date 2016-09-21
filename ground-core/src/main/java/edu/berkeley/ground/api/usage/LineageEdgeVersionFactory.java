@@ -22,10 +22,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public abstract class LineageEdgeVersionFactory {
-    public abstract LineageEdgeVersion create(Optional<Map<String, Tag>> tags,
-                                              Optional<String> structureVersionId,
-                                              Optional<String> reference,
-                                              Optional<Map<String, String>> parameters,
+    public abstract LineageEdgeVersion create(Map<String, Tag> tags,
+                                              String structureVersionId,
+                                              String reference,
+                                              Map<String, String> referenceParameters,
                                               String fromId,
                                               String toId,
                                               String lineageEdgeId,
@@ -34,13 +34,13 @@ public abstract class LineageEdgeVersionFactory {
     public abstract LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException;
 
     protected static LineageEdgeVersion construct(String id,
-                                                  Optional<Map<String, Tag>> tags,
-                                                  Optional<String> structureVersionId,
-                                                  Optional<String> reference,
-                                                  Optional<Map<String, String>> parameters,
+                                                  Map<String, Tag> tags,
+                                                  String structureVersionId,
+                                                  String reference,
+                                                  Map<String, String> referenceParameters,
                                                   String fromId,
                                                   String toId,
                                                   String lineageEdgeId) {
-        return new LineageEdgeVersion(id, tags, structureVersionId, reference, parameters, fromId, toId, lineageEdgeId);
+        return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
     }
 }
