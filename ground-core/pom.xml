@@ -91,6 +91,7 @@
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                 </exclusion>
+                <!-- Older version of reflections breaks swagger -->
                 <exclusion>
                     <groupId>org.reflections</groupId>
                     <artifactId>reflections</artifactId>

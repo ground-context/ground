@@ -51,7 +51,9 @@ public class KafkaResource {
   @ApiOperation(value = "Send kafka message")
   @ApiResponses(value = { @ApiResponse(code = 405, message = "Invalid input") })
   @Path("/")
-  public String sendKafkaMessage(@Valid String value, @ApiParam(value = "Topic to push to", required = true) @QueryParam("topic") String topic, @ApiParam(value = "Key of message", required = true) @QueryParam("key") String key) throws GroundException {
+  public String sendKafkaMessage(@Valid String value, @ApiParam(value = "Topic to push to",
+          required = true) @QueryParam("topic") String topic, @ApiParam(value = "Key of message",
+          required = true) @QueryParam("key") String key) throws GroundException {
       LOGGER.info("Receiving kafka publish");
       KafkaProduce.push(kafkaHost, kafkaPort, topic, key, value);
   return value;
