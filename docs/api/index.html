@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Swagger UI</title>
+  <link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="images/favicon-16x16.png" sizes="16x16" />
+  <link href='css/typography.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='css/reset.css' media='print' rel='stylesheet' type='text/css'/>
+  <link href='css/print.css' media='print' rel='stylesheet' type='text/css'/>
+
+  <script src='lib/object-assign-pollyfill.js' type='text/javascript'></script>
+  <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+  <script src='lib/handlebars-4.0.5.js' type='text/javascript'></script>
+  <script src='lib/lodash.min.js' type='text/javascript'></script>
+  <script src='lib/backbone-min.js' type='text/javascript'></script>
+  <script src='swagger-ui.js' type='text/javascript'></script>
+  <script src='lib/highlight.9.1.0.pack.js' type='text/javascript'></script>
+  <script src='lib/highlight.9.1.0.pack_extended.js' type='text/javascript'></script>
+  <script src='lib/jsoneditor.min.js' type='text/javascript'></script>
+  <script src='lib/marked.js' type='text/javascript'></script>
+  <script src='lib/swagger-oauth.js' type='text/javascript'></script>
+
+  <!-- Some basic translations -->
+  <!-- <script src='lang/translator.js' type='text/javascript'></script> -->
+  <!-- <script src='lang/ru.js' type='text/javascript'></script> -->
+  <!-- <script src='lang/en.js' type='text/javascript'></script> -->
+
+  <script type="text/javascript">
+    $(function () {
+      var url = window.location.search.match(/url=([^&]+)/);
+      if (url && url.length > 1) {
+        url = decodeURIComponent(url[1]);
+      } else {
+        url = "http://petstore.swagger.io/v2/swagger.json";
+      }
+
+      var spec = {
+  "swagger" : "2.0",
+  "info" : { },
+  "basePath" : "/",
+  "tags" : [ {
+    "name" : "edges"
+  }, {
+    "name" : "nodes"
+  }, {
+    "name" : "graphs"
+  }, {
+    "name" : "lineage"
+  }, {
+    "name" : "structures"
+  }, {
+    "name" : "kafka"
+  } ],
+  "schemes" : [ "http" ],
+  "paths" : {
+    "/edges/versions" : {
+      "post" : {
+        "tags" : [ "edges" ],
+        "operationId" : "createEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/EdgeVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/EdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/edges/versions/{id}" : {
+      "get" : {
+        "tags" : [ "edges" ],
+        "operationId" : "getEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/EdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/edges/{name}" : {
+      "get" : {
+        "tags" : [ "edges" ],
+        "summary" : "Get an edge",
+        "description" : "",
+        "operationId" : "getEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Edge"
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "edges" ],
+        "operationId" : "createEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Edge"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/graphs/versions" : {
+      "post" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "createGraphVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/GraphVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/GraphVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/graphs/versions/{id}" : {
+      "get" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "getGraphVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/GraphVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/graphs/{name}" : {
+      "get" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "getGraph",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Graph"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "createGraph",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Graph"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/kafka" : {
+      "post" : {
+        "tags" : [ "kafka" ],
+        "summary" : "Send kafka message",
+        "description" : "",
+        "operationId" : "sendKafkaMessage",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "topic",
+          "in" : "query",
+          "description" : "Topic to push to",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "key",
+          "in" : "query",
+          "description" : "Key of message",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "string"
+            }
+          },
+          "405" : {
+            "description" : "Invalid input"
+          }
+        }
+      }
+    },
+    "/lineage/versions" : {
+      "post" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "createLineageEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/LineageEdgeVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/lineage/versions/{id}" : {
+      "get" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "getLineageEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/lineage/{name}" : {
+      "get" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "getLineageEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdge"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "createLineageEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdge"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/adjacent/{id}/{edgeName}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "adjacentNodes",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "edgeName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/closure/{id}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "transitiveClosure",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/versions" : {
+      "post" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "createNodeVersion",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/NodeVersion"
+          }
+        }, {
+          "name" : "parents",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/NodeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/versions/{id}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "getNodeVersion",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/NodeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/{name}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "getNode",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Node"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "createNode",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Node"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/{name}/latest" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "getLatestVersions",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/structures/versions" : {
+      "post" : {
+        "tags" : [ "structures" ],
+        "operationId" : "createStructureVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/StructureVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/StructureVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/structures/versions/{id}" : {
+      "get" : {
+        "tags" : [ "structures" ],
+        "operationId" : "getStructureVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/StructureVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/structures/{name}" : {
+      "get" : {
+        "tags" : [ "structures" ],
+        "operationId" : "getStructure",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Structure"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "structures" ],
+        "operationId" : "createStructure",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Structure"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "NodeVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "nodeId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "GraphVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "graphId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "edgeVersionIds" : {
+          "type" : "array",
+          "readOnly" : true,
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "LineageEdgeVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "fromId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "toId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "lineageEdgeId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "Graph" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "Node" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "EdgeVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "edgeId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "fromId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "toId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "LineageEdge" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "StructureVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "structureId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "attributes" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string",
+            "enum" : [ "STRING", "INTEGER", "BOOLEAN" ]
+          }
+        }
+      }
+    },
+    "Tag" : {
+      "type" : "object",
+      "properties" : {
+        "versionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "key" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "value" : {
+          "type" : "object",
+          "readOnly" : true
+        },
+        "valueType" : {
+          "type" : "string",
+          "readOnly" : true,
+          "enum" : [ "STRING", "INTEGER", "BOOLEAN" ]
+        }
+      }
+    },
+    "Structure" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "Edge" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    }
+  }
+};
+
+
+
+      hljs.configure({
+        highlightSizeThreshold: 5000
+      });
+
+      // Pre load translate...
+      if(window.SwaggerTranslator) {
+        window.SwaggerTranslator.translate();
+      }
+      window.swaggerUi = new SwaggerUi({
+        url: url,
+        spec: spec,
+        dom_id: "swagger-ui-container",
+        supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+        onComplete: function(swaggerApi, swaggerUi){
+          if(typeof initOAuth == "function") {
+            initOAuth({
+              clientId: "your-client-id",
+              clientSecret: "your-client-secret-if-required",
+              realm: "your-realms",
+              appName: "your-app-name",
+              scopeSeparator: " ",
+              additionalQueryStringParams: {}
+            });
+          }
+
+          if(window.SwaggerTranslator) {
+            window.SwaggerTranslator.translate();
+          }
+        },
+        onFailure: function(data) {
+          log("Unable to Load SwaggerUI");
+        },
+        docExpansion: "none",
+        jsonEditor: false,
+        defaultModelRendering: 'schema',
+        showRequestHeaders: false
+      });
+
+      window.swaggerUi.load();
+
+      function log() {
+        if ('console' in window) {
+          console.log.apply(console, arguments);
+        }
+      }
+  });
+  </script>
+</head>
+
+<body class="swagger-section">
+<div id='header'>
+  <div class="swagger-ui-wrap">
+    <a id="logo" href="http://swagger.io"><img class="logo__img" alt="swagger" height="30" width="30" src="images/logo_small.png" /><span class="logo__title">swagger</span></a>
+    <form id='api_selector'>
+      <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div>
+      <div id='auth_container'></div>
+      <div class='input'><a id="explore" class="header__btn" href="#" data-sw-translate>Explore</a></div>
+    </form>
+  </div>
+</div>
+
+<div id="message-bar" class="swagger-ui-wrap" data-sw-translate>&nbsp;</div>
+<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+</body>
+</html>
