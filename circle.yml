@@ -1,28 +1,17 @@
 machine:
-  services:
-    - cassandra
-    - neo4j
+  post:
+    - wget -O neo4j-community-$NEO4J_VERSION-unix.tar.gz https://neo4j.com/artifact.php?name=neo4j-community-$NEO4J_VERSION-unix.tar.gz
+    - tar -xzf neo4j-community-$NEO4J_VERSION-unix.tar.gz
+    - sudo sed -i "s|#dbms.security.auth_enabled=false|dbms.security.auth_enabled=false|g" neo4j-community-$NEO4J_VERSION/conf/neo4j.conf
+    - neo4j-community-$NEO4J_VERSION/bin/neo4j start
 
   java:
     version: oraclejdk8
 
 dependencies:
-  pre:
-    - createdb test
-    - createuser test -d -s
-    - export PYTHONPATH="${PYTHONPATH}:/usr/lib/pymodules/python2.7"
-    - cqlsh -e "SHOW VERSION;"
-    - |-
-        cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
-    - cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
-    - cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../../..
-  
   override:
-    - mvn clean package -DskipTests
+    - mvn clean
 
 test:
   override:
-    - mvn clean test
-
-  post: 
     - mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
