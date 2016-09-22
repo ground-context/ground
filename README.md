@@ -4,9 +4,10 @@
 
 # Ground
 
-Ground is an open-source data context service under development at UC Berkeley.
-Ground is motivated by our experiences with users of open-source data
-processing packages like Spark, Hadoop, and Jupyter, and the software vendors
+Ground is an open-source data context service under development at UC Berkeley. The goal of the Ground project is to serve as a central model, API, and repistory 
+
+
+Ground is motivated by our experiences with users of open-source data processing packages like Spark, Hadoop, and Jupyter, and the software vendors
 that provide tools and services in those ecosystems. We have repeatedly heard
 requests in those communities for a flexible, vendor-neutral, open-source
 context service. We believe that an effective service in this space will go
