@@ -18,24 +18,26 @@
 #
 
 """
-Receive repo name from kafka
+Receive repo name/url from kafka
 Fetch repo commit history
 Add any new commits to ground
 """
 
 import json
 import os
-from collections import OrderedDict
 
 import git
 import requests
 from kafka import KafkaConsumer
 import configparser
 
-# TODO manage the kafka offset for restarts, error handling
+# TODO manage the kafka offset for restarts
+# TODO Add a logger
+# TODO fails if a commit has a parent that is not in 'latest' list
+# TODO should repo id be the name instead
 
 
-def get_commits(git_repo, latest_hashes):
+def get_commits(git_repo, latest_nodes):
     parents_log = git_repo.log('--all', '--format="%H,%P"')  # log with commit hash and parent hashes
     parents_log = parents_log.replace("\"", "").split("\n")
     parents_log = [row.strip().split(",") for row in parents_log]
@@ -45,8 +47,7 @@ def get_commits(git_repo, latest_hashes):
     source_log = source_log.split("\n")
     source_log = [[row.split("\t")[0], row.split("\t")[1].split(" ")[0]] for row in source_log]
 
-    # TODO can probably do this with less looping
-    for c_hash, node in latest_hashes.items():  # remove commits from before the latest commit
+    for c_hash, node in latest_nodes.items():  # remove commits from before the latest commit
         for item in source_log:
             if c_hash == item[0]:
                 source_log = source_log[:source_log.index(item)]
@@ -62,32 +63,31 @@ def get_commits(git_repo, latest_hashes):
     return commits_dict
 
 
-def latest_commits(repo_id):  # TODO fails if a commit has a parent that is not in 'latest' list
+def latest_commits(repo_id):
     latests_url = url + '/nodes/Nodes.' + repo_id + '/latest'
     node_url = url + '/nodes/versions/'
+    print('getting latest versions...')
     node_ids = requests.get(latests_url).json()  # send the request
-    #print('nodeids ' + str(node_ids))
+    print('latest nodeids ' + str(node_ids))
     hashes = {}
     for node_id in node_ids:
         commit_hash = requests.get(node_url+node_id).json()['tags']['commit']['value']
         hashes[commit_hash] = node_id
+
     return hashes
 
 
-def post_commits(commits):
+def post_commits(commits, latest_nodes):
 
-    node_ids = latest_commits(repoId)
-    print('nodeIDs ' + str(node_ids))
+    node_ids = latest_nodes
+    # i = 0
     for c in reversed(commits):  # start at the first commmit
         params = {}
         parents = c['parentHashes']  # what are the parent hashes
         if len(parents) != 0:  # check if there are parents to this commit
-            #print("parents " + str(parents))
             parent_nodes = []
             for parent in parents:
-                #parent_node = node_ids[parent]  # get the node id for this this hash
                 parent_nodes.append(node_ids[parent])
-                #parent_nodes = [parent_node if x == parent else x for x in parents]  # add to parentNodes array
             params = {'parents': parent_nodes}  # create params for the request
         node_version_data = {
             "tags": {
@@ -110,13 +110,15 @@ def post_commits(commits):
         headers = {
             'content-type': "application/json"
         }
+        print('POSTing: ' + str(json.dumps(node_version_data)))
         r = requests.post(nodeVUrl, params=params, data=json.dumps(node_version_data), headers=headers)  # send the request
-        print(json.dumps(node_version_data))
-        #print(params)
-        print(r.url)
-        #print(r)
-        #print(r.json())
+        print(str(r) + ' Commit POSTed: ' + c['commitHash'])
+        # print(params)
+        # print(r.url)
+        # print(r.json())
         node_ids[c['commitHash']] = r.json()['id']  # this will map ground's node id with the commit hash
+        # print(i)
+        # i += 1
 
 
 config = configparser.ConfigParser()
@@ -131,8 +133,8 @@ for msg in consumer:
     parsed_msg = json.loads(msg.value.decode("utf-8"))  # turn into json
     print("Received repo: "+msg.key.decode("utf-8"))  # print key
     gitUrl = parsed_msg['repository']['git_url']
-    # repoId = msg.key.decode("utf-8")  # key from kakfa
-    repoId = str(parsed_msg['repository']['id'])  # TODO should repo id be the name instead
+    repoId = msg.key.decode("utf-8")  # key from kakfa
+    # repoId = str(parsed_msg['repository']['id'])
     # create URLS for API interaction
     nodeUrl = url + '/nodes/' + repoId
     latestUrl = nodeUrl + '/latest'
@@ -143,7 +145,17 @@ for msg in consumer:
     else:
         repo = git.Repo(config['Git']['path'] + repoId)
 
-    repo.remotes.origin.fetch()  # update repo metadata
+
+    class MyProgressPrinter(git.RemoteProgress):
+        def update(self, op_code, cur_count, max_count=None, message=''):
+            print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
+            # end
+
+    print('fetching commits....')
+    # repo.remotes.origin.fetch()  # update repo metadata
+    for fetch_info in repo.remotes.origin.fetch(progress=MyProgressPrinter()):
+        print("Updated %s to %s" % (fetch_info.ref, fetch_info.commit))
+    print('commits fetched')
     g = git.Git(config['Git']['path'] + repoId)
 
     latests = latest_commits(repoId)
@@ -152,4 +164,4 @@ for msg in consumer:
         requests.post(nodeUrl)
 
     repo_commits = get_commits(g, latests)  # Get a list of the latest commits
-    post_commits(repo_commits)
+    post_commits(repo_commits, latests)
