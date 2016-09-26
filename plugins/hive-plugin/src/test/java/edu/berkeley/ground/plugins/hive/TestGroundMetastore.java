@@ -127,7 +127,7 @@ public class TestGroundMetastore {
      * Test database operations
      */
     @Test
-    @Ignore
+    // @Ignore
     public void testDatabaseOps() throws MetaException, InvalidObjectException, NoSuchObjectException {
         Database db1 = new Database(DB1, "description", "locationurl", new HashMap<String, String>());
         Database db2 = new Database(DB2, "description", "locationurl", new HashMap<String, String>());
@@ -169,7 +169,7 @@ public class TestGroundMetastore {
         Assert.assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
     }
 
-    // @Ignore
+    @Ignore
     @Test
     public void testPartitionOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
