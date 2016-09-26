@@ -6,7 +6,7 @@
 
 Ground is an open-source data context service under development at UC Berkeley. Ground serves as a central model, API, and repistory for capturing the broad context in which data is used. Our goal is to address practical problems for the Big Data community in the short term and to open up opportunities for long-term research and innovation.
 
-For the vision behind Ground as well as a more detailed description of the state of the project, please see our [CIDR '17](http://cidrdb.org/cidr2017/) submission on [Arxiv](http://arxiv.org).
+For the vision behind Ground as well as a more detailed description of the state of the project, please see our [CIDR '17](http://cidrdb.org/cidr2017/) [submssion](CIDR17.pdf).
 
 ## Getting Started
 
