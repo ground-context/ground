@@ -84,6 +84,32 @@ public class GroundReadWrite {
 
     private EdgeFactory edgeFactory;
 
+    private StructureVersionFactory svf;
+
+    private StructureFactory sf;
+
+    public StructureVersionFactory getStructureVersionFactory() {
+        return svf;
+    }
+
+    public void setStructureVersionFactory(StructureVersionFactory svf) {
+        this.svf = svf;
+    }
+
+    /**
+     * @return the sf
+     */
+    public StructureFactory getStructureFactory() {
+        return sf;
+    }
+
+    /**
+     * @param sf the sf to set
+     */
+    public void setSFactory(StructureFactory sf) {
+        this.sf = sf;
+    }
+
     private static ThreadLocal<GroundReadWrite> self = new ThreadLocal<GroundReadWrite>() {
         @Override
         protected GroundReadWrite initialValue() {
@@ -176,8 +202,8 @@ public class GroundReadWrite {
         nodeFactory = new PostgresNodeFactory(itemFactory, (PostgresClient) dbClient);
         VersionFactory vf = new PostgresVersionFactory();
         ItemFactory iff = new PostgresItemFactory(dagFactory);
-        StructureFactory sf = new PostgresStructureFactory((PostgresItemFactory) iff, (PostgresClient) dbClient);
-        StructureVersionFactory svf = new PostgresStructureVersionFactory((PostgresStructureFactory) sf,
+        sf = new PostgresStructureFactory((PostgresItemFactory) iff, (PostgresClient) dbClient);
+        svf = new PostgresStructureVersionFactory((PostgresStructureFactory) sf,
                 (PostgresVersionFactory) vf, (PostgresClient) dbClient);
         RichVersionFactory rf = new PostgresRichVersionFactory((PostgresVersionFactory) vf,
                 (PostgresStructureVersionFactory) svf, tagFactory);
