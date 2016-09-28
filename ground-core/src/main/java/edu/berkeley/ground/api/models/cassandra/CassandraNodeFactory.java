@@ -71,7 +71,7 @@ public class CassandraNodeFactory extends NodeFactory {
 
     public List<String> getLeaves(String name) throws GroundException {
         CassandraConnection connection = this.dbClient.getConnection();
-        return this.itemFactory.getLeaves(connection, name);
+        return this.itemFactory.getLeaves(connection, "Nodes." + name);
     }
 
     public Node retrieveFromDatabase(String name) throws GroundException {

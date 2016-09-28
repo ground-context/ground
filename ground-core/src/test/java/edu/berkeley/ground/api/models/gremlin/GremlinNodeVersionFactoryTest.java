@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.api.GremlinTest;
@@ -69,6 +70,12 @@ public class GremlinNodeVersionFactoryTest extends GremlinTest {
                 assert(retrievedTags).containsKey(key);
                 assertEquals(tags.get(key), retrievedTags.get(key));
             }
+
+            List<String> leaves = super.factories.getNodeFactory().getLeaves(nodeName);
+
+            assertTrue(leaves.contains(nodeVersionId));
+            assertTrue(1 == leaves.size());
+
         } catch (GroundException ge) {
             fail(ge.getMessage());
         }
