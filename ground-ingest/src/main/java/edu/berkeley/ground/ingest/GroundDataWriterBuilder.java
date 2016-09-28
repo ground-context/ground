@@ -9,10 +9,10 @@ import gobblin.writer.DataWriter;
 import gobblin.writer.DataWriterBuilder;
 
 
-public class GroundDataWriterBuilder extends DataWriterBuilder<Schema, byte[]> {
+public class GroundDataWriterBuilder extends DataWriterBuilder<Schema, GenericRecord> {
 
   @Override
-  public DataWriter<byte[]> build() throws IOException {
+  public DataWriter<GenericRecord> build() throws IOException {
     return new GroundWriter<>();
   }
   

@@ -2,6 +2,7 @@ package edu.berkeley.ground.ingest;
 
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,6 +19,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -32,49 +34,33 @@ import java.net.URLEncoder;
 
 
 
-public class GroundWriter<D> implements DataWriter<byte[]>  {
+public class GroundWriter<D> implements DataWriter<GenericRecord>  {
   
   
-  public void write(byte[] array) throws IOException {
+  public void write(GenericRecord record) throws IOException {
     
+    Map<String, Tag> tags =  new HashMap<String, Tag>();
     
-    GenericRecord record = deserialize(array);
-    String info = record.get("name").toString();
+    Tag timeCreated = new Tag(null, record.get("timeCreated").toString(), null, null);
+    Tag length = new Tag(null, record.get("length").toString(), null, null);
+    Tag modificationTime = new Tag(null, record.get("modificationTime").toString(), null, null);
+    Tag owner = new Tag(null, record.get("owner").toString(), null, null);
+    tags.put("timeCreated", timeCreated);
+    tags.put("length", length);
+    tags.put("modificationTime", modificationTime);
+    tags.put("owner", owner);
     
-    node(info);
+    String name = record.get("name").toString();
+    
+    node(name, tags);
    
   } 
 
  
-   public GenericRecord deserialize(byte[] byteArray) {
-     
-     String schemaString = "{\"namespace\": \"example.avro\", "
-         + "\"type\": \"record\","
-         + "\"name\": \"User\", "
-        + "\"fields\": [ "
-             + "{\"name\": \"name\", \"type\": [\"string\", \"null\"]}, "
-             + "{\"name\": \"tags\",  \"type\": { \"type\": \"map\", \"values\": \"string\"}}, "
-             + "{\"name\": \"StructureVerionId\", \"type\": [\"string\", \"null\"]}, "
-             + "{\"name\": \"reference\", \"type\": [\"string\", \"null\"]}, "
-             + "{\"name\": \"parameters\",  \"type\": { \"type\": \"map\", \"values\": \"string\"}} "
-        + "]"
-        + "}";
-     
-     
-     Schema outputSchema = new Schema.Parser().parse(schemaString);
-     
-     GenericDatumReader<GenericRecord> serveReader = new GenericDatumReader<>(outputSchema);
-     try {
-         return serveReader.read(null, DecoderFactory.get().binaryDecoder(byteArray, null));
-     } catch (IOException e) {
-       throw new RuntimeException("Could not deserialize in Avro", e);
-      
-     }
-       
-   }
+  
   
     
-   public void node(String name) throws JsonGenerationException, JsonMappingException, IOException {
+   public void node(String name, Map<String, Tag> tags) throws JsonGenerationException, JsonMappingException, IOException {
      
      Node testNode = new Node("id", name);
      ObjectMapper mapper = new ObjectMapper();
@@ -87,13 +73,27 @@ public class GroundWriter<D> implements DataWriter<byte[]>  {
      post.setRequestHeader("Content-type", "application/json");
      post.setRequestBody(jsonString);
      int statusCode = client.executeMethod(post);
+     String text = post.getResponseBodyAsString();
+     ObjectMapper objectMapper = new ObjectMapper();
+     JsonNode node = objectMapper.readValue(text, JsonNode.class);
+     JsonNode nodeId = node.get("id");
+     String id = nodeId.asText(); 
+     
+     NodeVersion nodeVersion = new NodeVersion(null, tags, null, null, null, id);
   }
    
-   public void nodeVersion(String id, Optional<Map<String, Tag>> tags, Optional<String> structureVersionId, Optional<String> reference, Optional<Map<String, String>> parameters, WebTarget targetnodeversion) {
+   public void nodeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference, Map<String, String> referenceParameters) throws JsonGenerationException, JsonMappingException, IOException {
      
-     NodeVersion nodeVersion = new NodeVersion("id", tags, structureVersionId, reference, parameters, id);
-     Response response = targetnodeversion.request(MediaType.APPLICATION_JSON_TYPE).post(Entity.json(nodeVersion));
-     System.out.println(response.toString());
+     NodeVersion nodeVersion = new NodeVersion("id", tags, structureVersionId, reference, referenceParameters, id);
+     ObjectMapper mapper = new ObjectMapper();
+     String jsonString = mapper.writeValueAsString(nodeVersion);
+     HttpClient client = new HttpClient();
+     String uri = "http://localhost:9000/nodes/versions";
+     PostMethod post = new PostMethod(uri);
+     post.setRequestHeader("Content-type", "application/json");
+     post.setRequestBody(jsonString);
+     int statusCode = client.executeMethod(post);
+
    }
 
   @Override
@@ -125,31 +125,5 @@ public class GroundWriter<D> implements DataWriter<byte[]>  {
     // TODO Auto-generated method stub
     return 0;
   }
-
- public static void main(String args[]) throws IOException{
-   /**
-   Client client = new JerseyClientBuilder().build();
-   WebTarget targetnode = client.target("http://localhost:9090/nodes/valley");
-   Node nodeTest = new Node("id", "valley");
-   //Builder builder = targetnode.request(MediaType.APPLICATION_JSON);
-   Response response = targetnode.request(MediaType.APPLICATION_JSON).post(Entity.json(nodeTest));
-   System.out.println(response.toString()); */
-   
-   
-   Node testNode = new Node("id", "brand newsiliconvalley");
-   ObjectMapper mapper = new ObjectMapper();
-   String jsonString = mapper.writeValueAsString(testNode);
-   HttpClient client = new HttpClient();
-   String encodedUri = "http://localhost:9090/nodes/" + URLEncoder.encode("brand newsiliconvalley", "UTF-8");
-   System.out.println(encodedUri);
-   PostMethod post = new PostMethod(encodedUri);
-   post.setRequestHeader("Content-type", "application/json");
-   post.setRequestBody(jsonString);
-   int statusCode = client.executeMethod(post);
-   
- }
-
- 
-  
  
 }
