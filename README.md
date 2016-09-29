@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/ground-context/ground.png?circle-token=4b494a01575da18eecdbbb180b89c2d8bd18cdb0)](https://circleci.com/gh/ground-context/ground-context)
+[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.org/ground-context/ground)
 [![Coveralls](https://img.shields.io/coveralls/ground-context/ground.svg)](https://coveralls.io/github/ground-context/ground)
 
 
