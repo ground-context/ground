@@ -1,0 +1,25 @@
+language: java
+jdk: oraclejdk8
+
+services:
+  - postgresql
+
+before_script:
+  # create Postgres database
+  - createdb test
+  - createuser test -d -s
+  - cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../../..
+  # install and start Neo4j 
+  - wget -O neo4j-community-$NEO4J_VERSION-unix.tar.gz https://neo4j.com/artifact.php?name=neo4j-community-$NEO4J_VERSION-unix.tar.gz
+  - tar -xzf neo4j-community-$NEO4J_VERSION-unix.tar.gz
+  - sudo sed -i "s|#dbms.security.auth_enabled=false|dbms.security.auth_enabled=false|g" neo4j-community-$NEO4J_VERSION/conf/neo4j.conf
+  - neo4j-community-$NEO4J_VERSION/bin/neo4j start
+  - ls
+
+script: 
+  - cd ground
+  - mvn clean test
+
+after_success:
+  - cd ground
+  - mvn clean test jacoco:report coveralls:report

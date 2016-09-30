@@ -6,4 +6,8 @@ target
 .classpath
 .project
 *.log
+<<<<<<< HEAD
 .DS_Store
+=======
+.DS_Store
+>>>>>>> ground-context/master

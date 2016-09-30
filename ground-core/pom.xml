@@ -211,9 +211,10 @@
 
                 <configuration>
                     <excludes>
-                        <!-- Exclude the Gremlin tests by default because they try to fork Cassandra
-                          and it fails because Cassandra is already running. -->
+                        <!-- Since Neo4j is our recommended database, only run those tests and
+                             Postgres tests by default. -->
                         <exclude>**/Gremlin*.java</exclude>
+                        <exclude>**/Cassandra*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

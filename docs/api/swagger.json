@@ -1,0 +1,907 @@
+{
+  "swagger" : "2.0",
+  "info" : { },
+  "basePath" : "/",
+  "tags" : [ {
+    "name" : "edges"
+  }, {
+    "name" : "nodes"
+  }, {
+    "name" : "graphs"
+  }, {
+    "name" : "lineage"
+  }, {
+    "name" : "structures"
+  }, {
+    "name" : "kafka"
+  } ],
+  "schemes" : [ "http" ],
+  "paths" : {
+    "/edges/versions" : {
+      "post" : {
+        "tags" : [ "edges" ],
+        "operationId" : "createEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/EdgeVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/EdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/edges/versions/{id}" : {
+      "get" : {
+        "tags" : [ "edges" ],
+        "operationId" : "getEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/EdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/edges/{name}" : {
+      "get" : {
+        "tags" : [ "edges" ],
+        "summary" : "Get an edge",
+        "description" : "",
+        "operationId" : "getEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Edge"
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "edges" ],
+        "operationId" : "createEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Edge"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/graphs/versions" : {
+      "post" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "createGraphVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/GraphVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/GraphVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/graphs/versions/{id}" : {
+      "get" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "getGraphVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/GraphVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/graphs/{name}" : {
+      "get" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "getGraph",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Graph"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "graphs" ],
+        "operationId" : "createGraph",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Graph"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/kafka" : {
+      "post" : {
+        "tags" : [ "kafka" ],
+        "summary" : "Send kafka message",
+        "description" : "",
+        "operationId" : "sendKafkaMessage",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "topic",
+          "in" : "query",
+          "description" : "Topic to push to",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "key",
+          "in" : "query",
+          "description" : "Key of message",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "string"
+            }
+          },
+          "405" : {
+            "description" : "Invalid input"
+          }
+        }
+      }
+    },
+    "/lineage/versions" : {
+      "post" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "createLineageEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/LineageEdgeVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/lineage/versions/{id}" : {
+      "get" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "getLineageEdgeVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdgeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/lineage/{name}" : {
+      "get" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "getLineageEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdge"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "lineage" ],
+        "operationId" : "createLineageEdge",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/LineageEdge"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/adjacent/{id}/{edgeName}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "adjacentNodes",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "edgeName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/closure/{id}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "transitiveClosure",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/versions" : {
+      "post" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "createNodeVersion",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/NodeVersion"
+          }
+        }, {
+          "name" : "parents",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/NodeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/versions/{id}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "getNodeVersion",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/NodeVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/{name}" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "getNode",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Node"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "createNode",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Node"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/nodes/{name}/latest" : {
+      "get" : {
+        "tags" : [ "nodes" ],
+        "operationId" : "getLatestVersions",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/structures/versions" : {
+      "post" : {
+        "tags" : [ "structures" ],
+        "operationId" : "createStructureVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/StructureVersion"
+          }
+        }, {
+          "name" : "parent",
+          "in" : "query",
+          "required" : false,
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          },
+          "collectionFormat" : "multi"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/StructureVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/structures/versions/{id}" : {
+      "get" : {
+        "tags" : [ "structures" ],
+        "operationId" : "getStructureVersion",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/StructureVersion"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    },
+    "/structures/{name}" : {
+      "get" : {
+        "tags" : [ "structures" ],
+        "operationId" : "getStructure",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Structure"
+            },
+            "headers" : { }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "structures" ],
+        "operationId" : "createStructure",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Structure"
+            },
+            "headers" : { }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "NodeVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "nodeId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "GraphVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "graphId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "edgeVersionIds" : {
+          "type" : "array",
+          "readOnly" : true,
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "LineageEdgeVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "fromId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "toId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "lineageEdgeId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "Graph" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "Node" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "EdgeVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "tags" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Tag"
+          }
+        },
+        "structureVersionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "reference" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "edgeId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "fromId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "toId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "parameters" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "LineageEdge" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "StructureVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "structureId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "attributes" : {
+          "type" : "object",
+          "readOnly" : true,
+          "additionalProperties" : {
+            "type" : "string",
+            "enum" : [ "STRING", "INTEGER", "BOOLEAN" ]
+          }
+        }
+      }
+    },
+    "Tag" : {
+      "type" : "object",
+      "properties" : {
+        "versionId" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "key" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "value" : {
+          "type" : "object",
+          "readOnly" : true
+        },
+        "valueType" : {
+          "type" : "string",
+          "readOnly" : true,
+          "enum" : [ "STRING", "INTEGER", "BOOLEAN" ]
+        }
+      }
+    },
+    "Structure" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    },
+    "Edge" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "readOnly" : true
+        },
+        "name" : {
+          "type" : "string",
+          "readOnly" : true
+        }
+      }
+    }
+  }
+}
