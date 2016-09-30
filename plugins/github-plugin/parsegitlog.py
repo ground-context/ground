@@ -115,7 +115,7 @@ def post_commits(commits, latest_nodes):
         print(str(r) + ' Commit POSTed: ' + c['commitHash'])
         # print(params)
         # print(r.url)
-        # print(r.json())
+        print(r.json())
         node_ids[c['commitHash']] = r.json()['id']  # this will map ground's node id with the commit hash
         # print(i)
         # i += 1
@@ -138,13 +138,14 @@ for msg in consumer:
     # create URLS for API interaction
     nodeUrl = url + '/nodes/' + repoId
     latestUrl = nodeUrl + '/latest'
+    latests = {}
 
     if not os.path.exists(config['Git']['path'] + repoId):
         repo = git.Repo.init(config['Git']['path'] + repoId, bare=True)
         origin = repo.create_remote('origin', url=gitUrl)
     else:
         repo = git.Repo(config['Git']['path'] + repoId)
-
+        latests = latest_commits(repoId)
 
     class MyProgressPrinter(git.RemoteProgress):
         def update(self, op_code, cur_count, max_count=None, message=''):
@@ -158,7 +159,6 @@ for msg in consumer:
     print('commits fetched')
     g = git.Git(config['Git']['path'] + repoId)
 
-    latests = latest_commits(repoId)
     if not bool(latests):
         # create initial node
         requests.post(nodeUrl)

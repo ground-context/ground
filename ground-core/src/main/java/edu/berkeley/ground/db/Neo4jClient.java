@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,19 +17,21 @@ package edu.berkeley.ground.db;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
-import org.neo4j.driver.internal.value.ListValue;
-import org.neo4j.driver.internal.value.RelationshipValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Neo4jClient implements DBClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jClient.class);
+
     private Driver driver;
 
     public Neo4jClient(String host, String username, String password) {
@@ -190,7 +192,6 @@ public class Neo4jClient implements DBClient {
 
             query = this.addValuesToStatement(query, attributes);
             query += "}) RETURN v";
-
             StatementResult result = this.transaction.run(query);
 
             if (result.hasNext()) {
@@ -234,24 +235,18 @@ public class Neo4jClient implements DBClient {
          * @return the list of valid edges
          */
         public List<Relationship> getDescendantEdgesByLabel(String startId, String label) {
-            String query = "MATCH (a {id: '" + startId + "' })";
-            query += "MATCH (a)-[e:" + label + "*]->(b)";
-            query += "RETURN e";
 
+            String query = "MATCH (a)-[e:VersionSuccessor]-(b:NodeVersion " +
+                    "{node_id : '" + startId + "'}) WHERE a.id='" + startId +
+                    "' OR a.node_id='" + startId + "' RETURN DISTINCT e";
+
+            LOGGER.info("getDescendantEdgesByLabel query: "+query);
             StatementResult result = this.transaction.run(query);
-
             Set<Relationship> response = new HashSet<>();
 
             List<Record> resultList = result.list();
-
             if (!resultList.isEmpty()) {
-                for (Record r : resultList) {
-                    ListValue lv = (ListValue) r.get("e");
-
-                    for (int i = 0; i < lv.size(); i++) {
-                        response.add(lv.get(i).asRelationship());
-                    }
-                }
+                response.addAll(resultList.stream().map(r -> r.get("e").asRelationship()).collect(Collectors.toList()));
             }
 
             return new ArrayList<>(response);
