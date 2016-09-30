@@ -141,7 +141,7 @@ public class GroundStore implements RawStore, Configurable {
     private NodeVersion getNodeVersion(String name) throws NoSuchObjectException {
         try {
             LOG.info("getting node versions for {}", name);
-            List<String> versions = getGround().getNodeFactory().getLeaves("Nodes." + name);
+            List<String> versions = getGround().getNodeFactory().getLeaves(name);
             if (versions == null || versions.isEmpty())
                 return null;
             return getGround().getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
@@ -460,7 +460,7 @@ public class GroundStore implements RawStore, Configurable {
         NodeVersion tableNodeVersion;
         try {
             LOG.info("getting versions for table {}", tableName);
-            List<String> versions = getGround().getNodeFactory().getLeaves("Nodes." + tableName);
+            List<String> versions = getGround().getNodeFactory().getLeaves(tableName);
             tableNodeVersion = getGround().getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
         } catch (GroundException e) {
             LOG.error("get failed for database: {}, {} ", dbName, tableName);
