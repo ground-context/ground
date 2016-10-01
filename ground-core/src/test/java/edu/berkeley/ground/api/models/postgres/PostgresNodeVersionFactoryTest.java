@@ -70,9 +70,23 @@ public class PostgresNodeVersionFactoryTest extends PostgresTest {
             assertEquals(tags.get(key), retrievedTags.get(key));
         }
 
+        String nodeVersionId0 = super.factories.getNodeVersionFactory().create(tags,
+                structureVersionId, testReference, parameters, nodeId, new ArrayList<>()).getId();
+
+        String nodeVersionId1 = super.factories.getNodeVersionFactory().create(tags,
+                structureVersionId, testReference, parameters, nodeId, new ArrayList<>()).getId();
+
         List<String> leaves = super.factories.getNodeFactory().getLeaves(nodeName);
 
+        assertTrue(leaves.contains(nodeVersionId0));
+        assertTrue(leaves.contains(nodeVersionId1));
         assertTrue(leaves.contains(nodeVersionId));
-        assertTrue(1 == leaves.size());
+        for (String leaf: leaves) {
+            System.out.println("leaf: " + leaf);
+        }
+        assertTrue(3 == leaves.size());
+        assertEquals(leaves.get(0), nodeVersionId0);
+        assertEquals(leaves.get(1), nodeVersionId1);
+        assertEquals(leaves.get(2), nodeVersionId);
     }
 }
