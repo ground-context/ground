@@ -64,7 +64,7 @@ def get_commits(git_repo, latest_nodes):
 
 
 def latest_commits(repo_id):
-    latests_url = url + '/nodes/Nodes.' + repo_id + '/latest'
+    latests_url = url + '/nodes/' + repo_id + '/latest'
     node_url = url + '/nodes/versions/'
     print('getting latest versions...')
     node_ids = requests.get(latests_url).json()  # send the request

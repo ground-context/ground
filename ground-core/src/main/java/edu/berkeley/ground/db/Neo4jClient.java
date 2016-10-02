@@ -236,7 +236,7 @@ public class Neo4jClient implements DBClient {
          */
         public List<Relationship> getDescendantEdgesByLabel(String startId, String label) {
 
-            String query = "MATCH (a)-[e:VersionSuccessor]-(b:NodeVersion " +
+            String query = "MATCH (a)-[e:"+label+"]-(b " +
                     "{node_id : '" + startId + "'}) WHERE a.id='" + startId +
                     "' OR a.node_id='" + startId + "' RETURN DISTINCT e";
 
