@@ -351,8 +351,7 @@ public class GroundStore implements RawStore, Configurable {
         if (tblCopy == null) {// create a tombstone node
             return createTombstone(tableName, tagsMap, gson);
         }
-        tblTag = createTag(version, tableName, gson.toJson(tblCopy),
-                edu.berkeley.ground.api.versions.GroundType.STRING);
+        tblTag = createTag(version, tableName, gson.toJson(tblCopy), GroundType.STRING);
         tagsMap.put(tableName, tblTag);
         String id = tableName + TABLE_STATE;
         Tag stateTag = createTag(id, EntityState.ACTIVE.name());
@@ -366,7 +365,8 @@ public class GroundStore implements RawStore, Configurable {
         // new node for this table
         String nodeId = getGround().getNodeFactory().create(tableName).getId();
         List<String> parents = new ArrayList<>();
-        parents.add(dbName);
+        // TODO: Add database as parent once we figure out the parent-child semantics
+        // parents.add(dbName);
         String reference = tblCopy.getOwner();
         StructureVersion sv = createStructureVersion(tableName, parents);
         NodeVersion tableNodeVersion = getGround().getNodeVersionFactory().create(tags, sv.getId(), reference,
