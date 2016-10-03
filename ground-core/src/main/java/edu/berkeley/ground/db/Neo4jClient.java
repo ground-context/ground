@@ -240,7 +240,6 @@ public class Neo4jClient implements DBClient {
                     "{node_id : '" + startId + "'}) WHERE a.id='" + startId +
                     "' OR a.node_id='" + startId + "' RETURN DISTINCT e";
 
-            LOGGER.info("getDescendantEdgesByLabel query: "+query);
             StatementResult result = this.transaction.run(query);
             Set<Relationship> response = new HashSet<>();
 

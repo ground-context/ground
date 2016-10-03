@@ -66,9 +66,9 @@ def get_commits(git_repo, latest_nodes):
 def latest_commits(repo_id):
     latests_url = url + '/nodes/' + repo_id + '/latest'
     node_url = url + '/nodes/versions/'
-    print('getting latest versions...')
+    print('getting latest commits from ground...')
     node_ids = requests.get(latests_url).json()  # send the request
-    print('latest nodeids ' + str(node_ids))
+    print('latest commits received from ground.')
     hashes = {}
     for node_id in node_ids:
         commit_hash = requests.get(node_url+node_id).json()['tags']['commit']['value']
@@ -110,15 +110,9 @@ def post_commits(commits, latest_nodes):
         headers = {
             'content-type': "application/json"
         }
-        print('POSTing: ' + str(json.dumps(node_version_data)))
         r = requests.post(nodeVUrl, params=params, data=json.dumps(node_version_data), headers=headers)  # send the request
-        print(str(r) + ' Commit POSTed: ' + c['commitHash'])
-        # print(params)
-        # print(r.url)
-        print(r.json())
-        node_ids[c['commitHash']] = r.json()['id']  # this will map ground's node id with the commit hash
-        # print(i)
-        # i += 1
+        print('Commit added to ground: ' + c['commitHash'])
+        node_ids[c['commitHash']] = r.json()['id']  # map ground's node id with the commit hash
 
 
 config = configparser.ConfigParser()
@@ -130,11 +124,12 @@ nodeVUrl = url + '/nodes/versions/'
 
 for msg in consumer:
 
-    parsed_msg = json.loads(msg.value.decode("utf-8"))  # turn into json
+    parsed_msg = json.loads(msg.value.decode("utf-8"))  # convert to json
     print("Received repo: "+msg.key.decode("utf-8"))  # print key
     gitUrl = parsed_msg['repository']['git_url']
     repoId = msg.key.decode("utf-8")  # key from kakfa
-    # repoId = str(parsed_msg['repository']['id'])
+    # repoId = str(parsed_msg['repository']['id'])  # do we want repo id or name?
+
     # create URLS for API interaction
     nodeUrl = url + '/nodes/' + repoId
     latestUrl = nodeUrl + '/latest'
@@ -153,15 +148,13 @@ for msg in consumer:
             # end
 
     print('fetching commits....')
-    # repo.remotes.origin.fetch()  # update repo metadata
     for fetch_info in repo.remotes.origin.fetch(progress=MyProgressPrinter()):
         print("Updated %s to %s" % (fetch_info.ref, fetch_info.commit))
     print('commits fetched')
     g = git.Git(config['Git']['path'] + repoId)
 
     if not bool(latests):
-        # create initial node
-        requests.post(nodeUrl)
+        requests.post(nodeUrl)  # create initial node
 
     repo_commits = get_commits(g, latests)  # Get a list of the latest commits
     post_commits(repo_commits, latests)

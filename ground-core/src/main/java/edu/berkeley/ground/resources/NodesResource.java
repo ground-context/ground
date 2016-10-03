@@ -92,9 +92,7 @@ public class NodesResource {
     @Path("/{name}/latest")
     public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving the latest version of node " + name + ".");
-        List<String> leaves = this.nodeFactory.getLeaves(name);
-        Set<String> set = new HashSet<>(leaves); //Dedup the leaves
-        return new ArrayList<>(set);
+        return this.nodeFactory.getLeaves(name);
     }
 
     @GET
