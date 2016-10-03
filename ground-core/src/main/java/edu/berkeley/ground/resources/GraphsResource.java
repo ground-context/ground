@@ -21,6 +21,8 @@ import edu.berkeley.ground.api.models.GraphVersion;
 import edu.berkeley.ground.api.models.GraphVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
+import io.swagger.annotations.Api;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/graphs")
+@Api(value = "/graphs", description = "Interact with the graphs in ground")
 @Produces(MediaType.APPLICATION_JSON)
 public class GraphsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphsResource.class);

@@ -21,6 +21,9 @@ import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/edges")
+@Api(value = "/edges", description = "Interact with the edges in the graph")
 @Produces(MediaType.APPLICATION_JSON)
 public class EdgesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EdgesResource.class);
@@ -45,6 +49,7 @@ public class EdgesResource {
 
     @GET
     @Timed
+    @ApiOperation(value = "Get an edge")
     @Path("/{name}")
     public Edge getEdge(@PathParam("name") String name) throws GroundException {
         LOGGER.info("Retrieving edge " + name + ".");

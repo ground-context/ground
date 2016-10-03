@@ -16,11 +16,17 @@ package edu.berkeley.ground;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 
 public class GroundServerConfiguration extends Configuration {
+
+    @JsonProperty("swagger")
+    public SwaggerBundleConfiguration swaggerBundleConfiguration;
+
     @NotEmpty
     private String dbType;
 
@@ -38,6 +44,12 @@ public class GroundServerConfiguration extends Configuration {
 
     @NotEmpty
     private String dbPassword;
+
+    @NotEmpty
+    private String kafkaHost;
+
+    @NotEmpty
+    private String kafkaPort;
 
     @JsonProperty
     public String getDbType() {
@@ -97,5 +109,25 @@ public class GroundServerConfiguration extends Configuration {
     @JsonProperty
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    @JsonProperty
+    public String getKafkaHost() {
+        return this.kafkaHost;
+    }
+
+    @JsonProperty
+    public void setKafkaHost(String kafkaHost) {
+        this.kafkaHost = kafkaHost;
+    }
+
+    @JsonProperty
+    public String getKafkaPort() {
+        return this.kafkaPort;
+    }
+
+    @JsonProperty
+    public void setKafkaPort(String kafkaPort) {
+        this.kafkaPort = kafkaPort;
     }
 }
