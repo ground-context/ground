@@ -112,10 +112,11 @@ public class GMetaStore {
                     List<String> dbNodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
                     for (String dbNodeId : dbNodeIds) {
                         NodeVersion dbNodeVersion = ground.getNodeVersionFactory().retrieveFromDatabase(dbNodeId);
+
                         // create an edge for a dbname only if was not created earlier
                         edge = ground.getEdgeFactory().retrieveFromDatabase(dbNodeVersion.getNodeId());
                         ground.getEdgeVersionFactory().create(nv.getTags(), nv.getStructureVersionId(),
-                                nv.getReference(), nv.getParameters(), edge.getId(), metaVersionId, nv.getId(),
+                                nv.getReference(), nv.getParameters(), edge.getId(), metaVersionId, dbNodeVersion.getId(),
                                 new ArrayList<String>());
                     }
                 }
@@ -126,4 +127,28 @@ public class GMetaStore {
         }
     }
 
+    public void dropDatabase(String dbName) throws GroundException {
+        throw new GroundException("Drop databases not implemented");
+    }
+
+    public List<String> getDatabases(String dbPattern) throws GroundException {
+        List<String> databases = new ArrayList<String>();
+        try {
+            List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+
+            if (!versions.isEmpty()) {
+                String metaVersionId = versions.get(0);
+                List<String> dbNodeIds = ground.getNodeVersionFactory().getAdjacentNodes(metaVersionId, dbPattern);
+                for (String dbNodeId : dbNodeIds) {
+                    NodeVersion dbNodeVersion = ground.getNodeVersionFactory().retrieveFromDatabase(dbNodeId);
+                    // create an edge for a dbname only if was not created earlier
+                    Edge edge = ground.getEdgeFactory().retrieveFromDatabase(dbNodeVersion.getNodeId());
+                    databases.add(edge.getName().split("Nodes.")[1]);
+                }
+            }
+        } catch (GroundException ex) {
+            throw new GroundException("Drop databases not implemented");
+        }
+        return databases;
+    }
 }

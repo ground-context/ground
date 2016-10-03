@@ -138,11 +138,13 @@ public class TestGroundMetastore {
         Assert.assertEquals(DB1,dbName);
         dbName = groundStore.getDatabase(DB2).getName();
         Assert.assertEquals(DB2,dbName);
-        //List<String> databases = groundStore.getAllDatabases();
-        /** temporarily disable these tests. */
-        // FIX Assert.assertEquals(3, databases.size());
-        //Assert.assertEquals(DB2, databases.get(0));
-        //Assert.assertEquals(DB1, databases.get(1));
+        List<String> databases = groundStore.getAllDatabases();
+        Assert.assertEquals(3, databases.size());
+        for (String database: databases) {
+            System.out.println("database: " + database);
+        }
+        Assert.assertTrue(databases.contains(DB2));
+        Assert.assertTrue(databases.contains(DB1));
         //Assert.assertEquals(true,groundStore.dropDatabase(DB1));
     }
 
