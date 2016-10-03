@@ -272,14 +272,22 @@ public class GroundStore implements RawStore, Configurable {
 
     @Override
     public List<String> getDatabases(String pattern) throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+            return metastore.getDatabases(pattern);
+        } catch (GroundException ex) {
+            LOG.error("Failed to get databases with pattern {}", pattern);
+            throw new MetaException(ex.getMessage());
+        }
     }
 
     @Override
     public List<String> getAllDatabases() throws MetaException {
-        List<String> list = new ArrayList<>();
-        return list;
+        try {
+            return this.getDatabases("");
+        } catch (MetaException ex) {
+            LOG.error("Failed to get all databases");
+            throw new MetaException(ex);
+        }
     }
 
     @Override
