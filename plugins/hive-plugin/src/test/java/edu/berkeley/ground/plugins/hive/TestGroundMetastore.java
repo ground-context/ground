@@ -145,7 +145,7 @@ public class TestGroundMetastore {
         }
         Assert.assertTrue(databases.contains(DB2));
         Assert.assertTrue(databases.contains(DB1));
-        //Assert.assertEquals(true,groundStore.dropDatabase(DB1));
+        //Assert.assertEquals(true, groundStore.dropDatabase(DB1));
     }
 
     /**
