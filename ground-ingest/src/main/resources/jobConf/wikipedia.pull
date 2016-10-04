@@ -1,26 +1,26 @@
-job.name=NowPullFromWikipedia
-job.group=Wikipedia
-job.description=A getting started example for Gobblin
 
-source.class=edu.berkeley.ground.ingest.WikiSource
-source.page.titles=NASA,LinkedIn,Parris_Cues,Barbara_Corcoran
-source.revisions.cnt=5
+source.filebased.data.directory=file:///Users/sreyashinag/Documents/test1
+writer.kafka.topic=HdfsMeta1
+writer.kafka.producerConfig.schemaRegistry.schema.name=HdfsMeta2
+writer.kafka.producerConfig.bootstrap.servers=localhost:9092
 
-wikipedia.api.rooturl=https://en.wikipedia.org/w/api.php?format=json&action=query&prop=revisions&rvprop=content|timestamp|user|userid|size
-wikipedia.avro.schema={"namespace": "example.wikipedia.avro","type": "record","name": "WikipediaArticle","fields": [{"name": "pageid", "type": ["double", "null"]},{"name": "title", "type": ["string", "null"]},{"name": "user", "type": ["string", "null"]},{"name": "anon", "type": ["string", "null"]},{"name": "userid",  "type": ["double", "null"]},{"name": "timestamp", "type": ["string", "null"]},{"name": "size",  "type": ["double", "null"]},{"name": "contentformat",  "type": ["string", "null"]},{"name": "contentmodel",  "type": ["string", "null"]},{"name": "content", "type": ["string", "null"]}]}
+job.name=Pull from hdfs
+job.group=hdfs
+job.description=A getting started example for hdfs
 
-converter.classes=edu.berkeley.ground.ingest.WikiConverter,edu.berkeley.ground.ingest.GroundConverter
+source.class=edu.berkeley.ground.ingest.FileMetadataSource
+source.filebased.fs.uri=file:///
+
+extract.table.name=GroundEntity
+extract.table.type=SNAPSHOT_ONLY
 extract.namespace=edu.berkeley.ground.ingest
 
 writer.builder.class=gobblin.kafka.writer.KafkaDataWriterBuilder
-writer.kafka.topic=WikipediaGroundTopic
-writer.kafka.producerConfig.bootstrap.servers=localhost:9092
 writer.destination.type=KAFKA
 writer.output.format=AVRO
-writer.partitioner.class=edu.berkeley.ground.ingest.WikiPartitioner
+
 data.publisher.type=gobblin.publisher.NoopPublisher
 
-#Use Confluent Schema Registry and serializers
 writer.kafka.producerConfig.value.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
 writer.kafka.producerConfig.key.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
 writer.kafka.producerConfig.schema.registry.url=http://localhost:8081
