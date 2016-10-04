@@ -7,8 +7,7 @@
     <name>Ground Ingest</name>
     
     <properties>
-        <gobblin.version>0.8.0</gobblin.version> 
-        <!-- <gobblin.version>0.6.2-895-g1293dc2</gobblin.version> --> 
+        <gobblin.version>0.8.0</gobblin.version>
     </properties>
     
     <parent>
@@ -44,7 +43,6 @@
             <id>confluent</id>
             <url>http://packages.confluent.io/maven/</url>
         </repository>
-
 
     </repositories>
 
@@ -89,6 +87,7 @@
             <artifactId>jersey-media-moxy</artifactId>
             <version>2.23.1</version>
         </dependency>
+        
         <dependency>
             <groupId>com.linkedin.gobblin</groupId>
             <artifactId>gobblin-metastore</artifactId>
@@ -135,44 +134,43 @@
             <groupId>com.linkedin.gobblin</groupId>
             <artifactId>gobblin-runtime</artifactId>
             <version>${gobblin.version}</version>
-	    <scope>runtime</scope>
-        <exclusions>
-            <!-- Exclude transitive dependencies that break Dropwizard -->
+	        <scope>runtime</scope>
+            <exclusions>
+                <!-- Exclude transitive dependencies that break Dropwizard -->
             
-            <exclusion>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-core</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-server</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-json</artifactId>
-            </exclusion>
-        </exclusions>
-
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -180,7 +178,7 @@
             <artifactId>gobblin-kafka</artifactId>
             <version>${gobblin.version}</version>
             <scope>compile</scope>
-		<exclusions>
+            <exclusions>
                 <!-- Exclude transitive dependencies that break Dropwizard -->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -223,7 +221,7 @@
             <artifactId>gobblin-core</artifactId>
             <version>${gobblin.version}</version>
             <scope>compile</scope>
-		<exclusions>
+            <exclusions>
                 <!-- Exclude transitive dependencies that break Dropwizard -->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -257,54 +255,9 @@
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-json</artifactId>
                 </exclusion>
-		</exclusions>
-
+            </exclusions>
         </dependency>
-       <dependency>
-            <groupId>com.linkedin.gobblin</groupId>
-            <artifactId>gobblin-example</artifactId>
-            <version>${gobblin.version}</version>
-	    <scope>runtime</scope>
-        <exclusions>
-            <!-- Exclude transitive dependencies that break Dropwizard -->
-            
-            <exclusion>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-core</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-server</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-json</artifactId>
-            </exclusion>
-        </exclusions>
-
-        </dependency>
-
- 
+        
         <dependency>
             <groupId>edu.berkeley</groupId>
             <artifactId>ground-core</artifactId>
@@ -317,7 +270,7 @@
             <artifactId>gobblin-api</artifactId>
             <version>${gobblin.version}</version>
             <scope>compile</scope>
-		<exclusions>
+            <exclusions>
                 <!-- Exclude transitive dependencies that break Dropwizard -->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -351,8 +304,8 @@
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-json</artifactId>
                 </exclusion>
-		</exclusions>        
-	</dependency>
+            </exclusions>
+        </dependency>
         
         <dependency>
             <groupId>com.linkedin.gobblin</groupId>
@@ -393,8 +346,8 @@
                     <groupId>com.sun.jersey</groupId>
                     <artifactId>jersey-json</artifactId>
                 </exclusion>
-		</exclusions>  
-	</dependency>
+            </exclusions>
+        </dependency>
         
     </dependencies>
     
