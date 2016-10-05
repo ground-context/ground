@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hive.common.util.HiveStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +42,11 @@ public class GDatabase {
     private static final List<String> EMPTY_PARENT_LIST = new ArrayList<String>();
     
     private GroundReadWrite ground = null;
+    private GTable table = null;
 
     public GDatabase(GroundReadWrite ground) {
         this.ground = ground;
+        this.table = new GTable(ground);
     }
 
     public Node getNode(String dbName) throws GroundException {
@@ -69,25 +73,26 @@ public class GDatabase {
         }
     }
 
-    public Edge getEdge(String tableName) throws GroundException {
+    public Edge getEdge(NodeVersion nodeVersion) throws GroundException {
+        String edgeId = nodeVersion.getNodeId();
         try {
-            LOG.debug("Fetching database table edge: " + tableName);
-            return ground.getEdgeFactory().retrieveFromDatabase(tableName);
-        } catch (GroundException ge1) {
-            LOG.debug("Not found - Creating databsae table edge: " + tableName);
-
-            Edge edge = ground.getEdgeFactory().create(tableName);
-            Structure edgeStruct = ground.getStructureFactory().create(tableName);
+            LOG.debug("Fetching database table edge: " + edgeId);
+            return ground.getEdgeFactory().retrieveFromDatabase(edgeId);
+        } catch (GroundException e) {
+            LOG.debug("Not found - Creating database table edge: " + edgeId);
+            Edge edge = ground.getEdgeFactory().create(edgeId);
+            Structure edgeStruct = ground.getStructureFactory().create(edge.getName());
             return edge;
         }
     }
 
-    public Structure getEdgeStructure(String tableName) throws GroundException {
+    public Structure getEdgeStructure(NodeVersion nodeVersion) throws GroundException {
         try {
-            Edge edge = getEdge(tableName);     
-            return ground.getStructureFactory().retrieveFromDatabase(tableName);
+            LOG.debug("Fetching database table edge structure: " + nodeVersion.getNodeId());
+            Edge edge = this.getEdge(nodeVersion);
+            return ground.getStructureFactory().retrieveFromDatabase(edge.getName());
         } catch (GroundException e) {
-            LOG.error("Unable to fetch database tabe edge structure");
+            LOG.debug("Not found - database table edge structure: " + nodeVersion.getNodeId());
             throw e;
         }
     }
@@ -144,12 +149,134 @@ public class GDatabase {
             }
             Map<String, String> parameters = dbParamMap;
 
-            NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, parameters, dbNode.getId(), EMPTY_PARENT_LIST);
+            List<String> parent = new ArrayList<String>();
+            List<String> versions = ground.getNodeFactory().getLeaves(dbName);
+            if (!versions.isEmpty()) {
+                parent.add(versions.get(0));
+            }
+            
+            NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, parameters, dbNode.getId(), parent);
             
             return dbNodeVersion;
         } catch (GroundException e) {
             LOG.error("Failure to create a database node: " + db.getName());
             throw new MetaException(e.getMessage());
         }
+    }
+
+    // Table related functions
+    public NodeVersion createTable(Table table) throws InvalidObjectException, MetaException {
+        try {
+            String dbName = table.getDbName();
+            NodeVersion tableNodeVersion = this.table.createTable(table);
+            Database prevDb = this.getDatabase(dbName);
+            
+            List<String> versions = ground.getNodeFactory().getLeaves(dbName);
+
+            NodeVersion dbNodeVersion = this.createDatabase(prevDb);
+            String dbNodeVersionId = dbNodeVersion.getId();
+
+            
+            Edge edge = this.getEdge(tableNodeVersion);
+            Structure structure = this.getEdgeStructure(tableNodeVersion);
+            Map<String, GroundType> structVersionAttribs = new HashMap<>();
+            for (String key: tableNodeVersion.getTags().keySet()) {
+                structVersionAttribs.put(key, GroundType.STRING);
+            }
+            StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                    new ArrayList<>());
+
+            ground.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(), tableNodeVersion.getReference(), tableNodeVersion.getParameters(),
+                    edge.getId(), dbNodeVersionId, tableNodeVersion.getId(), new ArrayList<String>());
+
+            if (!versions.isEmpty()) {
+                if (versions.size() != 0) {
+                    String prevVersionId = versions.get(0);
+                    List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+                    for (String nodeId : nodeIds) {
+                        NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+                        edge = this.getEdge(oldNV);
+                        
+                        structVersionAttribs = new HashMap<>();
+                        for (String key: oldNV.getTags().keySet()) {
+                            structVersionAttribs.put(key, GroundType.STRING);
+                        }
+
+                        // create an edge version for a dbname
+                        sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                                new ArrayList<>());
+                        ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                                oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
+                                new ArrayList<String>());
+                    }
+                }
+            }
+
+            return dbNodeVersion;
+        } catch (GroundException ex) {
+            throw new MetaException(ex.getMessage());
+        } catch (NoSuchObjectException ex) {
+            throw new MetaException(ex.getMessage());
+        }
+    }    
+
+    public NodeVersion dropTable(String dbName, String tableName)
+            throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
+        try {
+            boolean found = false;
+            List<String> versions = ground.getNodeFactory().getLeaves(dbName);
+
+            if (versions.isEmpty()) {
+                LOG.error("Could not find table to drop named {}", tableName);
+                return null;
+            } else {
+                String prevVersionId = versions.get(0);
+                List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+
+                if (nodeIds.size() == 0) {
+                    LOG.error("Failed to drop table {}", dbName);
+                    return null;
+                }
+                Database db = this.getDatabase(dbName);
+                NodeVersion dbNodeVersion = this.createDatabase(db);
+                String dbVersionId = dbNodeVersion.getId();
+                String tableNodeId = "Nodes." + tableName;
+                
+                for (String nodeId : nodeIds) {
+                    NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+
+                    if (!oldNV.getNodeId().equals(tableNodeId)) {
+                        Edge edge = this.getEdge(oldNV);
+                        Structure structure = this.getEdgeStructure(oldNV);
+          
+                        LOG.error("Found edge with name {}", oldNV.getNodeId());
+
+                        Map<String, GroundType> structVersionAttribs = new HashMap<>();
+                        for (String key: oldNV.getTags().keySet()) {
+                            structVersionAttribs.put(key, GroundType.STRING);
+                        }
+                        // create an edge for each table other than the one
+                        // being deleted
+                        StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(),
+                                structVersionAttribs, new ArrayList<>());
+                        ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                                oldNV.getParameters(), edge.getId(), dbVersionId, oldNV.getId(),
+                                new ArrayList<String>());
+                    }
+                }
+                return dbNodeVersion;
+            }
+        } catch (GroundException ex) {
+            LOG.error("Failed to drop table {}", tableName);
+            throw new MetaException("Failed to drop table: " + ex.getMessage());
+        }
+    }
+
+    public Table getTable(String dbName, String tableName) throws MetaException {
+        return this.table.getTable(dbName, tableName);
+    }
+
+    public List<String> getTables(String dbName, String pattern) throws MetaException {
+        return this.table.getTables(dbName, pattern);
     }
 }

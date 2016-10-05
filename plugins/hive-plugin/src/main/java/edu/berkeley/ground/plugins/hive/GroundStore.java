@@ -246,100 +246,28 @@ public class GroundStore extends GroundStoreBase {
      * 
      */
     public void createTable(Table tbl) throws InvalidObjectException, MetaException {
-        openTransaction();
-        // HiveMetaStore above us checks if the table already exists, so we can
-        // blindly store it here
-        String dbName = tbl.getDbName();
-        String tableName = tbl.getTableName();
+        if (tbl == null)
+            throw new InvalidObjectException("Table passed is null");
         try {
-            try {
-                if (getNodeVersion(tbl.getTableName()) != null) {
-                    // table exists - check its state and create as needed
-                    // TODO state check
-                    return;
-                }
-            } catch (NoSuchObjectException e) {
-                // do nothing try creating a new node version
-            }
-            Table tblCopy = tbl.deepCopy();
-            Map<String, Tag> tagsMap = new HashMap<>();
-            tblCopy.setDbName(HiveStringUtils.normalizeIdentifier(dbName));
-            tblCopy.setTableName(HiveStringUtils.normalizeIdentifier(tblCopy.getTableName()));
-            normalizeColumnNames(tblCopy);
-            NodeVersion tableNodeVersion = createTableNodeVersion(tblCopy, dbName, tableName, tagsMap);
-            ObjectPair<String, Object> tableState = new ObjectPair<>(tableNodeVersion.getId(), EntityState.ACTIVE);
-            updateTableMetadata(tblCopy, dbName, tableName, tableState);
-        } catch (GroundException e) {
-            LOG.error("Unable to create table {}  {}", dbName, tableName);
-            throw new MetaException("Unable to read from or write ground database " + e.getMessage());
+            this.getDatabase(tbl.getDbName());
+            this.metastore.createTable(tbl);
+        } catch (NoSuchObjectException ex) {
+            throw new MetaException(ex.getMessage());
         }
+    }    
+
+    @Override
+    public boolean dropTable(String dbName, String tableName)
+            throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
+        return this.metastore.dropTable(dbName, tableName);
     }
 
-    /** Create node version for the given table. */
-    private NodeVersion createTableNodeVersion(Table tblCopy, String dbName, String tableName, Map<String, Tag> tagsMap)
-            throws GroundException {
-        return createTableNodeVersion(DEFAULT_VERSION, tblCopy, dbName, tableName, tagsMap);
+    @Override
+    public Table getTable(String dbName, String tableName) throws MetaException {
+        return this.metastore.getTable(dbName, tableName);
     }
-
-    /** Create node version for the given table. */
-    private NodeVersion createTableNodeVersion(String version, Table tblCopy, String dbName, String tableName,
-            Map<String, Tag> tagsMap) throws GroundException {
-        Gson gson = new Gson();
-        Tag tblTag = null;
-        if (tblCopy == null) {// create a tombstone node
-            return createTombstone(tableName, tagsMap, gson);
-        }
-        tblTag = createTag(version, tableName, gson.toJson(tblCopy), GroundType.STRING);
-        tagsMap.put(tableName, tblTag);
-        String id = tableName + TABLE_STATE;
-        Tag stateTag = createTag(id, EntityState.ACTIVE.name());
-        tagsMap.put(id, stateTag);
-        // create an edge to db which contains this table
-        EdgeVersionFactory evf = getGround().getEdgeVersionFactory();
-        EdgeFactory ef = getGround().getEdgeFactory();
-
-        Map<String, Tag> tags = tagsMap;
-        Map<String, String> parameters = tblCopy.getParameters();
-        // new node for this table
-        String nodeId = getGround().getNodeFactory().create(tableName).getId();
-        List<String> parents = new ArrayList<>();
-        // TODO: Add database as parent once we figure out the parent-child semantics
-        // parents.add(dbName);
-        String reference = tblCopy.getOwner();
-        StructureVersion sv = createStructureVersion(tableName, parents);
-        NodeVersion tableNodeVersion = getGround().getNodeVersionFactory().create(tags, sv.getId(), reference,
-                parameters, nodeId, parents);
-        Edge edge = ef.create(dbName); // use data base (parent) name as edge
-                                       // identifier
-        // get Database NodeVersion - this will define from Node for the edge
-        String dbNodeId;
-        try {
-            dbNodeId = getNodeVersion(dbName).getId();
-        } catch (NoSuchObjectException e) {
-            LOG.error("error retrieving database node from ground store {}", dbName);
-            throw new GroundException(e);
-        }
-        EdgeVersion ev = evf.create(tags, sv.getId(), reference, parameters, edge.getId(), dbNodeId,
-                tableNodeVersion.getId(), parents);
-        return tableNodeVersion;
-    }
-
-    private NodeVersion createTombstone(String tableName, Map<String, Tag> tagsMap, Gson gson) throws GroundException {
-        Tag tblTag;
-        String deletedNode = tableName + "deleted";
-        tblTag = createTag("deleted", deletedNode, gson.toJson(""), edu.berkeley.ground.api.versions.GroundType.STRING);
-        tagsMap.put(tableName, tblTag);
-        String id = tableName + TABLE_STATE;
-        Tag stateTag = createTag(id, EntityState.DELETED.name());
-        tagsMap.put(id, stateTag);
-        String nodeId = getGround().getNodeFactory().create(deletedNode).getId();
-        Map<String, String> parameters = new HashMap<>();
-        String reference = "deleted-table";
-        List<String> parents = new ArrayList<>();
-        StructureVersion sv = createStructureVersion(deletedNode, parents);
-        return getGround().getNodeVersionFactory().create(tagsMap, sv.getId(), reference, parameters, nodeId, parents);
-    }
-
+    
+    //--------------
     private Tag createTag(String id, Object value) {
         return createTag(DEFAULT_VERSION, id, value, edu.berkeley.ground.api.versions.GroundType.STRING);
     }
@@ -347,87 +275,7 @@ public class GroundStore extends GroundStoreBase {
     private Tag createTag(String version, String id, Object value, edu.berkeley.ground.api.versions.GroundType type) {
         return new Tag(version, id, value, type);
     }
-
-    /**
-     * Using utilities from Hive HBaseStore
-     * 
-     * @param tbl
-     */
-    private void normalizeColumnNames(Table tbl) {
-        if (tbl.getSd().getCols() != null) {
-            tbl.getSd().setCols(normalizeFieldSchemaList(tbl.getSd().getCols()));
-        }
-        if (tbl.getPartitionKeys() != null) {
-            tbl.setPartitionKeys(normalizeFieldSchemaList(tbl.getPartitionKeys()));
-        }
-    }
-
-    private List<FieldSchema> normalizeFieldSchemaList(List<FieldSchema> fieldschemas) {
-        List<FieldSchema> ret = new ArrayList<>();
-        for (FieldSchema fieldSchema : fieldschemas) {
-            ret.add(new FieldSchema(fieldSchema.getName().toLowerCase(), fieldSchema.getType(),
-                    fieldSchema.getComment()));
-        }
-        return ret;
-    }
-
-    private void updateTableMetadata(Table tblCopy, String dbName, String tableName,
-            ObjectPair<String, Object> tableState) {
-        synchronized (ground.getDbTableMap()) {
-            Map<String, Map<String, ObjectPair<String, Object>>> dbTable = ground.getDbTableMap();
-            if (dbTable.containsKey(dbName)) {
-                dbTable.get(dbName).put(tblCopy.getTableName(), tableState);
-            } else {
-                Map<String, ObjectPair<String, Object>> tableMap = new HashMap<String, ObjectPair<String, Object>>();
-                tableMap.put(tableName, tableState);
-                dbTable.put(dbName, tableMap);
-            }
-        }
-    }
-
-    @Override
-    public boolean dropTable(String dbName, String tableName)
-            throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
-        // TODO use database as well use edge/construct from ground
-        NodeVersion tableNodeVersion = getNodeVersion(tableName);
-        Map<String, Tag> tblTag = tableNodeVersion.getTags();
-        if (tblTag == null) {
-            LOG.info("node version getTags failed");
-            return false;
-        }
-
-        String state = (String) tblTag.get(tableName + TABLE_STATE).getValue();
-        if (state.equals(EntityState.ACTIVE.name())) {
-            Tag stateTag = createTag(tableName + TABLE_STATE + "deleted", EntityState.DELETED.name());
-            HashMap<String, Tag> tags = new HashMap<>();
-            tags.put(DB_STATE, stateTag);
-            try {
-                createTableNodeVersion(DEFAULT_VERSION, null, dbName, tableName, tags);
-            } catch (GroundException e) {
-                throw new MetaException(e.getMessage());
-            }
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Table getTable(String dbName, String tableName) throws MetaException {
-        NodeVersion tableNodeVersion;
-        try {
-            LOG.info("getting versions for table {}", tableName);
-            List<String> versions = getGround().getNodeFactory().getLeaves(tableName);
-            tableNodeVersion = getGround().getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
-        } catch (GroundException e) {
-            LOG.error("get failed for database: {}, {} ", dbName, tableName);
-            throw new MetaException(e.getMessage());
-        }
-        Map<String, Tag> tblTag = tableNodeVersion.getTags();
-        String tblJson = (String) tblTag.get(tableName).getValue();
-        LOG.info("table serialized data is " + tblJson);
-        return (Table) createMetastoreObject(tblJson, Table.class);
-        // return (Table) tblTag.get(tableName).getValue().get();
-    }
+    //--------------
 
     @Override
     public boolean addPartition(Partition part) throws InvalidObjectException, MetaException {
@@ -532,13 +380,29 @@ public class GroundStore extends GroundStoreBase {
         return partList;
     }
 
-    public void alterTable(String dbname, String name, Table newTable) throws InvalidObjectException, MetaException {
-        // TODO Auto-generated method stub
-
+    public void alterTable(String dbName, String tableName, Table newTable) throws InvalidObjectException, MetaException {
+            try {
+                this.metastore.dropTable(dbName, tableName);
+            } catch (MetaException | InvalidObjectException ex) {
+                LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
+                throw ex;
+            } catch (NoSuchObjectException ex) {
+                LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
+                throw new MetaException("Table " + tableName + " not found in database" + dbName);
+            } catch (InvalidInputException ex) {
+                LOG.error("Invalid input to alter table {} in database {}", tableName, dbName);
+                throw new MetaException("Invalid input to alter table " + tableName + " in database {}" + dbName);
+            }
+            try {
+                this.metastore.createTable(newTable);
+            } catch (InvalidObjectException | MetaException ex) {
+                LOG.error("Unable to alter table {} in database {}", tableName, dbName);
+                throw ex;
+            }
     }
 
     public List<String> getTables(String dbName, String pattern) throws MetaException {
-        return getAllTables(dbName); // fix regex
+        return metastore.getTables(dbName, pattern);
     }
 
     public List<TableMeta> getTableMeta(String dbNames, String tableNames, List<String> tableTypes)
@@ -554,10 +418,7 @@ public class GroundStore extends GroundStoreBase {
     }
 
     public List<String> getAllTables(String dbName) throws MetaException {
-        ArrayList<String> list = new ArrayList<String>();
-        EdgeVersionFactory evf = getGround().getEdgeVersionFactory();
-        // list.addAll(ground.getDbTableMap().get(dbName).keySet());
-        return list;
+        return this.getTables(dbName, "");
     }
 
     public List<String> listTableNamesByFilter(String dbName, String filter, short max_tables)

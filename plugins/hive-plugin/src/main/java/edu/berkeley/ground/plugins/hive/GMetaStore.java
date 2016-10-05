@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +135,8 @@ public class GMetaStore {
         }
     }
 
+    // Database related functions
+
     public Database getDatabase(String name) throws NoSuchObjectException {
         try {
             List<String> dbNames = this.getDatabases(name);
@@ -141,7 +145,7 @@ public class GMetaStore {
             }
             return null;
         } catch (NoSuchObjectException e) {
-            LOG.error("Unabl");
+            LOG.error("Unable to locate table {}", name);
             throw e;
         }
     }
@@ -156,8 +160,7 @@ public class GMetaStore {
                 List<String> dbNodeIds = ground.getNodeVersionFactory().getAdjacentNodes(metaVersionId, dbPattern);
                 for (String dbNodeId : dbNodeIds) {
                     NodeVersion dbNodeVersion = ground.getNodeVersionFactory().retrieveFromDatabase(dbNodeId);
-                    // create an edge for a dbname only if was not created
-                    // earlier
+                    // fetch the edge for the dbname
                     Edge edge = ground.getEdgeFactory().retrieveFromDatabase(dbNodeVersion.getNodeId());
                     databases.add(edge.getName().split("Nodes.")[1]);
                 }
@@ -270,4 +273,137 @@ public class GMetaStore {
             throw e;
         }
     }
+    
+    // Table related functions
+    public void createTable(Table table) throws InvalidObjectException, MetaException {
+        try {
+            String dbName = table.getDbName();
+            
+            NodeVersion nv = database.createTable(table);
+
+            List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+
+            NodeVersion metaNodeVersion = this.createNodeVersion();
+            String metaVersionId = metaNodeVersion.getId();
+            Edge edge = this.getEdge(nv);
+            Structure structure = this.getEdgeStructure(nv);
+            Map<String, GroundType> structVersionAttribs = new HashMap<>();
+            for (String key: nv.getTags().keySet()) {
+                structVersionAttribs.put(key, GroundType.STRING);
+            }
+            StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                    new ArrayList<>());
+
+            ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
+                    edge.getId(), metaVersionId, nv.getId(), new ArrayList<String>());
+
+            String dbNodeId = "Nodes." + dbName;
+
+
+            if (!versions.isEmpty()) {
+                if (versions.size() != 0) {
+                    String prevVersionId = versions.get(0);
+                    List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+                    for (String nodeId : nodeIds) {
+                        NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+                        edge = this.getEdge(oldNV);
+
+                        if (!oldNV.getNodeId().equals(dbNodeId)) {
+                            structVersionAttribs = new HashMap<>();
+                            for (String key : oldNV.getTags().keySet()) {
+                                structVersionAttribs.put(key, GroundType.STRING);
+                            }
+
+                            // create an edge version for a dbname
+                            sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                                    new ArrayList<>());
+                            ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                                    oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
+                                    new ArrayList<String>());
+                        }
+                    }
+                }
+            }
+
+        } catch (InvalidObjectException | MetaException e) {
+            throw e;
+        } catch (GroundException e) {
+            throw new MetaException("Failed to create table: " + table.getTableName() + " because " + e.getMessage());
+        }
+    }
+
+    public boolean dropTable(String dbName, String tableName)
+            throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
+        try {
+            NodeVersion nv = database.dropTable(dbName, tableName);
+            if (nv == null) {
+                throw new NoSuchObjectException("Table not found: " + tableName);
+            }
+
+            List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+
+            NodeVersion metaNodeVersion = this.createNodeVersion();
+            String metaVersionId = metaNodeVersion.getId();
+            Edge edge = this.getEdge(nv);
+            Structure structure = this.getEdgeStructure(nv);
+            Map<String, GroundType> structVersionAttribs = new HashMap<>();
+            for (String key: nv.getTags().keySet()) {
+                structVersionAttribs.put(key, GroundType.STRING);
+            }
+            StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                    new ArrayList<>());
+
+            ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
+                    edge.getId(), metaVersionId, nv.getId(), new ArrayList<String>());
+
+            String dbNodeId = "Nodes." + dbName;
+
+
+            if (!versions.isEmpty()) {
+                if (versions.size() != 0) {
+                    String prevVersionId = versions.get(0);
+                    List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+                    for (String nodeId : nodeIds) {
+                        NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+                        edge = this.getEdge(oldNV);
+
+                        if (!oldNV.getNodeId().equals(dbNodeId)) {
+                            structVersionAttribs = new HashMap<>();
+                            for (String key : oldNV.getTags().keySet()) {
+                                structVersionAttribs.put(key, GroundType.STRING);
+                            }
+
+                            // create an edge version for a dbname
+                            sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                                    new ArrayList<>());
+                            ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                                    oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
+                                    new ArrayList<String>());
+                        }
+                    }
+                }
+            }
+            return true;
+        } catch (InvalidObjectException | MetaException e) {
+            throw e;
+        } catch (GroundException e) {
+            throw new MetaException("Failed to create table: " + tableName + " because " + e.getMessage());
+        }
+    }
+
+    public Table getTable(String dbName, String tableName) throws MetaException {
+        try {
+            return database.getTable(dbName, tableName);
+        } catch (MetaException ex) {
+            LOG.error("Unalbe to find table {} for database {}", tableName, dbName);
+            throw ex;
+        }
+    }
+
+    public List<String> getTables(String dbName, String pattern) throws MetaException {
+        return database.getTables(dbName, pattern);
+    }
+
+    // Partition related functions
+    
 }
