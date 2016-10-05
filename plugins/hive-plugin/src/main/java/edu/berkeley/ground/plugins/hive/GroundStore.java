@@ -116,151 +116,43 @@ public class GroundStore extends GroundStoreBase {
      */
     @Override
     public void createDatabase(Database db) throws InvalidObjectException, MetaException {
-        NodeFactory nf = getGround().getNodeFactory();
-        NodeVersionFactory nvf = getGround().getNodeVersionFactory();
+        if (db == null)
+            throw new InvalidObjectException("Invalid database object null");
 
-        // check if database node exists if yes return
         try {
-            NodeVersion nodeVersion = getNodeVersion(db.getName());
-            boolean checkStatus = checkNodeStatus(nodeVersion);
-            if (checkStatus) { // if state is "DELETED" create a new version
-                Database dbCopy = db.deepCopy();
-                GroundType dbType = GroundType.STRING;
-                createDatabaseNodeVersion("2.0.0", nf, nvf, dbCopy, dbType, db.getName());
-                return;
+            Database database = metastore.getDatabase(db.getName());
+            if (database != null) {
+                throw new MetaException("Database already exists: " + db.getName());
             }
-        } catch (NoSuchObjectException | GroundException e1) {
-            // do nothing proceed and create the new DB
+        } catch (NoSuchObjectException e) {
+            // ignore if the database does not exist
         }
-        Database dbCopy = db.deepCopy();
         try {
-            GroundType dbType = GroundType.fromString("string");
-            String dbName = HiveStringUtils.normalizeIdentifier(dbCopy.getName());
-            NodeVersion n = createDatabaseNodeVersion(nf, nvf, dbCopy, dbType, dbName);
-        } catch (GroundException e) {
-            LOG.error("error creating database " + e);
-            throw new MetaException(e.getMessage());
+            metastore.createDatabase(db);
+        } catch (InvalidObjectException | MetaException e) {
+            LOG.error("Unable to create database: " + e.getMessage());
+            throw e;
         }
-
-        // Now register it with the metastore node
-    }
-
-    /** Given an entity name retrieve its node version from database. */
-    private NodeVersion getNodeVersion(String name) throws NoSuchObjectException {
-        try {
-            LOG.info("getting node versions for {}", name);
-            List<String> versions = getGround().getNodeFactory().getLeaves(name);
-            if (versions == null || versions.isEmpty())
-                return null;
-            return getGround().getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
-        } catch (GroundException e) {
-            LOG.error("get failed for database {}", name);
-            throw new NoSuchObjectException(e.getMessage());
-        }
-    }
-
-    private boolean checkNodeStatus(NodeVersion nodeVersion) {
-        if (nodeVersion == null) {
-            LOG.debug("node version is not available");
-            return false;
-        }
-        Map<String, Tag> dbTag = nodeVersion.getTags();
-        if (dbTag.isEmpty()) {
-            Tag statusTag = dbTag.get(DB_STATE);
-            if (statusTag != null && statusTag.getValue().equals(EntityState.DELETED.name()))
-                return true;
-        }
-        return false;
-    }
-
-    private NodeVersion createDatabaseNodeVersion(String version, NodeFactory nf, NodeVersionFactory nvf,
-            Database dbCopy, GroundType dbType, String dbName) throws GroundException {
-        Gson gson = new Gson();
-        Tag dbTag = null;
-        if (dbCopy == null) {// create a tombstone node
-            dbTag = createTag(version, dbName, gson.toJson(""), GroundType.STRING);
-        } else {
-            dbTag = createTag(version, dbName, gson.toJson(dbCopy), GroundType.STRING);
-        }
-
-        // Create a new version of the metastore node
-        NodeVersion metaNodeVersion = metastore.createNodeVersion();
-        String metastoreNodeId = metaNodeVersion.getId();
-
-        List<String> parentId = new ArrayList<>();
-        StructureVersion sv = createStructureVersion(dbName, parentId);
-
-        String reference = dbCopy.getLocationUri();
-        HashMap<String, Tag> tags = new HashMap<>();
-        tags.put(dbName, dbTag);
-        Tag stateTag = createTag(dbName + DB_STATE, EntityState.ACTIVE.name());
-        tags.put(DB_STATE, stateTag);
-        // create a new tag map and populate all DB related metadata
-        Map<String, Tag> tagsMap = tags;
-        Map<String, String> dbParamMap = dbCopy.getParameters();
-        if (dbParamMap == null) {
-            dbParamMap = new HashMap<String, String>();
-        }
-        Map<String, String> parameters = dbParamMap;
-        Node node = nf.create(dbName);
-
-        NodeVersion dbNodeVersion = nvf.create(tagsMap, sv.getId(), reference, parameters, node.getId(), parentId);
-
-        metastore.addDatabase(node, dbNodeVersion);
-
-        return dbNodeVersion;
-    }
-
-    private StructureVersion createStructureVersion(String name, List<String> parentIds) throws GroundException {
-        Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-        structureVersionAttributes.put(name, GroundType.STRING);
-        for (String parentId: parentIds) {
-            structureVersionAttributes.put(parentId, GroundType.STRING);
-        }
-        Structure structure = getGround().getStructureFactory().create(name);
-        StructureVersion sv = getGround().getStructureVersionFactory().create(structure.getId(),
-                structureVersionAttributes, parentIds);
-        return sv;
-    }
-
-    private NodeVersion createDatabaseNodeVersion(NodeFactory nf, NodeVersionFactory nvf, Database dbCopy,
-            edu.berkeley.ground.api.versions.GroundType dbType, String dbName) throws GroundException {
-        return createDatabaseNodeVersion(DEFAULT_VERSION, nf, nvf, dbCopy, dbType, dbName);
     }
 
     @Override
     public Database getDatabase(String dbName) throws NoSuchObjectException {
-        NodeVersion databaseNodeVersion = getNodeVersion(dbName);
-        if (databaseNodeVersion == null) {
+        Database database = metastore.getDatabase(dbName);
+        if (database == null) {
             LOG.info("database node version is not present");
-            return null;
+            throw new NoSuchObjectException("Database not found: " + dbName);
         }
-        Map<String, Tag> dbTag = databaseNodeVersion.getTags();
-        String dbJson = (String) dbTag.get(dbName).getValue();
-        return (Database) createMetastoreObject(dbJson, Database.class);
+        return database;
     }
 
     @Override
     public boolean dropDatabase(String dbName) throws NoSuchObjectException, MetaException {
-        NodeVersion databaseNodeVersion = getNodeVersion(dbName);
-        Map<String, Tag> dbTag = databaseNodeVersion.getTags();
-        String state = (String) dbTag.get(DB_STATE).getValue();
-        if (state.equals(EntityState.ACTIVE.name())) {
-            NodeFactory nf = getGround().getNodeFactory();
-            NodeVersionFactory nvf = getGround().getNodeVersionFactory();
-            Tag stateTag = createTag(dbName, EntityState.DELETED.name());
-            HashMap<String, Tag> tags = new HashMap<>();
-            tags.put(DB_STATE, stateTag);
-            edu.berkeley.ground.api.versions.GroundType dbType;
-            try {
-                dbType = edu.berkeley.ground.api.versions.GroundType.fromString("string");
-                // change version name from deleted
-                createDatabaseNodeVersion("deleted", nf, nvf, null, dbType, dbName);
-            } catch (GroundException e) {
-                throw new MetaException();
-            }
+        try {
+            metastore.dropDatabase(dbName);
+        } catch (GroundException e) {
+            throw new MetaException("Unable to drop database " + dbName + " with error: " + e.getMessage());
         }
-        LOG.info("database deleted: {}, {}", dbName, databaseNodeVersion.getNodeId());
+        LOG.info("database deleted: {}, {}", dbName);
         return true;
     }
 
@@ -274,7 +166,7 @@ public class GroundStore extends GroundStoreBase {
     public List<String> getDatabases(String pattern) throws MetaException {
         try {
             return metastore.getDatabases(pattern);
-        } catch (GroundException ex) {
+        } catch (NoSuchObjectException ex) {
             LOG.error("Failed to get databases with pattern {}", pattern);
             throw new MetaException(ex.getMessage());
         }
@@ -305,6 +197,33 @@ public class GroundStore extends GroundStoreBase {
         throw new UnsupportedOperationException();
     }
 
+    /** Given an entity name retrieve its node version from database. */
+    private NodeVersion getNodeVersion(String name) throws NoSuchObjectException {
+        try {
+            LOG.info("getting node versions for {}", name);
+            List<String> versions = getGround().getNodeFactory().getLeaves(name);
+            if (versions == null || versions.isEmpty())
+                return null;
+            return getGround().getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
+        } catch (GroundException e) {
+            LOG.error("get failed for database {}", name);
+            throw new NoSuchObjectException(e.getMessage());
+        }
+    }
+
+    private StructureVersion createStructureVersion(String name, List<String> parentIds) throws GroundException {
+        Map<String, GroundType> structureVersionAttributes = new HashMap<>();
+        structureVersionAttributes.put(name, GroundType.STRING);
+        for (String parentId: parentIds) {
+            structureVersionAttributes.put(parentId, GroundType.STRING);
+        }
+        Structure structure = getGround().getStructureFactory().create(name);
+        StructureVersion sv = getGround().getStructureVersionFactory().create(structure.getId(),
+                structureVersionAttributes, parentIds);
+        return sv;
+    }
+
+    
     /**
      *
      * There would be a "database contains" relationship between D and T, and
