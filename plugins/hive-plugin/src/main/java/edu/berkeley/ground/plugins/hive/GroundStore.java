@@ -158,7 +158,18 @@ public class GroundStore extends GroundStoreBase {
 
     @Override
     public boolean alterDatabase(String dbname, Database db) throws NoSuchObjectException, MetaException {
-        // TODO: implement alter steps
+        if (dbname == null || dbname.isEmpty() || db == null)
+            throw new NoSuchObjectException("Unable to locate database " + dbname + " with " + db);
+        try {
+            dropDatabase(dbname);
+            createDatabase(db);
+        } catch (NoSuchObjectException | MetaException ex) {
+            LOG.debug("Alter database failed with: " + ex.getMessage());
+            throw ex;
+        } catch (InvalidObjectException ex) {
+            LOG.debug("Alter database failed with: " + ex.getMessage());
+            throw new MetaException("Alter database failed: " + ex.getMessage());
+        }
         return false;
     }
 
