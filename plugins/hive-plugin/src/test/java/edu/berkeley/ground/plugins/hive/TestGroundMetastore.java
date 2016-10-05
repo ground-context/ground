@@ -129,29 +129,34 @@ public class TestGroundMetastore {
     @Test
     // @Ignore
     public void testDatabaseOps() throws MetaException, InvalidObjectException, NoSuchObjectException {
+        int numDBs = groundStore.getAllDatabases().size();
         Database db1 = new Database(DB1, "description", "locationurl", new HashMap<String, String>());
         Database db2 = new Database(DB2, "description", "locationurl", new HashMap<String, String>());
-        groundStore.createDatabase(db1);
-        groundStore.createDatabase(db2);
+        groundStore.createDatabase(db1); numDBs++;
+        groundStore.createDatabase(db2); numDBs++;
 
         String dbName = groundStore.getDatabase(DB1).getName();
-        Assert.assertEquals(DB1,dbName);
+        Assert.assertEquals(DB1, dbName);
         dbName = groundStore.getDatabase(DB2).getName();
-        Assert.assertEquals(DB2,dbName);
+        Assert.assertEquals(DB2, dbName);
         List<String> databases = groundStore.getAllDatabases();
-        Assert.assertEquals(3, databases.size());
+        Assert.assertEquals(numDBs, databases.size());
         for (String database: databases) {
             System.out.println("database: " + database);
         }
         Assert.assertTrue(databases.contains(DB2));
         Assert.assertTrue(databases.contains(DB1));
-        //Assert.assertEquals(true, groundStore.dropDatabase(DB1));
+        Assert.assertEquals(true, groundStore.dropDatabase(DB1)); numDBs--;
+
+        List<String> databases2 = groundStore.getAllDatabases();
+        Assert.assertFalse(databases2.contains(DB1));
+        Assert.assertEquals(numDBs, databases2.size());
     }
 
     /**
      * Test table operations
      */
-    // @Ignore
+    @Ignore
     @Test
     public void testTableOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
