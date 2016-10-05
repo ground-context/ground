@@ -167,7 +167,7 @@ public class TestGroundMetastore {
     /**
      * Test table operations
      */
-    @Ignore
+    // @Ignore
     @Test
     public void testTableOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
