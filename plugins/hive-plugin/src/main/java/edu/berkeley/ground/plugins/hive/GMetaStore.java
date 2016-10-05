@@ -199,7 +199,7 @@ public class GMetaStore {
                     for (String nodeId : nodeIds) {
                         NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
                         edge = this.getEdge(oldNV);
-                        
+
                         structVersionAttribs = new HashMap<>();
                         for (String key: oldNV.getTags().keySet()) {
                             structVersionAttribs.put(key, GroundType.STRING);
@@ -241,14 +241,14 @@ public class GMetaStore {
                 NodeVersion metaNodeVersion = this.createNodeVersion();
                 String metaVersionId = metaNodeVersion.getId();
                 String dbNodeId = "Nodes." + dbName;
-                
+
                 for (String nodeId : nodeIds) {
                     NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
 
                     if (!oldNV.getNodeId().equals(dbNodeId)) {
                         Edge edge = this.getEdge(oldNV);
                         Structure structure = this.getEdgeStructure(oldNV);
-          
+
                         LOG.error("Found edge with name {}", oldNV.getNodeId());
 
                         Map<String, GroundType> structVersionAttribs = new HashMap<>();
@@ -273,12 +273,12 @@ public class GMetaStore {
             throw e;
         }
     }
-    
+
     // Table related functions
     public void createTable(Table table) throws InvalidObjectException, MetaException {
         try {
             String dbName = table.getDbName();
-            
+
             NodeVersion nv = database.createTable(table);
 
             List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
@@ -405,5 +405,5 @@ public class GMetaStore {
     }
 
     // Partition related functions
-    
+
 }
