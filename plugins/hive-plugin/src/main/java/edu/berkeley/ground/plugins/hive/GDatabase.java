@@ -40,7 +40,7 @@ public class GDatabase {
     static final String DATABASE_TABLE_EDGE = "_DATABASE_TABLE";
 
     private static final List<String> EMPTY_PARENT_LIST = new ArrayList<String>();
-    
+
     private GroundReadWrite ground = null;
     private GTable table = null;
 
@@ -65,7 +65,7 @@ public class GDatabase {
 
     public Structure getNodeStructure(String dbName) throws GroundException {
         try {
-            Node node = this.getNode(dbName);     
+            Node node = this.getNode(dbName);
             return ground.getStructureFactory().retrieveFromDatabase(dbName);
         } catch (GroundException e) {
             LOG.error("Unable to fetch database node structure");
@@ -113,7 +113,7 @@ public class GDatabase {
             if (versions.isEmpty()) {
                 throw new GroundException("Database node not found: " + dbName);
             }
-            
+
             NodeVersion latestVersion = ground.getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
             Map<String, Tag> dbTag = latestVersion.getTags();
 
@@ -122,7 +122,7 @@ public class GDatabase {
             throw new NoSuchObjectException(e.getMessage());
         }
     }
-    
+
     public NodeVersion createDatabase(Database db) throws InvalidObjectException, MetaException {
         if (db == null) {
             throw new InvalidObjectException("Database object passed is null");
@@ -131,12 +131,12 @@ public class GDatabase {
             String dbName = db.getName();
             Node dbNode = this.getNode(dbName);
             Structure dbStruct = this.getNodeStructure(dbName);
-            
+
             Tag dbTag = new Tag("1.0.0", dbName, toJSON(db), GroundType.STRING);
-            
+
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
             structVersionAttribs.put(dbName, GroundType.STRING);
-            
+
             StructureVersion sv = ground.getStructureVersionFactory().create(dbStruct.getId(), structVersionAttribs, EMPTY_PARENT_LIST);
 
             String reference = db.getLocationUri();
@@ -154,9 +154,9 @@ public class GDatabase {
             if (!versions.isEmpty()) {
                 parent.add(versions.get(0));
             }
-            
+
             NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, parameters, dbNode.getId(), parent);
-            
+
             return dbNodeVersion;
         } catch (GroundException e) {
             LOG.error("Failure to create a database node: " + db.getName());
@@ -170,13 +170,12 @@ public class GDatabase {
             String dbName = table.getDbName();
             NodeVersion tableNodeVersion = this.table.createTable(table);
             Database prevDb = this.getDatabase(dbName);
-            
+
             List<String> versions = ground.getNodeFactory().getLeaves(dbName);
 
             NodeVersion dbNodeVersion = this.createDatabase(prevDb);
             String dbNodeVersionId = dbNodeVersion.getId();
 
-            
             Edge edge = this.getEdge(tableNodeVersion);
             Structure structure = this.getEdgeStructure(tableNodeVersion);
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
@@ -196,7 +195,7 @@ public class GDatabase {
                     for (String nodeId : nodeIds) {
                         NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
                         edge = this.getEdge(oldNV);
-                        
+
                         structVersionAttribs = new HashMap<>();
                         for (String key: oldNV.getTags().keySet()) {
                             structVersionAttribs.put(key, GroundType.STRING);
@@ -218,7 +217,7 @@ public class GDatabase {
         } catch (NoSuchObjectException ex) {
             throw new MetaException(ex.getMessage());
         }
-    }    
+    }
 
     public NodeVersion dropTable(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
@@ -241,14 +240,14 @@ public class GDatabase {
                 NodeVersion dbNodeVersion = this.createDatabase(db);
                 String dbVersionId = dbNodeVersion.getId();
                 String tableNodeId = "Nodes." + tableName;
-                
+
                 for (String nodeId : nodeIds) {
                     NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
 
                     if (!oldNV.getNodeId().equals(tableNodeId)) {
                         Edge edge = this.getEdge(oldNV);
                         Structure structure = this.getEdgeStructure(oldNV);
-          
+
                         LOG.error("Found edge with name {}", oldNV.getNodeId());
 
                         Map<String, GroundType> structVersionAttribs = new HashMap<>();

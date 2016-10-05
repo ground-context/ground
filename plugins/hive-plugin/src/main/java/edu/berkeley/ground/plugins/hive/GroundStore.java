@@ -69,6 +69,17 @@ public class GroundStore extends GroundStoreBase {
         metastore = new GMetaStore(ground);
     }
 
+    private GroundReadWrite getGround() {
+        if (ground == null) {
+            if (conf == null) {
+                conf = new HiveConf();
+            }
+            GroundReadWrite.setConf(conf);
+            this.ground = GroundReadWrite.getInstance();
+        }
+        return ground;
+    }
+
     @Override
     public Configuration getConf() {
         return conf;
@@ -234,7 +245,6 @@ public class GroundStore extends GroundStoreBase {
         return sv;
     }
 
-    
     /**
      *
      * There would be a "database contains" relationship between D and T, and
@@ -254,7 +264,7 @@ public class GroundStore extends GroundStoreBase {
         } catch (NoSuchObjectException ex) {
             throw new MetaException(ex.getMessage());
         }
-    }    
+    }
 
     @Override
     public boolean dropTable(String dbName, String tableName)
@@ -266,7 +276,7 @@ public class GroundStore extends GroundStoreBase {
     public Table getTable(String dbName, String tableName) throws MetaException {
         return this.metastore.getTable(dbName, tableName);
     }
-    
+
     //--------------
     private Tag createTag(String id, Object value) {
         return createTag(DEFAULT_VERSION, id, value, edu.berkeley.ground.api.versions.GroundType.STRING);
@@ -496,17 +506,6 @@ public class GroundStore extends GroundStoreBase {
     private <T> Object createMetastoreObject(String dbJson, Class<T> klass) {
         Gson gson = new Gson();
         return gson.fromJson(dbJson, klass);
-    }
-
-    private GroundReadWrite getGround() {
-        if (ground == null) {
-            if (conf == null) {
-                conf = new HiveConf();
-            }
-            GroundReadWrite.setConf(conf);
-            this.ground = GroundReadWrite.getInstance();
-        }
-        return ground;
     }
 
     // use NodeVersion ID to retrieve serialized partition string from Ground

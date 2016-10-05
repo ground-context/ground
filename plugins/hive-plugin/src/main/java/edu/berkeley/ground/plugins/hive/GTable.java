@@ -63,7 +63,7 @@ public class GTable {
 
     public Structure getNodeStructure(String tableName) throws GroundException {
         try {
-            Node node = this.getNode(tableName);     
+            Node node = this.getNode(tableName);
             return ground.getStructureFactory().retrieveFromDatabase(tableName);
         } catch (GroundException e) {
             LOG.error("Unable to fetch table node structure");
@@ -86,7 +86,7 @@ public class GTable {
 
     public Structure getEdgeStructure(String partitionName) throws GroundException {
         try {
-            Edge edge = getEdge(partitionName);     
+            Edge edge = getEdge(partitionName);
             return ground.getStructureFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException e) {
             LOG.error("Unable to fetch table partition edge structure");
@@ -144,14 +144,14 @@ public class GTable {
             throw new MetaException(e.getMessage());
         }
     }
-    
+
     public Table getTable(String dbName, String tableName) throws MetaException {
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(tableName);
             if (versions.isEmpty()) {
                 throw new MetaException("Table node not found: " + tableName);
             }
-            
+
             NodeVersion latestVersion = ground.getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
             Map<String, Tag> dbTag = latestVersion.getTags();
 
