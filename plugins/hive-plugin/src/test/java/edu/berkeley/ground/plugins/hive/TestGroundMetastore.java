@@ -151,6 +151,17 @@ public class TestGroundMetastore {
         List<String> databases2 = groundStore.getAllDatabases();
         Assert.assertFalse(databases2.contains(DB1));
         Assert.assertEquals(numDBs, databases2.size());
+
+        Database db2v2 = new Database(DB2, "new description", "another_locationurl", new HashMap<String, String>());
+        groundStore.alterDatabase(DB2, db2v2);
+        Database db2v2r = groundStore.getDatabase(DB2);
+        Assert.assertEquals(db2v2.getName(), db2v2r.getName());
+        Assert.assertNotEquals(db2.getDescription(), db2v2r.getDescription());
+        Assert.assertEquals(db2v2.getDescription(), db2v2r.getDescription());
+        Assert.assertEquals("new description", db2v2r.getDescription());
+        Assert.assertNotEquals(db2.getLocationUri(), db2v2r.getLocationUri());
+        Assert.assertEquals(db2v2.getLocationUri(), db2v2r.getLocationUri());
+        Assert.assertEquals("another_locationurl", db2v2r.getLocationUri());
     }
 
     /**
