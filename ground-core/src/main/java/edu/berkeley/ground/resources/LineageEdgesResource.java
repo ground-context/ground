@@ -21,6 +21,8 @@ import edu.berkeley.ground.api.usage.LineageEdgeVersion;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
+import io.swagger.annotations.Api;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/lineage")
+@Api(value = "/lineage", description = "Interact with lineage edges")
 @Produces(MediaType.APPLICATION_JSON)
 public class LineageEdgesResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdgesResource.class);

@@ -30,6 +30,8 @@ import edu.berkeley.ground.util.GremlinFactories;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 
 public class GroundServer extends Application<GroundServerConfiguration> {
     private EdgeFactory edgeFactory;
@@ -52,10 +54,17 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         return "ground-server";
     }
 
+
     @Override
     public void initialize(Bootstrap<GroundServerConfiguration> bootstrap){
-        // nothing
+        bootstrap.addBundle(new SwaggerBundle<GroundServerConfiguration>() {
+            @Override
+            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(GroundServerConfiguration configuration) {
+                return configuration.swaggerBundleConfiguration;
+            }
+        });
     }
+
 
     @Override
     public void run(GroundServerConfiguration configuration, Environment environment) throws GroundException {
@@ -88,12 +97,14 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
         final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
         final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
+        final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(), configuration.getKafkaPort());
 
         environment.jersey().register(edgesResource);
         environment.jersey().register(graphsResource);
         environment.jersey().register(lineageEdgesResource);
         environment.jersey().register(nodesResource);
         environment.jersey().register(structuresResource);
+        environment.jersey().register(kafkaResource);
     }
 
     private void setPostgresFactories(PostgresClient postgresClient) {
