@@ -57,8 +57,8 @@ public class GroundStore extends GroundStoreBase {
     // initialized.
     private GroundReadWrite ground = null;
     private GMetaStore metastore = null;
-    private Configuration   conf;
-    private int             txnNestLevel;
+    private Configuration conf;
+    private int txnNestLevel;
 
     public static enum EntityState {
         ACTIVE, DELETED;
@@ -236,7 +236,7 @@ public class GroundStore extends GroundStoreBase {
     private StructureVersion createStructureVersion(String name, List<String> parentIds) throws GroundException {
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put(name, GroundType.STRING);
-        for (String parentId: parentIds) {
+        for (String parentId : parentIds) {
             structureVersionAttributes.put(parentId, GroundType.STRING);
         }
         Structure structure = getGround().getStructureFactory().create(name);
@@ -277,212 +277,175 @@ public class GroundStore extends GroundStoreBase {
         return this.metastore.getTable(dbName, tableName);
     }
 
-    //--------------
-    private Tag createTag(String id, Object value) {
-        return createTag(DEFAULT_VERSION, id, value, edu.berkeley.ground.api.versions.GroundType.STRING);
-    }
-
-    private Tag createTag(String version, String id, Object value, edu.berkeley.ground.api.versions.GroundType type) {
-        return new Tag(version, id, value, type);
-    }
-    //--------------
-
     @Override
     public boolean addPartition(Partition part) throws InvalidObjectException, MetaException {
-        NodeVersionFactory nvf = getGround().getNodeVersionFactory();
-        NodeFactory nf = getGround().getNodeFactory();
         try {
-            Partition partCopy = part.deepCopy();
-            String dbName = part.getDbName();
-            String tableName = part.getTableName();
-            partCopy.setDbName(HiveStringUtils.normalizeIdentifier(dbName));
-            ObjectPair<String, String> objectPair = new ObjectPair<>(dbName, tableName);
-            String partId = objectPair.toString();
-            partCopy.setTableName(HiveStringUtils.normalizeIdentifier(tableName));
-            // edu.berkeley.ground.api.versions.Type partType =
-            // edu.berkeley.ground.api.versions.Type.fromString("string");
-            Gson gson = new Gson();
-            Tag partTag = createTag(partId, gson.toJson(partCopy));
-            String reference = partCopy.getSd().getLocation();
-            String versionId = null;
-            List<String> parentId = null; // fix
-            Map<String, Tag> tags = new HashMap<>();
-            tags.put(partId, partTag);
-
-            Map<String, String> parameters = partCopy.getParameters();
-            String nodeName = HiveStringUtils.normalizeIdentifier(partId + partCopy.getCreateTime());
-            NodeVersion nodeVersion;
-            try {
-                nodeVersion = getNodeVersion(nodeName);
-                if (nodeVersion != null) {
-                    // part exists return
-                    return false;
-                }
-            } catch (NoSuchObjectException e) {
-                // do nothing here - continue to create a new partition
-            }
-
-            String nodeId = nf.create(nodeName).getId();
-            Map<String, Tag> tagsMap = tags;
-            LOG.info("input partition from tag map: {} {}", tagsMap.get(partId).getKey(),
-                    tagsMap.get(partId).getValue());
-            NodeVersion n = nvf.create(tagsMap, versionId, reference, parameters, nodeId, parentId);
-            List<String> partList = ground.getPartCache().get(objectPair);
-            if (partList == null) {
-                partList = new ArrayList<>();
-            }
-            String partitionNodeId = n.getId();
-            partList.add(partitionNodeId);
-            LOG.info("adding partition: {} {}", objectPair, partitionNodeId);
-            ground.getPartCache().put(objectPair, partList);// TODO use hive
-                                                            // PartitionCache
-            LOG.info("partition list size {}", partList.size());
-            return true;
-        } catch (GroundException e) {
-            throw new MetaException("Unable to add partition " + e.getMessage());
+            List<Partition> parts = new ArrayList<Partition>();
+            parts.add(part);
+            return this.addPartitions(part.getDbName(), part.getTableName(), parts);
+        } catch (MetaException ex) {
+            LOG.error("Unable to add partition to table {} in database {}", part.getTableName(), part.getDbName());
+            throw new MetaException("Unable to add partition: " + ex.getMessage());
+        } catch (InvalidObjectException ex) {
+            LOG.error("Invalid input - add partition failed");
+            throw new InvalidObjectException("Invalid input - add partition failed: " + ex.getMessage());
         }
     }
 
-    public boolean addPartitions(String dbName, String tblName, List<Partition> parts)
+    @Override
+    public boolean addPartitions(String dbName, String tableName, List<Partition> parts)
             throws InvalidObjectException, MetaException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    public boolean addPartitions(String dbName, String tblName, PartitionSpecProxy partitionSpec, boolean ifNotExists)
-            throws InvalidObjectException, MetaException {
-        // TODO Auto-generated method stub
-        return false;
+        try {
+            return this.metastore.addPartitions(dbName, tableName, parts);
+        } catch (InvalidObjectException | MetaException ex) {
+            LOG.error("Unable to add partition to table {} database {} with error: {}", tableName, dbName,
+                    ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
     public Partition getPartition(String dbName, String tableName, List<String> part_vals)
             throws MetaException, NoSuchObjectException {
-        // TODO Auto-generated method stub
-        return null;
+        return this.metastore.getPartition(dbName, tableName, part_vals.get(2));
     }
 
     @Override
     public boolean doesPartitionExist(String dbName, String tableName, List<String> part_vals)
             throws MetaException, NoSuchObjectException {
-        // TODO Auto-generated method stub
-        return false;
+        try {
+            Partition partition = this.metastore.getPartition(dbName, tableName, part_vals.get(2));
+            return (partition != null);
+        } catch (MetaException | NoSuchObjectException ex) {
+            throw ex;
+        }
     }
 
+    @Override
     public boolean dropPartition(String dbName, String tableName, List<String> part_vals)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
-        // TODO Auto-generated method stub
-        return false;
+        throw new MetaException("Drop partition is not currently supported");
     }
 
     @Override
     public List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
-        ObjectPair<String, String> pair = new ObjectPair<>(dbName, tableName);
-        List<String> idList = ground.getPartCache().get(pair);
-        int size = max <= idList.size() ? max : idList.size();
-        LOG.debug("size of partition array: {} {}", size, idList.size());
-        List<String> subPartlist = idList.subList(0, size);
-        List<Partition> partList = new ArrayList<Partition>();
-        for (String id : subPartlist) {
-            partList.add(getPartition(id));
+        try {
+            return this.metastore.getPartitions(dbName, tableName, max);
+        } catch (MetaException | NoSuchObjectException ex) {
+            LOG.error("Get partitions failed table {} database {} error: {}", tableName, dbName, ex.getMessage());
+            throw ex;
         }
-        return partList;
     }
 
-    public void alterTable(String dbName, String tableName, Table newTable) throws InvalidObjectException, MetaException {
-            try {
-                this.metastore.dropTable(dbName, tableName);
-            } catch (MetaException | InvalidObjectException ex) {
-                LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
-                throw ex;
-            } catch (NoSuchObjectException ex) {
-                LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
-                throw new MetaException("Table " + tableName + " not found in database" + dbName);
-            } catch (InvalidInputException ex) {
-                LOG.error("Invalid input to alter table {} in database {}", tableName, dbName);
-                throw new MetaException("Invalid input to alter table " + tableName + " in database {}" + dbName);
-            }
-            try {
-                this.metastore.createTable(newTable);
-            } catch (InvalidObjectException | MetaException ex) {
-                LOG.error("Unable to alter table {} in database {}", tableName, dbName);
-                throw ex;
-            }
+    @Override
+    public void alterTable(String dbName, String tableName, Table newTable)
+            throws InvalidObjectException, MetaException {
+        try {
+            this.metastore.dropTable(dbName, tableName);
+        } catch (MetaException | InvalidObjectException ex) {
+            LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
+            throw ex;
+        } catch (NoSuchObjectException ex) {
+            LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
+            throw new MetaException("Table " + tableName + " not found in database" + dbName);
+        } catch (InvalidInputException ex) {
+            LOG.error("Invalid input to alter table {} in database {}", tableName, dbName);
+            throw new MetaException("Invalid input to alter table " + tableName + " in database {}" + dbName);
+        }
+        try {
+            this.metastore.createTable(newTable);
+        } catch (InvalidObjectException | MetaException ex) {
+            LOG.error("Unable to alter table {} in database {}", tableName, dbName);
+            throw ex;
+        }
     }
 
+    @Override
     public List<String> getTables(String dbName, String pattern) throws MetaException {
         return metastore.getTables(dbName, pattern);
     }
 
+    @Override
     public List<TableMeta> getTableMeta(String dbNames, String tableNames, List<String> tableTypes)
             throws MetaException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public List<Table> getTableObjectsByName(String dbname, List<String> tableNames)
             throws MetaException, UnknownDBException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public List<String> getAllTables(String dbName) throws MetaException {
         return this.getTables(dbName, "");
     }
 
+    @Override
     public List<String> listTableNamesByFilter(String dbName, String filter, short max_tables)
             throws MetaException, UnknownDBException {
-        // TODO Auto-generated method stub
-        return null;
+        return metastore.getTables(dbName, filter);
     }
 
+    @Override
     public List<String> listPartitionNames(String db_name, String tbl_name, short max_parts) throws MetaException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public List<String> listPartitionNamesByFilter(String db_name, String tbl_name, String filter, short max_parts)
             throws MetaException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public void alterPartition(String db_name, String tbl_name, List<String> part_vals, Partition new_part)
             throws InvalidObjectException, MetaException {
         // TODO Auto-generated method stub
     }
 
+    @Override
     public void alterPartitions(String db_name, String tbl_name, List<List<String>> part_vals_list,
             List<Partition> new_parts) throws InvalidObjectException, MetaException {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public List<Partition> getPartitionsByFilter(String dbName, String tblName, String filter, short maxParts)
             throws MetaException, NoSuchObjectException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public boolean getPartitionsByExpr(String dbName, String tblName, byte[] expr, String defaultPartitionName,
             short maxParts, List<Partition> result) throws TException {
         // TODO Auto-generated method stub
         return false;
     }
 
+    @Override
     public int getNumPartitionsByFilter(String dbName, String tblName, String filter)
             throws MetaException, NoSuchObjectException {
         // TODO Auto-generated method stub
         return 0;
     }
 
+    @Override
     public List<Partition> getPartitionsByNames(String dbName, String tblName, List<String> partNames)
             throws MetaException, NoSuchObjectException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public Table markPartitionForEvent(String dbName, String tblName, Map<String, String> partVals,
             PartitionEventType evtType)
             throws MetaException, UnknownTableException, InvalidPartitionException, UnknownPartitionException {
@@ -490,6 +453,7 @@ public class GroundStore extends GroundStoreBase {
         return null;
     }
 
+    @Override
     public boolean isPartitionMarkedForEvent(String dbName, String tblName, Map<String, String> partName,
             PartitionEventType evtType)
             throws MetaException, UnknownTableException, InvalidPartitionException, UnknownPartitionException {
@@ -497,36 +461,11 @@ public class GroundStore extends GroundStoreBase {
         return false;
     }
 
+    @Override
     public void dropPartitions(String dbName, String tblName, List<String> partNames)
             throws MetaException, NoSuchObjectException {
         // TODO Auto-generated method stub
 
     }
 
-    private <T> Object createMetastoreObject(String dbJson, Class<T> klass) {
-        Gson gson = new Gson();
-        return gson.fromJson(dbJson, klass);
-    }
-
-    // use NodeVersion ID to retrieve serialized partition string from Ground
-    // backend
-    private Partition getPartition(String id) throws MetaException, NoSuchObjectException {
-        NodeVersion partitonNodeVersion;
-        try {
-            partitonNodeVersion = getGround().getNodeVersionFactory().retrieveFromDatabase(id);
-            LOG.debug("node id {}", partitonNodeVersion.getId());
-        } catch (GroundException e) {
-            LOG.error("get failed for id:{}", id);
-            throw new MetaException(e.getMessage());
-        }
-
-        Collection<Tag> partTags = partitonNodeVersion.getTags().values();
-        List<Partition> partList = new ArrayList<Partition>();
-        for (Tag t : partTags) {
-            String partitionString = (String) t.getValue();
-            Partition partition = (Partition) createMetastoreObject(partitionString, Partition.class);
-            partList.add(partition);
-        }
-        return partList.get(0);
-    }
 }
