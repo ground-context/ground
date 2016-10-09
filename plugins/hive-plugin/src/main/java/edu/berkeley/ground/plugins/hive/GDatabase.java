@@ -12,8 +12,11 @@ import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
+import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
 import org.apache.hive.common.util.HiveStringUtils;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,7 +140,8 @@ public class GDatabase {
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
             structVersionAttribs.put(dbName, GroundType.STRING);
 
-            StructureVersion sv = ground.getStructureVersionFactory().create(dbStruct.getId(), structVersionAttribs, EMPTY_PARENT_LIST);
+            StructureVersion sv = ground.getStructureVersionFactory().create(dbStruct.getId(), structVersionAttribs,
+                    EMPTY_PARENT_LIST);
 
             String reference = db.getLocationUri();
             HashMap<String, Tag> tags = new HashMap<>();
@@ -155,7 +159,8 @@ public class GDatabase {
                 parent.add(versions.get(0));
             }
 
-            NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, parameters, dbNode.getId(), parent);
+            NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, parameters,
+                    dbNode.getId(), parent);
 
             return dbNodeVersion;
         } catch (GroundException e) {
@@ -179,35 +184,34 @@ public class GDatabase {
             Edge edge = this.getEdge(tableNodeVersion);
             Structure structure = this.getEdgeStructure(tableNodeVersion);
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
-            for (String key: tableNodeVersion.getTags().keySet()) {
+            for (String key : tableNodeVersion.getTags().keySet()) {
                 structVersionAttribs.put(key, GroundType.STRING);
             }
             StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
                     new ArrayList<>());
 
-            ground.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(), tableNodeVersion.getReference(), tableNodeVersion.getParameters(),
-                    edge.getId(), dbNodeVersionId, tableNodeVersion.getId(), new ArrayList<String>());
+            ground.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
+                    tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
+                    tableNodeVersion.getId(), EMPTY_PARENT_LIST);
 
-            if (!versions.isEmpty()) {
-                if (versions.size() != 0) {
-                    String prevVersionId = versions.get(0);
-                    List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-                    for (String nodeId : nodeIds) {
-                        NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
-                        edge = this.getEdge(oldNV);
+            if (!versions.isEmpty() && versions.size() != 0) {
+                String prevVersionId = versions.get(0);
+                List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+                for (String nodeId : nodeIds) {
+                    NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+                    edge = this.getEdge(oldNV);
 
-                        structVersionAttribs = new HashMap<>();
-                        for (String key: oldNV.getTags().keySet()) {
-                            structVersionAttribs.put(key, GroundType.STRING);
-                        }
-
-                        // create an edge version for a dbname
-                        sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-                                new ArrayList<>());
-                        ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-                                oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
-                                new ArrayList<String>());
+                    structVersionAttribs = new HashMap<>();
+                    for (String key : oldNV.getTags().keySet()) {
+                        structVersionAttribs.put(key, GroundType.STRING);
                     }
+
+                    // create an edge version for a dbname
+                    sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                            new ArrayList<>());
+                    ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                            oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
+                            new ArrayList<String>());
                 }
             }
 
@@ -251,7 +255,7 @@ public class GDatabase {
                         LOG.error("Found edge with name {}", oldNV.getNodeId());
 
                         Map<String, GroundType> structVersionAttribs = new HashMap<>();
-                        for (String key: oldNV.getTags().keySet()) {
+                        for (String key : oldNV.getTags().keySet()) {
                             structVersionAttribs.put(key, GroundType.STRING);
                         }
                         // create an edge for each table other than the one
@@ -277,5 +281,82 @@ public class GDatabase {
 
     public List<String> getTables(String dbName, String pattern) throws MetaException {
         return this.table.getTables(dbName, pattern);
+    }
+
+    public NodeVersion addPartitions(String dbName, String tableName, List<Partition> parts)
+            throws InvalidObjectException, MetaException {
+        try {
+            NodeVersion tableNodeVersion = this.table.addPartitions(dbName, tableName, parts);
+            Database prevDb = this.getDatabase(dbName);
+
+            List<String> versions = ground.getNodeFactory().getLeaves(dbName);
+
+            NodeVersion dbNodeVersion = this.createDatabase(prevDb);
+            String dbNodeVersionId = dbNodeVersion.getId();
+
+            Edge edge = this.getEdge(tableNodeVersion);
+            Structure structure = this.getEdgeStructure(tableNodeVersion);
+            Map<String, GroundType> structVersionAttribs = new HashMap<>();
+            for (String key : tableNodeVersion.getTags().keySet()) {
+                structVersionAttribs.put(key, GroundType.STRING);
+            }
+            StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                    new ArrayList<>());
+
+            ground.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
+                    tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
+                    tableNodeVersion.getId(), EMPTY_PARENT_LIST);
+
+            if (!versions.isEmpty() && versions.size() > 0) {
+                String prevVersionId = versions.get(0);
+                List<String> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+                for (String nodeId : nodeIds) {
+                    NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+                    edge = this.getEdge(oldNV);
+
+                    structVersionAttribs = new HashMap<>();
+                    for (String key : oldNV.getTags().keySet()) {
+                        structVersionAttribs.put(key, GroundType.STRING);
+                    }
+
+                    // create an edge version for a dbname
+                    sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
+                            new ArrayList<>());
+                    ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                            oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
+                            new ArrayList<String>());
+                }
+            }
+
+            return dbNodeVersion;
+        } catch (GroundException ex) {
+            LOG.error("Unable to add partition to table {} database {}", tableName, dbName);
+            throw new MetaException(ex.getMessage());
+        } catch (NoSuchObjectException ex) {
+            LOG.error("Database {} not found", dbName);
+            throw new MetaException(ex.getMessage());
+        } catch (InvalidObjectException | MetaException ex) {
+            LOG.error("Unable to add partition to table {} database {}", tableName, dbName);
+            throw ex;
+        }
+    }
+
+    public Partition getPartition(String dbName, String tableName, String partName)
+            throws NoSuchObjectException, MetaException {
+        try {
+            return this.table.getPartition(dbName, tableName, partName);
+        } catch (MetaException | NoSuchObjectException ex) {
+            LOG.error("Unable to ger partition {} fro table {} database {}", partName, tableName, dbName);
+            throw ex;
+        }
+    }
+
+    public List<Partition> getPartitions(String dbName, String tableName, int max)
+            throws MetaException, NoSuchObjectException {
+        try {
+            return this.table.getPartitions(dbName, tableName, max);
+        } catch (MetaException | NoSuchObjectException ex) {
+            throw ex;
+        }
     }
 }

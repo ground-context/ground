@@ -132,8 +132,10 @@ public class TestGroundMetastore {
         int numDBs = groundStore.getAllDatabases().size();
         Database db1 = new Database(DB1, "description", "locationurl", new HashMap<String, String>());
         Database db2 = new Database(DB2, "description", "locationurl", new HashMap<String, String>());
-        groundStore.createDatabase(db1); numDBs++;
-        groundStore.createDatabase(db2); numDBs++;
+        groundStore.createDatabase(db1);
+        numDBs++;
+        groundStore.createDatabase(db2);
+        numDBs++;
 
         String dbName = groundStore.getDatabase(DB1).getName();
         Assert.assertEquals(DB1, dbName);
@@ -141,12 +143,13 @@ public class TestGroundMetastore {
         Assert.assertEquals(DB2, dbName);
         List<String> databases = groundStore.getAllDatabases();
         Assert.assertEquals(numDBs, databases.size());
-        for (String database: databases) {
+        for (String database : databases) {
             System.out.println("database: " + database);
         }
         Assert.assertTrue(databases.contains(DB2));
         Assert.assertTrue(databases.contains(DB1));
-        Assert.assertEquals(true, groundStore.dropDatabase(DB1)); numDBs--;
+        Assert.assertEquals(true, groundStore.dropDatabase(DB1));
+        numDBs--;
 
         List<String> databases2 = groundStore.getAllDatabases();
         Assert.assertFalse(databases2.contains(DB1));
@@ -180,14 +183,14 @@ public class TestGroundMetastore {
         Table tbl1 = new Table(TABLE1, DBTBL1, "owner", 1, 2, 3, sd, null, params, "viewOriginalText",
                 "viewExpandedText", "MANAGED_TABLE");
         groundStore.createTable(tbl1);
-        /** getAllTables TODO*/
+        /** getAllTables TODO */
         Table table = groundStore.getTable(DBTBL1, TABLE1);
-        //Assert.assertEquals(1, tables.size());
+        // Assert.assertEquals(1, tables.size());
         Assert.assertEquals(TABLE1, table.getTableName());
         Assert.assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
     }
 
-    @Ignore
+    // @Ignore
     @Test
     public void testPartitionOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
