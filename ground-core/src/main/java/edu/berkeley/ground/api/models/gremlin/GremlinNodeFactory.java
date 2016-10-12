@@ -67,7 +67,10 @@ public class GremlinNodeFactory extends NodeFactory {
 
     public List<String> getLeaves(String name) throws GroundException {
         GremlinConnection connection = this.dbClient.getConnection();
-        return this.itemFactory.getLeaves(connection, "Nodes." + name);
+        List<String> leaves = this.itemFactory.getLeaves(connection, "Nodes." + name);
+        connection.commit();
+
+        return leaves;
     }
 
     public Node retrieveFromDatabase(String name) throws GroundException {
