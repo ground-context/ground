@@ -20,13 +20,13 @@ import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.GremlinClient;
+// import edu.berkeley.ground.db.GremlinClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.Neo4jFactories;
 import edu.berkeley.ground.util.PostgresFactories;
-import edu.berkeley.ground.util.GremlinFactories;
+// import edu.berkeley.ground.util.GremlinFactories;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -79,10 +79,10 @@ public class GroundServer extends Application<GroundServerConfiguration> {
                 setCassandraFactories(cassandraClient);
                 break;
 
-            case "gremlin":
-                GremlinClient gremlinClient = new GremlinClient();
-                setGremlinFactories(gremlinClient);
-                break;
+//            case "gremlin":
+//                GremlinClient gremlinClient = new GremlinClient();
+//                setGremlinFactories(gremlinClient);
+//                break;
 
             case "neo4j":
                 Neo4jClient neo4jClient = new Neo4jClient(configuration.getDbHost(), configuration.getDbUser(), configuration.getDbPassword());
@@ -137,20 +137,20 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     }
 
-    private void setGremlinFactories(GremlinClient gremlinClient) {
-        GremlinFactories factoryGenerator = new GremlinFactories(gremlinClient);
-
-        edgeFactory = factoryGenerator.getEdgeFactory();
-        edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
-        graphFactory = factoryGenerator.getGraphFactory();
-        graphVersionFactory = factoryGenerator.getGraphVersionFactory();
-        lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
-        lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
-        nodeFactory = factoryGenerator.getNodeFactory();
-        nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
-        structureFactory = factoryGenerator.getStructureFactory();
-        structureVersionFactory = factoryGenerator.getStructureVersionFactory();
-    }
+//    private void setGremlinFactories(GremlinClient gremlinClient) {
+//        GremlinFactories factoryGenerator = new GremlinFactories(gremlinClient);
+//
+//        edgeFactory = factoryGenerator.getEdgeFactory();
+//        edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
+//        graphFactory = factoryGenerator.getGraphFactory();
+//        graphVersionFactory = factoryGenerator.getGraphVersionFactory();
+//        lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
+//        lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
+//        nodeFactory = factoryGenerator.getNodeFactory();
+//        nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
+//        structureFactory = factoryGenerator.getStructureFactory();
+//        structureVersionFactory = factoryGenerator.getStructureVersionFactory();
+//    }
 
     private void setNeo4jFactories(Neo4jClient neo4jClient) {
         Neo4jFactories factoryGenerator = new Neo4jFactories(neo4jClient);
