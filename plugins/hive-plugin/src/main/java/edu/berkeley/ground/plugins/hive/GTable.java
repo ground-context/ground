@@ -5,27 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.hive.common.ObjectPair;
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
-import org.apache.hive.common.util.HiveStringUtils;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
 import edu.berkeley.ground.api.models.Edge;
-import edu.berkeley.ground.api.models.EdgeFactory;
-import edu.berkeley.ground.api.models.EdgeVersion;
-import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeVersion;
 import edu.berkeley.ground.api.models.Structure;
@@ -33,7 +24,6 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.plugins.hive.GroundStore.EntityState;
 
 public class GTable {
     static final private Logger LOG = LoggerFactory.getLogger(GTable.class.getName());
@@ -43,14 +33,14 @@ public class GTable {
     private GroundReadWrite ground = null;
     private GPartition partition = null;
 
-    public GTable(GroundReadWrite ground) {
+    GTable(GroundReadWrite ground) {
         this.ground = ground;
         this.partition = new GPartition(ground);
     }
 
     public Node getNode(String tableName) throws GroundException {
         try {
-            LOG.debug("Fetching table node: " + tableName);
+            LOG.debug("Fetching table node: {}", tableName);
             return ground.getNodeFactory().retrieveFromDatabase(tableName);
         } catch (GroundException ge1) {
             LOG.debug("Not found - Creating table node: " + tableName);
@@ -149,7 +139,7 @@ public class GTable {
         }
     }
 
-    public Table getTable(String dbName, String tableName) throws MetaException {
+    Table getTable(String dbName, String tableName) throws MetaException {
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(tableName);
             if (versions.isEmpty()) {
@@ -165,7 +155,7 @@ public class GTable {
         }
     }
 
-    public List<String> getTables(String dbName, String pattern) throws MetaException {
+    List<String> getTables(String dbName, String pattern) throws MetaException {
         List<String> tables = new ArrayList<String>();
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(dbName);
@@ -188,7 +178,7 @@ public class GTable {
         return tables;
     }
 
-    public NodeVersion addPartitions(String dbName, String tableName, List<Partition> parts)
+    NodeVersion addPartitions(String dbName, String tableName, List<Partition> parts)
             throws InvalidObjectException, MetaException {
         try {
             Table prevTable = this.getTable(dbName, tableName);
@@ -247,7 +237,7 @@ public class GTable {
         }
     }
 
-    public Partition getPartition(String dbName, String tableName, String partName)
+    Partition getPartition(String dbName, String tableName, String partName)
             throws MetaException, NoSuchObjectException {
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(tableName);
@@ -273,13 +263,13 @@ public class GTable {
         }
     }
 
-    public boolean dropPartition(String dbName, String tableName, List<String> part_vals)
+    boolean dropPartition(String dbName, String tableName, List<String> part_vals)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
         // TODO Auto-generated method stub
         return false;
     }
 
-    public List<Partition> getPartitions(String dbName, String tableName, int max)
+    List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(tableName);

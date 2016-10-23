@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 
 import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
-import edu.berkeley.ground.api.models.GraphFactory;
 import edu.berkeley.ground.api.models.GraphVersionFactory;
 import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.db.DBClient;

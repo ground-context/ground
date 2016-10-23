@@ -1,11 +1,15 @@
 package edu.berkeley.ground.plugins.hive;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import edu.berkeley.ground.api.models.Edge;
+import edu.berkeley.ground.api.models.Node;
+import edu.berkeley.ground.api.models.NodeVersion;
+import edu.berkeley.ground.api.models.Structure;
+import edu.berkeley.ground.api.models.StructureVersion;
+import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.exceptions.GroundException;
+
+import com.google.gson.Gson;
 
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
@@ -14,26 +18,13 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
-import org.apache.hive.common.util.HiveStringUtils;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
-import edu.berkeley.ground.api.models.Edge;
-import edu.berkeley.ground.api.models.EdgeVersion;
-import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeFactory;
-import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.api.models.NodeVersionFactory;
-import edu.berkeley.ground.api.models.Structure;
-import edu.berkeley.ground.api.models.StructureVersion;
-import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.plugins.hive.GroundStore.EntityState;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GDatabase {
     static final private Logger LOG = LoggerFactory.getLogger(GDatabase.class.getName());
@@ -47,21 +38,21 @@ public class GDatabase {
     private GroundReadWrite ground = null;
     private GTable table = null;
 
-    public GDatabase(GroundReadWrite ground) {
+    GDatabase(GroundReadWrite ground) {
         this.ground = ground;
         this.table = new GTable(ground);
     }
 
-    public Node getNode(String dbName) throws GroundException {
+    Node getNode(String dbName) throws GroundException {
         try {
             LOG.debug("Fetching database node: " + dbName);
             return ground.getNodeFactory().retrieveFromDatabase(dbName);
         } catch (GroundException ge1) {
-            LOG.debug("Not found - Creating databsae node: " + dbName);
+            LOG.debug("Not found - Creating databsae node: {}", dbName);
 
             Node node = ground.getNodeFactory().create(dbName);
             Structure nodeStruct = ground.getStructureFactory().create(node.getName());
-
+            LOG.debug("node structure created {}", nodeStruct);
             return node;
         }
     }
@@ -89,7 +80,7 @@ public class GDatabase {
         }
     }
 
-    public Structure getEdgeStructure(NodeVersion nodeVersion) throws GroundException {
+    Structure getEdgeStructure(NodeVersion nodeVersion) throws GroundException {
         try {
             LOG.debug("Fetching database table edge structure: " + nodeVersion.getNodeId());
             Edge edge = this.getEdge(nodeVersion);
@@ -100,17 +91,17 @@ public class GDatabase {
         }
     }
 
-    public Database fromJSON(String json) {
+    Database fromJSON(String json) {
         Gson gson = new Gson();
         return (Database) gson.fromJson(json, Database.class);
     }
 
-    public String toJSON(Database db) {
+    String toJSON(Database db) {
         Gson gson = new Gson();
         return gson.toJson(db);
     }
 
-    public Database getDatabase(String dbName) throws NoSuchObjectException {
+    Database getDatabase(String dbName) throws NoSuchObjectException {
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(dbName);
             if (versions.isEmpty()) {
@@ -126,7 +117,7 @@ public class GDatabase {
         }
     }
 
-    public NodeVersion createDatabase(Database db) throws InvalidObjectException, MetaException {
+    NodeVersion createDatabase(Database db) throws InvalidObjectException, MetaException {
         if (db == null) {
             throw new InvalidObjectException("Database object passed is null");
         }
@@ -170,7 +161,7 @@ public class GDatabase {
     }
 
     // Table related functions
-    public NodeVersion createTable(Table table) throws InvalidObjectException, MetaException {
+    NodeVersion createTable(Table table) throws InvalidObjectException, MetaException {
         try {
             String dbName = table.getDbName();
             NodeVersion tableNodeVersion = this.table.createTable(table);
@@ -223,7 +214,7 @@ public class GDatabase {
         }
     }
 
-    public NodeVersion dropTable(String dbName, String tableName)
+    NodeVersion dropTable(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
         try {
             boolean found = false;
@@ -275,15 +266,15 @@ public class GDatabase {
         }
     }
 
-    public Table getTable(String dbName, String tableName) throws MetaException {
+    Table getTable(String dbName, String tableName) throws MetaException {
         return this.table.getTable(dbName, tableName);
     }
 
-    public List<String> getTables(String dbName, String pattern) throws MetaException {
+    List<String> getTables(String dbName, String pattern) throws MetaException {
         return this.table.getTables(dbName, pattern);
     }
 
-    public NodeVersion addPartitions(String dbName, String tableName, List<Partition> parts)
+    NodeVersion addPartitions(String dbName, String tableName, List<Partition> parts)
             throws InvalidObjectException, MetaException {
         try {
             NodeVersion tableNodeVersion = this.table.addPartitions(dbName, tableName, parts);
@@ -341,7 +332,7 @@ public class GDatabase {
         }
     }
 
-    public Partition getPartition(String dbName, String tableName, String partName)
+    Partition getPartition(String dbName, String tableName, String partName)
             throws NoSuchObjectException, MetaException {
         try {
             return this.table.getPartition(dbName, tableName, partName);
@@ -351,7 +342,7 @@ public class GDatabase {
         }
     }
 
-    public List<Partition> getPartitions(String dbName, String tableName, int max)
+    List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
             return this.table.getPartitions(dbName, tableName, max);

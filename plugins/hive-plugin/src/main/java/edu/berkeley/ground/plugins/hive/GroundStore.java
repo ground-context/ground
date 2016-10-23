@@ -1,42 +1,17 @@
 package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.api.*; //TODO(krishna) fix
-import org.apache.hadoop.hive.common.ObjectPair;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.FileMetadataHandler;
-import org.apache.hadoop.hive.metastore.HiveMetaStore;
-import org.apache.hadoop.hive.metastore.PartFilterExprUtil;
-import org.apache.hadoop.hive.metastore.RawStore;
-import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
-import org.apache.hive.common.util.HiveStringUtils;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
-import edu.berkeley.ground.api.models.Edge;
-import edu.berkeley.ground.api.models.EdgeFactory;
-import edu.berkeley.ground.api.models.EdgeVersion;
-import edu.berkeley.ground.api.models.EdgeVersionFactory;
-import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeFactory;
-import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.api.models.NodeVersionFactory;
-import edu.berkeley.ground.api.models.Structure;
-import edu.berkeley.ground.api.models.StructureVersion;
-import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 
 public class GroundStore extends GroundStoreBase {
@@ -141,7 +116,7 @@ public class GroundStore extends GroundStoreBase {
         try {
             metastore.createDatabase(db);
         } catch (InvalidObjectException | MetaException e) {
-            LOG.error("Unable to create database: " + e.getMessage());
+            LOG.error("Unable to create database: {}", e.getMessage());
             throw e;
         }
     }
@@ -175,7 +150,7 @@ public class GroundStore extends GroundStoreBase {
             dropDatabase(dbname);
             createDatabase(db);
         } catch (NoSuchObjectException | MetaException ex) {
-            LOG.debug("Alter database failed with: " + ex.getMessage());
+            LOG.debug("Alter database failed with: {}", ex.getMessage());
             throw ex;
         } catch (InvalidObjectException ex) {
             LOG.debug("Alter database failed with: " + ex.getMessage());
@@ -217,32 +192,6 @@ public class GroundStore extends GroundStoreBase {
     @Override
     public boolean dropType(String typeName) {
         throw new UnsupportedOperationException();
-    }
-
-    /** Given an entity name retrieve its node version from database. */
-    private NodeVersion getNodeVersion(String name) throws NoSuchObjectException {
-        try {
-            LOG.info("getting node versions for {}", name);
-            List<String> versions = getGround().getNodeFactory().getLeaves(name);
-            if (versions == null || versions.isEmpty())
-                return null;
-            return getGround().getNodeVersionFactory().retrieveFromDatabase(versions.get(0));
-        } catch (GroundException e) {
-            LOG.error("get failed for database {}", name);
-            throw new NoSuchObjectException(e.getMessage());
-        }
-    }
-
-    private StructureVersion createStructureVersion(String name, List<String> parentIds) throws GroundException {
-        Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-        structureVersionAttributes.put(name, GroundType.STRING);
-        for (String parentId : parentIds) {
-            structureVersionAttributes.put(parentId, GroundType.STRING);
-        }
-        Structure structure = getGround().getStructureFactory().create(name);
-        StructureVersion sv = getGround().getStructureVersionFactory().create(structure.getId(),
-                structureVersionAttributes, parentIds);
-        return sv;
     }
 
     /**
@@ -367,20 +316,6 @@ public class GroundStore extends GroundStoreBase {
     }
 
     @Override
-    public List<TableMeta> getTableMeta(String dbNames, String tableNames, List<String> tableTypes)
-            throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<Table> getTableObjectsByName(String dbname, List<String> tableNames)
-            throws MetaException, UnknownDBException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public List<String> getAllTables(String dbName) throws MetaException {
         return this.getTables(dbName, "");
     }
@@ -389,83 +324,6 @@ public class GroundStore extends GroundStoreBase {
     public List<String> listTableNamesByFilter(String dbName, String filter, short max_tables)
             throws MetaException, UnknownDBException {
         return metastore.getTables(dbName, filter);
-    }
-
-    @Override
-    public List<String> listPartitionNames(String db_name, String tbl_name, short max_parts) throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<String> listPartitionNamesByFilter(String db_name, String tbl_name, String filter, short max_parts)
-            throws MetaException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void alterPartition(String db_name, String tbl_name, List<String> part_vals, Partition new_part)
-            throws InvalidObjectException, MetaException {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void alterPartitions(String db_name, String tbl_name, List<List<String>> part_vals_list,
-            List<Partition> new_parts) throws InvalidObjectException, MetaException {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public List<Partition> getPartitionsByFilter(String dbName, String tblName, String filter, short maxParts)
-            throws MetaException, NoSuchObjectException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean getPartitionsByExpr(String dbName, String tblName, byte[] expr, String defaultPartitionName,
-            short maxParts, List<Partition> result) throws TException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public int getNumPartitionsByFilter(String dbName, String tblName, String filter)
-            throws MetaException, NoSuchObjectException {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public List<Partition> getPartitionsByNames(String dbName, String tblName, List<String> partNames)
-            throws MetaException, NoSuchObjectException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Table markPartitionForEvent(String dbName, String tblName, Map<String, String> partVals,
-            PartitionEventType evtType)
-            throws MetaException, UnknownTableException, InvalidPartitionException, UnknownPartitionException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean isPartitionMarkedForEvent(String dbName, String tblName, Map<String, String> partName,
-            PartitionEventType evtType)
-            throws MetaException, UnknownTableException, InvalidPartitionException, UnknownPartitionException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void dropPartitions(String dbName, String tblName, List<String> partNames)
-            throws MetaException, NoSuchObjectException {
-        // TODO Auto-generated method stub
-
     }
 
 }

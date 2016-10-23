@@ -1,19 +1,14 @@
 package edu.berkeley.ground.plugins.hive;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.common.ObjectPair;
-import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
 import org.apache.hive.common.util.HiveStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +17,7 @@ import com.google.gson.Gson;
 
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.api.models.NodeVersionFactory;
 import edu.berkeley.ground.api.models.Structure;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
@@ -49,7 +42,7 @@ public class GPartition {
             LOG.debug("Fetching partition node: " + partitionName);
             return ground.getNodeFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException ge1) {
-            LOG.debug("Not found - Creating partition node: " + partitionName);
+            LOG.debug("Not found - Creating partition node: {}", partitionName);
 
             Node node = ground.getNodeFactory().create(partitionName);
             Structure nodeStruct = ground.getStructureFactory().create(node.getName());
@@ -73,7 +66,7 @@ public class GPartition {
             LOG.debug("Fetching table partition edge: " + partitionName);
             return ground.getEdgeFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException ge1) {
-            LOG.debug("Not found - Creating table partition edge: " + partitionName);
+            LOG.debug("Not found - Creating table partition edge: {}", partitionName);
 
             Edge edge = ground.getEdgeFactory().create(partitionName);
             Structure edgeStruct = ground.getStructureFactory().create(partitionName);

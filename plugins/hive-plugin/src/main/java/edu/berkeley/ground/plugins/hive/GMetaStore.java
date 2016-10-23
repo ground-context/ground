@@ -1,23 +1,5 @@
 package edu.berkeley.ground.plugins.hive;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.InvalidInputException;
-import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
-import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.partition.spec.PartitionSpecProxy;
-import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.Node;
@@ -27,6 +9,25 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
+
+import org.apache.hadoop.hive.metastore.api.Database;
+import org.apache.hadoop.hive.metastore.api.InvalidInputException;
+import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GMetaStore {
     static final private Logger LOG = LoggerFactory.getLogger(GMetaStore.class.getName());
@@ -45,25 +46,26 @@ public class GMetaStore {
         APACHE_HIVE_URL_MAP.put("URL", "http://hive.apache.org/");
     }
 
-    public GMetaStore(GroundReadWrite ground) {
+    @VisibleForTesting
+    GMetaStore(GroundReadWrite ground) {
         this.ground = ground;
         this.database = new GDatabase(ground);
     }
 
-    public Node getNode() throws GroundException {
+    Node getNode() throws GroundException {
         try {
-            LOG.debug("Fetching metastore node: " + METASTORE_NODE);
+            LOG.debug("Fetching metastore node: {}", METASTORE_NODE);
             return ground.getNodeFactory().retrieveFromDatabase(METASTORE_NODE);
         } catch (GroundException ge1) {
-            LOG.debug("Not found - Creating metastore node: " + METASTORE_NODE);
+            LOG.debug("Not found - Creating metastore node: {}", METASTORE_NODE);
             Node node = ground.getNodeFactory().create(METASTORE_NODE);
             Structure nodeStruct = ground.getStructureFactory().create(node.getName());
-
+            LOG.debug("node struct created {}", nodeStruct.getName());
             return node;
         }
     }
 
-    public Structure getNodeStructure() throws GroundException {
+    Structure getNodeStructure() throws GroundException {
         try {
             LOG.debug("Fetching metastore node structure: " + METASTORE_NODE);
             Node node = this.getNode();
@@ -74,20 +76,20 @@ public class GMetaStore {
         }
     }
 
-    public Edge getEdge(NodeVersion nodeVersion) throws GroundException {
+    Edge getEdge(NodeVersion nodeVersion) throws GroundException {
         String edgeId = nodeVersion.getNodeId();
         try {
             LOG.debug("Fetching metastore database edge: " + edgeId);
             return ground.getEdgeFactory().retrieveFromDatabase(edgeId);
         } catch (GroundException e) {
-            LOG.debug("Not found - Creating metastore table edge: " + edgeId);
+            LOG.debug("Not found - Creating metastore table edge: {}", edgeId);
             Edge edge = ground.getEdgeFactory().create(edgeId);
             Structure edgeStruct = ground.getStructureFactory().create(edge.getName());
             return edge;
         }
     }
 
-    public Structure getEdgeStructure(NodeVersion nodeVersion) throws GroundException {
+    Structure getEdgeStructure(NodeVersion nodeVersion) throws GroundException {
         try {
             LOG.debug("Fetching metastore database edge structure: " + nodeVersion.getNodeId());
             Edge edge = this.getEdge(nodeVersion);
@@ -98,7 +100,8 @@ public class GMetaStore {
         }
     }
 
-    public NodeVersion getNodeVersion() throws GroundException {
+    /** Given an entity name retrieve its node version from database. */
+    NodeVersion getNodeVersion() throws GroundException {
         try {
             Node node = this.getNode();
             String nodeVersionId = ground.getNodeFactory().getLeaves(node.getName()).get(0);
@@ -108,7 +111,7 @@ public class GMetaStore {
         }
     }
 
-    public NodeVersion createNodeVersion() throws GroundException {
+    NodeVersion createNodeVersion() throws GroundException {
         try {
             Node node = this.getNode();
             String nodeId = node.getId();
@@ -140,7 +143,7 @@ public class GMetaStore {
 
     // Database related functions
 
-    public Database getDatabase(String name) throws NoSuchObjectException {
+    Database getDatabase(String name) throws NoSuchObjectException {
         try {
             List<String> dbNames = this.getDatabases(name);
             if (dbNames.contains(name)) {
@@ -153,7 +156,7 @@ public class GMetaStore {
         }
     }
 
-    public List<String> getDatabases(String dbPattern) throws NoSuchObjectException {
+    List<String> getDatabases(String dbPattern) throws NoSuchObjectException {
         List<String> databases = new ArrayList<String>();
         try {
             List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
@@ -175,7 +178,7 @@ public class GMetaStore {
         return databases;
     }
 
-    public void createDatabase(Database db) throws InvalidObjectException, MetaException {
+    void createDatabase(Database db) throws InvalidObjectException, MetaException {
         try {
             NodeVersion nv = database.createDatabase(db);
 
@@ -225,7 +228,7 @@ public class GMetaStore {
         }
     }
 
-    public boolean dropDatabase(String dbName) throws GroundException {
+    boolean dropDatabase(String dbName) throws GroundException {
         try {
             boolean found = false;
             List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
@@ -278,7 +281,7 @@ public class GMetaStore {
     }
 
     // Table related functions
-    public void createTable(Table table) throws InvalidObjectException, MetaException {
+    void createTable(Table table) throws InvalidObjectException, MetaException {
         try {
             String dbName = table.getDbName();
 
@@ -334,7 +337,7 @@ public class GMetaStore {
         }
     }
 
-    public boolean dropTable(String dbName, String tableName)
+    boolean dropTable(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
         try {
             NodeVersion nv = database.dropTable(dbName, tableName);
@@ -392,7 +395,7 @@ public class GMetaStore {
         }
     }
 
-    public Table getTable(String dbName, String tableName) throws MetaException {
+    Table getTable(String dbName, String tableName) throws MetaException {
         try {
             return database.getTable(dbName, tableName);
         } catch (MetaException ex) {
@@ -401,11 +404,11 @@ public class GMetaStore {
         }
     }
 
-    public List<String> getTables(String dbName, String pattern) throws MetaException {
+    List<String> getTables(String dbName, String pattern) throws MetaException {
         return database.getTables(dbName, pattern);
     }
 
-    public boolean addPartitions(String dbName, String tableName, List<Partition> parts)
+    boolean addPartitions(String dbName, String tableName, List<Partition> parts)
             throws InvalidObjectException, MetaException {
         try {
             NodeVersion nv = database.addPartitions(dbName, tableName, parts);
@@ -469,12 +472,12 @@ public class GMetaStore {
         }
     }
 
-    public Partition getPartition(String dbName, String tableName, String partName)
+    Partition getPartition(String dbName, String tableName, String partName)
             throws MetaException, NoSuchObjectException {
         return this.database.getPartition(dbName, tableName, partName);
     }
 
-    public List<Partition> getPartitions(String dbName, String tableName, int max)
+    List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
             return this.database.getPartitions(dbName, tableName, max);
