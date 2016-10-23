@@ -49,7 +49,7 @@ import edu.berkeley.ground.api.models.postgres.PostgresEdgeVersionFactory;
 import edu.berkeley.ground.api.models.postgres.PostgresGraphVersionFactory;
 import edu.berkeley.ground.api.models.postgres.PostgresNodeVersionFactory;
 
-public class TestGroundMetastore {
+public class GroundMetastoreTest {
     private GroundStore groundStore = null;
     static final String GRAPHFACTORY_CLASS = "ground.graph.factory";
 
