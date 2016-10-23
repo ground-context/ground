@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>edu.berkeley</groupId>
 		<artifactId>ground</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>${ground.version}</version>
 		<relativePath>../../</relativePath>
 	</parent>
 	<artifactId>ground-hive-plugin</artifactId>

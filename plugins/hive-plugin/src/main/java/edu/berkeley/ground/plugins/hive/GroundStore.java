@@ -1,14 +1,28 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.metastore.api.*; //TODO(krishna) fix
+import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,22 +30,12 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 public class GroundStore extends GroundStoreBase {
 
-    private static final String DEFAULT_VERSION = "1.0.0";
-
     static final private Logger LOG = LoggerFactory.getLogger(GroundStore.class.getName());
-
-    private static final String METASTORE_NODE = "_METASTORE";
-
-    private static final String DB_STATE = "_DATABASE_STATE";
-
-    private static final String TABLE_STATE = "_TABLE_STATE";
-
-    private static final String TIMESTAMP = "_TIMESTAMP";
 
     // Do not access this directly, call getHBase to make sure it is
     // initialized.
     private GroundReadWrite ground = null;
-    private GMetaStore metastore = null;
+    private GroundMetaStore metastore = null;
     private Configuration conf;
     private int txnNestLevel;
 
@@ -41,7 +45,7 @@ public class GroundStore extends GroundStoreBase {
 
     public GroundStore() {
         ground = getGround();
-        metastore = new GMetaStore(ground);
+        metastore = new GroundMetaStore(ground);
     }
 
     private GroundReadWrite getGround() {

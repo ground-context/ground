@@ -1,51 +1,43 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.common.ObjectPair;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.api.Partition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import edu.berkeley.ground.api.models.EdgeFactory;
-import edu.berkeley.ground.api.models.EdgeVersionFactory;
-import edu.berkeley.ground.api.models.GraphVersionFactory;
-import edu.berkeley.ground.api.models.NodeFactory;
+import edu.berkeley.ground.api.models.*;
+import edu.berkeley.ground.api.models.postgres.*;
+import edu.berkeley.ground.api.versions.ItemFactory;
+import edu.berkeley.ground.api.versions.VersionFactory;
+import edu.berkeley.ground.api.versions.postgres.*;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
-import edu.berkeley.ground.api.models.NodeVersionFactory;
-import edu.berkeley.ground.api.models.RichVersionFactory;
-import edu.berkeley.ground.api.models.StructureFactory;
-import edu.berkeley.ground.api.models.StructureVersionFactory;
-import edu.berkeley.ground.api.models.TagFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresEdgeFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresEdgeVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresGraphVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresNodeFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresNodeVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresRichVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresStructureFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresStructureVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresTagFactory;
-import edu.berkeley.ground.api.versions.ItemFactory;
-import edu.berkeley.ground.api.versions.VersionFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionHistoryDAGFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionSuccessorFactory;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GroundReadWrite {
 
@@ -66,11 +58,6 @@ public class GroundReadWrite {
     private EdgeVersionFactory edgeVersionFactory;
     private TagFactory tagFactory;
     private String factoryType;
-    /** tableMap are intended ONLY for Testing will be removed.*/
-    private Map<String, Map<String, ObjectPair<String, Object>>> dbTableMap =
-            Collections.synchronizedMap(new HashMap<String, Map<String, ObjectPair<String, Object>>>());
-    private Map<ObjectPair<String, String>, List<String>> partCache = Collections
-            .synchronizedMap(new HashMap<ObjectPair<String, String>, List<String>>());
 
     @VisibleForTesting
     final static String TEST_CONN = "test_connection";
@@ -301,32 +288,4 @@ public class GroundReadWrite {
         return edgeFactory;
     }
 
-    /**
-     * Add a partition. This should only be called for new partitions. For
-     * altering existing partitions this should not be called as it will blindly
-     * increment the ref counter for the storage descriptor.
-     * 
-     * @param partition
-     *            partition object to add
-     * @throws IOException
-     */
-    void putPartition(Partition partition) throws IOException {
-        // TODO (krishna) use hbase model and PartitionCache to store
-    }
-
-    public Map<String, Map<String, ObjectPair<String, Object>>> getDbTableMap() {
-        return dbTableMap;
-    }
-
-    public void setDbTableMap(Map<String, Map<String, ObjectPair<String, Object>>> dbTable) {
-        this.dbTableMap = dbTable;
-    }
-
-    public Map<ObjectPair<String, String>, List<String>> getPartCache() {
-        return partCache;
-    }
-
-    public void setPartCache(Map<ObjectPair<String, String>, List<String>> partCache) {
-        this.partCache = partCache;
-    }
 }

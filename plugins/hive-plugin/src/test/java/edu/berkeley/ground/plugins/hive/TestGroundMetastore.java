@@ -25,18 +25,14 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.Deadline;
 import org.apache.hadoop.hive.metastore.FileFormatProxy;
 import org.apache.hadoop.hive.metastore.PartitionExpressionProxy;
-import org.apache.hadoop.hive.metastore.RawStore;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.FileMetadataExprType;
-import org.apache.hadoop.hive.metastore.api.Function;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.PrincipalType;
-import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -44,12 +40,10 @@ import org.apache.hadoop.hive.ql.io.sarg.SearchArgument;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.typeinfo.PrimitiveTypeInfo;
 import org.junit.After;
-import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.google.common.annotations.VisibleForTesting;
 
 import edu.berkeley.ground.api.models.postgres.PostgresEdgeVersionFactory;
 import edu.berkeley.ground.api.models.postgres.PostgresGraphVersionFactory;
@@ -138,33 +132,33 @@ public class TestGroundMetastore {
         numDBs++;
 
         String dbName = groundStore.getDatabase(DB1).getName();
-        Assert.assertEquals(DB1, dbName);
+        assertEquals(DB1, dbName);
         dbName = groundStore.getDatabase(DB2).getName();
-        Assert.assertEquals(DB2, dbName);
+        assertEquals(DB2, dbName);
         List<String> databases = groundStore.getAllDatabases();
-        Assert.assertEquals(numDBs, databases.size());
+        assertEquals(numDBs, databases.size());
         for (String database : databases) {
             System.out.println("database: " + database);
         }
-        Assert.assertTrue(databases.contains(DB2));
-        Assert.assertTrue(databases.contains(DB1));
-        Assert.assertEquals(true, groundStore.dropDatabase(DB1));
+        assertTrue(databases.contains(DB2));
+        assertTrue(databases.contains(DB1));
+        assertEquals(true, groundStore.dropDatabase(DB1));
         numDBs--;
 
         List<String> databases2 = groundStore.getAllDatabases();
-        Assert.assertFalse(databases2.contains(DB1));
-        Assert.assertEquals(numDBs, databases2.size());
+        assertFalse(databases2.contains(DB1));
+        assertEquals(numDBs, databases2.size());
 
         Database db2v2 = new Database(DB2, "new description", "another_locationurl", new HashMap<String, String>());
         groundStore.alterDatabase(DB2, db2v2);
         Database db2v2r = groundStore.getDatabase(DB2);
-        Assert.assertEquals(db2v2.getName(), db2v2r.getName());
-        Assert.assertNotEquals(db2.getDescription(), db2v2r.getDescription());
-        Assert.assertEquals(db2v2.getDescription(), db2v2r.getDescription());
-        Assert.assertEquals("new description", db2v2r.getDescription());
-        Assert.assertNotEquals(db2.getLocationUri(), db2v2r.getLocationUri());
-        Assert.assertEquals(db2v2.getLocationUri(), db2v2r.getLocationUri());
-        Assert.assertEquals("another_locationurl", db2v2r.getLocationUri());
+        assertEquals(db2v2.getName(), db2v2r.getName());
+        assertNotEquals(db2.getDescription(), db2v2r.getDescription());
+        assertEquals(db2v2.getDescription(), db2v2r.getDescription());
+        assertEquals("new description", db2v2r.getDescription());
+        assertNotEquals(db2.getLocationUri(), db2v2r.getLocationUri());
+        assertEquals(db2v2.getLocationUri(), db2v2r.getLocationUri());
+        assertEquals("another_locationurl", db2v2r.getLocationUri());
     }
 
     /**
@@ -186,8 +180,8 @@ public class TestGroundMetastore {
         /** getAllTables TODO */
         Table table = groundStore.getTable(DBTBL1, TABLE1);
         // Assert.assertEquals(1, tables.size());
-        Assert.assertEquals(TABLE1, table.getTableName());
-        Assert.assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
+        assertEquals(TABLE1, table.getTableName());
+        assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
     }
 
     // @Ignore
@@ -216,9 +210,9 @@ public class TestGroundMetastore {
 
         Deadline.startTimer("getPartition");
         List<Partition> partitions = groundStore.getPartitions(DBPART1, PARTTABLE1, 10);
-        Assert.assertEquals(2, partitions.size());
-        Assert.assertEquals(111, partitions.get(0).getCreateTime());
-        Assert.assertEquals(222, partitions.get(1).getCreateTime());
+        assertEquals(2, partitions.size());
+        assertEquals(111, partitions.get(0).getCreateTime());
+        assertEquals(222, partitions.get(1).getCreateTime());
     }
 
 }

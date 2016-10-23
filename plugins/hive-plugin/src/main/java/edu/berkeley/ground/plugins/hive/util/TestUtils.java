@@ -27,7 +27,6 @@ public class TestUtils {
 
     public static void createTestInstances(DBClient dbClient, NodeVersionFactory nodeVersionFactory,
             EdgeVersionFactory edgeVersionFactory) throws GroundDBException {
-        // TODO move this
         dbClient = new PostgresClient("127.0.0.1", 5432, "default", "test", "test");
         PostgresVersionSuccessorFactory succ = new PostgresVersionSuccessorFactory();
         PostgresVersionHistoryDAGFactory dagFactory = new PostgresVersionHistoryDAGFactory(succ);

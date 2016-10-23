@@ -1,5 +1,3 @@
-package edu.berkeley.ground.plugins.hive;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -11,59 +9,45 @@ package edu.berkeley.ground.plugins.hive;
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.BinaryColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.BooleanColumnStatsData;
-import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsData;
-import org.apache.hadoop.hive.metastore.api.ColumnStatisticsDesc;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.Decimal;
 import org.apache.hadoop.hive.metastore.api.DecimalColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.DoubleColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.metastore.api.Function;
-import org.apache.hadoop.hive.metastore.api.FunctionType;
 import org.apache.hadoop.hive.metastore.api.LongColumnStatsData;
-import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.PrincipalType;
-import org.apache.hadoop.hive.metastore.api.ResourceType;
-import org.apache.hadoop.hive.metastore.api.ResourceUri;
-import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
-import org.apache.hadoop.hive.metastore.api.SkewedInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.StringColumnStatsData;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.junit.AfterClass;
-import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -292,9 +276,9 @@ public class TestGroundStore {
         store.createDatabase(db);
 
         Database d = store.getDatabase(dbname);
-        Assert.assertEquals(dbname, d.getName());
-        Assert.assertEquals("no description", d.getDescription());
-        Assert.assertEquals("file:///tmp", d.getLocationUri());
+        assertEquals(dbname, d.getName());
+        assertEquals("no description", d.getDescription());
+        assertEquals("file:///tmp", d.getLocationUri());
     }
 
     @Test
@@ -313,28 +297,28 @@ public class TestGroundStore {
         store.createTable(table);
 
         Table t = store.getTable("default", tableName);
-        Assert.assertEquals(1, t.getSd().getColsSize());
-        Assert.assertEquals("col1", t.getSd().getCols().get(0).getName());
-        Assert.assertEquals("int", t.getSd().getCols().get(0).getType());
-        Assert.assertEquals("", t.getSd().getCols().get(0).getComment());
-        Assert.assertEquals("serde", t.getSd().getSerdeInfo().getName());
-        Assert.assertEquals("seriallib", t.getSd().getSerdeInfo().getSerializationLib());
-        Assert.assertEquals("file:/tmp", t.getSd().getLocation());
-        Assert.assertEquals("input", t.getSd().getInputFormat());
-        Assert.assertEquals("output", t.getSd().getOutputFormat());
-        Assert.assertFalse(t.getSd().isCompressed());
-        Assert.assertEquals(17, t.getSd().getNumBuckets());
-        Assert.assertEquals(1, t.getSd().getBucketColsSize());
-        Assert.assertEquals("bucketcol", t.getSd().getBucketCols().get(0));
-        Assert.assertEquals(1, t.getSd().getSortColsSize());
-        Assert.assertEquals("sortcol", t.getSd().getSortCols().get(0).getCol());
-        Assert.assertEquals(1, t.getSd().getSortCols().get(0).getOrder());
-        Assert.assertEquals(1, t.getSd().getParametersSize());
-        Assert.assertEquals("value", t.getSd().getParameters().get("key"));
-        Assert.assertEquals("me", t.getOwner());
-        Assert.assertEquals("default", t.getDbName());
-        Assert.assertEquals(tableName, t.getTableName());
-        Assert.assertEquals(0, t.getParametersSize());
+        assertEquals(1, t.getSd().getColsSize());
+        assertEquals("col1", t.getSd().getCols().get(0).getName());
+        assertEquals("int", t.getSd().getCols().get(0).getType());
+        assertEquals("", t.getSd().getCols().get(0).getComment());
+        assertEquals("serde", t.getSd().getSerdeInfo().getName());
+        assertEquals("seriallib", t.getSd().getSerdeInfo().getSerializationLib());
+        assertEquals("file:/tmp", t.getSd().getLocation());
+        assertEquals("input", t.getSd().getInputFormat());
+        assertEquals("output", t.getSd().getOutputFormat());
+        assertFalse(t.getSd().isCompressed());
+        assertEquals(17, t.getSd().getNumBuckets());
+        assertEquals(1, t.getSd().getBucketColsSize());
+        assertEquals("bucketcol", t.getSd().getBucketCols().get(0));
+        assertEquals(1, t.getSd().getSortColsSize());
+        assertEquals("sortcol", t.getSd().getSortCols().get(0).getCol());
+        assertEquals(1, t.getSd().getSortCols().get(0).getOrder());
+        assertEquals(1, t.getSd().getParametersSize());
+        assertEquals("value", t.getSd().getParameters().get("key"));
+        assertEquals("me", t.getOwner());
+        assertEquals("default", t.getDbName());
+        assertEquals(tableName, t.getTableName());
+        assertEquals(0, t.getParametersSize());
     }
 
     private Table createMockTableAndPartition(String partType, String partVal) throws Exception {

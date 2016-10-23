@@ -8,7 +8,7 @@
     <parent>
         <groupId>edu.berkeley</groupId>
         <artifactId>ground</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>${ground.version}</version>
         <relativePath>../</relativePath>
     </parent>
 
@@ -57,24 +57,6 @@
             <artifactId>cassandra-driver-core</artifactId>
             <version>${cassandra.version}</version>
         </dependency>
-        <!--
-<dependency>
-    <groupId>org.jacoco</groupId>
-    <artifactId>org.jacoco.build</artifactId>
-    <version>0.7.7.201606060606</version>
-</dependency>
-         <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>org.jacoco.build</artifactId>
-            <version>${org.jacoco.build.version}</version>
-        </dependency>
-        -->
-<!-- 	    <dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-lang3</artifactId>
-		    <version>${commons-lang3.version}</version>
-	    </dependency>
- -->
         <dependency>
             <groupId>org.apache.directory.studio</groupId>
             <artifactId>org.apache.commons.lang</artifactId>

@@ -1,5 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package edu.berkeley.ground.plugins.hive;
-
 
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.Node;
@@ -29,8 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GMetaStore {
-    static final private Logger LOG = LoggerFactory.getLogger(GMetaStore.class.getName());
+public class GroundMetaStore {
+    static final private Logger LOG = LoggerFactory.getLogger(GroundMetaStore.class.getName());
 
     private static final String DUMMY_NOT_USED = "DUMMY_NOT_USED";
     private static final String _TIMESTAMP = "_TIMESTAMP";
@@ -38,18 +54,14 @@ public class GMetaStore {
     static final String METASTORE_NODE = "_METASTORE";
 
     private GroundReadWrite ground = null;
-    private GDatabase database = null;
+    private GroundDatabase database = null;
 
-    final String APACHE_HIVE_URL = "HIVE_INFO";
-    HashMap<String, String> APACHE_HIVE_URL_MAP = new HashMap<String, String>();
-    {
-        APACHE_HIVE_URL_MAP.put("URL", "http://hive.apache.org/");
-    }
+    HashMap<String, String> EMPTY_MAP = new HashMap<String, String>();
 
     @VisibleForTesting
-    GMetaStore(GroundReadWrite ground) {
+    GroundMetaStore(GroundReadWrite ground) {
         this.ground = ground;
-        this.database = new GDatabase(ground);
+        this.database = new GroundDatabase(ground);
     }
 
     Node getNode() throws GroundException {
@@ -134,7 +146,7 @@ public class GMetaStore {
             }
 
             // TODO: put version and other information in tags
-            return ground.getNodeVersionFactory().create(tags, sv.getId(), nodeId, APACHE_HIVE_URL_MAP, nodeId, parent);
+            return ground.getNodeVersionFactory().create(tags, sv.getId(), nodeId, EMPTY_MAP, nodeId, parent);
         } catch (GroundException ex) {
             LOG.error("Unable to initialize Ground Metastore: " + ex);
             throw ex;
