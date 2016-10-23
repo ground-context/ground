@@ -69,6 +69,14 @@ public class CassandraStructureFactory extends StructureFactory {
         }
     }
 
+    public List<String> getLeaves(String name) throws GroundException {
+        CassandraConnection connection = this.dbClient.getConnection();
+        List<String> leaves = this.itemFactory.getLeaves(connection, "Nodes." + name);
+        connection.commit();
+
+        return leaves;
+    }
+
     public Structure retrieveFromDatabase(String name) throws GroundException {
         CassandraConnection connection = this.dbClient.getConnection();
 

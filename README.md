@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.org/ground-context/ground)
+[![Build Status](https://travis-ci.org/ground-context/ground.png)](https://travis-ci.org/ground-context/ground)
 [![Coveralls](https://img.shields.io/coveralls/ground-context/ground.svg)](https://coveralls.io/github/ground-context/ground)
 
 

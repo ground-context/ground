@@ -26,6 +26,8 @@ public abstract class StructureFactory {
 
     public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
 
+    public abstract List<String> getLeaves(String name) throws GroundException;
+
     protected static Structure construct(String id, String name) {
         return new Structure(id, name);
     }
