@@ -5,7 +5,7 @@
 
     <groupId>edu.berkeley</groupId>
     <artifactId>ground</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>${ground.version}</version>
 
     <modules>
         <module>ground-core</module>
@@ -21,6 +21,8 @@
     <packaging>pom</packaging>
 
     <properties>
+        <ground.version>0.1-SNAPSHOT</ground.version>
+
         <!-- use UTF-8 for everything -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -48,6 +50,10 @@
 
         <!-- Kafka version -->
         <kafka.version>0.10.0.1</kafka.version>
+        <slf4j.version>1.7.21</slf4j.version>
+        <commons-lang3.version>3.4</commons-lang3.version>
+        <log4j.version>2.5</log4j.version>
+        <org.jacoco.build.version>0.7.7.201606060606</org.jacoco.build.version>
     </properties>
 
     <build>
