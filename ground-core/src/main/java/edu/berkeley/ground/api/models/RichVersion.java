@@ -36,7 +36,7 @@ public class RichVersion extends Version {
     // the optional parameters associated with this RichVersion if there is a reference
     private Map<String, String> parameters;
 
-    protected RichVersion(String id,
+    public RichVersion(String id,
                           Map<String, Tag> tags,
                           String structureVersionId,
                           String reference,

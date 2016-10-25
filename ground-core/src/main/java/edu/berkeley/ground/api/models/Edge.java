@@ -23,6 +23,7 @@ public class Edge extends Item<EdgeVersion> {
     private String name;
 
     @JsonCreator
+    public
     Edge(@JsonProperty("id") String id,
          @JsonProperty("name") String name) {
         super(id);
