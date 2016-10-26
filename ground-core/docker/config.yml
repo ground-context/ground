@@ -1,0 +1,17 @@
+dbType: neo4j
+dbName: ground
+dbHost: localhost
+dbPort: 7474
+dbUser: neo4j
+dbPassword: password
+kafkaHost: localhost
+kafkaPort: 9092
+swagger:
+  resourcePackage: edu.berkeley.ground.resources
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8082
