@@ -39,7 +39,6 @@ public class StructuresResource {
 
     private StructureFactory structureFactory;
     private StructureVersionFactory structureVersionFactory;
-
     public StructuresResource(StructureFactory structureFactory, StructureVersionFactory structureVersionFactory) {
         this.structureFactory = structureFactory;
         this.structureVersionFactory = structureVersionFactory;
@@ -77,5 +76,13 @@ public class StructuresResource {
         return this.structureVersionFactory.create(structureVersion.getStructureId(),
                                                    structureVersion.getAttributes(),
                                                    parentIds);
+    }
+
+    @GET
+    @Timed
+    @Path("/{name}/latest")
+    public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
+        LOGGER.info("Retrieving the latest version of node " + name + ".");
+        return this.structureFactory.getLeaves(name);
     }
 }
