@@ -193,13 +193,19 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.4.13</version>
                 <configuration>
-                    <imageName>ground-core</imageName>
-                    <dockerDirectory>docker</dockerDirectory>
+                    <imageName>tarp/ground</imageName>
+                    <baseImage>openjdk:alpine</baseImage>
+                    <entryPoint>["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/${project.build.finalName}.jar", "server", "config.yml"]</entryPoint>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}.jar</include>
+                        </resource>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>conf/</directory>
+                            <include>config.yml</include>
                         </resource>
                     </resources>
                 </configuration>
