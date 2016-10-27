@@ -20,19 +20,20 @@ package edu.berkeley.ground.plugins.hive;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.models.postgres.*;
-import edu.berkeley.ground.api.versions.ItemFactory;
-import edu.berkeley.ground.api.versions.VersionFactory;
-import edu.berkeley.ground.api.versions.postgres.*;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.util.Neo4jFactories;
+import edu.berkeley.ground.util.PostgresFactories;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -53,14 +54,16 @@ public class GroundReadWrite {
 
     static final String NO_CACHE_CONF = "no.use.cache";
     private DBClient dbClient;
-    private GraphVersionFactory graphFactory;
+    private GraphFactory graphFactory;
+    private GraphVersionFactory graphVersionFactory;
     private NodeVersionFactory nodeVersionFactory;
     private EdgeVersionFactory edgeVersionFactory;
-    private TagFactory tagFactory;
     private String factoryType;
 
     @VisibleForTesting
     final static String TEST_CONN = "test_connection";
+
+    protected static final String DEFAULT_FACTORY = "neo4j";
     private static GroundDBConnection testConn;
 
     private static Configuration staticConf = null;
@@ -70,30 +73,38 @@ public class GroundReadWrite {
 
     private EdgeFactory edgeFactory;
 
-    private StructureVersionFactory svf;
+    private StructureVersionFactory structureVersionFactory;
 
-    private StructureFactory sf;
+    private StructureFactory structureFactory;
+
+    private String dbName;
+
+    private String userName;
+
+    private String password;
+
+    private String host;
 
     public StructureVersionFactory getStructureVersionFactory() {
-        return svf;
+        return structureVersionFactory;
     }
 
     public void setStructureVersionFactory(StructureVersionFactory svf) {
-        this.svf = svf;
+        this.structureVersionFactory = svf;
     }
 
     /**
      * @return the sf
      */
     public StructureFactory getStructureFactory() {
-        return sf;
+        return structureFactory;
     }
 
     /**
      * @param sf the sf to set
      */
-    public void setSFactory(StructureFactory sf) {
-        this.sf = sf;
+    public void setStructureFactory(StructureFactory sf) {
+        this.structureFactory = sf;
     }
 
     private static ThreadLocal<GroundReadWrite> self = new ThreadLocal<GroundReadWrite>() {
@@ -102,13 +113,17 @@ public class GroundReadWrite {
             if (staticConf == null) {
                 throw new RuntimeException("Must set conf object before getting an instance");
             }
-            return new GroundReadWrite(staticConf);
+            try {
+                return new GroundReadWrite(staticConf);
+            } catch (GroundDBException e) {
+                LOG.error("create groundreadwrite failed {}", e.getMessage());
+            }
+            return null;
         }
     };
 
     /**
      * Set the configuration for all GroundReadWrite instances.
-     * 
      * @param configuration
      *            Configuration object
      */
@@ -138,7 +153,7 @@ public class GroundReadWrite {
         return self.get();
     }
 
-    private GroundReadWrite(Configuration conf) {
+    private GroundReadWrite(Configuration conf) throws GroundDBException {
         Properties props = new Properties();
         try {
             String groundPropertyResource = GROUNDCONF; //ground properties from resources
@@ -149,17 +164,23 @@ public class GroundReadWrite {
             }
             //
             String clientClass = props.getProperty("edu.berkeley.ground.model.config.dbClient");
-            String host = props.getProperty("edu.berkeley.ground.model.config.host");
+            host = props.getProperty("edu.berkeley.ground.model.config.host");
             int port = new Integer(props.getProperty("edu.berkeley.ground.model.config.port"));
-            String dbName = props.getProperty("edu.berkeley.ground.model.config.dbName");
-            String userName = props.getProperty("edu.berkeley.ground.model.config.user");
-            String password = props.getProperty("edu.berkeley.ground.model.config.password");
+            dbName = props.getProperty("edu.berkeley.ground.model.config.dbName");
+            userName = props.getProperty("edu.berkeley.ground.model.config.user");
+            password = props.getProperty("edu.berkeley.ground.model.config.password");
             LOG.info("client cass is " + clientClass);
             if (TEST_CONN.equals(clientClass)) {
                 setConn(testConn);
+                factoryType = props.getProperty("edu.berkeley.ground.model.config.factoryType");
                 LOG.info("Using test connection."); // for unit and integration test
-                dbClient = new PostgresClient("127.0.0.1", 5432, "test", "test", "test");
-                createInstance();
+                if (factoryType.contains("neo4j")) {
+                    dbClient = new Neo4jClient(host, userName, password);
+                    createNeo4jInstance();
+                } else {
+                    dbClient = new PostgresClient("127.0.0.1", 5432, "test", "test", "test");
+                    createPostgresInstance();
+                }
             } else {
                 conf.set("edu.berkeley.ground.model.config.clientClass", clientClass);
                 conf.set("edu.berkeley.ground.model.config.host", host);
@@ -173,33 +194,37 @@ public class GroundReadWrite {
                 dbClient = (DBClient) constructor.newInstance(host, port, dbName, userName, password);
                 // dbClient = new PostgresClient(host, port, dbName, userName, password);
                 LOG.debug("Instantiating connection class " + clientClass);
-                createInstance();
+                if (staticConf.get("factoryType", DEFAULT_FACTORY).equals("postgres")) {
+                    createPostgresInstance();
+                } else { 
+                    createNeo4jInstance();
+                }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new GroundDBException(e);
         }
     }
 
-    private void createInstance() throws GroundDBException {
-        PostgresVersionSuccessorFactory succ = new PostgresVersionSuccessorFactory();
-        PostgresVersionHistoryDAGFactory dagFactory = new PostgresVersionHistoryDAGFactory(succ);
-        PostgresItemFactory itemFactory = new PostgresItemFactory(dagFactory);
-        PostgresTagFactory tagFactory = new PostgresTagFactory();
-        nodeFactory = new PostgresNodeFactory(itemFactory, (PostgresClient) dbClient);
-        VersionFactory vf = new PostgresVersionFactory();
-        ItemFactory iff = new PostgresItemFactory(dagFactory);
-        sf = new PostgresStructureFactory((PostgresItemFactory) iff, (PostgresClient) dbClient);
-        svf = new PostgresStructureVersionFactory((PostgresStructureFactory) sf,
-                (PostgresVersionFactory) vf, (PostgresClient) dbClient);
-        RichVersionFactory rf = new PostgresRichVersionFactory((PostgresVersionFactory) vf,
-                (PostgresStructureVersionFactory) svf, tagFactory);
+    private void createNeo4jInstance() {
+        Neo4jFactories neo4JFactories = new Neo4jFactories((Neo4jClient) dbClient);
+        this.nodeFactory = neo4JFactories.getNodeFactory();
+        this.nodeVersionFactory = neo4JFactories.getNodeVersionFactory();
+        this.edgeFactory = neo4JFactories.getEdgeFactory();
+        this.edgeVersionFactory = neo4JFactories.getEdgeVersionFactory();
+        this.graphFactory = neo4JFactories.getGraphFactory();
+        this.structureFactory = neo4JFactories.getStructureFactory();
+        this.structureVersionFactory = neo4JFactories.getStructureVersionFactory();
+    }
 
-        edgeFactory = new PostgresEdgeFactory(itemFactory, (PostgresClient) dbClient);
-        edgeVersionFactory = new PostgresEdgeVersionFactory((PostgresEdgeFactory) edgeFactory,
-                (PostgresRichVersionFactory) rf, (PostgresClient) dbClient);
-        LOG.info("postgresclient " + dbClient.getConnection().toString());
-        nodeVersionFactory = new PostgresNodeVersionFactory((PostgresNodeFactory) nodeFactory,
-                (PostgresRichVersionFactory) rf, (PostgresClient) dbClient);
+    private void createPostgresInstance() throws GroundDBException {
+        PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient);
+        this.nodeFactory = postgresFactories.getNodeFactory();
+        this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
+        this.edgeFactory = postgresFactories.getEdgeFactory();
+        this.edgeVersionFactory = postgresFactories.getEdgeVersionFactory();
+        this.graphFactory = postgresFactories.getGraphFactory();
+        this.structureFactory = postgresFactories.getStructureFactory();
+        this.structureVersionFactory = postgresFactories.getStructureVersionFactory();
     }
 
     /**
@@ -232,44 +257,20 @@ public class GroundReadWrite {
         }
     }
 
-    public GraphVersionFactory getGraphFactory() {
+    public GraphFactory getGraphFactory() {
         return graphFactory;
-    }
-
-    public void setGraphFactory(GraphVersionFactory graphFactory) {
-        this.graphFactory = graphFactory;
     }
 
     public NodeVersionFactory getNodeVersionFactory() {
         return nodeVersionFactory;
     }
 
-    public void setNodeFactory(NodeVersionFactory nodeFactory) {
-        this.nodeVersionFactory = nodeFactory;
-    }
-
     public EdgeVersionFactory getEdgeVersionFactory() {
         return edgeVersionFactory;
     }
 
-    public void setEdgeVersionFactory(EdgeVersionFactory edgeVersionFactory) {
-        this.edgeVersionFactory = edgeVersionFactory;
-    }
-
     public String getFactoryType() {
         return factoryType;
-    }
-
-    public void setFactoryType(String factoryType) {
-        this.factoryType = factoryType;
-    }
-
-    public TagFactory getTagFactory() {
-        return tagFactory;
-    }
-
-    public void setTagFactory(TagFactory tagFactory) {
-        this.tagFactory = tagFactory;
     }
 
     public GroundDBConnection getConn() {
@@ -286,6 +287,10 @@ public class GroundReadWrite {
 
     public EdgeFactory getEdgeFactory() {
         return edgeFactory;
+    }
+
+    public GraphVersionFactory getGraphVersionFactory() {
+        return graphVersionFactory;
     }
 
 }
