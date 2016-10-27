@@ -1,10 +1,10 @@
 dbType: neo4j
 dbName: ground
-dbHost: neo
+dbHost: localhost
 dbPort: 7474
 dbUser: neo4j
 dbPassword: password
-kafkaHost: kafk
+kafkaHost: localhost
 kafkaPort: 9092
 swagger:
   resourcePackage: edu.berkeley.ground.resources
