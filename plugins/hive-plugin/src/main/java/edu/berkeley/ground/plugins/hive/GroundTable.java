@@ -102,12 +102,12 @@ public class GroundTable {
         }
     }
 
-    public Table fromJSON(String json) {
+    Table fromJSON(String json) {
         Gson gson = new Gson();
-        return (Table) gson.fromJson(json, Table.class);
+        return (Table) gson.fromJson(json.replace("\\", ""), Table.class);
     }
 
-    public String toJSON(Table table) {
+    String toJSON(Table table) {
         Gson gson = new Gson();
         return gson.toJson(table);
     }

@@ -110,7 +110,8 @@ public class GroundDatabase {
 
     Database fromJSON(String json) {
         Gson gson = new Gson();
-        return (Database) gson.fromJson(json, Database.class);
+        LOG.debug("getDatabase fromJson input json: {}", json);
+        return (Database) gson.fromJson(json.replace("\\", ""), Database.class);
     }
 
     String toJSON(Database db) {

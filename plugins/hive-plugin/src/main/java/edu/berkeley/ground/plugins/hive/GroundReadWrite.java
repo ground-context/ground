@@ -27,15 +27,13 @@ import com.google.common.annotations.VisibleForTesting;
 
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.models.postgres.*;
-import edu.berkeley.ground.api.versions.ItemFactory;
-import edu.berkeley.ground.api.versions.VersionFactory;
-import edu.berkeley.ground.api.versions.postgres.*;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.Neo4jFactories;
+import edu.berkeley.ground.util.PostgresFactories;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -202,8 +200,7 @@ public class GroundReadWrite {
                     createNeo4jInstance();
                 }
             }
-        } catch (IOException | ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
-                IllegalArgumentException | InvocationTargetException e) {
+        } catch (Exception e) {
             throw new GroundDBException(e);
         }
     }
@@ -220,25 +217,14 @@ public class GroundReadWrite {
     }
 
     private void createPostgresInstance() throws GroundDBException {
-        PostgresVersionSuccessorFactory succ = new PostgresVersionSuccessorFactory();
-        PostgresVersionHistoryDAGFactory dagFactory = new PostgresVersionHistoryDAGFactory(succ);
-        PostgresItemFactory itemFactory = new PostgresItemFactory(dagFactory);
-        PostgresTagFactory tagFactory = new PostgresTagFactory();
-        nodeFactory = new PostgresNodeFactory(itemFactory, (PostgresClient) dbClient);
-        VersionFactory vf = new PostgresVersionFactory();
-        ItemFactory iff = new PostgresItemFactory(dagFactory);
-        structureFactory = new PostgresStructureFactory((PostgresItemFactory) iff, (PostgresClient) dbClient);
-        structureVersionFactory = new PostgresStructureVersionFactory((PostgresStructureFactory) structureFactory,
-                (PostgresVersionFactory) vf, (PostgresClient) dbClient);
-        RichVersionFactory rf = new PostgresRichVersionFactory((PostgresVersionFactory) vf,
-                (PostgresStructureVersionFactory) structureVersionFactory, tagFactory);
-
-        edgeFactory = new PostgresEdgeFactory(itemFactory, (PostgresClient) dbClient);
-        edgeVersionFactory = new PostgresEdgeVersionFactory((PostgresEdgeFactory) edgeFactory,
-                (PostgresRichVersionFactory) rf, (PostgresClient) dbClient);
-        LOG.info("postgresclient " + dbClient.getConnection().toString());
-        nodeVersionFactory = new PostgresNodeVersionFactory((PostgresNodeFactory) nodeFactory,
-                (PostgresRichVersionFactory) rf, (PostgresClient) dbClient);
+        PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient);
+        this.nodeFactory = postgresFactories.getNodeFactory();
+        this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
+        this.edgeFactory = postgresFactories.getEdgeFactory();
+        this.edgeVersionFactory = postgresFactories.getEdgeVersionFactory();
+        this.graphFactory = postgresFactories.getGraphFactory();
+        this.structureFactory = postgresFactories.getStructureFactory();
+        this.structureVersionFactory = postgresFactories.getStructureVersionFactory();
     }
 
     /**
@@ -275,32 +261,16 @@ public class GroundReadWrite {
         return graphFactory;
     }
 
-    public void setGraphFactory(GraphFactory graphFactory) {
-        this.graphFactory = graphFactory;
-    }
-
     public NodeVersionFactory getNodeVersionFactory() {
         return nodeVersionFactory;
-    }
-
-    public void setNodeFactory(NodeVersionFactory nodeFactory) {
-        this.nodeVersionFactory = nodeFactory;
     }
 
     public EdgeVersionFactory getEdgeVersionFactory() {
         return edgeVersionFactory;
     }
 
-    public void setEdgeVersionFactory(EdgeVersionFactory edgeVersionFactory) {
-        this.edgeVersionFactory = edgeVersionFactory;
-    }
-
     public String getFactoryType() {
         return factoryType;
-    }
-
-    public void setFactoryType(String factoryType) {
-        this.factoryType = factoryType;
     }
 
     public GroundDBConnection getConn() {
@@ -321,10 +291,6 @@ public class GroundReadWrite {
 
     public GraphVersionFactory getGraphVersionFactory() {
         return graphVersionFactory;
-    }
-
-    public void setGraphVersionFactory(GraphVersionFactory graphVersionFactory) {
-        this.graphVersionFactory = graphVersionFactory;
     }
 
 }
