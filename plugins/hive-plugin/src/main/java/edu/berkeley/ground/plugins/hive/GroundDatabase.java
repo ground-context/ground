@@ -74,7 +74,7 @@ public class GroundDatabase {
         }
     }
 
-    public Structure getNodeStructure(String dbName) throws GroundException {
+    Structure getNodeStructure(String dbName) throws GroundException {
         try {
             Node node = this.getNode(dbName);
             return ground.getStructureFactory().retrieveFromDatabase(dbName);
@@ -84,7 +84,7 @@ public class GroundDatabase {
         }
     }
 
-    public Edge getEdge(NodeVersion nodeVersion) throws GroundException {
+    Edge getEdge(NodeVersion nodeVersion) throws GroundException {
         String edgeId = nodeVersion.getNodeId();
         try {
             LOG.debug("Fetching database table edge: " + edgeId);
@@ -179,7 +179,7 @@ public class GroundDatabase {
     }
 
     // Table related functions
-    NodeVersion createTable(Table table) throws InvalidObjectException, MetaException {
+    NodeVersion createTableNodeVersion(Table table) throws InvalidObjectException, MetaException {
         try {
             String dbName = table.getDbName();
             NodeVersion tableNodeVersion = this.table.createTable(table);
@@ -226,13 +226,14 @@ public class GroundDatabase {
 
             return dbNodeVersion;
         } catch (GroundException ex) {
+            LOG.error(ex.getMessage());
             throw new MetaException(ex.getMessage());
         } catch (NoSuchObjectException ex) {
             throw new MetaException(ex.getMessage());
         }
     }
 
-    NodeVersion dropTable(String dbName, String tableName)
+    NodeVersion dropTableNodeVersion(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
         try {
             boolean found = false;
