@@ -3,6 +3,9 @@ package edu.berkeley.ground.ingest;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
+import java.util.Properties;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -14,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import gobblin.configuration.WorkUnitState;
 import gobblin.source.extractor.filebased.FileBasedExtractor;
 import gobblin.source.extractor.hadoop.AvroFsHelper;
+import gobblin.configuration.ConfigurationKeys;
 
 
 /**
@@ -21,6 +25,8 @@ import gobblin.source.extractor.hadoop.AvroFsHelper;
  */
 public class FileMetadataExtractor extends FileBasedExtractor<Schema, GenericRecord> {
 
+    private final String sourceDirectory;
+    
     //creating the schema to store the file metadata
     private static final String SCHEMA_STRING = "{\"namespace\": \"ground.avro\", "
       + "\"type\": \"record\","
@@ -41,8 +47,10 @@ public class FileMetadataExtractor extends FileBasedExtractor<Schema, GenericRec
     public FileMetadataExtractor(WorkUnitState workUnitState)
         throws IOException {
     super(workUnitState, new AvroFsHelper(workUnitState));
-        String writerFsURI = "file:///";
-        fs = FileSystem.get(URI.create(writerFsURI),new Configuration());
+        Properties props = workUnitState.getProperties();
+        Config config = ConfigFactory.parseProperties(props);
+        this.sourceDirectory = config.getString(ConfigurationKeys.SOURCE_FILEBASED_DATA_DIRECTORY);
+        fs = FileSystem.get(URI.create(sourceDirectory),new Configuration());
   }
 
     @Override

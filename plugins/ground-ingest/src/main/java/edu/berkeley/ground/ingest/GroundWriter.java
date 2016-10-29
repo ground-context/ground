@@ -14,22 +14,34 @@ import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
+import gobblin.util.ConfigUtils;
 import gobblin.writer.DataWriter;
 import java.net.URLEncoder;
+import com.typesafe.config.Config;
+import edu.berkeley.ground.ingest.GroundWriterConfigurationKeys;
 
 
 public class GroundWriter<D> implements DataWriter<GenericRecord>  {
   
+    HttpClient client = new HttpClient();
+    private final String groundServerAddress;
+    
+    public GroundWriter(Config config) {
+        
+        this.groundServerAddress = ConfigUtils.getString(config, GroundWriterConfigurationKeys.GROUND_SERVER_ADDRESS, GroundWriterConfigurationKeys.DEFAULT_GROUND_SERVER_ADDRESS);
+        
+    }
+
     public void write(GenericRecord record) throws IOException {
     
       //extracting the metadata from the GenericRecord and storing it in the field tags      
       Map<String, Tag> tags =  new HashMap<String, Tag>();
       GroundType typeString = GroundType.STRING;
       GroundType typeInt = GroundType.INTEGER;
-      Tag timeCreated = new Tag("id5", "timeCreated", record.get("timeCreated"), typeInt);
-      Tag length = new Tag("id6", "fileLength", record.get("length"), typeInt);
-      Tag modificationTime = new Tag("id7", "modificationTime", record.get("modificationTime"), typeInt);
-      Tag owner = new Tag("id8", "owner", record.get("owner"), typeString);
+      Tag timeCreated = new Tag(" ", "timeCreated", record.get("timeCreated"), typeInt);
+      Tag length = new Tag(" ", "fileLength", record.get("length"), typeInt);
+      Tag modificationTime = new Tag(" ", "modificationTime", record.get("modificationTime"), typeInt);
+      Tag owner = new Tag(" ", "owner", record.get("owner"), typeString);
       tags.put("timeCreated", timeCreated);
       tags.put("length", length);
       tags.put("modificationTime", modificationTime);
@@ -47,9 +59,8 @@ public class GroundWriter<D> implements DataWriter<GenericRecord>  {
       Node node = new Node("id", name);
       ObjectMapper mapper = new ObjectMapper();
       String jsonString = mapper.writeValueAsString(node);
-      HttpClient client = new HttpClient();
-      String uri = "http://localhost:9090/nodes/"+ name;
-      String encodedUri = "http://localhost:9090/nodes/" + URLEncoder.encode(name, "UTF-8");
+      String uri = groundServerAddress + name;
+      String encodedUri = groundServerAddress + "nodes/" + URLEncoder.encode(name, "UTF-8");
       PostMethod post = new PostMethod(encodedUri);
       post.setRequestHeader("Content-type", "application/json");
       post.setRequestBody(jsonString);
@@ -74,8 +85,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord>  {
       NodeVersion nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
       ObjectMapper mapper = new ObjectMapper();
       String jsonString = mapper.writeValueAsString(nodeVersion);
-      HttpClient client = new HttpClient();
-      String uri = "http://localhost:9090/nodes/versions";
+      String uri = groundServerAddress + "nodes/versions";
       PostMethod post = new PostMethod(uri);
       post.setRequestHeader("Content-type", "application/json");
       post.setRequestBody(jsonString);

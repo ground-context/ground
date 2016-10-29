@@ -1,15 +1,16 @@
 
-source.filebased.data.directory=file:///Users/sreyashinag/Documents/test1
-writer.kafka.topic=HdfsMeta1
-writer.kafka.producerConfig.schemaRegistry.schema.name=HdfsMeta2
-writer.kafka.producerConfig.bootstrap.servers=localhost:9092
-
 job.name=Pull from hdfs
 job.group=hdfs
 job.description=A getting started example for hdfs
 
+writer.kafka.topic=sampleTopic
+writer.kafka.producerConfig.schemaRegistry.schema.name=
+writer.kafka.producerConfig.bootstrap.servers=localhost:9092
+
 source.class=edu.berkeley.ground.ingest.FileMetadataSource
 source.filebased.fs.uri=file:///
+source.filebased.data.directory=
+job.schedule=
 
 extract.table.name=GroundEntity
 extract.table.type=SNAPSHOT_ONLY
