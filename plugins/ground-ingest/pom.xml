@@ -3,8 +3,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ground-ingest</artifactId>
-    <name>Ground Ingest</name>
+    <artifactId>ground-ingest-plugin</artifactId>
+    <name>Ground Ingest Plugin</name>
+    <url>http://www.ground-metadata.org</url>
     
     <properties>
         <gobblin.version>0.8.0</gobblin.version>
@@ -13,8 +14,8 @@
     <parent>
         <groupId>edu.berkeley</groupId>
         <artifactId>ground</artifactId>
-        <version>0.1-SNAPSHOT</version>
-        <relativePath>../</relativePath>
+        <version>${ground.version}</version>
+        <relativePath>../../</relativePath>
     </parent>
 
     <repositories>
@@ -311,7 +312,7 @@
         <dependency>
             <groupId>edu.berkeley</groupId>
             <artifactId>ground-core</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>${ground.version}</version>
         </dependency>
         
        
