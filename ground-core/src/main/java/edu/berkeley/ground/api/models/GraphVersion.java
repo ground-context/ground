@@ -33,7 +33,7 @@ public class GraphVersion extends RichVersion {
     private List<String> edgeVersionIds;
 
     @JsonCreator
-    protected GraphVersion(@JsonProperty("id") String id,
+    public GraphVersion(@JsonProperty("id") String id,
                            @JsonProperty("tags") Map<String, Tag> tags,
                            @JsonProperty("structureVersionId") String structureVersionId,
                            @JsonProperty("reference") String reference,

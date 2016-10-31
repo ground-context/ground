@@ -29,7 +29,7 @@ public class StructureVersion extends Version {
     private Map<String, GroundType> attributes;
 
     @JsonCreator
-    protected StructureVersion(@JsonProperty("id") String id,
+    public StructureVersion(@JsonProperty("id") String id,
                                @JsonProperty("structureId") String structureId,
                                @JsonProperty("attributes") Map<String, GroundType> attributes) {
         super(id);

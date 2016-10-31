@@ -1,0 +1,29 @@
+
+job.name=Pull from hdfs
+job.group=hdfs
+job.description=A getting started example for hdfs
+
+writer.kafka.topic=sampleTopic
+writer.kafka.producerConfig.schemaRegistry.schema.name=
+writer.kafka.producerConfig.bootstrap.servers=localhost:9092
+
+source.class=edu.berkeley.ground.ingest.FileMetadataSource
+source.filebased.fs.uri=file:///
+source.filebased.data.directory=
+job.schedule=
+
+extract.table.name=GroundEntity
+extract.table.type=SNAPSHOT_ONLY
+extract.namespace=edu.berkeley.ground.ingest
+
+writer.builder.class=gobblin.kafka.writer.KafkaDataWriterBuilder
+writer.destination.type=KAFKA
+writer.output.format=AVRO
+
+data.publisher.type=gobblin.publisher.NoopPublisher
+
+writer.kafka.producerConfig.value.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
+writer.kafka.producerConfig.key.serializer=io.confluent.kafka.serializers.KafkaAvroSerializer
+writer.kafka.producerConfig.schema.registry.url=http://localhost:8081
+
+
