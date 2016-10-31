@@ -31,7 +31,7 @@ public class EdgeVersion extends RichVersion {
     private String toId;
 
     @JsonCreator
-    protected EdgeVersion(
+    public EdgeVersion(
             @JsonProperty("id") String id,
             @JsonProperty("tags") Map<String, Tag> tags,
             @JsonProperty("structureVersionId") String structureVersionId,
