@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.typeinfo.PrimitiveTypeInfo;
 import org.junit.After;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -121,7 +122,6 @@ public class GroundMetastoreTest {
      * Test database operations
      */
     @Test
-    // @Ignore
     public void testDatabaseOps() throws MetaException, InvalidObjectException, NoSuchObjectException {
         int numDBs = groundStore.getAllDatabases().size();
         Database db1 = new Database(DB1, "description", "locationurl", new HashMap<String, String>());
@@ -184,8 +184,8 @@ public class GroundMetastoreTest {
         assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
     }
 
-    // @Ignore
     @Test
+    @Ignore
     public void testPartitionOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
         Database db1 = new Database(DBPART1, "description", "locationurl", new HashMap<String, String>());

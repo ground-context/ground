@@ -110,7 +110,6 @@ public class GroundDatabase {
 
     Database fromJSON(String json) {
         Gson gson = new Gson();
-        LOG.debug("getDatabase fromJson input json: {}", json);
         return (Database) gson.fromJson(json.replace("\\", ""), Database.class);
     }
 
@@ -142,16 +141,14 @@ public class GroundDatabase {
         try {
             String dbName = db.getName();
             Node dbNode = this.getNode(dbName);
-            Structure dbStruct = this.getNodeStructure(dbName);
-
-            Tag dbTag = new Tag("1.0.0", dbName, toJSON(db), GroundType.STRING);
-
+            Structure dbStruct = ground.getStructureFactory().create(dbNode.getName());
+            LOG.debug("Node and Structure {}, {}", dbNode.getId(), dbStruct.getId());
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
             structVersionAttribs.put(dbName, GroundType.STRING);
-
             StructureVersion sv = ground.getStructureVersionFactory().create(dbStruct.getId(), structVersionAttribs,
-                    EMPTY_PARENT_LIST);
+                    new ArrayList<String>());
 
+            Tag dbTag = new Tag("1.0.0", dbName, toJSON(db), GroundType.STRING);
             String reference = db.getLocationUri();
             HashMap<String, Tag> tags = new HashMap<>();
             tags.put(dbName, dbTag);
@@ -160,20 +157,17 @@ public class GroundDatabase {
             if (dbParamMap == null) {
                 dbParamMap = new HashMap<String, String>();
             }
-            Map<String, String> parameters = dbParamMap;
-
             List<String> parent = new ArrayList<String>();
             List<String> versions = ground.getNodeFactory().getLeaves(dbName);
             if (!versions.isEmpty()) {
+                LOG.debug("leaves {}", versions.get(0));
                 parent.add(versions.get(0));
             }
-
-            NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, parameters,
+            NodeVersion dbNodeVersion = ground.getNodeVersionFactory().create(tags, sv.getId(), reference, dbParamMap,
                     dbNode.getId(), parent);
-
             return dbNodeVersion;
         } catch (GroundException e) {
-            LOG.error("Failure to create a database node: " + db.getName());
+            LOG.error("Failure to create a database node: {}", e);
             throw new MetaException(e.getMessage());
         }
     }
@@ -201,7 +195,7 @@ public class GroundDatabase {
 
             ground.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
                     tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
-                    tableNodeVersion.getId(), EMPTY_PARENT_LIST);
+                    tableNodeVersion.getId(), new ArrayList<String>());
 
             if (!versions.isEmpty() && versions.size() != 0) {
                 String prevVersionId = versions.get(0);
@@ -315,7 +309,7 @@ public class GroundDatabase {
 
             ground.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
                     tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
-                    tableNodeVersion.getId(), EMPTY_PARENT_LIST);
+                    tableNodeVersion.getId(), new ArrayList<String>());
 
             if (!versions.isEmpty() && versions.size() > 0) {
                 String prevVersionId = versions.get(0);
@@ -340,7 +334,7 @@ public class GroundDatabase {
 
             return dbNodeVersion;
         } catch (GroundException ex) {
-            LOG.error("Unable to add partition to table {} database {}", tableName, dbName);
+            LOG.error("Unable to add partition to table {} database {}", tableName, dbName, ex);
             throw new MetaException(ex.getMessage());
         } catch (NoSuchObjectException ex) {
             LOG.error("Database {} not found", dbName);
