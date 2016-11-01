@@ -102,12 +102,12 @@ public class GroundTable {
         }
     }
 
-    public Table fromJSON(String json) {
+    Table fromJSON(String json) {
         Gson gson = new Gson();
-        return (Table) gson.fromJson(json, Table.class);
+        return (Table) gson.fromJson(json.replace("\\", ""), Table.class);
     }
 
-    public String toJSON(Table table) {
+    String toJSON(Table table) {
         Gson gson = new Gson();
         return gson.toJson(table);
     }
@@ -127,7 +127,7 @@ public class GroundTable {
             structVersionAttribs.put(tableName, GroundType.STRING);
 
             StructureVersion sv = ground.getStructureVersionFactory().create(tableStruct.getId(), structVersionAttribs,
-                    EMPTY_PARENT_LIST);
+                    new ArrayList<String>());
 
             String reference = table.getDbName();
             HashMap<String, Tag> tags = new HashMap<>();
@@ -151,7 +151,7 @@ public class GroundTable {
 
             return tableNodeVersion;
         } catch (GroundException e) {
-            LOG.error("Failure to create a table node: " + table.getTableName());
+            LOG.error("Failure to create a table node: {}", table.getTableName(), e);
             throw new MetaException(e.getMessage());
         }
     }
@@ -241,7 +241,7 @@ public class GroundTable {
 
                 ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), tableNodeVersion.getReference(),
                         tableNodeVersion.getParameters(), edge.getId(), tableNodeVersionId, nv.getId(),
-                        EMPTY_PARENT_LIST);
+                        new ArrayList<String>());
             }
 
             return tableNodeVersion;
