@@ -94,6 +94,67 @@
         </dependency>
 
         <dependency>
+            <groupId>com.thinkaurelius.titan</groupId>
+            <artifactId>titan-all</artifactId>
+            <version>${titan.version}</version>
+
+            <exclusions>
+                <!-- Exclude transitive dependencies that break Dropwizard -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.sun.jersey</groupId>
+                    <artifactId>jersey-json</artifactId>
+                </exclusion>
+
+                <!-- Exclude Lucene version that breaks Elasticsearch -->
+                <exclusion>
+                    <groupId>com.thinkaurelius.titan</groupId>
+                    <artifactId>titan-lucene</artifactId>
+                </exclusion>
+
+                <!-- Exclude Hadoop core 1.0 that breaks Gobblin -->
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                </exclusion>
+
+                <!-- Exclude titan-hadoop that breaks Gobblin due to scala 2.10 -->
+                <exclusion>
+                  <groupId>com.thinkaurelius.titan</groupId>
+                  <artifactId>titan-hadoop</artifactId>
+                </exclusion>
+
+            </exclusions>
+        </dependency>
+
+        <dependency>
             <groupId>com.smoketurner</groupId>
             <artifactId>dropwizard-swagger</artifactId>
             <version>1.0.0-1</version>

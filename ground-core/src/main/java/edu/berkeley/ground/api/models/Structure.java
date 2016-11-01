@@ -23,7 +23,7 @@ public class Structure extends Item<StructureVersion> {
     private String name;
 
     @JsonCreator
-    protected Structure(@JsonProperty("id") String id,
+    public Structure(@JsonProperty("id") String id,
                         @JsonProperty("name") String name) {
         super(id);
 
