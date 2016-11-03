@@ -17,6 +17,7 @@
  */
 package edu.berkeley.ground.plugins.hive;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -209,8 +210,11 @@ public class GroundMetastoreTest {
         Deadline.startTimer("getPartition");
         List<Partition> partitions = groundStore.getPartitions(DBPART1, PARTTABLE1, 10);
         assertEquals(2, partitions.size());
-        assertEquals(111, partitions.get(0).getCreateTime());
-        assertEquals(222, partitions.get(1).getCreateTime());
+        List<Integer> timestampList = new ArrayList<Integer>();
+        timestampList.add(partitions.get(0).getCreateTime());
+        timestampList.add(partitions.get(1).getCreateTime());
+        assertTrue(timestampList.contains(111));
+        assertTrue(timestampList.contains(222));
     }
 
 }
