@@ -17,6 +17,7 @@
  */
 package edu.berkeley.ground.plugins.hive;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.typeinfo.PrimitiveTypeInfo;
 import org.junit.After;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -121,7 +123,6 @@ public class GroundMetastoreTest {
      * Test database operations
      */
     @Test
-    // @Ignore
     public void testDatabaseOps() throws MetaException, InvalidObjectException, NoSuchObjectException {
         int numDBs = groundStore.getAllDatabases().size();
         Database db1 = new Database(DB1, "description", "locationurl", new HashMap<String, String>());
@@ -164,7 +165,6 @@ public class GroundMetastoreTest {
     /**
      * Test table operations
      */
-    // @Ignore
     @Test
     public void testTableOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
@@ -184,7 +184,6 @@ public class GroundMetastoreTest {
         assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
     }
 
-    // @Ignore
     @Test
     public void testPartitionOps()
             throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
@@ -211,8 +210,11 @@ public class GroundMetastoreTest {
         Deadline.startTimer("getPartition");
         List<Partition> partitions = groundStore.getPartitions(DBPART1, PARTTABLE1, 10);
         assertEquals(2, partitions.size());
-        assertEquals(111, partitions.get(0).getCreateTime());
-        assertEquals(222, partitions.get(1).getCreateTime());
+        List<Integer> timestampList = new ArrayList<Integer>();
+        timestampList.add(partitions.get(0).getCreateTime());
+        timestampList.add(partitions.get(1).getCreateTime());
+        assertTrue(timestampList.contains(111));
+        assertTrue(timestampList.contains(222));
     }
 
 }

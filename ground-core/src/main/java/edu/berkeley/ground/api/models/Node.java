@@ -27,7 +27,7 @@ public class Node extends Item<NodeVersion> {
     private String name;
 
     @JsonCreator
-    protected Node(
+    public Node(
             @JsonProperty("id") String id,
             @JsonProperty("name") String name) {
         super(id);

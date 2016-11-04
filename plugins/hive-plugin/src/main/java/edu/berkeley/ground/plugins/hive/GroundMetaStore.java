@@ -297,7 +297,7 @@ public class GroundMetaStore {
         try {
             String dbName = table.getDbName();
 
-            NodeVersion nv = database.createTable(table);
+            NodeVersion nv = database.createTableNodeVersion(table);
 
             List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
 
@@ -352,7 +352,7 @@ public class GroundMetaStore {
     boolean dropTable(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
         try {
-            NodeVersion nv = database.dropTable(dbName, tableName);
+            NodeVersion nv = database.dropTableNodeVersion(dbName, tableName);
             if (nv == null) {
                 throw new NoSuchObjectException("Table not found: " + tableName);
             }

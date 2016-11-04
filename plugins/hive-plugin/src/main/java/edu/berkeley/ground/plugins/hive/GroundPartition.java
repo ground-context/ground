@@ -101,12 +101,12 @@ public class GroundPartition {
         }
     }
 
-    public Partition fromJSON(String json) {
+    Partition fromJSON(String json) {
         Gson gson = new Gson();
-        return (Partition) gson.fromJson(json, Partition.class);
+        return (Partition) gson.fromJson(json.replace("\\",""), Partition.class);
     }
 
-    public String toJSON(Partition part) {
+    String toJSON(Partition part) {
         Gson gson = new Gson();
         return gson.toJson(part);
     }
@@ -129,7 +129,7 @@ public class GroundPartition {
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
             structVersionAttribs.put(partId, GroundType.STRING);
             StructureVersion sv = ground.getStructureVersionFactory().create(partStruct.getId(), structVersionAttribs,
-                    EMPTY_PARENT_LIST);
+                    new ArrayList<String>());
 
             String reference = part.getSd().getLocation();
             HashMap<String, Tag> tags = new HashMap<>();
