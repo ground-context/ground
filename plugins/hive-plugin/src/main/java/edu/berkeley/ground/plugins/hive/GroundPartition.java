@@ -40,6 +40,7 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.plugins.hive.util.JsonUtil;
 
 public class GroundPartition {
 
@@ -48,21 +49,21 @@ public class GroundPartition {
     private static final String DUMMY_NOT_USED = "DUMMY_NOT_USED";
     private static final List<String> EMPTY_PARENT_LIST = new ArrayList<String>();
 
-    private GroundReadWrite ground = null;
+    private GroundReadWrite groundReadWrite = null;
 
     public GroundPartition(GroundReadWrite ground) {
-        this.ground = ground;
+        groundReadWrite = ground;
     }
 
     public Node getNode(String partitionName) throws GroundException {
         try {
             LOG.debug("Fetching partition node: " + partitionName);
-            return ground.getNodeFactory().retrieveFromDatabase(partitionName);
+            return groundReadWrite.getNodeFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException ge1) {
             LOG.debug("Not found - Creating partition node: {}", partitionName);
 
-            Node node = ground.getNodeFactory().create(partitionName);
-            Structure nodeStruct = ground.getStructureFactory().create(node.getName());
+            Node node = groundReadWrite.getNodeFactory().create(partitionName);
+            Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName());
 
             return node;
         }
@@ -71,7 +72,7 @@ public class GroundPartition {
     public Structure getNodeStructure(String partitionName) throws GroundException {
         try {
             Node node = this.getNode(partitionName);
-            return ground.getStructureFactory().retrieveFromDatabase(partitionName);
+            return groundReadWrite.getStructureFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException e) {
             LOG.error("Unable to fetch parition node structure");
             throw e;
@@ -81,12 +82,12 @@ public class GroundPartition {
     public Edge getEdge(String partitionName) throws GroundException {
         try {
             LOG.debug("Fetching table partition edge: " + partitionName);
-            return ground.getEdgeFactory().retrieveFromDatabase(partitionName);
+            return groundReadWrite.getEdgeFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException ge1) {
             LOG.debug("Not found - Creating table partition edge: {}", partitionName);
 
-            Edge edge = ground.getEdgeFactory().create(partitionName);
-            Structure edgeStruct = ground.getStructureFactory().create(partitionName);
+            Edge edge = groundReadWrite.getEdgeFactory().create(partitionName);
+            Structure edgeStruct = groundReadWrite.getStructureFactory().create(partitionName);
             return edge;
         }
     }
@@ -94,21 +95,11 @@ public class GroundPartition {
     public Structure getEdgeStructure(String partitionName) throws GroundException {
         try {
             Edge edge = getEdge(partitionName);
-            return ground.getStructureFactory().retrieveFromDatabase(partitionName);
+            return groundReadWrite.getStructureFactory().retrieveFromDatabase(partitionName);
         } catch (GroundException e) {
             LOG.error("Unable to fetch table partition edge structure");
             throw e;
         }
-    }
-
-    Partition fromJSON(String json) {
-        Gson gson = new Gson();
-        return (Partition) gson.fromJson(json.replace("\\",""), Partition.class);
-    }
-
-    String toJSON(Partition part) {
-        Gson gson = new Gson();
-        return gson.toJson(part);
     }
 
     public NodeVersion createPartition(String dbName, String tableName, Partition part)
@@ -121,14 +112,14 @@ public class GroundPartition {
                 partId += ":" + value;
             }
 
-            Tag partTag = new Tag(DUMMY_NOT_USED, partId, toJSON(part), GroundType.STRING);
+            Tag partTag = new Tag(DUMMY_NOT_USED, partId, JsonUtil.toJSON(part), GroundType.STRING);
 
             Node node = this.getNode(partId);
             String nodeId = node.getId();
             Structure partStruct = this.getNodeStructure(partId);
             Map<String, GroundType> structVersionAttribs = new HashMap<>();
             structVersionAttribs.put(partId, GroundType.STRING);
-            StructureVersion sv = ground.getStructureVersionFactory().create(partStruct.getId(), structVersionAttribs,
+            StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(partStruct.getId(), structVersionAttribs,
                     new ArrayList<String>());
 
             String reference = part.getSd().getLocation();
@@ -140,7 +131,7 @@ public class GroundPartition {
 
             Map<String, String> parameters = part.getParameters();
 
-            NodeVersion partNodeVersion = ground.getNodeVersionFactory().create(tags, versionId, reference, parameters,
+            NodeVersion partNodeVersion = groundReadWrite.getNodeVersionFactory().create(tags, versionId, reference, parameters,
                     nodeId, parentId);
 
             return partNodeVersion;
