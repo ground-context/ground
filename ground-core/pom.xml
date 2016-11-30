@@ -113,6 +113,10 @@
                     <artifactId>jackson-core</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>org.reflections</groupId>
+                    <artifactId>reflections</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
@@ -254,7 +258,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.4.13</version>
                 <configuration>
-                    <imageName>tarp/ground</imageName>
+                    <imageName>groundcontext/ground</imageName>
                     <baseImage>openjdk:alpine</baseImage>
                     <entryPoint>["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/${project.build.finalName}.jar", "server", "config.yml"]</entryPoint>
                     <resources>
