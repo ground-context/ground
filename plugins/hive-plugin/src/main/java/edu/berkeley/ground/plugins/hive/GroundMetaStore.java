@@ -54,14 +54,14 @@ public class GroundMetaStore {
     static final String METASTORE_NODE = "_METASTORE";
 
     private GroundReadWrite ground = null;
-    private GroundDatabase database = null;
+    private GroundDatabase groundDatabase = null;
 
     HashMap<String, String> EMPTY_MAP = new HashMap<String, String>();
 
     @VisibleForTesting
     GroundMetaStore(GroundReadWrite ground) {
         this.ground = ground;
-        this.database = new GroundDatabase(ground);
+        groundDatabase = new GroundDatabase(ground);
     }
 
     Node getNode() throws GroundException {
@@ -159,7 +159,7 @@ public class GroundMetaStore {
         try {
             List<String> dbNames = this.getDatabases(name);
             if (dbNames.contains(name)) {
-                return database.getDatabase(name);
+                return groundDatabase.getDatabase(name);
             }
             return null;
         } catch (NoSuchObjectException e) {
@@ -192,7 +192,7 @@ public class GroundMetaStore {
 
     void createDatabase(Database db) throws InvalidObjectException, MetaException {
         try {
-            NodeVersion nv = database.createDatabase(db);
+            NodeVersion nv = groundDatabase.createDatabase(db);
 
             List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
 
@@ -297,7 +297,7 @@ public class GroundMetaStore {
         try {
             String dbName = table.getDbName();
 
-            NodeVersion nv = database.createTableNodeVersion(table);
+            NodeVersion nv = groundDatabase.createTableComponents(table);
 
             List<String> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
 
@@ -352,7 +352,7 @@ public class GroundMetaStore {
     boolean dropTable(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
         try {
-            NodeVersion nv = database.dropTableNodeVersion(dbName, tableName);
+            NodeVersion nv = groundDatabase.dropTableNodeVersion(dbName, tableName);
             if (nv == null) {
                 throw new NoSuchObjectException("Table not found: " + tableName);
             }
@@ -409,7 +409,7 @@ public class GroundMetaStore {
 
     Table getTable(String dbName, String tableName) throws MetaException {
         try {
-            return database.getTable(dbName, tableName);
+            return groundDatabase.getTable(dbName, tableName);
         } catch (MetaException ex) {
             LOG.error("Unalbe to find table {} for database {}", tableName, dbName);
             throw ex;
@@ -417,13 +417,13 @@ public class GroundMetaStore {
     }
 
     List<String> getTables(String dbName, String pattern) throws MetaException {
-        return database.getTables(dbName, pattern);
+        return groundDatabase.getTables(dbName, pattern);
     }
 
     boolean addPartitions(String dbName, String tableName, List<Partition> parts)
             throws InvalidObjectException, MetaException {
         try {
-            NodeVersion nv = database.addPartitions(dbName, tableName, parts);
+            NodeVersion nv = groundDatabase.addPartitions(dbName, tableName, parts);
             if (nv == null) {
                 LOG.error("Unable to create partition for table " + tableName + " in database " + dbName);
                 throw new InvalidObjectException(
@@ -486,13 +486,13 @@ public class GroundMetaStore {
 
     Partition getPartition(String dbName, String tableName, String partName)
             throws MetaException, NoSuchObjectException {
-        return this.database.getPartition(dbName, tableName, partName);
+        return this.groundDatabase.getPartition(dbName, tableName, partName);
     }
 
     List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
-            return this.database.getPartitions(dbName, tableName, max);
+            return this.groundDatabase.getPartitions(dbName, tableName, max);
         } catch (MetaException | NoSuchObjectException ex) {
             throw ex;
         }
