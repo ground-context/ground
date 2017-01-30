@@ -8,7 +8,7 @@ public class JsonUtil {
 
     public static <T> T fromJSON(String json, Class<T> clazz) {
         Gson gson = new Gson();
-        return (T) gson.fromJson(json.replace("\\", ""), clazz);
+        return gson.fromJson(json.replace("\\", ""), clazz);
     }
 
     public static String toJSON(Object object) {

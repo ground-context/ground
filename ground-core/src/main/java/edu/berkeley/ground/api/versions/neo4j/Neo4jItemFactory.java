@@ -21,7 +21,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Neo4jItemFactory extends ItemFactory {
     private Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;

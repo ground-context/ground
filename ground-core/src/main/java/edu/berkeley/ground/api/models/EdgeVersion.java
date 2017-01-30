@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class EdgeVersion extends RichVersion {
     // the id of the Edge containing this Version

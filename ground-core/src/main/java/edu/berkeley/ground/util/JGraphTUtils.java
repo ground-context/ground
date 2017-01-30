@@ -14,7 +14,6 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;

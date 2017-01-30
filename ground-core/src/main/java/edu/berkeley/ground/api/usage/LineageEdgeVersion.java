@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class LineageEdgeVersion extends RichVersion {
     private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdgeVersion.class);

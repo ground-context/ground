@@ -44,8 +44,7 @@ public abstract class GroundStoreBase implements RawStore, Configurable {
 
     @Override
     public List<String> getAllDatabases() throws MetaException {
-        List<String> list = new ArrayList<>();
-        return list;
+        return new ArrayList<>();
     }
 
     @Override

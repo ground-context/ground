@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
@@ -99,7 +98,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record versionRecord = null;
+            Record versionRecord;
             try {
                 versionRecord = connection.getVertex(predicates);
             } catch (EmptyResultException eer) {

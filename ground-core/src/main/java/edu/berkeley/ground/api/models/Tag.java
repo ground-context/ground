@@ -20,8 +20,6 @@ import edu.berkeley.ground.api.versions.GroundType;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
-import java.util.*;
-
 public class Tag {
     private String versionId;
 
@@ -92,10 +90,6 @@ public class Tag {
             return false;
         }
 
-        if (this.valueType != null && !this.valueType.equals(that.valueType)) {
-            return false;
-        }
-
-        return true;
+        return !(this.valueType != null && !this.valueType.equals(that.valueType));
     }
 }

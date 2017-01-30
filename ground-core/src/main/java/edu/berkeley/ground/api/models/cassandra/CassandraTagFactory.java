@@ -18,7 +18,6 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
-import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;

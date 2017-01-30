@@ -42,7 +42,6 @@ import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.typeinfo.PrimitiveTypeInfo;
 import org.junit.After;
 import static org.junit.Assert.*;
-import org.junit.Ignore;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -101,7 +101,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record versionRecord = null;
+            Record versionRecord;
             try {
                 versionRecord = connection.getVertex(predicates);
             } catch (EmptyResultException eer) {

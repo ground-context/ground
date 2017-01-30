@@ -20,7 +20,6 @@ package edu.berkeley.ground.plugins.hive;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -124,8 +123,7 @@ public class GroundReadWrite {
 
     /**
      * Set the configuration for all GroundReadWrite instances.
-     * @param configuration
-     *            Configuration object
+     * @param conf the configuration object
      */
     public static synchronized void setConf(Configuration conf) {
         /** TODO(krishna) Need to change - temporarily using test connection

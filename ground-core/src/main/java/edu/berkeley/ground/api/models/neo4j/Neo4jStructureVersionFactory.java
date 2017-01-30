@@ -25,8 +25,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +80,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            String structureId = null;
+            String structureId;
 
             try {
                 structureId = Neo4jClient.getStringFromValue((StringValue) connection

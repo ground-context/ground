@@ -19,7 +19,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public abstract class LineageEdgeVersionFactory {
     public abstract LineageEdgeVersion create(Map<String, Tag> tags,

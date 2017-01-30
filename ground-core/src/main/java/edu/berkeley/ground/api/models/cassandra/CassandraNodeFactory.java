@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class CassandraNodeFactory extends NodeFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeFactory.class);

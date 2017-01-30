@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Neo4jGraphFactory extends GraphFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jGraphFactory.class);
@@ -76,7 +75,7 @@ public class Neo4jGraphFactory extends GraphFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
-            Record record = null;
+            Record record;
             try {
                 record = connection.getVertex(predicates);
             } catch (EmptyResultException eer) {

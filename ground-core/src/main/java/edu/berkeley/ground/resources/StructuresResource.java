@@ -20,7 +20,6 @@ import edu.berkeley.ground.api.models.StructureFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
-import io.dropwizard.jersey.params.NonEmptyStringParam;
 import io.swagger.annotations.Api;
 
 import org.slf4j.Logger;

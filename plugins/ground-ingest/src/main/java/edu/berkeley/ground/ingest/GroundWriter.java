@@ -6,9 +6,7 @@ import java.util.Map;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeVersion;
@@ -18,7 +16,6 @@ import gobblin.util.ConfigUtils;
 import gobblin.writer.DataWriter;
 import java.net.URLEncoder;
 import com.typesafe.config.Config;
-import edu.berkeley.ground.ingest.GroundWriterConfigurationKeys;
 
 
 public class GroundWriter<D> implements DataWriter<GenericRecord>  {
@@ -54,7 +51,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord>  {
   } 
     
     //method to create a Node given the name
-    public void node(String name, Map<String, Tag> tags) throws JsonGenerationException, JsonMappingException, IOException {
+    public void node(String name, Map<String, Tag> tags) throws IOException {
      
       Node node = new Node("id", name);
       ObjectMapper mapper = new ObjectMapper();
@@ -80,7 +77,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord>  {
   }
    
     //method to create the NodeVersion given the nodeId and the tags
-    public void nodeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference, Map<String, String> referenceParameters, String nodeId) throws JsonGenerationException, JsonMappingException, IOException {
+    public void nodeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference, Map<String, String> referenceParameters, String nodeId) throws IOException {
      
       NodeVersion nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
       ObjectMapper mapper = new ObjectMapper();

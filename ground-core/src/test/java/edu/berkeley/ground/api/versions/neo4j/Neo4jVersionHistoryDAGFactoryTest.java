@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import edu.berkeley.ground.api.Neo4jTest;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
-import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import static org.junit.Assert.*;

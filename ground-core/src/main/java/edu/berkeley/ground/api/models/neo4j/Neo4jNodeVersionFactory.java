@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Neo4jNodeVersionFactory extends NodeVersionFactory {
@@ -95,7 +94,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record record = null;
+            Record record;
             try {
                 record = connection.getVertex(predicates);
             } catch (EmptyResultException eer) {

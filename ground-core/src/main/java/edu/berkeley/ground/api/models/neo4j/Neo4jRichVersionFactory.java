@@ -101,7 +101,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        Record record = null;
+        Record record;
 
         try {
             record = connection.getVertex(predicates);

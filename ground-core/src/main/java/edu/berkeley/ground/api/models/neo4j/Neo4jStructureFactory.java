@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Neo4jStructureFactory extends StructureFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureFactory.class);
@@ -82,7 +81,7 @@ public class Neo4jStructureFactory extends StructureFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
-            Record record = null;
+            Record record;
             try {
                 record = connection.getVertex("Structure", predicates);
             } catch (EmptyResultException eer) {

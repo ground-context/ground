@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class GraphVersion extends RichVersion {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphVersion.class);

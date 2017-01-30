@@ -23,7 +23,6 @@ import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.neo4j.driver.internal.value.StringValue;
-import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;

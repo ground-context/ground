@@ -30,8 +30,6 @@ import org.apache.hive.common.util.HiveStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeVersion;
@@ -131,10 +129,8 @@ public class GroundPartition {
 
             Map<String, String> parameters = part.getParameters();
 
-            NodeVersion partNodeVersion = groundReadWrite.getNodeVersionFactory().create(tags, versionId, reference, parameters,
+            return groundReadWrite.getNodeVersionFactory().create(tags, versionId, reference, parameters,
                     nodeId, parentId);
-
-            return partNodeVersion;
         } catch (GroundException e) {
             throw new MetaException("Unable to create partition " + e.getMessage());
         }

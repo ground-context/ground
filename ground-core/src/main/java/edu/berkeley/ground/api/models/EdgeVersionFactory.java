@@ -18,7 +18,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public abstract class EdgeVersionFactory {
     public abstract EdgeVersion create(Map<String, Tag> tags,

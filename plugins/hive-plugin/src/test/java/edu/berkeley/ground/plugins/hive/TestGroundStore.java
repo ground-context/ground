@@ -215,7 +215,6 @@ public class TestGroundStore {
     }
 
     private static ColumnStatisticsObj mockBinaryStats(int i) {
-        ;
         long maxLen = 123412987L + 10 * i;
         double avgLen = 76.98 + i;
         long nulls = 976998797L + 10 * i;

@@ -65,7 +65,7 @@ public class FileMetadataExtractor extends FileBasedExtractor<Schema, GenericRec
         record.put("timeCreated", statuses[0].getAccessTime());
         record.put("length", statuses[0].getLen());
         record.put("modificationTime", statuses[0].getModificationTime());
-        record.put("owner", statuses[0].getOwner().toString());
+        record.put("owner", statuses[0].getOwner());
 
         return ImmutableList.of(record).iterator();
         

@@ -33,8 +33,6 @@ public class Neo4jTagFactory extends TagFactory {
     public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
         Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", GroundType.STRING, id));
         List<String> returnFields = new ArrayList<>();
         returnFields.add("tkey");
         returnFields.add("value");

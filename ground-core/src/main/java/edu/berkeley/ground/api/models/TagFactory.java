@@ -19,7 +19,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public abstract class TagFactory {
     public abstract Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connection, String id) throws GroundException;

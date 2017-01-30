@@ -40,7 +40,7 @@ public class GroundStore extends GroundStoreBase {
     private int txnNestLevel;
 
     public static enum EntityState {
-        ACTIVE, DELETED;
+        ACTIVE, DELETED
     }
 
     public GroundStore() {

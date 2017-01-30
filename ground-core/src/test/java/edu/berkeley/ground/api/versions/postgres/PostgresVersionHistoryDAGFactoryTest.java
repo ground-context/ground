@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import edu.berkeley.ground.api.PostgresTest;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
-import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 import static org.junit.Assert.*;

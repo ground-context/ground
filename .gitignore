@@ -9,6 +9,3 @@ target/
 .project
 *.log
 .DS_Store
-ground-core/bin/
-plugins/hive-plugin/bin/
-plugins/hive-plugin/ground-hive-plugin.iml

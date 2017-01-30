@@ -31,8 +31,6 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeVersion;

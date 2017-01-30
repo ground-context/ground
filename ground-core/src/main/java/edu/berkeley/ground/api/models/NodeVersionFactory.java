@@ -18,7 +18,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public abstract class NodeVersionFactory {
     public abstract NodeVersion create(Map<String, Tag> tags,

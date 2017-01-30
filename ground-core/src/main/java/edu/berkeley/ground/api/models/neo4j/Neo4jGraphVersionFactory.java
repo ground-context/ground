@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Neo4jGraphVersionFactory extends GraphVersionFactory {
@@ -103,7 +102,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
             List<DbDataContainer> predicates = new ArrayList<>();
             predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
-            Record versionRecord = null;
+            Record versionRecord;
             try {
                 versionRecord = connection.getVertex(predicates);
             } catch (EmptyResultException eer) {
@@ -119,7 +118,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
             List<Record> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel("GraphVersionEdge", id, returnFields);
             List<String> edgeVersionIds = new ArrayList<>();
 
-            edgeVersionVertices.stream().forEach(edgeVersionVertex -> edgeVersionIds.add(Neo4jClient.getStringFromValue((StringValue) edgeVersionVertex.get("id"))));
+            edgeVersionVertices.forEach(edgeVersionVertex -> edgeVersionIds.add(Neo4jClient.getStringFromValue((StringValue) edgeVersionVertex.get("id"))));
 
             connection.commit();
             LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

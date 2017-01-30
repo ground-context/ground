@@ -16,7 +16,6 @@ package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
-import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -43,7 +42,7 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
 
         List<DbDataContainer> predicates = new ArrayList<>();
         predicates.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
-        QueryResults resultSet = null;
+        QueryResults resultSet;
         try {
             resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
         } catch (EmptyResultException eer) {

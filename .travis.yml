@@ -5,6 +5,8 @@ services:
   - postgresql
 
 before_script:
+  # set neo4j version
+  - export NEO4J_VERSION=3.0.6
   # create Postgres database
   - createdb test
   - createuser test -d -s

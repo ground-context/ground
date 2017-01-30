@@ -20,7 +20,6 @@ import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersion;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
-import io.dropwizard.jersey.params.NonEmptyStringParam;
 import io.swagger.annotations.Api;
 
 import org.slf4j.Logger;

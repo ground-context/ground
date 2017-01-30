@@ -297,7 +297,7 @@ public class Neo4jClient implements DBClient {
             List<String> result = new ArrayList<>();
             List<Record> records = this.transaction.run(query).list();
 
-            records.stream().forEach(record -> result.add(getStringFromValue((StringValue) record.get("b.id"))));
+            records.forEach(record -> result.add(getStringFromValue((StringValue) record.get("b.id"))));
 
             return result;
         }
@@ -332,7 +332,7 @@ public class Neo4jClient implements DBClient {
             List<String> result = new ArrayList<>();
             List<Record> records = this.transaction.run(query).list();
 
-            records.stream().forEach(record -> {
+            records.forEach(record -> {
                 result.add(record.get("dst.id").asString());
             });
 

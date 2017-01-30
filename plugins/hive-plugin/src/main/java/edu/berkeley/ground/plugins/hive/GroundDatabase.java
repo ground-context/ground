@@ -27,8 +27,6 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.plugins.hive.util.JsonUtil;
 
-import com.google.gson.Gson;
-
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -154,9 +152,8 @@ public class GroundDatabase {
                 LOG.debug("leaves {}", versions.get(0));
                 parent.add(versions.get(0));
             }
-            NodeVersion dbNodeVersion = groundReadWrite.getNodeVersionFactory().create(tags, sv.getId(), reference,
+            return groundReadWrite.getNodeVersionFactory().create(tags, sv.getId(), reference,
                     dbParamMap, dbNode.getId(), parent);
-            return dbNodeVersion;
         } catch (GroundException e) {
             LOG.error("Failure to create a database node: {}", e);
             throw new MetaException(e.getMessage());

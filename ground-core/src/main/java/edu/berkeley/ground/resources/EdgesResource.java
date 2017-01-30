@@ -20,11 +20,9 @@ import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
-import io.dropwizard.jersey.params.NonEmptyStringParam;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

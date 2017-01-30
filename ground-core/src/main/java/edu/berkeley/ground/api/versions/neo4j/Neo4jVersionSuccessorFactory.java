@@ -18,7 +18,6 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.Version;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
-import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
