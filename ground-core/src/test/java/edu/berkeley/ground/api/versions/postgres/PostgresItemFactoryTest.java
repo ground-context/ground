@@ -60,6 +60,8 @@ public class PostgresItemFactoryTest extends PostgresTest {
       if (successor != null) {
         assertEquals(fromId, successor.getFromId());
         assertEquals(toId, successor.getToId());
+
+        return;
       }
 
       fail();

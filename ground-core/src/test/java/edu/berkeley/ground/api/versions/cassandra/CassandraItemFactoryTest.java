@@ -60,6 +60,8 @@ public class CassandraItemFactoryTest extends CassandraTest {
     if (successor != null) {
       assertEquals(fromId, successor.getFromId());
       assertEquals(toId, successor.getToId());
+
+      return;
     }
 
     fail();
