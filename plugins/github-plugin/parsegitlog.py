@@ -31,6 +31,7 @@ import requests
 from kafka import KafkaConsumer
 import configparser
 
+
 # TODO manage the kafka offset for restarts
 # TODO Add a logger
 # TODO fails if a commit has a parent that is not in 'latest' list
@@ -38,12 +39,14 @@ import configparser
 
 
 def get_commits(git_repo, latest_nodes):
-    parents_log = git_repo.log('--all', '--format="%H,%P"')  # log with commit hash and parent hashes
+    parents_log = git_repo.log('--all',
+                               '--format="%H,%P"')  # log with commit hash and parent hashes
     parents_log = parents_log.replace("\"", "").split("\n")
     parents_log = [row.strip().split(",") for row in parents_log]
     parents_log[-1:] = [[parents_log[-1:][0][0], ""]]  # fix for first commit
     parents_log = [[row[0], row[1].split()] for row in parents_log]
-    source_log = git_repo.log('--all', '--source', '--format=oneline')  # log with source branch of commit
+    source_log = git_repo.log('--all', '--source',
+                              '--format=oneline')  # log with source branch of commit
     source_log = source_log.split("\n")
     source_log = [[row.split("\t")[0], row.split("\t")[1].split(" ")[0]] for row in source_log]
 
@@ -71,14 +74,13 @@ def latest_commits(repo_id):
     print('latest commits received from ground.')
     hashes = {}
     for node_id in node_ids:
-        commit_hash = requests.get(node_url+node_id).json()['tags']['commit']['value']
+        commit_hash = requests.get(node_url + node_id).json()['tags']['commit']['value']
         hashes[commit_hash] = node_id
 
     return hashes
 
 
 def post_commits(commits, latest_nodes):
-
     node_ids = latest_nodes
     # i = 0
     for c in reversed(commits):  # start at the first commmit
@@ -110,7 +112,8 @@ def post_commits(commits, latest_nodes):
         headers = {
             'content-type': "application/json"
         }
-        r = requests.post(nodeVUrl, params=params, data=json.dumps(node_version_data), headers=headers)  # send the request
+        r = requests.post(nodeVUrl, params=params, data=json.dumps(node_version_data),
+                          headers=headers)  # send the request
         print('Commit added to ground: ' + c['commitHash'])
         node_ids[c['commitHash']] = r.json()['id']  # map ground's node id with the commit hash
 
@@ -125,7 +128,7 @@ nodeVUrl = url + '/nodes/versions/'
 for msg in consumer:
 
     parsed_msg = json.loads(msg.value.decode("utf-8"))  # convert to json
-    print("Received repo: "+msg.key.decode("utf-8"))  # print key
+    print("Received repo: " + msg.key.decode("utf-8"))  # print key
     gitUrl = parsed_msg['repository']['git_url']
     repoId = msg.key.decode("utf-8")  # key from kakfa
     # repoId = str(parsed_msg['repository']['id'])  # do we want repo id or name?
@@ -142,10 +145,13 @@ for msg in consumer:
         repo = git.Repo(config['Git']['path'] + repoId)
         latests = latest_commits(repoId)
 
+
     class MyProgressPrinter(git.RemoteProgress):
         def update(self, op_code, cur_count, max_count=None, message=''):
-            print(op_code, cur_count, max_count, cur_count / (max_count or 100.0), message or "NO MESSAGE")
+            print(op_code, cur_count, max_count, cur_count / (max_count or 100.0),
+                  message or "NO MESSAGE")
             # end
+
 
     print('fetching commits....')
     for fetch_info in repo.remotes.origin.fetch(progress=MyProgressPrinter()):

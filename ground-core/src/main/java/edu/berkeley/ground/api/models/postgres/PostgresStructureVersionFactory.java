@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,89 +26,90 @@ import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class PostgresStructureVersionFactory extends StructureVersionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureVersionFactory.class);
-    private PostgresClient dbClient;
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureVersionFactory.class);
+  private PostgresClient dbClient;
 
-    private PostgresStructureFactory structureFactory;
-    private PostgresVersionFactory versionFactory;
+  private PostgresStructureFactory structureFactory;
+  private PostgresVersionFactory versionFactory;
 
-    public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory, PostgresVersionFactory versionFactory, PostgresClient dbClient) {
-        this.dbClient = dbClient;
-        this.structureFactory = structureFactory;
-        this.versionFactory = versionFactory;
+  public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory, PostgresVersionFactory versionFactory, PostgresClient dbClient) {
+    this.dbClient = dbClient;
+    this.structureFactory = structureFactory;
+    this.versionFactory = versionFactory;
+  }
+
+  public StructureVersion create(String structureId,
+                                 Map<String, GroundType> attributes,
+                                 List<String> parentIds) throws GroundException {
+
+    PostgresConnection connection = this.dbClient.getConnection();
+    String id = IdGenerator.generateId(structureId);
+
+    this.versionFactory.insertIntoDatabase(connection, id);
+
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+    insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureId));
+
+    connection.insert("StructureVersions", insertions);
+
+    for (String key : attributes.keySet()) {
+      List<DbDataContainer> itemInsertions = new ArrayList<>();
+      itemInsertions.add(new DbDataContainer("svid", GroundType.STRING, id));
+      itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
+      itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
+
+      connection.insert("StructureVersionItems", itemInsertions);
     }
 
-    public StructureVersion create(String structureId,
-                                   Map<String, GroundType> attributes,
-                                   List<String> parentIds) throws GroundException {
+    this.structureFactory.update(connection, structureId, id, parentIds);
 
-        PostgresConnection connection = this.dbClient.getConnection();
-        String id = IdGenerator.generateId(structureId);
+    connection.commit();
+    LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
-        this.versionFactory.insertIntoDatabase(connection, id);
+    return StructureVersionFactory.construct(id, structureId, attributes);
+  }
 
-        List<DbDataContainer> insertions = new ArrayList<>();
-        insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-        insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureId));
+  public StructureVersion retrieveFromDatabase(String id) throws GroundException {
+    PostgresConnection connection = this.dbClient.getConnection();
 
-        connection.insert("StructureVersions", insertions);
-
-        for (String key : attributes.keySet()) {
-            List<DbDataContainer> itemInsertions = new ArrayList<>();
-            itemInsertions.add(new DbDataContainer("svid", GroundType.STRING, id));
-            itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-            itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
-
-            connection.insert("StructureVersionItems", itemInsertions);
-        }
-
-        this.structureFactory.update(connection, structureId, id, parentIds);
-
-        connection.commit();
-        LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-
-        return StructureVersionFactory.construct(id, structureId, attributes);
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    QueryResults resultSet;
+    try {
+      resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException eer) {
+      throw new GroundException("No StructureVersion found with id " + id + ".");
     }
 
-    public StructureVersion retrieveFromDatabase(String id) throws GroundException {
-        PostgresConnection connection = this.dbClient.getConnection();
+    List<DbDataContainer> attributePredicates = new ArrayList<>();
+    attributePredicates.add(new DbDataContainer("svid", GroundType.STRING, id));
 
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("id", GroundType.STRING, id));
-        QueryResults resultSet;
-        try {
-            resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
-        } catch (EmptyResultException eer) {
-            throw new GroundException("No StructureVersion found with id " + id + ".");
-        }
-
-        List<DbDataContainer> attributePredicates = new ArrayList<>();
-        attributePredicates.add(new DbDataContainer("svid", GroundType.STRING, id));
-
-        QueryResults attributesSet;
-        try {
-            attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
-        } catch (EmptyResultException eer) {
-            throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
-        }
-
-        Map<String, GroundType> attributes = new HashMap<>();
-
-        do {
-            attributes.put(attributesSet.getString(2), GroundType.fromString(attributesSet.getString(3)));
-        } while (attributesSet.next());
-
-        String structureId = resultSet.getString(2);
-
-        connection.commit();
-        LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-
-        return StructureVersionFactory.construct(id, structureId, attributes);
+    QueryResults attributesSet;
+    try {
+      attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+    } catch (EmptyResultException eer) {
+      throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
     }
+
+    Map<String, GroundType> attributes = new HashMap<>();
+
+    do {
+      attributes.put(attributesSet.getString(2), GroundType.fromString(attributesSet.getString(3)));
+    } while (attributesSet.next());
+
+    String structureId = resultSet.getString(2);
+
+    connection.commit();
+    LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
+
+    return StructureVersionFactory.construct(id, structureId, attributes);
+  }
 }

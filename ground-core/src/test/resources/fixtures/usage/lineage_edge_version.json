@@ -1,22 +1,18 @@
 {
-    "id": "abcd",
-    "tags": {
-        "testtag": {
-            "versionId": "abcd",
-            "key": "testtag",
-            "value": "tag",
-            "type": "string"
-        }
-    },
-    
-    "reference": "http://www.google.com",
-    "referenceParameters": {
-        "http": "GET"
-    }, 
-
-    "lineageEdgeId": "LineageEdges.test",
-
-    "fromId": "123",
-
-    "toId": "456"
+  "id": "abcd",
+  "tags": {
+    "testtag": {
+      "versionId": "abcd",
+      "key": "testtag",
+      "value": "tag",
+      "type": "string"
+    }
+  },
+  "reference": "http://www.google.com",
+  "referenceParameters": {
+    "http": "GET"
+  },
+  "lineageEdgeId": "LineageEdges.test",
+  "fromId": "123",
+  "toId": "456"
 }

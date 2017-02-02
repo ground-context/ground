@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,48 +30,48 @@ import org.neo4j.driver.v1.Record;
 import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
-    public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
-        Neo4jConnection connection = (Neo4jConnection) connectionPointer;
+  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+    Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
-        List<String> returnFields = new ArrayList<>();
-        returnFields.add("tkey");
-        returnFields.add("value");
-        returnFields.add("type");
+    List<String> returnFields = new ArrayList<>();
+    returnFields.add("tkey");
+    returnFields.add("value");
+    returnFields.add("type");
 
-        List<Record> tagsRecords = connection.getAdjacentVerticesByEdgeLabel("TagConnection", id, returnFields);
+    List<Record> tagsRecords = connection.getAdjacentVerticesByEdgeLabel("TagConnection", id, returnFields);
 
-        Map<String, Tag> tags = new HashMap<>();
+    Map<String, Tag> tags = new HashMap<>();
 
-        for (Record record : tagsRecords) {
-            String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
+    for (Record record : tagsRecords) {
+      String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
 
-            Object value;
-            if (record.containsKey("value") && !(record.get("value") instanceof NullValue)) {
-                value = Neo4jClient.getStringFromValue((StringValue) record.get("value"));
-            } else {
-                value = null;
-            }
+      Object value;
+      if (record.containsKey("value") && !(record.get("value") instanceof NullValue)) {
+        value = Neo4jClient.getStringFromValue((StringValue) record.get("value"));
+      } else {
+        value = null;
+      }
 
-            GroundType type;
-            if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
-                type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
-                value = GroundType.stringToType((String) value, type);
-            } else {
-                type = null;
-            }
+      GroundType type;
+      if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
+        type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+        value = GroundType.stringToType((String) value, type);
+      } else {
+        type = null;
+      }
 
-            tags.put(key, new Tag(id, key, value, type));
-        }
-
-        return tags;
+      tags.put(key, new Tag(id, key, value, type));
     }
 
-    public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
-        Neo4jConnection connection = (Neo4jConnection) connectionPointer;
+    return tags;
+  }
 
-        List<DbDataContainer> predicates = new ArrayList<>();
-        predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
+  public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+    Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
-        return connection.getVerticesByAttributes(predicates);
-    }
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
+
+    return connection.getVerticesByAttributes(predicates);
+  }
 }

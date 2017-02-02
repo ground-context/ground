@@ -22,40 +22,42 @@ public class Neo4jTest {
      * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
      * Versions. */
 
-    protected Neo4jClient neo4jClient;
-    protected Neo4jFactories factories;
-    protected Neo4jVersionSuccessorFactory versionSuccessorFactory;
-    protected Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
-    protected Neo4jItemFactory itemFactory;
-    protected Neo4jTagFactory tagFactory;
-    protected Neo4jRichVersionFactory richVersionFactory;
+  protected Neo4jClient neo4jClient;
+  protected Neo4jFactories factories;
+  protected Neo4jVersionSuccessorFactory versionSuccessorFactory;
+  protected Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
+  protected Neo4jItemFactory itemFactory;
+  protected Neo4jTagFactory tagFactory;
+  protected Neo4jRichVersionFactory richVersionFactory;
 
-    public Neo4jTest() {
-        this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
-        this.factories = new Neo4jFactories(neo4jClient);
-        this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory();
-        this.versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(this.versionSuccessorFactory);
-        this.itemFactory = new Neo4jItemFactory(this.versionHistoryDAGFactory);
-        this.tagFactory = new Neo4jTagFactory();
-        this.richVersionFactory = new Neo4jRichVersionFactory((Neo4jStructureVersionFactory)
-            this.factories.getStructureVersionFactory(), this.tagFactory);
-    }
+  public Neo4jTest() {
+    this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
+    this.factories = new Neo4jFactories(neo4jClient);
+    this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory();
+    this.versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(this.versionSuccessorFactory);
+    this.itemFactory = new Neo4jItemFactory(this.versionHistoryDAGFactory);
+    this.tagFactory = new Neo4jTagFactory();
+    this.richVersionFactory = new Neo4jRichVersionFactory((Neo4jStructureVersionFactory)
+        this.factories.getStructureVersionFactory(), this.tagFactory);
+  }
 
-    @Before
-    public void setup() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("neo4j-shell -file delete_data.cypher", null, new File("scripts/neo4j/"));
-        p.waitFor();
-    }
+  @Before
+  public void setup() throws IOException, InterruptedException {
+    Process p = Runtime.getRuntime().exec("neo4j-shell -file delete_data.cypher", null, new File("scripts/neo4j/"));
+    p.waitFor();
 
-    /**
-     * Because we don't have simple versions, we're masking the creation of RichVersions by creating
-     * empty NodeVersions. This is a bad hack that requires us creating a Node for each NodeVersion,
-     * but tests right now are small. Eventually, if we mock a database, we can avoid this.
-     *
-     * @return A new, random NodeVersion's id.
-     */
-    protected String createNodeVersion(String nodeId) throws GroundException {
-        return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
-                new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    }
+    p.destroy();
+  }
+
+  /**
+   * Because we don't have simple versions, we're masking the creation of RichVersions by creating
+   * empty NodeVersions. This is a bad hack that requires us creating a Node for each NodeVersion,
+   * but tests right now are small. Eventually, if we mock a database, we can avoid this.
+   *
+   * @return A new, random NodeVersion's id.
+   */
+  protected String createNodeVersion(String nodeId) throws GroundException {
+    return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
+        new HashMap<>(), nodeId, new ArrayList<>()).getId();
+  }
 }

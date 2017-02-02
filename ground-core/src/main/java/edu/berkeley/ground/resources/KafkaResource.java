@@ -18,6 +18,7 @@ import com.codahale.metrics.annotation.Timed;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import io.swagger.annotations.*;
 
 import javax.ws.rs.POST;
@@ -38,24 +39,24 @@ import edu.berkeley.ground.util.KafkaProduce;
 public class KafkaResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaResource.class);
 
-    private String kafkaHost;
-    private String kafkaPort;
+  private String kafkaHost;
+  private String kafkaPort;
 
-    public KafkaResource(String kafkaHost, String kafkaPort) {
-        this.kafkaHost = kafkaHost;
-        this.kafkaPort = kafkaPort;
+  public KafkaResource(String kafkaHost, String kafkaPort) {
+    this.kafkaHost = kafkaHost;
+    this.kafkaPort = kafkaPort;
   }
 
   @POST
   @Timed
   @ApiOperation(value = "Send kafka message")
-  @ApiResponses(value = { @ApiResponse(code = 405, message = "Invalid input") })
+  @ApiResponses(value = {@ApiResponse(code = 405, message = "Invalid input")})
   @Path("/")
   public String sendKafkaMessage(@Valid String value, @ApiParam(value = "Topic to push to",
-          required = true) @QueryParam("topic") String topic, @ApiParam(value = "Key of message",
-          required = true) @QueryParam("key") String key) throws GroundException {
-      LOGGER.info("Receiving kafka publish");
-      KafkaProduce.push(kafkaHost, kafkaPort, topic, key, value);
-  return value;
+      required = true) @QueryParam("topic") String topic, @ApiParam(value = "Key of message",
+      required = true) @QueryParam("key") String key) throws GroundException {
+    LOGGER.info("Receiving kafka publish");
+    KafkaProduce.push(kafkaHost, kafkaPort, topic, key, value);
+    return value;
   }
 }

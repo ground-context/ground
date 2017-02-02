@@ -24,27 +24,26 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class KafkaProduce {
-    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaProduce.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KafkaProduce.class);
 
-    public static void push(String kafkaHost, String kafkaPort, String topic, String key, String value){
-        LOGGER.info("Sending kafka message...");
-        LOGGER.info("Key: "+key);
-        LOGGER.info("Topic: "+topic);
-        byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
+  public static void push(String kafkaHost, String kafkaPort, String topic, String key, String value) {
+    LOGGER.info("Sending kafka message...");
+    LOGGER.info("Key: " + key);
+    LOGGER.info("Topic: " + topic);
+    byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
 
-        Properties props = new Properties();
-        props.put("bootstrap.servers", kafkaHost+":"+kafkaPort);
-        props.put("acks", "all");
-        props.put("retries", 0);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+    Properties props = new Properties();
+    props.put("bootstrap.servers", kafkaHost + ":" + kafkaPort);
+    props.put("acks", "all");
+    props.put("retries", 0);
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 
-        Producer<String, byte[]> producer = new KafkaProducer<>(props);
-        producer.send(new ProducerRecord<>(topic, key, valueBytes));
+    Producer<String, byte[]> producer = new KafkaProducer<>(props);
+    producer.send(new ProducerRecord<>(topic, key, valueBytes));
 
-        producer.close();
-    }
-
+    producer.close();
+  }
 
 
 }

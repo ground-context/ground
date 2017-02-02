@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,18 +20,16 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.List;
 
 public abstract class ItemFactory {
-    public abstract void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException;
+  public abstract void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException;
 
-    /**
-     * Add a new Version to this Item. The provided parentIds will be the parents of this particular
-     * version. What's provided in the default case varies based on which database we are writing
-     * into.
-     *
-     * @param connection
-     * @param itemId the id of the Item we're updating
-     * @param childId the new version's id
-     * @param parentIds the ids of the parents of the child
-     * @throws GroundException
-     */
-    public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
+  /**
+   * Add a new Version to this Item. The provided parentIds will be the parents of this particular
+   * version. What's provided in the default case varies based on which database we are writing
+   * into.
+   *
+   * @param itemId    the id of the Item we're updating
+   * @param childId   the new version's id
+   * @param parentIds the ids of the parents of the child
+   */
+  public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
 }

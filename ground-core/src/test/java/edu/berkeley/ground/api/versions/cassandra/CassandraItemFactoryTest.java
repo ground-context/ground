@@ -10,190 +10,195 @@ import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.exceptions.GroundException;
+
 import static org.junit.Assert.*;
 
 public class CassandraItemFactoryTest extends CassandraTest {
     /* Note that there is no creation test here because there's no need to ever explicitly
     * retrieve an Item. */
 
-    public CassandraItemFactoryTest() throws GroundException {
-        super();
+  public CassandraItemFactoryTest() throws GroundException {
+    super();
+  }
+
+  @Test
+  public void testCorrectUpdateWithParent() throws GroundException {
+    String testId = "Nodes.test";
+    CassandraConnection connection = super.cassandraClient.getConnection();
+
+    super.itemFactory.insertIntoDatabase(connection, testId);
+
+    String fromId = "testFromId";
+    String toId = "testToId";
+
+    super.versionFactory.insertIntoDatabase(connection, fromId);
+    super.versionFactory.insertIntoDatabase(connection, toId);
+
+    List<String> parentIds = new ArrayList<>();
+    parentIds.add("EMPTY");
+    super.itemFactory.update(connection, testId, fromId, new ArrayList<>());
+
+    parentIds.clear();
+    parentIds.add(fromId);
+    super.itemFactory.update(connection, testId, toId, parentIds);
+
+    VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+        testId);
+
+    assertEquals(2, dag.getEdgeIds().size());
+    assertEquals(toId, dag.getLeaves().get(0));
+
+    VersionSuccessor<?> successor = null;
+    for (String id : dag.getEdgeIds()) {
+      successor = super.versionSuccessorFactory.retrieveFromDatabase(connection, id);
+
+      if (!successor.getFromId().equals("EMPTY")) {
+        break;
+      }
     }
 
-    @Test
-    public void testCorrectUpdateWithParent() throws GroundException {
-        String testId = "Nodes.test";
-        CassandraConnection connection = super.cassandraClient.getConnection();
-
-        super.itemFactory.insertIntoDatabase(connection, testId);
-
-        String fromId = "testFromId";
-        String toId = "testToId";
-
-        super.versionFactory.insertIntoDatabase(connection, fromId);
-        super.versionFactory.insertIntoDatabase(connection, toId);
-
-        List<String> parentIds = new ArrayList<>();
-        parentIds.add("EMPTY");
-        super.itemFactory.update(connection, testId, fromId, new ArrayList<>());
-
-        parentIds.clear();
-        parentIds.add(fromId);
-        super.itemFactory.update(connection, testId, toId, parentIds);
-
-        VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-                testId);
-
-        assertEquals(2, dag.getEdgeIds().size());
-        assertEquals(toId, dag.getLeaves().get(0));
-
-        VersionSuccessor<?> successor = null;
-        for (String id : dag.getEdgeIds()) {
-            successor = super.versionSuccessorFactory.retrieveFromDatabase(connection, id);
-
-            if (!successor.getFromId().equals("EMPTY")) {
-                break;
-            }
-        }
-
-        assertEquals(fromId , successor.getFromId());
-        assertEquals(toId, successor.getToId());
+    if (successor != null) {
+      assertEquals(fromId, successor.getFromId());
+      assertEquals(toId, successor.getToId());
     }
 
-    @Test
-    public void testCorrectUpdateWithoutParent() throws GroundException {
-        String testId = "Nodes.test";
-        CassandraConnection connection = super.cassandraClient.getConnection();
+    fail();
+  }
 
-        super.itemFactory.insertIntoDatabase(connection, testId);
-        String toId = "testToId";
-        super.versionFactory.insertIntoDatabase(connection, toId);
+  @Test
+  public void testCorrectUpdateWithoutParent() throws GroundException {
+    String testId = "Nodes.test";
+    CassandraConnection connection = super.cassandraClient.getConnection();
 
-        List<String> parentIds = new ArrayList<>();
+    super.itemFactory.insertIntoDatabase(connection, testId);
+    String toId = "testToId";
+    super.versionFactory.insertIntoDatabase(connection, toId);
 
-        // No parent is specified, and there is no other version in this Item, we should
-        // automatically make this a child of EMPTY
-        super.itemFactory.update(connection, testId, toId, parentIds);
+    List<String> parentIds = new ArrayList<>();
 
-        VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-                testId);
+    // No parent is specified, and there is no other version in this Item, we should
+    // automatically make this a child of EMPTY
+    super.itemFactory.update(connection, testId, toId, parentIds);
 
-        assertEquals(1, dag.getEdgeIds().size());
-        assertEquals(toId, dag.getLeaves().get(0));
+    VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+        testId);
 
-        VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
-                connection, dag.getEdgeIds().get(0));
+    assertEquals(1, dag.getEdgeIds().size());
+    assertEquals(toId, dag.getLeaves().get(0));
 
-        assertEquals("EMPTY" , successor.getFromId());
-        assertEquals(toId, successor.getToId());
+    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+        connection, dag.getEdgeIds().get(0));
+
+    assertEquals("EMPTY", successor.getFromId());
+    assertEquals(toId, successor.getToId());
+  }
+
+  @Test
+  public void testCorrectUpdateWithLinearHistory() throws GroundException {
+    String testId = "Nodes.test";
+    CassandraConnection connection = super.cassandraClient.getConnection();
+
+    super.itemFactory.insertIntoDatabase(connection, testId);
+
+    String fromId = "testFromId";
+    String toId = "testToId";
+
+    super.versionFactory.insertIntoDatabase(connection, fromId);
+    super.versionFactory.insertIntoDatabase(connection, toId);
+    List<String> parentIds = new ArrayList<>();
+
+    // first, make from a child of EMPTY
+    super.itemFactory.update(connection, testId, fromId, parentIds);
+
+
+    // then, add to as a child and make sure that it becomes a child of from
+    parentIds = new ArrayList<>();
+    parentIds.add(fromId);
+    super.itemFactory.update(connection, testId, toId, parentIds);
+
+    VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+        testId);
+
+    assertEquals(2, dag.getEdgeIds().size());
+    assertEquals(toId, dag.getLeaves().get(0));
+
+    VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+        connection, dag.getEdgeIds().get(0));
+
+    VersionSuccessor<?> fromSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+        connection, dag.getEdgeIds().get(1));
+
+    if (!fromSuccessor.getFromId().equals("EMPTY")) {
+      VersionSuccessor<?> tmp = fromSuccessor;
+      fromSuccessor = toSuccessor;
+      toSuccessor = tmp;
     }
 
-    @Test
-    public void testCorrectUpdateWithLinearHistory() throws GroundException {
-        String testId = "Nodes.test";
-        CassandraConnection connection = super.cassandraClient.getConnection();
+    assertEquals("EMPTY", fromSuccessor.getFromId());
+    assertEquals(fromId, fromSuccessor.getToId());
 
-        super.itemFactory.insertIntoDatabase(connection, testId);
+    assertEquals(fromId, toSuccessor.getFromId());
+    assertEquals(toId, toSuccessor.getToId());
+  }
 
-        String fromId = "testFromId";
-        String toId = "testToId";
+  @Test(expected = GroundException.class)
+  public void testIncorrectUpdate() throws GroundException {
+    String testId = "Nodes.test";
+    String fromId = "testFromId";
+    String toId = "testToId";
+    CassandraConnection connection = null;
 
-        super.versionFactory.insertIntoDatabase(connection, fromId);
-        super.versionFactory.insertIntoDatabase(connection, toId);
-        List<String> parentIds = new ArrayList<>();
+    try {
+      connection = super.cassandraClient.getConnection();
 
-        // first, make from a child of EMPTY
-        super.itemFactory.update(connection, testId, fromId, parentIds);
+      super.itemFactory.insertIntoDatabase(connection, testId);
 
+      super.versionFactory.insertIntoDatabase(connection, toId);
 
-        // then, add to as a child and make sure that it becomes a child of from
-        parentIds = new ArrayList<>();
-        parentIds.add(fromId);
-        super.itemFactory.update(connection, testId, toId, parentIds);
-
-        VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-                testId);
-
-        assertEquals(2, dag.getEdgeIds().size());
-        assertEquals(toId, dag.getLeaves().get(0));
-
-        VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
-                connection, dag.getEdgeIds().get(0));
-
-        VersionSuccessor<?> fromSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
-                connection, dag.getEdgeIds().get(1));
-
-        if (!fromSuccessor.getFromId().equals("EMPTY")) {
-            VersionSuccessor<?> tmp = fromSuccessor;
-            fromSuccessor = toSuccessor;
-            toSuccessor = tmp;
-        }
-
-        assertEquals("EMPTY" , fromSuccessor.getFromId());
-        assertEquals(fromId, fromSuccessor.getToId());
-
-        assertEquals(fromId, toSuccessor.getFromId());
-        assertEquals(toId, toSuccessor.getToId());
+    } catch (GroundException ge) {
+      fail(ge.getMessage());
     }
 
-    @Test(expected = GroundException.class)
-    public void testIncorrectUpdate() throws GroundException {
-        String testId = "Nodes.test";
-        String fromId = "testFromId";
-        String toId = "testToId";
-        CassandraConnection connection = null;
+    List<String> parentIds = new ArrayList<>();
+    parentIds.add(fromId);
 
-        try {
-            connection = super.cassandraClient.getConnection();
+    // this should fail because fromId is not a valid version
+    super.itemFactory.update(connection, testId, toId, parentIds);
+  }
 
-            super.itemFactory.insertIntoDatabase(connection, testId);
+  @Test
+  public void testMultipleParents() throws GroundException {
+    String testId = "Nodes.test";
+    CassandraConnection connection = super.cassandraClient.getConnection();
 
-            super.versionFactory.insertIntoDatabase(connection, toId);
+    super.itemFactory.insertIntoDatabase(connection, testId);
 
-        } catch (GroundException ge) {
-            fail(ge.getMessage());
-        }
+    String parentOne = "parentOneId";
+    String parentTwo = "parentTwoId";
+    String child = "childId";
 
-        List<String> parentIds = new ArrayList<>();
-        parentIds.add(fromId);
+    super.versionFactory.insertIntoDatabase(connection, parentOne);
+    super.versionFactory.insertIntoDatabase(connection, parentTwo);
+    super.versionFactory.insertIntoDatabase(connection, child);
+    List<String> parentIds = new ArrayList<>();
 
-        // this should fail because fromId is not a valid version
-        super.itemFactory.update(connection, testId, toId, parentIds);
-    }
+    // first, make the parents children of EMPTY
+    super.itemFactory.update(connection, testId, parentOne, parentIds);
+    super.itemFactory.update(connection, testId, parentTwo, parentIds);
 
-    @Test
-    public void testMultipleParents() throws GroundException {
-        String testId = "Nodes.test";
-        CassandraConnection connection = super.cassandraClient.getConnection();
+    // then, add to as a child and make sure that it becomes a child of from
+    parentIds = new ArrayList<>();
+    parentIds.add(parentOne);
+    parentIds.add(parentTwo);
+    super.itemFactory.update(connection, testId, child, parentIds);
 
-        super.itemFactory.insertIntoDatabase(connection, testId);
+    VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+        testId);
 
-        String parentOne = "parentOneId";
-        String parentTwo = "parentTwoId";
-        String child = "childId";
+    assertEquals(4, dag.getEdgeIds().size());
+    assertEquals(1, dag.getLeaves().size());
+    assertEquals(child, dag.getLeaves().get(0));
 
-        super.versionFactory.insertIntoDatabase(connection, parentOne);
-        super.versionFactory.insertIntoDatabase(connection, parentTwo);
-        super.versionFactory.insertIntoDatabase(connection, child);
-        List<String> parentIds = new ArrayList<>();
-
-        // first, make the parents children of EMPTY
-        super.itemFactory.update(connection, testId, parentOne, parentIds);
-        super.itemFactory.update(connection, testId, parentTwo, parentIds);
-
-        // then, add to as a child and make sure that it becomes a child of from
-        parentIds = new ArrayList<>();
-        parentIds.add(parentOne);
-        parentIds.add(parentTwo);
-        super.itemFactory.update(connection, testId, child, parentIds);
-
-        VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-                testId);
-
-        assertEquals(4, dag.getEdgeIds().size());
-        assertEquals(1, dag.getLeaves().size());
-        assertEquals(child, dag.getLeaves().get(0));
-
-        // No need to check the version successors because we have tests for those.
-    }
+    // No need to check the version successors because we have tests for those.
+  }
 }

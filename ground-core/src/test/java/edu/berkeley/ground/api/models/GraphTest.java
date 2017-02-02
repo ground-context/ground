@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,26 +15,28 @@
 package edu.berkeley.ground.api.models;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.dropwizard.jackson.Jackson;
+
 import org.junit.Test;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphTest {
-    private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
+  private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
 
-    @Test
-    public void serializesToJSON() throws Exception {
-        Graph graph = new Graph("Graphs.test", "test");
-        String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class));
+  @Test
+  public void serializesToJSON() throws Exception {
+    Graph graph = new Graph("Graphs.test", "test");
+    String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class));
 
-        assertThat(MAPPER.writeValueAsString(graph)).isEqualTo(expected);
-    }
+    assertThat(MAPPER.writeValueAsString(graph)).isEqualTo(expected);
+  }
 
-    @Test
-    public void deserializesFromJSON() throws Exception {
-        Graph graph = new Graph("Graphs.test", "test");
-        assertThat(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class)).isEqualToComparingFieldByField(graph);
-    }
+  @Test
+  public void deserializesFromJSON() throws Exception {
+    Graph graph = new Graph("Graphs.test", "test");
+    assertThat(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class)).isEqualToComparingFieldByField(graph);
+  }
 }

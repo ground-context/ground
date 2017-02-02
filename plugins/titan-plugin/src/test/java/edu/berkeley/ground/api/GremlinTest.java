@@ -22,43 +22,43 @@ public class GremlinTest {
      * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
      * Versions. */
 
-    protected GremlinClient gremlinClient;
-    protected GremlinFactories factories;
-    protected GremlinVersionSuccessorFactory versionSuccessorFactory;
-    protected GremlinVersionHistoryDAGFactory versionHistoryDAGFactory;
-    protected GremlinItemFactory itemFactory;
-    protected GremlinTagFactory tagFactory;
-    protected GremlinRichVersionFactory richVersionFactory;
+  protected GremlinClient gremlinClient;
+  protected GremlinFactories factories;
+  protected GremlinVersionSuccessorFactory versionSuccessorFactory;
+  protected GremlinVersionHistoryDAGFactory versionHistoryDAGFactory;
+  protected GremlinItemFactory itemFactory;
+  protected GremlinTagFactory tagFactory;
+  protected GremlinRichVersionFactory richVersionFactory;
 
-    public GremlinTest() throws GroundException {
-        this.gremlinClient = new GremlinClient();
-        this.factories = new GremlinFactories(this.gremlinClient);
+  public GremlinTest() throws GroundException {
+    this.gremlinClient = new GremlinClient();
+    this.factories = new GremlinFactories(this.gremlinClient);
 
-        this.versionSuccessorFactory = new GremlinVersionSuccessorFactory();
-        this.versionHistoryDAGFactory = new GremlinVersionHistoryDAGFactory(this.versionSuccessorFactory);
-        this.itemFactory = new GremlinItemFactory(this.versionHistoryDAGFactory);
-        this.tagFactory = new GremlinTagFactory();
-        this.richVersionFactory = new GremlinRichVersionFactory(
-                (GremlinStructureVersionFactory) factories.getStructureVersionFactory(), this.tagFactory);
-    }
+    this.versionSuccessorFactory = new GremlinVersionSuccessorFactory();
+    this.versionHistoryDAGFactory = new GremlinVersionHistoryDAGFactory(this.versionSuccessorFactory);
+    this.itemFactory = new GremlinItemFactory(this.versionHistoryDAGFactory);
+    this.tagFactory = new GremlinTagFactory();
+    this.richVersionFactory = new GremlinRichVersionFactory(
+        (GremlinStructureVersionFactory) factories.getStructureVersionFactory(), this.tagFactory);
+  }
 
-    @Before
-    public void setup() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec(System.getenv("TITAN_HOME") + "/bin/gremlin.sh -e delete_gremlin.groovy",
-                null, new File("scripts/gremlin/"));
+  @Before
+  public void setup() throws IOException, InterruptedException {
+    Process p = Runtime.getRuntime().exec(System.getenv("TITAN_HOME") + "/bin/gremlin.sh -e delete_gremlin.groovy",
+        null, new File("scripts/gremlin/"));
 
-        p.waitFor();
-    }
+    p.waitFor();
+  }
 
 
-    /**
-     * Because we don't have simple versions, we're masking the creation of RichVersions with
-     * NodeVersions. This is bad hack and should be removed once we can mock databases.
-     *
-     * @return A new, random NodeVersion's id.
-     */
-    protected String createNodeVersion(String nodeId) throws GroundException {
-        return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
-                new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    }
+  /**
+   * Because we don't have simple versions, we're masking the creation of RichVersions with
+   * NodeVersions. This is bad hack and should be removed once we can mock databases.
+   *
+   * @return A new, random NodeVersion's id.
+   */
+  protected String createNodeVersion(String nodeId) throws GroundException {
+    return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
+        new HashMap<>(), nodeId, new ArrayList<>()).getId();
+  }
 }

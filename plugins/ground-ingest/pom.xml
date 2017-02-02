@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ground-ingest-plugin</artifactId>
     <name>Ground Ingest Plugin</name>
     <url>http://www.ground-metadata.org</url>
-    
+
     <properties>
         <gobblin.version>0.8.0</gobblin.version>
     </properties>
-    
+
     <parent>
         <groupId>edu.berkeley</groupId>
         <artifactId>ground</artifactId>
@@ -19,7 +20,7 @@
     </parent>
 
     <repositories>
-        
+
         <!-- the Maven Central Repository -->
         <repository>
             <id>central</id>
@@ -49,7 +50,7 @@
 
     <dependencyManagement>
         <dependencies>
-           <dependency>
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>19.0</version>
@@ -75,20 +76,20 @@
             <version>${dropwizard.version}</version>
             <scope>test</scope>
         </dependency>
-       
+
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
             <scope>runtime</scope>
             <version>2.23.1</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-moxy</artifactId>
             <version>2.23.1</version>
         </dependency>
-        
+
         <dependency>
             <groupId>com.linkedin.gobblin</groupId>
             <artifactId>gobblin-metastore</artifactId>
@@ -308,14 +309,14 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
         <dependency>
             <groupId>edu.berkeley</groupId>
             <artifactId>ground-core</artifactId>
             <version>${ground.version}</version>
         </dependency>
-        
-       
+
+
         <dependency>
             <groupId>com.linkedin.gobblin</groupId>
             <artifactId>gobblin-api</artifactId>
@@ -357,7 +358,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
         <dependency>
             <groupId>com.linkedin.gobblin</groupId>
             <artifactId>gobblin-metrics</artifactId>
@@ -400,7 +401,7 @@
             </exclusions>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>

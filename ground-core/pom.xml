@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ground-core</artifactId>
@@ -151,8 +152,8 @@
 
                 <!-- Exclude titan-hadoop that breaks Gobblin due to scala 2.10 -->
                 <exclusion>
-                  <groupId>com.thinkaurelius.titan</groupId>
-                  <artifactId>titan-hadoop</artifactId>
+                    <groupId>com.thinkaurelius.titan</groupId>
+                    <artifactId>titan-hadoop</artifactId>
                 </exclusion>
 
             </exclusions>
@@ -229,9 +230,9 @@
                         <configuration>
                             <transformers>
                                 <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>edu.berkeley.ground.GroundServer</mainClass>
                                 </transformer>
                             </transformers>
@@ -260,7 +261,9 @@
                 <configuration>
                     <imageName>groundcontext/ground</imageName>
                     <baseImage>openjdk:alpine</baseImage>
-                    <entryPoint>["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/${project.build.finalName}.jar", "server", "config.yml"]</entryPoint>
+                    <entryPoint>["java", "-Djava.security.egd=file:/dev/./urandom", "-jar",
+                        "/${project.build.finalName}.jar", "server", "config.yml"]
+                    </entryPoint>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>

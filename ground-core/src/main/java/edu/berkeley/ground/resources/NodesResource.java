@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
 package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
+
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.models.NodeVersion;
@@ -36,76 +37,76 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class NodesResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NodesResource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NodesResource.class);
 
-    private NodeFactory nodeFactory;
-    private NodeVersionFactory nodeVersionFactory;
+  private NodeFactory nodeFactory;
+  private NodeVersionFactory nodeVersionFactory;
 
-    public NodesResource(NodeFactory nodeFactory, NodeVersionFactory nodeVersionFactory) {
-        this.nodeFactory = nodeFactory;
-        this.nodeVersionFactory = nodeVersionFactory;
-    }
+  public NodesResource(NodeFactory nodeFactory, NodeVersionFactory nodeVersionFactory) {
+    this.nodeFactory = nodeFactory;
+    this.nodeVersionFactory = nodeVersionFactory;
+  }
 
-    @GET
-    @Timed
-    @Path("/{name}")
-    public Node getNode(@PathParam("name") String name) throws GroundException {
-        LOGGER.info("Retrieving node " + name + ".");
-        return this.nodeFactory.retrieveFromDatabase(name);
-    }
+  @GET
+  @Timed
+  @Path("/{name}")
+  public Node getNode(@PathParam("name") String name) throws GroundException {
+    LOGGER.info("Retrieving node " + name + ".");
+    return this.nodeFactory.retrieveFromDatabase(name);
+  }
 
-    @GET
-    @Timed
-    @Path("/versions/{id}")
-    public NodeVersion getNodeVersion(@PathParam("id") String id) throws GroundException {
-        LOGGER.info("Retrieving node version " + id + ".");
-        return this.nodeVersionFactory.retrieveFromDatabase(id);
-    }
+  @GET
+  @Timed
+  @Path("/versions/{id}")
+  public NodeVersion getNodeVersion(@PathParam("id") String id) throws GroundException {
+    LOGGER.info("Retrieving node version " + id + ".");
+    return this.nodeVersionFactory.retrieveFromDatabase(id);
+  }
 
-    @POST
-    @Timed
-    @Path("/{name}")
-    public Node createNode(@PathParam("name") String name) throws GroundException {
-        LOGGER.info("Creating node " + name + ".");
-        return this.nodeFactory.create(name);
-    }
+  @POST
+  @Timed
+  @Path("/{name}")
+  public Node createNode(@PathParam("name") String name) throws GroundException {
+    LOGGER.info("Creating node " + name + ".");
+    return this.nodeFactory.create(name);
+  }
 
-    @POST
-    @Timed
-    @Path("/versions")
-    public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parents") List<String> parentIds) throws GroundException {
-        LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
-        return this.nodeVersionFactory.create(nodeVersion.getTags(),
-                                              nodeVersion.getStructureVersionId(),
-                                              nodeVersion.getReference(),
-                                              nodeVersion.getParameters(),
-                                              nodeVersion.getNodeId(),
-                                              parentIds);
-    }
+  @POST
+  @Timed
+  @Path("/versions")
+  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parents") List<String> parentIds) throws GroundException {
+    LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
+    return this.nodeVersionFactory.create(nodeVersion.getTags(),
+        nodeVersion.getStructureVersionId(),
+        nodeVersion.getReference(),
+        nodeVersion.getParameters(),
+        nodeVersion.getNodeId(),
+        parentIds);
+  }
 
-    @GET
-    @Timed
-    @Path("/{name}/latest")
-    public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
-        LOGGER.info("Retrieving the latest version of node " + name + ".");
-        return this.nodeFactory.getLeaves(name);
-    }
+  @GET
+  @Timed
+  @Path("/{name}/latest")
+  public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
+    LOGGER.info("Retrieving the latest version of node " + name + ".");
+    return this.nodeFactory.getLeaves(name);
+  }
 
-    @GET
-    @Timed
-    @Path("/closure/{id}")
-    public List<String> transitiveClosure(@PathParam("id") String nodeVersionId) throws GroundException {
-        LOGGER.info("Running transitive closure on node version  " + nodeVersionId + ".");
+  @GET
+  @Timed
+  @Path("/closure/{id}")
+  public List<String> transitiveClosure(@PathParam("id") String nodeVersionId) throws GroundException {
+    LOGGER.info("Running transitive closure on node version  " + nodeVersionId + ".");
 
-        return this.nodeVersionFactory.getTransitiveClosure(nodeVersionId);
-    }
+    return this.nodeVersionFactory.getTransitiveClosure(nodeVersionId);
+  }
 
-    @GET
-    @Timed
-    @Path("/adjacent/{id}/{edgeName}")
-    public List<String> adjacentNodes(@PathParam("id") String nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
-        LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");
+  @GET
+  @Timed
+  @Path("/adjacent/{id}/{edgeName}")
+  public List<String> adjacentNodes(@PathParam("id") String nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
+    LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");
 
-        return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);
-    }
+    return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);
+  }
 }
