@@ -16,7 +16,8 @@ package edu.berkeley.ground.util;
 
 public class IdGenerator {
   private long prefix;
-  private long counter;
+  private long versionCounter;
+  private long successorCounter;
 
   public IdGenerator(int machineId, int numMachines) {
     long machineBits = 1;
@@ -29,10 +30,17 @@ public class IdGenerator {
 
     this.prefix = machineId << (64 - machineBits);
 
-    this.counter = 0;
+    // NOTE: Do not change this. The version counter is set to start a 1 because 0 is the default empty version.
+    this.versionCounter = 1;
+    this.successorCounter = 0;
   }
 
-  public synchronized long generateId() {
-    return prefix | counter++;
+  public synchronized long generateVersionId() {
+    return prefix | this.versionCounter++;
+  }
+
+
+  public synchronized long generateSuccessorId() {
+    return prefix | this.successorCounter++;
   }
 }

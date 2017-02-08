@@ -130,4 +130,4 @@ create table lineage_edge_version (
 
 /* CREATE EMPTY VERSION */
 
-insert into version(id) values ('EMPTY');
+insert into version(id) values (0);
