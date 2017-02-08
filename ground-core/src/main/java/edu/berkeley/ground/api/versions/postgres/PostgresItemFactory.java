@@ -43,7 +43,7 @@ public class PostgresItemFactory extends ItemFactory {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.STRING, id));
 
-    connection.insert("Items", insertions);
+    connection.insert("item", insertions);
   }
 
   public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {

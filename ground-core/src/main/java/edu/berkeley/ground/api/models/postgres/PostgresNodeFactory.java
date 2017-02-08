@@ -48,7 +48,7 @@ public class PostgresNodeFactory extends NodeFactory {
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "Nodes." + name;
+      String uniqueId = "node." + name;
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
@@ -56,7 +56,7 @@ public class PostgresNodeFactory extends NodeFactory {
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
-      connection.insert("Nodes", insertions);
+      connection.insert("node", insertions);
 
       connection.commit();
       LOGGER.info("Created node " + name + ".");
@@ -71,7 +71,7 @@ public class PostgresNodeFactory extends NodeFactory {
 
   public List<String> getLeaves(String name) throws GroundException {
     PostgresConnection connection = this.dbClient.getConnection();
-    List<String> leaves = this.itemFactory.getLeaves(connection, "Nodes." + name);
+    List<String> leaves = this.itemFactory.getLeaves(connection, "node." + name);
     connection.commit();
 
     return leaves;
@@ -87,7 +87,7 @@ public class PostgresNodeFactory extends NodeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("Nodes", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("node", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No Node found with name " + name + ".");
       }

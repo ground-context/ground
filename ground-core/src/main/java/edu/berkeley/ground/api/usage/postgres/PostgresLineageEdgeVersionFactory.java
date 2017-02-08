@@ -71,11 +71,11 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("lineageedge_id", GroundType.STRING, lineageEdgeId));
-      insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("lineage_edge_id", GroundType.STRING, lineageEdgeId));
+      insertions.add(new DbDataContainer("from_rich_version_id", GroundType.STRING, fromId));
+      insertions.add(new DbDataContainer("to_rich_version_id", GroundType.STRING, toId));
 
-      connection.insert("LineageEdgeVersions", insertions);
+      connection.insert("lineage_edge_version", insertions);
 
       this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
 
@@ -101,7 +101,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("LineageEdgeVersions", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("lineage_edge_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }

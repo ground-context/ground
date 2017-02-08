@@ -47,7 +47,7 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
   public LineageEdge create(String name) throws GroundException {
     PostgresConnection connection = this.dbClient.getConnection();
     try {
-      String uniqueId = "LineageEdges." + name;
+      String uniqueId = "lineage_edge." + name;
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
@@ -55,7 +55,7 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
-      connection.insert("LineageEdges", insertions);
+      connection.insert("lineage_edge", insertions);
 
       connection.commit();
       LOGGER.info("Created lineage edge " + name + ".");
@@ -77,7 +77,7 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("LineageEdges", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("lineage_edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No LineageEdge found with name " + name + ".");
       }

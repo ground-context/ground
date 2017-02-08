@@ -23,6 +23,6 @@ public class PostgresStructureFactoryTest extends PostgresTest {
     Structure edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals("Structures." + testName, edge.getId());
+    assertEquals("structure." + testName, edge.getId());
   }
 }

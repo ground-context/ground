@@ -37,11 +37,11 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> insertions = new ArrayList<>();
     String dbId = IdGenerator.generateId(fromId + toId);
 
-    insertions.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
-    insertions.add(new DbDataContainer("vfrom", GroundType.STRING, fromId));
-    insertions.add(new DbDataContainer("vto", GroundType.STRING, toId));
+    insertions.add(new DbDataContainer("id", GroundType.STRING, dbId));
+    insertions.add(new DbDataContainer("from_version_id", GroundType.STRING, fromId));
+    insertions.add(new DbDataContainer("to_version_id", GroundType.STRING, toId));
 
-    connection.insert("VersionSuccessors", insertions);
+    connection.insert("version_successor", insertions);
 
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
 
@@ -51,11 +51,11 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("successor_id", GroundType.STRING, dbId));
+    predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("VersionSuccessors", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("version_successor", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }

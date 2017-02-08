@@ -1,153 +1,133 @@
 /* VERSIONS */
 
-create table Versions (
-    id varchar not null primary key
+create table version (
+    id varchar NOT NULL PRIMARY KEY
 );
 
-create table VersionSuccessors (
-    successor_id varchar not null primary key,
-    vfrom varchar not null references Versions(id),
-    vto varchar not null references Versions(id),
-    unique (vfrom, vto)
+create table version_successor (
+    id varchar NOT NULL PRIMARY KEY,
+    from_version_id varchar NOT NULL REFERENCES version(id),
+    to_version_id varchar NOT NULL REFERENCES version(id),
+    CONSTRAINT version_successor_unique_endpoints UNIQUE (from_version_id, to_version_id)
 );
 
-create table Items (
-    id varchar not null primary key
+create table item (
+    id varchar NOT NULL PRIMARY KEY
 );
 
-create table VersionHistoryDAGs (
-    item_id varchar not null references Items(id),
-    successor_id varchar not null references VersionSuccessors(successor_id),
-    primary key(item_id, successor_id)
+create table version_history_dag (
+    item_id varchar NOT NULL REFERENCES item(id),
+    version_successor_id varchar NOT NULL REFERENCES version_successor(id),
+    CONSTRAINT version_history_dag_pkey PRIMARY KEY (item_id, version_successor_id)
 );
 
 
 /* MODELS */
-create type DataType as enum ('integer', 'string', 'boolean');
+create type data_type as enum ('integer', 'string', 'boolean');
 
 
-create table Structures (
-    item_id varchar not null primary key references Items(id),
-    name varchar not null unique
+create table structure (
+    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
 );
 
-create table StructureVersions (
-    id varchar not null primary key references Versions(id),
-    structure_id varchar not null references Structures(item_id)
+create table structure_version (
+    id varchar NOT NULL PRIMARY KEY REFERENCES version(id),
+    structure_id varchar NOT NULL REFERENCES structure(item_id)
 );
 
-create table StructureVersionItems (
-    svid varchar not null references StructureVersions(id),
-    key varchar not null,
-    type varchar not null,
-    primary key(svid, key)
+create table structure_version_attribute (
+    structure_version_id varchar NOT NULL REFERENCES structure_version(id),
+    key varchar NOT NULL,
+    type varchar NOT NULL,
+    CONSTRAINT structure_version_attribute_pkey PRIMARY KEY(structure_version_id, key)
 );
 
-create table RichVersions (
-    id varchar not null primary key references Versions(id),
-    structure_id varchar references StructureVersions(id),
+create table rich_version (
+    id varchar NOT NULL PRIMARY KEY REFERENCES version(id),
+    structure_version_id varchar REFERENCES structure_version(id),
     reference varchar
 );
 
-create table RichVersionExternalParameters (
-    richversion_id varchar not null references RichVersions(id),
-    key varchar not null,
-    value varchar not null,
-    primary key (richversion_id, key)
+create table rich_version_external_parameter (
+    rich_version_id varchar NOT NULL REFERENCES rich_version(id),
+    key varchar NOT NULL,
+    value varchar NOT NULL,
+    CONSTRAINT rich_version_external_parameter_pkey PRIMARY KEY (rich_version_id, key)
 );
 
-create table Tags (
-    richversion_id varchar references RichVersions(id),
-    key varchar not null,
+create table tag (
+    rich_version_id varchar REFERENCES rich_version(id),
+    key varchar NOT NULL,
     value varchar,
-    type DataType,
-    primary key(richversion_id, key)
+    type data_type,
+    CONSTRAINT tag_pkey PRIMARY KEY (rich_version_id, key)
 );
 
-create table Edges (
-    item_id varchar not null primary key references Items(id),
-    name varchar not null unique
+create table edge (
+    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
 );
 
-create table Nodes (
-    item_id varchar not null primary key references Items(id),
-    name varchar not null unique
+create table node (
+    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
 );
 
-create table Graphs (
-    item_id varchar not null primary key references Items(id),
-    name varchar not null unique
+create table graph (
+    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
 );
 
-create table NodeVersions (
-    id varchar not null primary key references RichVersions(id),
-    node_id varchar not null references Nodes(item_id)
+create table node_version (
+    id varchar NOT NULL PRIMARY KEY REFERENCES rich_version(id),
+    node_id varchar NOT NULL REFERENCES node(item_id)
 );
 
-create table EdgeVersions (
-    id varchar not null primary key references RichVersions(id),
-    edge_id varchar not null references Edges(item_id),
-    endpoint_one varchar not null references NodeVersions(id),
-    endpoint_two varchar not null references NodeVersions(id)
+create table edge_version (
+    id varchar NOT NULL PRIMARY KEY REFERENCES rich_version(id),
+    edge_id varchar NOT NULL REFERENCES edge(item_id),
+    from_node_version_id varchar NOT NULL REFERENCES node_version(id),
+    to_node_version_id varchar NOT NULL REFERENCES node_version(id)
 );
 
-create table GraphVersions (
-    id varchar not null primary key references RichVersions(id),
-    graph_id varchar not null references Graphs(item_id)
+create table graph_version (
+    id varchar NOT NULL PRIMARY KEY REFERENCES rich_version(id),
+    graph_id varchar NOT NULL REFERENCES graph(item_id)
 );
 
-create table GraphVersionEdges (
-    gvid varchar not null references GraphVersions(id),
-    evid varchar not null references EdgeVersions(id),
-    primary key(gvid, evid)
+create table graph_version_edge (
+    graph_version_id varchar NOT NULL REFERENCES graph_version(id),
+    edge_version_id varchar NOT NULL REFERENCES edge_version(id),
+    CONSTRAINT graph_version_edge_pkey PRIMARY KEY (graph_version_id, edge_version_id)
 );
 
 /* USAGE */
 
-create table Workflows (
-    graph_id varchar not null primary key references Graphs(item_id),
-    name varchar not null unique references Graphs(name)
+create table workflow (
+    graph_id varchar NOT NULL PRIMARY KEY REFERENCES graph(item_id),
+    name varchar NOT NULL UNIQUE REFERENCES graph(name)
 );
 
-create table Principals (
-    node_id varchar not null primary key references Nodes(item_id),
-    name varchar not null unique references Nodes(name)
+create table principal (
+    node_id varchar NOT NULL PRIMARY KEY REFERENCES node(item_id),
+    name varchar NOT NULL UNIQUE REFERENCES node(name)
 );
 
-create table LineageEdges (
-    item_id varchar not null primary key references Items(id),
-    name varchar not null unique
+create table lineage_edge (
+    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
 );
 
-create table LineageEdgeVersions (
-    id varchar not null primary key references RichVersions(id),
-    lineageedge_id varchar not null references LineageEdges(item_id),
-    endpoint_one varchar not null references RichVersions(id),
-    endpoint_two varchar not null references RichVersions(id),
-    workflow_id varchar references GraphVersions(id),
-    principal_id varchar references NodeVersions(id)
+create table lineage_edge_version (
+    id varchar NOT NULL PRIMARY KEY REFERENCES rich_version(id),
+    lineage_edge_id varchar NOT NULL REFERENCES lineage_edge(item_id),
+    from_rich_version_id varchar NOT NULL REFERENCES rich_version(id),
+    to_rich_version_id varchar NOT NULL REFERENCES rich_version(id),
+    workflow_id varchar REFERENCES graph_version(id),
+    principal_id varchar REFERENCES node_version(id)
 );
 
 /* CREATE EMPTY VERSION */
 
-insert into Versions(id) values ('EMPTY');
-
-/* CREATE FUNCTION FOR ITERATION */
-create function reachable(vstart varchar) returns table(dest varchar) as $$ 
-  declare cnt integer;
-  declare prev_cnt integer;
-
-  begin
-    drop table if exists paths;
-    create temp table paths as select endpoint_one, endpoint_two from edgeversions where endpoint_one = vstart;
-    select into cnt count(*) from paths;
-
-    while prev_cnt != cnt loop
-      create temp table new_paths as select endpoint_two, endpoint_two from paths, edgeversions where endpoint_two = endpoint_one;
-      alter table paths rename to old_paths;
-      create table paths as select * from new_paths union select * from old_paths;
-    end loop;
-    return query select endpoint_two from paths;
-  end;
-$$ language plpgsql;
-
+insert into version(id) values ('EMPTY');

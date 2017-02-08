@@ -48,7 +48,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
     PostgresConnection connection = dbClient.getConnection();
 
     try {
-      String uniqueId = "Edges." + name;
+      String uniqueId = "edge." + name;
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
@@ -56,7 +56,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
-      connection.insert("Edges", insertions);
+      connection.insert("edge", insertions);
 
       connection.commit();
       LOGGER.info("Created edge " + name + ".");
@@ -78,7 +78,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("Edges", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No Edge found with name " + name + ".");
       }

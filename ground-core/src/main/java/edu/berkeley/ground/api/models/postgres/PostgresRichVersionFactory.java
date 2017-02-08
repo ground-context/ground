@@ -61,16 +61,16 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-    insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureVersionId));
+    insertions.add(new DbDataContainer("structure_version_id", GroundType.STRING, structureVersionId));
     insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
 
-    connection.insert("RichVersions", insertions);
+    connection.insert("rich_version", insertions);
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
@@ -81,17 +81,17 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      connection.insert("Tags", tagInsertion);
+      connection.insert("tag", tagInsertion);
     }
 
     for (String key : referenceParameters.keySet()) {
       List<DbDataContainer> parameterInsertion = new ArrayList<>();
 
-      parameterInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+      parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
       parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
       parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
 
-      connection.insert("RichVersionExternalParameters", parameterInsertion);
+      connection.insert("rich_version_external_parameter", parameterInsertion);
     }
   }
 
@@ -103,17 +103,17 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("RichVersions", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("rich_version", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       throw new GroundException("No RichVersion found with id " + id + ".");
     }
 
     List<DbDataContainer> parameterPredicates = new ArrayList<>();
-    parameterPredicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+    parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
     Map<String, String> referenceParameters = new HashMap<>();
 
     try {
-      QueryResults parameterSet = connection.equalitySelect("RichVersionExternalParameters", DBClient.SELECT_STAR, parameterPredicates);
+      QueryResults parameterSet = connection.equalitySelect("rich_version_external_parameter", DBClient.SELECT_STAR, parameterPredicates);
 
       do {
         referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
