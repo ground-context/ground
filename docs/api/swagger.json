@@ -1,6 +1,6 @@
 {
   "swagger": "2.0",
-  "info": {},
+  "info": {"title":"ground-context api"},
   "basePath": "/",
   "tags": [
     {
