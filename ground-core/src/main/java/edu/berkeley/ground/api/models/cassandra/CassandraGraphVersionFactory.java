@@ -70,14 +70,14 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
       insertions.add(new DbDataContainer("id", GroundType.STRING, id));
       insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
 
-      connection.insert("GraphVersions", insertions);
+      connection.insert("graph_version", insertions);
 
       for (String edgeVersionId : edgeVersionIds) {
         List<DbDataContainer> edgeInsertion = new ArrayList<>();
-        edgeInsertion.add(new DbDataContainer("gvid", GroundType.STRING, id));
-        edgeInsertion.add(new DbDataContainer("evid", GroundType.STRING, edgeVersionId));
+        edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.STRING, id));
+        edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.STRING, edgeVersionId));
 
-        connection.insert("GraphVersionEdges", edgeInsertion);
+        connection.insert("graph_version_edge", edgeInsertion);
       }
 
       this.graphFactory.update(connection, graphId, id, parentIds);
@@ -103,11 +103,11 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
       predicates.add(new DbDataContainer("id", GroundType.STRING, id));
 
       List<DbDataContainer> edgePredicate = new ArrayList<>();
-      edgePredicate.add(new DbDataContainer("gvid", GroundType.STRING, id));
+      edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.STRING, id));
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("GraphVersions", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("graph_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No GraphVersion found with id " + id + ".");
       }
@@ -120,7 +120,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
 
       List<String> edgeVersionIds = new ArrayList<>();
       try {
-        QueryResults edgeSet = connection.equalitySelect("GraphVersionEdges", DBClient.SELECT_STAR, edgePredicate);
+        QueryResults edgeSet = connection.equalitySelect("graph_version_edge", DBClient.SELECT_STAR, edgePredicate);
         edgeVersionIds = edgeSet.getStringList(1);
       } catch (EmptyResultException eer) {
         // do nothing; this means that the graph is empty

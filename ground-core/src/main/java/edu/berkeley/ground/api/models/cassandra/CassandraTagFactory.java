@@ -32,13 +32,13 @@ public class CassandraTagFactory extends TagFactory {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
 
     Map<String, Tag> result = new HashMap<>();
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("tag", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       // this means that there are no tags
       return result;
@@ -67,11 +67,11 @@ public class CassandraTagFactory extends TagFactory {
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
     List<String> projections = new ArrayList<>();
-    projections.add("richversion_id");
+    projections.add("rich_version_id");
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("Tags", projections, predicates);
+      resultSet = connection.equalitySelect("tag", projections, predicates);
     } catch (EmptyResultException eer) {
       // this means that there are no tags
       return result;

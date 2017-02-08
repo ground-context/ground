@@ -31,6 +31,6 @@ public class CassandraVersionFactory extends VersionFactory {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.STRING, id));
 
-    connection.insert("Versions", insertions);
+    connection.insert("version", insertions);
   }
 }

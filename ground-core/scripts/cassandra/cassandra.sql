@@ -1,134 +1,136 @@
 /* VERSIONS */
 
-create table Versions (id varchar primary key);
-
-create table VersionSuccessors (
-    successor_id varchar primary key,
-    vfrom varchar, 
-    vto varchar
+create table version (
+    id varchar PRIMARY KEY
 );
 
-create table Items (
-    id varchar primary key
+create table version_successor (
+    id varchar PRIMARY KEY,
+    from_version_id varchar,
+    to_version_id varchar
 );
 
-create table VersionHistoryDAGs (
+create table item (
+    id varchar PRIMARY KEY
+);
+
+create table version_history_dag (
     item_id varchar,
-    successor_id varchar,
-    primary key(item_id, successor_id)
+    version_successor_id varchar,
+    PRIMARY KEY(item_id, version_successor_id)
 );
 
 /* MODELS */
 
-create table Structures (
+create table structure (
     item_id varchar,
     name varchar,
-    primary key(item_id, name)
+    PRIMARY KEY (item_id, name)
 );
 
-create table StructureVersions (
+create table structure_version (
     id varchar primary key,
     structure_id varchar
 );
 
-create table StructureVersionItems (
-    svid varchar,
+create table structure_version_attribute (
+    structure_version_id varchar,
     key varchar,
     type varchar,
-    primary key(svid, key)
+    PRIMARY KEY (structure_version_id, key)
 );
 
-create table RichVersions (
-    id varchar primary key,
-    structure_id varchar,
+create table rich_version (
+    id varchar PRIMARY KEY,
+    structure_version_id varchar,
     reference varchar
 );
 
-create table RichVersionExternalParameters (
-    richversion_id varchar,
+create table rich_version_external_parameter (
+    rich_version_id varchar,
     key varchar,
     value varchar,
-    primary key (richversion_id, key)
+    PRIMARY KEY (rich_version_id, key)
 );
 
-create table Tags (
-    richversion_id varchar,
+create table tag (
+    rich_version_id varchar,
     key varchar,
     value varchar,
     type varchar,
-    primary key(richversion_id, key)
+    PRIMARY KEY (rich_version_id, key)
 );
 
-create table Edges (
+create table edge (
     item_id varchar,
     name varchar,
-    primary key(item_id, name)
+    PRIMARY KEY (item_id, name)
 );
 
-create table Nodes (
+create table node (
     item_id varchar,
     name varchar,
-    primary key(item_id, name)
+    PRIMARY KEY (item_id, name)
 );
 
-create table Graphs (
+create table graph (
     item_id varchar,
     name varchar,
-    primary key(item_id, name)
+    PRIMARY KEY (item_id, name)
 );
 
-create table NodeVersions (
-    id varchar primary key,
-    node_id varchar,
+create table node_version (
+    id varchar PRIMARY KEY,
+    node_id varchar
 );
 
-create table EdgeVersions (
-    id varchar primary key,
+create table edge_version (
+    id varchar PRIMARY KEY,
     edge_id varchar,
-    endpoint_one varchar,
-    endpoint_two varchar,
+    from_node_version_id varchar,
+    to_node_version_id varchar
 );
 
-create table GraphVersions (
+create table graph_version (
     id varchar primary key,
     graph_id varchar,
 );
 
-create table GraphVersionEdges (
-    gvid varchar,
-    evid varchar,
-    primary key(gvid, evid)
+create table graph_version_edge (
+    graph_version_id varchar,
+    edge_version_id varchar,
+    PRIMARY KEY (graph_version_id, edge_version_id)
 );
 
 /* USAGE */
 
-create table Workflows (
+create table workflow (
     graph_id varchar,
     name varchar,
-    primary key(graph_id, name)
+    PRIMARY KEY (graph_id, name)
 );
 
-create table Principals (
+create table principal (
     node_id varchar,
     name varchar,
-    primary key(node_id, name)
+    PRIMARY KEY (node_id, name)
 );
 
-create table LineageEdges (
+create table lineage_edge (
     item_id varchar,
     name varchar,
-    primary key(item_id, name)
+    PRIMARY KEY (item_id, name)
 );
 
-create table LineageEdgeVersions (
-    id varchar primary key,
-    lineageedge_id varchar,
-    endpoint_one varchar,
-    endpoint_two varchar,
+create table lineage_edge_version (
+    id varchar PRIMARY KEY,
+    lineage_edge_id varchar,
+    from_rich_version_id varchar,
+    to_rich_version_id varchar,
     workflow_id varchar,
     principal_id varchar,
 );
 
 /* CREATE EMPTY VERSION */
 
-insert into Versions(id) values ('EMPTY');
+insert into version(id) values ('EMPTY');

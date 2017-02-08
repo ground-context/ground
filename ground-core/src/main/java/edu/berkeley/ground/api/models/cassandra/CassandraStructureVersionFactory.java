@@ -58,15 +58,15 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
     insertions.add(new DbDataContainer("id", GroundType.STRING, id));
     insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureId));
 
-    connection.insert("StructureVersions", insertions);
+    connection.insert("structure_version", insertions);
 
     for (String key : attributes.keySet()) {
       List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("svid", GroundType.STRING, id));
+      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.STRING, id));
       itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
       itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
 
-      connection.insert("StructureVersionItems", itemInsertions);
+      connection.insert("structure_version_attribute", itemInsertions);
     }
 
     this.structureFactory.update(connection, structureId, id, parentIds);
@@ -85,7 +85,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("StructureVersions", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       throw new GroundException("No StructureVersion found with id " + id + ".");
     }
@@ -98,8 +98,8 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     try {
       List<DbDataContainer> attributePredicates = new ArrayList<>();
-      attributePredicates.add(new DbDataContainer("svid", GroundType.STRING, id));
-      QueryResults attributesSet = connection.equalitySelect("StructureVersionItems", DBClient.SELECT_STAR, attributePredicates);
+      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.STRING, id));
+      QueryResults attributesSet = connection.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
 
       while (attributesSet.next()) {
         attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet.getString(2)));

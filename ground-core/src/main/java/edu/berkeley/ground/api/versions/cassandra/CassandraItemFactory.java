@@ -43,7 +43,7 @@ public class CassandraItemFactory extends ItemFactory {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.STRING, id));
 
-    connection.insert("Items", insertions);
+    connection.insert("item", insertions);
   }
 
   // TODO: Refactor logic for parent into function in ItemFactory

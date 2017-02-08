@@ -24,7 +24,7 @@ public class CassandraGraphFactoryTest extends CassandraTest {
       Graph edge = edgeFactory.retrieveFromDatabase(testName);
 
       assertEquals(testName, edge.getName());
-      assertEquals("Graphs." + testName, edge.getId());
+      assertEquals("graph." + testName, edge.getId());
     } catch (GroundException ge) {
       fail(ge.getMessage());
     }
