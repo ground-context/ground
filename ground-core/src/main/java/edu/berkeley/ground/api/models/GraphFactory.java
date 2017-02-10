@@ -24,9 +24,9 @@ public abstract class GraphFactory {
 
   public abstract Graph retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
+  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  protected static Graph construct(String id, String name) {
+  protected static Graph construct(long id, String name) {
     return new Graph(id, name);
   }
 }

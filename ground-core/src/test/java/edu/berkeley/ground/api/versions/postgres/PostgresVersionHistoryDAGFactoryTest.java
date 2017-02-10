@@ -19,7 +19,7 @@ public class PostgresVersionHistoryDAGFactoryTest extends PostgresTest {
   public void testVersionHistoryDAGCreation() throws GroundException {
     PostgresConnection connection = null;
     try {
-      String testId = "Nodes.test";
+      long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
       connection = super.cassandraClient.getConnection();
 

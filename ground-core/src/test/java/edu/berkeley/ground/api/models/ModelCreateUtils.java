@@ -21,19 +21,19 @@ import java.util.List;
 import java.util.Map;
 
 public class ModelCreateUtils {
-  public static NodeVersion getNodeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference, Map<String, String> parameters, String nodeId) {
+  public static NodeVersion getNodeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference, Map<String, String> parameters, long nodeId) {
     return new NodeVersion(id, tags, structureVersionId, reference, parameters, nodeId);
   }
 
-  public static EdgeVersion getEdgeVersion(String id, String edgeId, String fromId, String toId) {
-    return new EdgeVersion(id, new HashMap<>(), null, null, new HashMap<>(), edgeId, fromId, toId);
+  public static EdgeVersion getEdgeVersion(long id, long edgeId, long fromId, long toId) {
+    return new EdgeVersion(id, new HashMap<>(), -1, null, new HashMap<>(), edgeId, fromId, toId);
   }
 
-  public static GraphVersion getGraphVersion(String id, String graphId, List<String> edgeVersionIds) {
-    return new GraphVersion(id, new HashMap<>(), null, null, new HashMap<>(), graphId, edgeVersionIds);
+  public static GraphVersion getGraphVersion(long id, long graphId, List<Long> edgeVersionIds) {
+    return new GraphVersion(id, new HashMap<>(), -1, null, new HashMap<>(), graphId, edgeVersionIds);
   }
 
-  public static StructureVersion getStructureVersion(String id, String structureId, Map<String, GroundType> attributes) {
+  public static StructureVersion getStructureVersion(long id, long structureId, Map<String, GroundType> attributes) {
     return new StructureVersion(id, structureId, attributes);
   }
 }

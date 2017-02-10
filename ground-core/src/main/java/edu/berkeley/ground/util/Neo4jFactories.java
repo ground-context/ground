@@ -38,24 +38,26 @@ public class Neo4jFactories {
   private Neo4jLineageEdgeFactory lineageEdgeFactory;
   private Neo4jLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-  public Neo4jFactories(Neo4jClient neo4jClient) {
-    Neo4jVersionSuccessorFactory versionSuccessorFactory = new Neo4jVersionSuccessorFactory();
+  public Neo4jFactories(Neo4jClient neo4jClient, int machineId, int numMachines) {
+    IdGenerator idGenerator = new IdGenerator(machineId, numMachines);
+
+    Neo4jVersionSuccessorFactory versionSuccessorFactory = new Neo4jVersionSuccessorFactory(idGenerator);
     Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(versionSuccessorFactory);
     Neo4jItemFactory itemFactory = new Neo4jItemFactory(versionHistoryDAGFactory);
 
-    this.structureFactory = new Neo4jStructureFactory(neo4jClient, itemFactory);
-    this.structureVersionFactory = new Neo4jStructureVersionFactory(neo4jClient, this.structureFactory);
+    this.structureFactory = new Neo4jStructureFactory(neo4jClient, itemFactory, idGenerator);
+    this.structureVersionFactory = new Neo4jStructureVersionFactory(neo4jClient, this.structureFactory, idGenerator);
     Neo4jTagFactory tagFactory = new Neo4jTagFactory();
     Neo4jRichVersionFactory richVersionFactory = new Neo4jRichVersionFactory(structureVersionFactory, tagFactory);
-    this.edgeFactory = new Neo4jEdgeFactory(itemFactory, neo4jClient);
-    this.edgeVersionFactory = new Neo4jEdgeVersionFactory(this.edgeFactory, richVersionFactory, neo4jClient);
-    this.graphFactory = new Neo4jGraphFactory(neo4jClient, itemFactory);
-    this.graphVersionFactory = new Neo4jGraphVersionFactory(neo4jClient, this.graphFactory, richVersionFactory);
-    this.nodeFactory = new Neo4jNodeFactory(itemFactory, neo4jClient);
-    this.nodeVersionFactory = new Neo4jNodeVersionFactory(this.nodeFactory, richVersionFactory, neo4jClient);
+    this.edgeFactory = new Neo4jEdgeFactory(itemFactory, neo4jClient, idGenerator);
+    this.edgeVersionFactory = new Neo4jEdgeVersionFactory(this.edgeFactory, richVersionFactory, neo4jClient, idGenerator);
+    this.graphFactory = new Neo4jGraphFactory(neo4jClient, itemFactory, idGenerator);
+    this.graphVersionFactory = new Neo4jGraphVersionFactory(neo4jClient, this.graphFactory, richVersionFactory, idGenerator);
+    this.nodeFactory = new Neo4jNodeFactory(itemFactory, neo4jClient, idGenerator);
+    this.nodeVersionFactory = new Neo4jNodeVersionFactory(this.nodeFactory, richVersionFactory, neo4jClient, idGenerator);
 
-    this.lineageEdgeFactory = new Neo4jLineageEdgeFactory(itemFactory, neo4jClient);
-    this.lineageEdgeVersionFactory = new Neo4jLineageEdgeVersionFactory(this.lineageEdgeFactory, richVersionFactory, neo4jClient);
+    this.lineageEdgeFactory = new Neo4jLineageEdgeFactory(itemFactory, neo4jClient, idGenerator);
+    this.lineageEdgeVersionFactory = new Neo4jLineageEdgeVersionFactory(this.lineageEdgeFactory, richVersionFactory, neo4jClient, idGenerator);
   }
 
   public EdgeFactory getEdgeFactory() {

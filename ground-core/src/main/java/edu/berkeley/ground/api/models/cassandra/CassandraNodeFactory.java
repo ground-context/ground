@@ -26,6 +26,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +37,21 @@ import java.util.List;
 public class CassandraNodeFactory extends NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeFactory.class);
   private CassandraClient dbClient;
-
   private CassandraItemFactory itemFactory;
 
-  public CassandraNodeFactory(CassandraItemFactory itemFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraNodeFactory(CassandraItemFactory itemFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
+    this.idGenerator = idGenerator;
   }
 
   public Node create(String name) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "node." + name;
+      long uniqueId = this.idGenerator.generateItemId();
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
@@ -69,9 +72,11 @@ public class CassandraNodeFactory extends NodeFactory {
     }
   }
 
-  public List<String> getLeaves(String name) throws GroundException {
+  public List<Long> getLeaves(String name) throws GroundException {
+    Node node = this.retrieveFromDatabase(name);
+
     CassandraConnection connection = this.dbClient.getConnection();
-    List<String> leaves = this.itemFactory.getLeaves(connection, "node." + name);
+    List<Long> leaves = this.itemFactory.getLeaves(connection, node.getId());
     connection.commit();
 
     return leaves;
@@ -95,7 +100,7 @@ public class CassandraNodeFactory extends NodeFactory {
         throw new GroundException("No Node found with name " + name + ".");
       }
 
-      String id = resultSet.getString(0);
+      long id = resultSet.getLong(0);
 
       connection.commit();
       LOGGER.info("Retrieved node " + name + ".");
@@ -108,7 +113,7 @@ public class CassandraNodeFactory extends NodeFactory {
     }
   }
 
-  public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(connection, itemId, childId, parentIds);
   }
 }

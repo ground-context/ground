@@ -40,38 +40,40 @@ import java.util.stream.Collectors;
 public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jLineageEdgeVersionFactory.class);
   private Neo4jClient dbClient;
-
   private Neo4jLineageEdgeFactory lineageEdgeFactory;
   private Neo4jRichVersionFactory richVersionFactory;
 
-  public Neo4jLineageEdgeVersionFactory(Neo4jLineageEdgeFactory lineageEdgeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public Neo4jLineageEdgeVersionFactory(Neo4jLineageEdgeFactory lineageEdgeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.lineageEdgeFactory = lineageEdgeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
 
   public LineageEdgeVersion create(Map<String, Tag> tags,
-                                   String structureVersionId,
+                                   long structureVersionId,
                                    String reference,
                                    Map<String, String> referenceParameters,
-                                   String fromId,
-                                   String toId,
-                                   String lineageEdgeId,
-                                   List<String> parentIds) throws GroundException {
+                                   long fromId,
+                                   long toId,
+                                   long lineageEdgeId,
+                                   List<Long> parentIds) throws GroundException {
 
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(lineageEdgeId);
+      long id = this.idGenerator.generateVersionId();
 
       tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("lineageedge_id", GroundType.STRING, lineageEdgeId));
-      insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("lineageedge_id", GroundType.LONG, lineageEdgeId));
+      insertions.add(new DbDataContainer("endpoint_one", GroundType.LONG, fromId));
+      insertions.add(new DbDataContainer("endpoint_two", GroundType.LONG, toId));
 
       connection.addVertex("LineageEdgeVersions", insertions);
 
@@ -92,14 +94,14 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     }
   }
 
-  public LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException {
+  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       Record versionRecord;
       try {
@@ -108,19 +110,14 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
-      String lineageEdgeId = Neo4jClient.getStringFromValue((StringValue) versionRecord.
-          get("v").asNode().get("lineageedge_id"));
-      String fromId = Neo4jClient.getStringFromValue((StringValue) versionRecord.
-          get("v").asNode().get("endpoint_one"));
-      String toId = Neo4jClient.getStringFromValue((StringValue) versionRecord.
-          get("v").asNode().get("endpoint_two"));
+      long lineageEdgeId = versionRecord. get("v").asNode().get("lineageedge_id").asLong();
+      long fromId = versionRecord.get("v").asNode().get("endpoint_one").asLong();
+      long toId = versionRecord.get("v").asNode().get("endpoint_two").asLong();
 
       connection.commit();
       LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-      return LineageEdgeVersionFactory.construct(id, version.getTags(),
-          version.getStructureVersionId(), version.getReference(), version.getParameters(),
-          fromId, toId, lineageEdgeId);
+      return LineageEdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);
     } catch (GroundException e) {
       connection.abort();
 

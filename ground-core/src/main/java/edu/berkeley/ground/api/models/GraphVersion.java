@@ -24,22 +24,20 @@ import java.util.List;
 import java.util.Map;
 
 public class GraphVersion extends RichVersion {
-  private static final Logger LOGGER = LoggerFactory.getLogger(GraphVersion.class);
-
   // the id of the Graph that contains this Version
-  private String graphId;
+  private long graphId;
 
   // the list of ids of EdgeVersions in this GraphVersion
-  private List<String> edgeVersionIds;
+  private List<Long> edgeVersionIds;
 
   @JsonCreator
-  public GraphVersion(@JsonProperty("id") String id,
+  public GraphVersion(@JsonProperty("id") long id,
                       @JsonProperty("tags") Map<String, Tag> tags,
-                      @JsonProperty("structureVersionId") String structureVersionId,
+                      @JsonProperty("structureVersionId") long structureVersionId,
                       @JsonProperty("reference") String reference,
                       @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-                      @JsonProperty("graphId") String graphId,
-                      @JsonProperty("edgeVersionIds") List<String> edgeVersionIds) {
+                      @JsonProperty("graphId") long graphId,
+                      @JsonProperty("edgeVersionIds") List<Long> edgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
@@ -48,12 +46,12 @@ public class GraphVersion extends RichVersion {
   }
 
   @JsonProperty
-  public String getGraphId() {
+  public long getGraphId() {
     return this.graphId;
   }
 
   @JsonProperty
-  public List<String> getEdgeVersionIds() {
+  public List<Long> getEdgeVersionIds() {
     return this.edgeVersionIds;
   }
 
@@ -65,7 +63,7 @@ public class GraphVersion extends RichVersion {
 
     GraphVersion otherGraphVersion = (GraphVersion) other;
 
-    return this.graphId.equals(otherGraphVersion.graphId) &&
+    return this.graphId == otherGraphVersion.graphId &&
         this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds) &&
         super.equals(other);
   }

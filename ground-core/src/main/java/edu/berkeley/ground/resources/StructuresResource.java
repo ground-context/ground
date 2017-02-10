@@ -57,7 +57,7 @@ public class StructuresResource {
   @GET
   @Timed
   @Path("/versions/{id}")
-  public StructureVersion getStructureVersion(@PathParam("id") String id) throws GroundException {
+  public StructureVersion getStructureVersion(@PathParam("id") long id) throws GroundException {
     LOGGER.info("Retrieving structure version " + id + ".");
     return this.structureVersionFactory.retrieveFromDatabase(id);
   }
@@ -73,7 +73,7 @@ public class StructuresResource {
   @POST
   @Timed
   @Path("/versions")
-  public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
+  public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
     LOGGER.info("Creating structure version in structure " + structureVersion.getStructureId() + ".");
     return this.structureVersionFactory.create(structureVersion.getStructureId(),
         structureVersion.getAttributes(),
@@ -83,7 +83,7 @@ public class StructuresResource {
   @GET
   @Timed
   @Path("/{name}/latest")
-  public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
+  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
     LOGGER.info("Retrieving the latest version of node " + name + ".");
     return this.structureFactory.getLeaves(name);
   }

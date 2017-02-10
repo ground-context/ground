@@ -35,7 +35,7 @@ public class CassandraClient implements DBClient {
 
   private Cluster cluster;
   private String keyspace;
-  private DirectedGraph<String, DefaultEdge> graph;
+  private DirectedGraph<Long, DefaultEdge> graph;
   private PreparedStatement adjacencyStatement;
 
   public CassandraClient(String host, int port, String dbName, String username, String password) throws GroundDBException {
@@ -51,13 +51,13 @@ public class CassandraClient implements DBClient {
     this.graph = JGraphTUtils.createGraph();
 
     for (Row r : resultSet.all()) {
-      JGraphTUtils.addVertex(graph, r.getString(0));
+      JGraphTUtils.addVertex(graph, r.getLong(0));
     }
 
     resultSet = this.cluster.connect(this.keyspace).execute("select from_node_version_id, to_node_version_id from edge_version;");
 
     for (Row r : resultSet.all()) {
-      JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
+      JGraphTUtils.addEdge(graph, r.getLong(0), r.getLong(1));
     }
 
     this.adjacencyStatement = this.cluster.connect(this.keyspace).prepare("select to_node_version_id, edge_id from edge_version where from_node_version_id = ? allow filtering;");
@@ -69,10 +69,10 @@ public class CassandraClient implements DBClient {
 
   public class CassandraConnection extends GroundDBConnection {
     private Session session;
-    private DirectedGraph<String, DefaultEdge> graph;
+    private DirectedGraph<Long, DefaultEdge> graph;
     private PreparedStatement adjacencyStatement;
 
-    public CassandraConnection(Session session, DirectedGraph<String, DefaultEdge> graph, PreparedStatement adjacencyStatement) {
+    public CassandraConnection(Session session, DirectedGraph<Long, DefaultEdge> graph, PreparedStatement adjacencyStatement) {
       this.session = session;
       this.graph = graph;
       this.adjacencyStatement = adjacencyStatement;
@@ -87,26 +87,26 @@ public class CassandraClient implements DBClient {
     public void insert(String table, List<DbDataContainer> insertValues) {
       // hack to keep JGraphT up to date
       if (table.equals("node_version")) {
-        String id = null;
+        long id = -1;
         for (DbDataContainer container : insertValues) {
           if (container.getField().equals("id")) {
-            id = container.getValue().toString();
+            id = (Long) container.getValue();
           }
         }
 
         JGraphTUtils.addVertex(this.graph, id);
       }
       if (table.equals("edge_version")) {
-        String nvFromId = null;
-        String nvToId = null;
+        long nvFromId = -1;
+        long nvToId = -1;
 
         for (DbDataContainer container : insertValues) {
           if (container.getField().equals("from_node_version_id")) {
-            nvFromId = container.getValue().toString();
+            nvFromId = (Long) container.getValue();
           }
 
           if (container.getField().equals("to_node_version_id")) {
-            nvToId = container.getValue().toString();
+            nvToId = (Long) container.getValue();
           }
         }
 
@@ -186,22 +186,22 @@ public class CassandraClient implements DBClient {
       return new CassandraResults(resultSet);
     }
 
-    public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
+    public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
       return JGraphTUtils.runDFS(this.graph, nodeVersionId);
     }
 
-    public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
       BoundStatement statement = new BoundStatement(this.adjacencyStatement);
 
-      statement.setString(0, nodeVersionId);
+      statement.setLong(0, nodeVersionId);
 
       ResultSet resultSet = this.session.execute(statement);
 
-      List<String> result = new ArrayList<>();
+      List<Long> result = new ArrayList<>();
 
       for (Row row : resultSet) {
         if (row.getString(1).contains(edgeNameRegex)) {
-          result.add(row.getString(0));
+          result.add(row.getLong(0));
         }
       }
 

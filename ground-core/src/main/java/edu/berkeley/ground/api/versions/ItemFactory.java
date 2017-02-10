@@ -20,7 +20,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.List;
 
 public abstract class ItemFactory {
-  public abstract void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException;
+  public abstract void insertIntoDatabase(GroundDBConnection connection, long id) throws GroundException;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
@@ -31,5 +31,5 @@ public abstract class ItemFactory {
    * @param childId   the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
+  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
 }

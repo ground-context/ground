@@ -23,39 +23,39 @@ public class PostgresLineageEdgeVersionFactoryTest extends PostgresTest {
   @Test
   public void testLineageEdgeVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    String firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode).getId();
-    String firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        null, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode).getId();
+    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    String secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode).getId();
-    String secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        null, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode).getId();
+    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String lineageEdgeName = "testLineageEdge";
-    String lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName).getId();
+    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName).getId();
 
     String structureName = "testStructure";
-    String structureId = super.factories.getStructureFactory().create(structureName).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    String structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = super.factories.getStructureVersionFactory().create(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(null, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(null, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(null, "boolfield", true, GroundType.BOOLEAN));
+    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
+    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
+    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    String lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(tags,
+    long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(tags,
         structureVersionId, testReference, parameters, firstNodeVersionId,
         secondNodeVersionId, lineageEdgeId, new ArrayList<>()).getId();
 

@@ -36,11 +36,11 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
-  public <T extends Version> VersionHistoryDAG<T> create(String itemId) throws GroundException {
+  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException {
     return construct(itemId);
   }
 
-  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String itemId) throws GroundException {
+  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, long itemId) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
     List<Relationship> result = connection.getDescendantEdgesByLabel(itemId, "VersionSuccessor");
 
@@ -52,13 +52,13 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     List<VersionSuccessor<T>> edges = new ArrayList<>();
 
     for (Relationship relationship : result) {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, Neo4jClient.getStringFromValue((StringValue) relationship.get("id"))));
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, relationship.get("id").asLong()));
     }
 
     return construct(itemId, edges);
   }
 
-  public void addEdge(GroundDBConnection connection, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException {
+  public void addEdge(GroundDBConnection connection, VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException {
     VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 
     dag.addEdge(parentId, childId, successor.getId());

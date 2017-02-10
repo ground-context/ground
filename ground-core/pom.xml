@@ -187,6 +187,7 @@
                              Postgres tests by default. -->
                         <exclude>**/Gremlin*.java</exclude>
                         <exclude>**/Cassandra*.java</exclude>
+                        <exclude>**/Postgres*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

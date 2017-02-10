@@ -23,6 +23,5 @@ public class PostgresLineageEdgeFactoryTest extends PostgresTest {
     LineageEdge edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals("lineage_edge." + testName, edge.getId());
   }
 }

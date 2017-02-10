@@ -69,17 +69,17 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     switch (configuration.getDbType()) {
       case "postgres":
         PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-        setPostgresFactories(postgresClient);
+        setPostgresFactories(postgresClient, configuration.getMachineId(), configuration.getNumMachines());
         break;
 
       case "cassandra":
         CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-        setCassandraFactories(cassandraClient);
+        setCassandraFactories(cassandraClient, configuration.getMachineId(), configuration.getNumMachines());
         break;
 
       case "neo4j":
         Neo4jClient neo4jClient = new Neo4jClient(configuration.getDbHost(), configuration.getDbUser(), configuration.getDbPassword());
-        setNeo4jFactories(neo4jClient);
+        setNeo4jFactories(neo4jClient, configuration.getMachineId(), configuration.getNumMachines());
         break;
 
       default:
@@ -101,8 +101,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     environment.jersey().register(kafkaResource);
   }
 
-  private void setPostgresFactories(PostgresClient postgresClient) {
-    PostgresFactories factoryGenerator = new PostgresFactories(postgresClient);
+  private void setPostgresFactories(PostgresClient postgresClient, int machineId, int numMachines) {
+    PostgresFactories factoryGenerator = new PostgresFactories(postgresClient, machineId, numMachines);
 
     edgeFactory = factoryGenerator.getEdgeFactory();
     edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
@@ -116,8 +116,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     structureVersionFactory = factoryGenerator.getStructureVersionFactory();
   }
 
-  private void setCassandraFactories(CassandraClient cassandraClient) {
-    CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient);
+  private void setCassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
+    CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient, machineId, numMachines);
 
     edgeFactory = factoryGenerator.getEdgeFactory();
     edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
@@ -131,8 +131,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     structureVersionFactory = factoryGenerator.getStructureVersionFactory();
   }
 
-  private void setNeo4jFactories(Neo4jClient neo4jClient) {
-    Neo4jFactories factoryGenerator = new Neo4jFactories(neo4jClient);
+  private void setNeo4jFactories(Neo4jClient neo4jClient, int machineId, int numMachines) {
+    Neo4jFactories factoryGenerator = new Neo4jFactories(neo4jClient, machineId, numMachines);
 
     edgeFactory = factoryGenerator.getEdgeFactory();
     edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();

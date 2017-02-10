@@ -31,15 +31,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
-  public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, String fromId, String toId) throws GroundException {
+  private IdGenerator idGenerator;
+
+  public PostgresVersionSuccessorFactory(IdGenerator idGenerator) {
+    this.idGenerator = idGenerator;
+  }
+
+  public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, long fromId, long toId) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    String dbId = IdGenerator.generateId(fromId + toId);
+    long dbId = idGenerator.generateSuccessorId();
 
-    insertions.add(new DbDataContainer("id", GroundType.STRING, dbId));
-    insertions.add(new DbDataContainer("from_version_id", GroundType.STRING, fromId));
-    insertions.add(new DbDataContainer("to_version_id", GroundType.STRING, toId));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, dbId));
+    insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
     connection.insert("version_successor", insertions);
 
@@ -47,11 +53,11 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
 
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String dbId) throws GroundException {
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, long dbId) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
     QueryResults resultSet;
     try {
@@ -60,8 +66,8 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    String toId = resultSet.getString(2);
-    String fromId = resultSet.getString(3);
+    long toId = resultSet.getLong(2);
+    long fromId = resultSet.getLong(3);
 
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
   }

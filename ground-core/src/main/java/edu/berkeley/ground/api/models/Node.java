@@ -30,7 +30,7 @@ public class Node extends Item<NodeVersion> {
 
   @JsonCreator
   public Node(
-      @JsonProperty("id") String id,
+      @JsonProperty("id") long id,
       @JsonProperty("name") String name) {
     super(id);
 
@@ -42,10 +42,6 @@ public class Node extends Item<NodeVersion> {
     return this.name;
   }
 
-  public static String idToName(String id) {
-    return id.substring(6);
-  }
-
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof Node)) {
@@ -54,6 +50,6 @@ public class Node extends Item<NodeVersion> {
 
     Node otherNode = (Node) other;
 
-    return this.name.equals(otherNode.name) && this.getId().equals(otherNode.getId());
+    return this.name.equals(otherNode.name) && this.getId() == otherNode.getId();
   }
 }

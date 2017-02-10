@@ -59,7 +59,7 @@ public class EdgesResource {
   @GET
   @Timed
   @Path("/versions/{id}")
-  public EdgeVersion getEdgeVersion(@PathParam("id") String id) throws GroundException {
+  public EdgeVersion getEdgeVersion(@PathParam("id") long id) throws GroundException {
     LOGGER.info("Retrieving edge version " + id + ".");
     return this.edgeVersionFactory.retrieveFromDatabase(id);
   }
@@ -75,7 +75,7 @@ public class EdgesResource {
   @POST
   @Timed
   @Path("/versions")
-  public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
+  public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
     LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
     return this.edgeVersionFactory.create(edgeVersion.getTags(),
         edgeVersion.getStructureVersionId(),

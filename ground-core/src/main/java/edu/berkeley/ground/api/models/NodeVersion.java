@@ -23,19 +23,17 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class NodeVersion extends RichVersion {
-  private static final Logger LOGGER = LoggerFactory.getLogger(NodeVersion.class);
-
   // the id of the Node containing this Version
-  private String nodeId;
+  private long nodeId;
 
   @JsonCreator
   public NodeVersion(
-      @JsonProperty("id") String id,
+      @JsonProperty("id") long id,
       @JsonProperty("tags") Map<String, Tag> tags,
-      @JsonProperty("structureVersionId") String structureVersionId,
+      @JsonProperty("structureVersionId") long structureVersionId,
       @JsonProperty("reference") String reference,
       @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-      @JsonProperty("nodeId") String nodeId) {
+      @JsonProperty("nodeId") long nodeId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
@@ -43,7 +41,7 @@ public class NodeVersion extends RichVersion {
   }
 
   @JsonProperty
-  public String getNodeId() {
+  public long getNodeId() {
     return this.nodeId;
   }
 
@@ -55,7 +53,6 @@ public class NodeVersion extends RichVersion {
 
     NodeVersion otherNodeVersion = (NodeVersion) other;
 
-    return this.nodeId.equals(otherNodeVersion.nodeId) &&
-        super.equals(other);
+    return this.nodeId == otherNodeVersion.nodeId && super.equals(other);
   }
 }

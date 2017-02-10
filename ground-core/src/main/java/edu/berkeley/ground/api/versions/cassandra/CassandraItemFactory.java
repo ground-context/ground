@@ -37,20 +37,20 @@ public class CassandraItemFactory extends ItemFactory {
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
   }
 
-  public void insertIntoDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
     connection.insert("item", insertions);
   }
 
   // TODO: Refactor logic for parent into function in ItemFactory
-  public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
-    // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
+  public void update(GroundDBConnection connectionPointer, long itemId, long childId, List<Long> parentIds) throws GroundException {
+    // If a parent is specified, great. If it's not specified, then make it a child of EMPTY, which is version 0.
     if (parentIds.isEmpty()) {
-      parentIds.add("EMPTY");
+      parentIds.add(0L);
     }
 
     VersionHistoryDAG dag;
@@ -64,8 +64,8 @@ public class CassandraItemFactory extends ItemFactory {
       dag = this.versionHistoryDAGFactory.create(itemId);
     }
 
-    for (String parentId : parentIds) {
-      if (!parentId.equals("EMPTY") && !dag.checkItemInDag(parentId)) {
+    for (long parentId : parentIds) {
+      if (!(parentId == 0) && !dag.checkItemInDag(parentId)) {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
 
         LOGGER.error(errorString);
@@ -76,7 +76,7 @@ public class CassandraItemFactory extends ItemFactory {
     }
   }
 
-  public List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
+  public List<Long> getLeaves(GroundDBConnection connection, long itemId) throws GroundException {
     try {
       VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
 
@@ -89,5 +89,4 @@ public class CassandraItemFactory extends ItemFactory {
       return new ArrayList<>();
     }
   }
-
 }

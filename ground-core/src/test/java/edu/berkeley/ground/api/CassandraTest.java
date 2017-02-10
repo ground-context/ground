@@ -15,6 +15,7 @@ import edu.berkeley.ground.api.versions.cassandra.CassandraVersionSuccessorFacto
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.CassandraFactories;
+import edu.berkeley.ground.util.IdGenerator;
 
 public class CassandraTest {
   private static String TEST_DB_NAME = "test";
@@ -30,10 +31,10 @@ public class CassandraTest {
 
   public CassandraTest() throws GroundDBException {
     this.cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
-    this.factories = new CassandraFactories(cassandraClient);
+    this.factories = new CassandraFactories(cassandraClient, 0, 1);
 
     this.versionFactory = new CassandraVersionFactory();
-    this.versionSuccessorFactory = new CassandraVersionSuccessorFactory();
+    this.versionSuccessorFactory = new CassandraVersionSuccessorFactory(new IdGenerator(0, 1));
     this.versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
     this.itemFactory = new CassandraItemFactory(versionHistoryDAGFactory);
     this.tagFactory = new CassandraTagFactory();

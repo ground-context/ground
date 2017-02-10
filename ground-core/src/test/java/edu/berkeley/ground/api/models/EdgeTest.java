@@ -28,7 +28,7 @@ public class EdgeTest {
 
   @Test
   public void serializesToJSON() throws Exception {
-    final Edge edge = new Edge("Edges.test", "test");
+    final Edge edge = new Edge(1, "test");
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/edge.json"), Edge.class));
 
     assertThat(MAPPER.writeValueAsString(edge)).isEqualTo(expected);
@@ -36,7 +36,7 @@ public class EdgeTest {
 
   @Test
   public void deserializesFromJSON() throws Exception {
-    final Edge edge = new Edge("Edges.test", "test");
+    final Edge edge = new Edge(1, "test");
     assertThat(MAPPER.readValue(fixture("fixtures/models/edge.json"), Edge.class)).isEqualToComparingFieldByField(edge);
   }
 }

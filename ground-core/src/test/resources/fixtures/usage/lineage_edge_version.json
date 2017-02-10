@@ -1,8 +1,8 @@
 {
-  "id": "abcd",
+  "id": 1,
   "tags": {
     "testtag": {
-      "versionId": "abcd",
+      "versionId": 1,
       "key": "testtag",
       "value": "tag",
       "type": "string"
@@ -12,7 +12,7 @@
   "referenceParameters": {
     "http": "GET"
   },
-  "lineageEdgeId": "LineageEdges.test",
-  "fromId": "123",
-  "toId": "456"
+  "lineageEdgeId": 1,
+  "fromId": 123,
+  "toId": 456
 }

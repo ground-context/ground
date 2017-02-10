@@ -21,24 +21,24 @@ import java.util.Map;
 
 public abstract class NodeVersionFactory {
   public abstract NodeVersion create(Map<String, Tag> tags,
-                                     String structureVersionId,
+                                     long structureVersionId,
                                      String reference,
                                      Map<String, String> referenceParameters,
-                                     String nodeId,
-                                     List<String> parentIds) throws GroundException;
+                                     long nodeId,
+                                     List<Long> parentIds) throws GroundException;
 
-  public abstract NodeVersion retrieveFromDatabase(String id) throws GroundException;
+  public abstract NodeVersion retrieveFromDatabase(long id) throws GroundException;
 
-  public abstract List<String> getTransitiveClosure(String nodeVersionId) throws GroundException;
+  public abstract List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException;
 
-  public abstract List<String> getAdjacentNodes(String nodeVersionId, String edgeNameLike) throws GroundException;
+  public abstract List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameLike) throws GroundException;
 
-  public static NodeVersion construct(String id,
+  public static NodeVersion construct(long id,
                                       Map<String, Tag> tags,
-                                      String structureVersionId,
+                                      long structureVersionId,
                                       String reference,
                                       Map<String, String> parameters,
-                                      String nodeId) {
+                                      long nodeId) {
 
     return new NodeVersion(id, tags, structureVersionId, reference, parameters, nodeId);
   }

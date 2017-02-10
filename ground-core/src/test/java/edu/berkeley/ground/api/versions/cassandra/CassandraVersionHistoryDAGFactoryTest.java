@@ -20,7 +20,7 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
 
   @Test
   public void testVersionHistoryDAGCreation() throws GroundException {
-    String testId = "Nodes.test";
+    long testId = 1;
     super.versionHistoryDAGFactory.create(testId);
     CassandraConnection connection = super.cassandraClient.getConnection();
 
@@ -34,15 +34,15 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
 
   @Test
   public void testAddEdge() throws GroundException {
-    String testId = "Nodes.test";
+    long testId = 1;
     CassandraConnection connection = super.cassandraClient.getConnection();
     super.versionHistoryDAGFactory.create(testId);
 
     VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
         testId);
 
-    String fromId = "testFromId";
-    String toId = "testToId";
+    long fromId = 123;
+    long toId = 456;
 
     super.versionFactory.insertIntoDatabase(connection, fromId);
     super.versionFactory.insertIntoDatabase(connection, toId);
@@ -53,7 +53,7 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
         testId);
 
     assertEquals(1, retrieved.getEdgeIds().size());
-    assertEquals(toId, retrieved.getLeaves().get(0));
+    assertEquals(toId, (long) retrieved.getLeaves().get(0));
 
     VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
         connection, retrieved.getEdgeIds().get(0));

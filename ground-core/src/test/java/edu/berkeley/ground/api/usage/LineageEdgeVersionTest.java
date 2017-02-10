@@ -34,12 +34,12 @@ public class LineageEdgeVersionTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "123", "456", "LineageEdges.test");
+    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 123, 456, 1);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/usage/lineage_edge_version.json"), LineageEdgeVersion.class));
     assertThat(MAPPER.writeValueAsString(lineageEdgeVersion)).isEqualTo(expected);
@@ -48,12 +48,12 @@ public class LineageEdgeVersionTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "123", "456", "LineageEdges.test");
+    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 123, 456, 1);
 
     assertThat(MAPPER.readValue(fixture("fixtures/usage/lineage_edge_version.json"), LineageEdgeVersion.class)).isEqualToComparingFieldByField(lineageEdgeVersion);
   }

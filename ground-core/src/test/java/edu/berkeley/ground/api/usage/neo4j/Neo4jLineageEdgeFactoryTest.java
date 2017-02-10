@@ -23,6 +23,5 @@ public class Neo4jLineageEdgeFactoryTest extends Neo4jTest {
     LineageEdge edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals("LineageEdges." + testName, edge.getId());
   }
 }

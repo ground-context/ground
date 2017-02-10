@@ -57,7 +57,7 @@ public class LineageEdgesResource {
   @GET
   @Timed
   @Path("/versions/{id}")
-  public LineageEdgeVersion getLineageEdgeVersion(@PathParam("id") String id) throws GroundException {
+  public LineageEdgeVersion getLineageEdgeVersion(@PathParam("id") long id) throws GroundException {
     LOGGER.info("Retrieving lineage edge version " + id + ".");
     return this.lineageEdgeVersionFactory.retrieveFromDatabase(id);
   }
@@ -73,7 +73,7 @@ public class LineageEdgesResource {
   @POST
   @Timed
   @Path("/versions")
-  public LineageEdgeVersion createLineageEdgeVersion(@Valid LineageEdgeVersion lineageEdgeVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
+  public LineageEdgeVersion createLineageEdgeVersion(@Valid LineageEdgeVersion lineageEdgeVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
     LOGGER.info("Creating lineage edge version in lineage edge " + lineageEdgeVersion.getLineageEdgeId() + ".");
     return this.lineageEdgeVersionFactory.create(lineageEdgeVersion.getTags(),
         lineageEdgeVersion.getStructureVersionId(),

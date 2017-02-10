@@ -22,14 +22,14 @@ public class PostgresStructureVersionFactoryTest extends PostgresTest {
   @Test
   public void testStructureVersionCreation() throws GroundException {
     String structureName = "testStructure";
-    String structureId = super.factories.getStructureFactory().create(structureName).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    String structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = super.factories.getStructureVersionFactory().create(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
     StructureVersion retrieved = super.factories.getStructureVersionFactory()

@@ -23,7 +23,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
 public class Tag {
-  private String versionId;
+  private long versionId;
 
   @NotEmpty
   // the Key of the Tag
@@ -38,7 +38,7 @@ public class Tag {
   private GroundType valueType;
 
   @JsonCreator
-  public Tag(@JsonProperty("versionId") String versionId,
+  public Tag(@JsonProperty("versionId") long versionId,
              @JsonProperty("key") String key,
              @JsonProperty("value") Object value,
              @JsonProperty("type") GroundType valueType) {
@@ -49,7 +49,7 @@ public class Tag {
   }
 
   @JsonProperty
-  public String getVersionId() {
+  public long getVersionId() {
     return this.versionId;
   }
 

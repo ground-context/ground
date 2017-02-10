@@ -37,6 +37,6 @@ public interface DBClient {
      * @param nodeVersionId the start id
      * @return the list of reachable ids
      */
-    public abstract List<String> transitiveClosure(String nodeVersionId) throws GroundException;
+    public abstract List<Long> transitiveClosure(long nodeVersionId) throws GroundException;
   }
 }

@@ -23,6 +23,5 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     Node node = nodeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, node.getName());
-    assertEquals("Nodes." + testName, node.getId());
   }
 }

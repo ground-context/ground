@@ -39,37 +39,39 @@ import java.util.stream.Collectors;
 public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jEdgeVersionFactory.class);
   private Neo4jClient dbClient;
+  private IdGenerator idGenerator;
 
   private Neo4jEdgeFactory edgeFactory;
   private Neo4jRichVersionFactory richVersionFactory;
 
-  public Neo4jEdgeVersionFactory(Neo4jEdgeFactory edgeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient) {
+  public Neo4jEdgeVersionFactory(Neo4jEdgeFactory edgeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.edgeFactory = edgeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
   public EdgeVersion create(Map<String, Tag> tags,
-                            String structureVersionId,
+                            long structureVersionId,
                             String reference,
                             Map<String, String> referenceParameters,
-                            String edgeId,
-                            String fromId,
-                            String toId,
-                            List<String> parentIds) throws GroundException {
+                            long edgeId,
+                            long fromId,
+                            long toId,
+                            List<Long> parentIds) throws GroundException {
 
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(edgeId);
+      long id = idGenerator.generateVersionId();
 
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("edge_id", GroundType.STRING, edgeId));
-      insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
+      insertions.add(new DbDataContainer("endpoint_one", GroundType.LONG, fromId));
+      insertions.add(new DbDataContainer("endpoint_two", GroundType.LONG, toId));
 
       connection.addVertex("EdgeVersion", insertions);
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
@@ -89,14 +91,14 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
     }
   }
 
-  public EdgeVersion retrieveFromDatabase(String id) throws GroundException {
+  public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       Record versionRecord;
       try {
@@ -105,12 +107,9 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 
-      String edgeId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v").asNode()
-          .get("edge_id"));
-      String fromId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v").asNode()
-          .get("endpoint_one"));
-      String toId = Neo4jClient.getStringFromValue((StringValue) versionRecord.get("v").asNode()
-          .get("endpoint_two"));
+      long edgeId = versionRecord.get("v").asNode() .get("edge_id").asLong();
+      long fromId = versionRecord.get("v").asNode().get("endpoint_one").asLong();
+      long toId = versionRecord.get("v").asNode().get("endpoint_two").asLong();
 
       connection.commit();
       LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");

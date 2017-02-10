@@ -31,7 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
-  public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, String fromId, String toId) throws GroundException {
+  private IdGenerator idGenerator;
+
+  public CassandraVersionSuccessorFactory(IdGenerator idGenerator) {
+    this.idGenerator = idGenerator;
+  }
+
+  public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, long fromId, long toId) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     // check to see if both are valid ids since we don't have foreign key constraints
@@ -63,18 +69,18 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> insertions = new ArrayList<>();
 
 
-    String dbId = IdGenerator.generateId(fromId + toId);
+    long dbId = this.idGenerator.generateSuccessorId();
 
-    insertions.add(new DbDataContainer("id", GroundType.STRING, dbId));
-    insertions.add(new DbDataContainer("from_version_id", GroundType.STRING, fromId));
-    insertions.add(new DbDataContainer("to_version_id", GroundType.STRING, toId));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, dbId));
+    insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
     connection.insert("version_successor", insertions);
 
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String dbId) throws GroundException {
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, long dbId) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -91,8 +97,8 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    String fromId = resultSet.getString("from_version_id");
-    String toId = resultSet.getString("to_version_id");
+    long fromId = resultSet.getLong("from_version_id");
+    long toId = resultSet.getLong("to_version_id");
 
     return VersionSuccessorFactory.construct(dbId, fromId, toId);
   }

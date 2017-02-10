@@ -56,6 +56,11 @@ public class PostgresResults implements QueryResults {
     throw new NotImplementedException();
   }
 
+
+  public long getLong(String field) throws GroundException {
+    throw new NotImplementedException();
+  }
+
   public int getInt(int index) throws GroundException {
     try {
       return resultSet.getInt(index);
@@ -69,6 +74,16 @@ public class PostgresResults implements QueryResults {
   public boolean getBoolean(int index) throws GroundException {
     try {
       return resultSet.getBoolean(index);
+    } catch (SQLException e) {
+      LOGGER.error(e.getMessage());
+
+      throw new GroundException(e);
+    }
+  }
+
+  public long getLong(int index) throws GroundException {
+    try {
+      return resultSet.getLong(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 

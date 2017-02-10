@@ -28,7 +28,7 @@ public class GraphTest {
 
   @Test
   public void serializesToJSON() throws Exception {
-    Graph graph = new Graph("Graphs.test", "test");
+    Graph graph = new Graph(1, "test");
     String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class));
 
     assertThat(MAPPER.writeValueAsString(graph)).isEqualTo(expected);
@@ -36,7 +36,7 @@ public class GraphTest {
 
   @Test
   public void deserializesFromJSON() throws Exception {
-    Graph graph = new Graph("Graphs.test", "test");
+    Graph graph = new Graph(1, "test");
     assertThat(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class)).isEqualToComparingFieldByField(graph);
   }
 }

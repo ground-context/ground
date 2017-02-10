@@ -21,22 +21,22 @@ import java.util.Map;
 
 public abstract class GraphVersionFactory {
   public abstract GraphVersion create(Map<String, Tag> tags,
-                                      String structureVersionId,
+                                      long structureVersionId,
                                       String reference,
                                       Map<String, String> referenceParameters,
-                                      String graphId,
-                                      List<String> edgeVersionIds,
-                                      List<String> parentIds) throws GroundException;
+                                      long graphId,
+                                      List<Long> edgeVersionIds,
+                                      List<Long> parentIds) throws GroundException;
 
-  public abstract GraphVersion retrieveFromDatabase(String id) throws GroundException;
+  public abstract GraphVersion retrieveFromDatabase(long id) throws GroundException;
 
-  protected static GraphVersion construct(String id,
+  protected static GraphVersion construct(long id,
                                           Map<String, Tag> tags,
-                                          String structureVersionId,
+                                          long structureVersionId,
                                           String reference,
                                           Map<String, String> parameters,
-                                          String graphId,
-                                          List<String> edgeVersionIds) {
+                                          long graphId,
+                                          List<Long> edgeVersionIds) {
 
     return new GraphVersion(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
   }

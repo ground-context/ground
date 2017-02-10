@@ -12,11 +12,11 @@ create table version_successor (
 );
 
 create table item (
-    id varchar NOT NULL PRIMARY KEY
+    id bigint NOT NULL PRIMARY KEY
 );
 
 create table version_history_dag (
-    item_id varchar NOT NULL REFERENCES item(id),
+    item_id bigint NOT NULL REFERENCES item(id),
     version_successor_id bigint NOT NULL REFERENCES version_successor(id),
     CONSTRAINT version_history_dag_pkey PRIMARY KEY (item_id, version_successor_id)
 );
@@ -27,13 +27,13 @@ create type data_type as enum ('integer', 'string', 'boolean');
 
 
 create table structure (
-    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
     name varchar NOT NULL UNIQUE
 );
 
 create table structure_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES version(id),
-    structure_id varchar NOT NULL REFERENCES structure(item_id)
+    structure_id bigint NOT NULL REFERENCES structure(item_id)
 );
 
 create table structure_version_attribute (
@@ -65,35 +65,35 @@ create table tag (
 );
 
 create table edge (
-    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
     name varchar NOT NULL UNIQUE
 );
 
 create table node (
-    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
     name varchar NOT NULL UNIQUE
 );
 
 create table graph (
-    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
     name varchar NOT NULL UNIQUE
 );
 
 create table node_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
-    node_id varchar NOT NULL REFERENCES node(item_id)
+    node_id bigint NOT NULL REFERENCES node(item_id)
 );
 
 create table edge_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
-    edge_id varchar NOT NULL REFERENCES edge(item_id),
-    from_node_version_id varchar NOT NULL REFERENCES node_version(id),
-    to_node_version_id varchar NOT NULL REFERENCES node_version(id)
+    edge_id bigint NOT NULL REFERENCES edge(item_id),
+    from_node_version_id bigint NOT NULL REFERENCES node_version(id),
+    to_node_version_id bigint NOT NULL REFERENCES node_version(id)
 );
 
 create table graph_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
-    graph_id varchar NOT NULL REFERENCES graph(item_id)
+    graph_id bigint NOT NULL REFERENCES graph(item_id)
 );
 
 create table graph_version_edge (
@@ -105,27 +105,27 @@ create table graph_version_edge (
 /* USAGE */
 
 create table workflow (
-    graph_id varchar NOT NULL PRIMARY KEY REFERENCES graph(item_id),
+    graph_id bigint NOT NULL PRIMARY KEY REFERENCES graph(item_id),
     name varchar NOT NULL UNIQUE REFERENCES graph(name)
 );
 
 create table principal (
-    node_id varchar NOT NULL PRIMARY KEY REFERENCES node(item_id),
+    node_id bigint NOT NULL PRIMARY KEY REFERENCES node(item_id),
     name varchar NOT NULL UNIQUE REFERENCES node(name)
 );
 
 create table lineage_edge (
-    item_id varchar NOT NULL PRIMARY KEY REFERENCES item(id),
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
     name varchar NOT NULL UNIQUE
 );
 
 create table lineage_edge_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
-    lineage_edge_id varchar NOT NULL REFERENCES lineage_edge(item_id),
+    lineage_edge_id bigint NOT NULL REFERENCES lineage_edge(item_id),
     from_rich_version_id bigint NOT NULL REFERENCES rich_version(id),
     to_rich_version_id bigint NOT NULL REFERENCES rich_version(id),
-    workflow_id varchar REFERENCES graph_version(id),
-    principal_id varchar REFERENCES node_version(id)
+    workflow_id bigint REFERENCES graph_version(id),
+    principal_id bigint REFERENCES node_version(id)
 );
 
 /* CREATE EMPTY VERSION */

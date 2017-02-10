@@ -45,15 +45,15 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
   }
 
   public void insertIntoDatabase(GroundDBConnection connectionPointer,
-                                 String id,
+                                 long id,
                                  Map<String, Tag> tags,
-                                 String structureVersionId,
+                                 long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
     this.versionFactory.insertIntoDatabase(connection, id);
 
-    if (structureVersionId != null) {
+    if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
 
       RichVersionFactory.checkStructureTags(structureVersion, tags);
@@ -61,7 +61,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-    insertions.add(new DbDataContainer("structure_version_id", GroundType.STRING, structureVersionId));
+    insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, structureVersionId));
     insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
 
     connection.insert("rich_version", insertions);
@@ -70,7 +70,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
@@ -94,11 +94,11 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     }
   }
 
-  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
     QueryResults resultSet;
     try {
@@ -127,7 +127,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
 
     String reference = resultSet.getString("reference");
-    String structureVersionId = resultSet.getString("structure_version_id");
+    long structureVersionId = resultSet.getLong("structure_version_id");
 
     return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
   }

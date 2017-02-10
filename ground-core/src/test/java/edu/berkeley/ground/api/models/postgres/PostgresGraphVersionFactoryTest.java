@@ -24,48 +24,48 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
   @Test
   public void testGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    String firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode).getId();
-    String firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        null, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode).getId();
+    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    String secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode).getId();
-    String secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        null, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode).getId();
+    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    String edgeId = super.factories.getEdgeFactory().create(edgeName).getId();
-    String edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        null, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId,
+    long edgeId = super.factories.getEdgeFactory().create(edgeName).getId();
+    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId,
         new ArrayList<>()).getId();
 
-    List<String> edgeVersionIds = new ArrayList<>();
+    List<Long> edgeVersionIds = new ArrayList<>();
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    String graphId = super.factories.getGraphFactory().create(graphName).getId();
+    long graphId = super.factories.getGraphFactory().create(graphName).getId();
 
     String structureName = "testStructure";
-    String structureId = super.factories.getStructureFactory().create(structureName).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    String structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = super.factories.getStructureVersionFactory().create(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(null, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(null, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(null, "boolfield", true, GroundType.BOOLEAN));
+    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
+    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
+    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    String graphVersionId = super.factories.getGraphVersionFactory().create(tags,
+    long graphVersionId = super.factories.getGraphVersionFactory().create(tags,
         structureVersionId, testReference, parameters, graphId, edgeVersionIds,
         new ArrayList<>()).getId();
 
@@ -76,9 +76,9 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
     assertEquals(testReference, retrieved.getReference());
     assertEquals(edgeVersionIds.size(), retrieved.getEdgeVersionIds().size());
 
-    List<String> retrievedEdgeVersionIds = retrieved.getEdgeVersionIds();
+    List<Long> retrievedEdgeVersionIds = retrieved.getEdgeVersionIds();
 
-    for (String id : edgeVersionIds) {
+    for (long id : edgeVersionIds) {
       assert (retrievedEdgeVersionIds).contains(id);
     }
 

@@ -18,6 +18,7 @@ public class IdGenerator {
   private long prefix;
   private long versionCounter;
   private long successorCounter;
+  private long itemCounter;
 
   public IdGenerator(int machineId, int numMachines) {
     long machineBits = 1;
@@ -32,7 +33,8 @@ public class IdGenerator {
 
     // NOTE: Do not change this. The version counter is set to start a 1 because 0 is the default empty version.
     this.versionCounter = 1;
-    this.successorCounter = 0;
+    this.successorCounter = 1;
+    this.itemCounter = 1;
   }
 
   public synchronized long generateVersionId() {
@@ -42,5 +44,9 @@ public class IdGenerator {
 
   public synchronized long generateSuccessorId() {
     return prefix | this.successorCounter++;
+  }
+
+  public synchronized long generateItemId() {
+    return prefix | this.itemCounter++;
   }
 }

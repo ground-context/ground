@@ -33,15 +33,15 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
-  public <T extends Version> VersionHistoryDAG<T> create(String itemId) throws GroundException {
+  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException {
     return construct(itemId);
   }
 
-  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, String itemId) throws GroundException {
+  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, long itemId) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
+    predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
 
     QueryResults resultSet;
     try {
@@ -53,20 +53,20 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
     do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getString(2)));
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getLong(2)));
     } while (resultSet.next());
 
     return VersionHistoryDAGFactory.construct(itemId, edges);
   }
 
-  public void addEdge(GroundDBConnection connectionPointer, VersionHistoryDAG dag, String parentId, String childId, String itemId) throws GroundException {
+  public void addEdge(GroundDBConnection connectionPointer, VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
-    insertions.add(new DbDataContainer("version_successor_id", GroundType.STRING, successor.getId()));
+    insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+    insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
 
     connection.insert("version_history_dag", insertions);
 

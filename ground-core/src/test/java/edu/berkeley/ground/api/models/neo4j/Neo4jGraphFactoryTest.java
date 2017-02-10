@@ -23,6 +23,5 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     Graph edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals("Graphs." + testName, edge.getId());
   }
 }

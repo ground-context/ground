@@ -39,43 +39,45 @@ import java.util.stream.Collectors;
 public class CassandraGraphVersionFactory extends GraphVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraGraphVersionFactory.class);
   private CassandraClient dbClient;
-
   private CassandraGraphFactory graphFactory;
   private CassandraRichVersionFactory richVersionFactory;
 
-  public CassandraGraphVersionFactory(CassandraGraphFactory graphFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraGraphVersionFactory(CassandraGraphFactory graphFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.graphFactory = graphFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
   public GraphVersion create(Map<String, Tag> tags,
-                             String structureVersionId,
+                             long structureVersionId,
                              String reference,
                              Map<String, String> referenceParameters,
-                             String graphId,
-                             List<String> edgeVersionIds,
-                             List<String> parentIds) throws GroundException {
+                             long graphId,
+                             List<Long> edgeVersionIds,
+                             List<Long> parentIds) throws GroundException {
 
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(graphId);
+      long id = this.idGenerator.generateVersionId();
 
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("graph_id", GroundType.STRING, graphId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("graph_id", GroundType.LONG, graphId));
 
       connection.insert("graph_version", insertions);
 
-      for (String edgeVersionId : edgeVersionIds) {
+      for (long edgeVersionId : edgeVersionIds) {
         List<DbDataContainer> edgeInsertion = new ArrayList<>();
-        edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.STRING, id));
-        edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.STRING, edgeVersionId));
+        edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
+        edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.LONG, edgeVersionId));
 
         connection.insert("graph_version_edge", edgeInsertion);
       }
@@ -93,17 +95,17 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
     }
   }
 
-  public GraphVersion retrieveFromDatabase(String id) throws GroundException {
+  public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       List<DbDataContainer> edgePredicate = new ArrayList<>();
-      edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.STRING, id));
+      edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
@@ -116,12 +118,15 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
         throw new GroundException("No GraphVersion found with id " + id + ".");
       }
 
-      String graphId = resultSet.getString(1);
+      long graphId = resultSet.getLong(1);
 
-      List<String> edgeVersionIds = new ArrayList<>();
+      List<Long> edgeVersionIds = new ArrayList<>();
       try {
         QueryResults edgeSet = connection.equalitySelect("graph_version_edge", DBClient.SELECT_STAR, edgePredicate);
-        edgeVersionIds = edgeSet.getStringList(1);
+
+        while (edgeSet.next()) {
+          edgeVersionIds.add(edgeSet.getLong(1));
+        }
       } catch (EmptyResultException eer) {
         // do nothing; this means that the graph is empty
       }

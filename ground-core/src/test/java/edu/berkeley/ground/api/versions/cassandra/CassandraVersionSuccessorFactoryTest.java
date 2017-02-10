@@ -19,8 +19,8 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
   @Test
   public void testVersionSuccessorCreation() {
     try {
-      String fromId = "testFromId";
-      String toId = "testToId";
+      long fromId = 123;
+      long toId = 456;
 
       CassandraConnection connection = super.cassandraClient.getConnection();
       super.versionFactory.insertIntoDatabase(connection, fromId);
@@ -40,8 +40,8 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testBadVersionSuccessorCreation() throws GroundException {
-    String fromId = "testFromId";
-    String toId = "testToId";
+    long fromId = 123;
+    long toId = 456;
     CassandraConnection connection = null;
 
     // Catch exceptions for these two lines because they should not fal

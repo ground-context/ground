@@ -36,7 +36,7 @@ public class StructureVersionTest {
     attributes.put("tag1", GroundType.INTEGER);
     attributes.put("tag2", GroundType.STRING);
 
-    StructureVersion structureVersion = new StructureVersion("abcd", "Structures.test", attributes);
+    StructureVersion structureVersion = new StructureVersion(1, 1, attributes);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/structure_version.json"), StructureVersion.class));
     assertThat(MAPPER.writeValueAsString(structureVersion)).isEqualTo(expected);
@@ -48,7 +48,7 @@ public class StructureVersionTest {
     attributes.put("tag1", GroundType.INTEGER);
     attributes.put("tag2", GroundType.STRING);
 
-    StructureVersion structureVersion = new StructureVersion("abcd", "Structures.test", attributes);
+    StructureVersion structureVersion = new StructureVersion(1, 1, attributes);
 
     assertThat(MAPPER.readValue(fixture("fixtures/models/structure_version.json"), StructureVersion.class)).isEqualToComparingFieldByField(structureVersion);
   }

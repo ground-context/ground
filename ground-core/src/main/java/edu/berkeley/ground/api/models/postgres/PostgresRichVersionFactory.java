@@ -45,23 +45,23 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
   }
 
   public void insertIntoDatabase(GroundDBConnection connectionPointer,
-                                 String id,
+                                 long id,
                                  Map<String, Tag> tags,
-                                 String structureVersionId,
+                                 long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     this.versionFactory.insertIntoDatabase(connection, id);
 
-    if (structureVersionId != null) {
+    if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
       RichVersionFactory.checkStructureTags(structureVersion, tags);
     }
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-    insertions.add(new DbDataContainer("structure_version_id", GroundType.STRING, structureVersionId));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, structureVersionId));
     insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
 
     connection.insert("rich_version", insertions);
@@ -70,7 +70,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
@@ -87,7 +87,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     for (String key : referenceParameters.keySet()) {
       List<DbDataContainer> parameterInsertion = new ArrayList<>();
 
-      parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+      parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
       parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
 
@@ -95,11 +95,11 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     }
   }
 
-  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
     QueryResults resultSet;
     try {
@@ -109,7 +109,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     }
 
     List<DbDataContainer> parameterPredicates = new ArrayList<>();
-    parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+    parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
 
     try {
@@ -125,7 +125,8 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
 
     String reference = resultSet.getString(3);
-    String structureVersionId = resultSet.getString(2);
+    long structureVersionId = resultSet.getLong(2);
+    structureVersionId = structureVersionId == 0 ? -1 : structureVersionId;
 
     return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
   }

@@ -39,34 +39,36 @@ import java.util.stream.Collectors;
 public class Neo4jNodeVersionFactory extends NodeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jNodeVersionFactory.class);
   private Neo4jClient dbClient;
+  private IdGenerator idGenerator;
 
   private Neo4jNodeFactory nodeFactory;
   private Neo4jRichVersionFactory richVersionFactory;
 
-  public Neo4jNodeVersionFactory(Neo4jNodeFactory nodeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient) {
+  public Neo4jNodeVersionFactory(Neo4jNodeFactory nodeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.nodeFactory = nodeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
   public NodeVersion create(Map<String, Tag> tags,
-                            String structureVersionId,
+                            long structureVersionId,
                             String reference,
                             Map<String, String> referenceParameters,
-                            String nodeId,
-                            List<String> parentIds) throws GroundException {
+                            long nodeId,
+                            List<Long> parentIds) throws GroundException {
 
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(nodeId);
+      long id = this.idGenerator.generateVersionId();
 
       // add the id of the version to the tag
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
       connection.addVertex("NodeVersion", insertions);
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
@@ -85,14 +87,14 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public NodeVersion retrieveFromDatabase(String id) throws GroundException {
+  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       Record record;
       try {
@@ -101,8 +103,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
-      String nodeId = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode().
-          get("node_id"));
+      long nodeId = record.get("v").asNode(). get("node_id").asLong();
 
       connection.commit();
       LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
@@ -115,10 +116,10 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public List<String> getTransitiveClosure(String nodeVersionId) throws GroundException {
+  public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
     try {
-      List<String> result = connection.transitiveClosure(nodeVersionId);
+      List<Long> result = connection.transitiveClosure(nodeVersionId);
 
       connection.commit();
       return result;
@@ -129,9 +130,9 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public List<String> getAdjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
-    List<String> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+    List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
 
     connection.commit();
     return result;

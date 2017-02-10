@@ -33,12 +33,12 @@ public class NodeVersionTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    NodeVersion nodeVersion = new NodeVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Nodes.test");
+    NodeVersion nodeVersion = new NodeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/node_version.json"), NodeVersion.class));
     assertThat(MAPPER.writeValueAsString(nodeVersion)).isEqualTo(expected);
@@ -47,12 +47,12 @@ public class NodeVersionTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    NodeVersion nodeVersion = new NodeVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Nodes.test");
+    NodeVersion nodeVersion = new NodeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1);
 
     assertThat(MAPPER.readValue(fixture("fixtures/models/node_version.json"), NodeVersion.class)).isEqualToComparingFieldByField(nodeVersion);
   }

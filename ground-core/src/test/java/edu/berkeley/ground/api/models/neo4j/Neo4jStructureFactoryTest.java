@@ -23,6 +23,5 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     Structure edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals("Structures." + testName, edge.getId());
   }
 }

@@ -27,15 +27,15 @@ import java.util.Set;
 
 public class VersionHistoryDAG<T extends Version> {
   // the id of the Version that's at the rootId of this DAG
-  private String itemId;
+  private long itemId;
 
   // list of VersionSuccessors that make up this DAG
-  private List<String> edgeIds;
+  private List<Long> edgeIds;
 
   // map of parents to children
-  private Map<String, List<String>> parentChildMap;
+  private Map<Long, List<Long>> parentChildMap;
 
-  protected VersionHistoryDAG(String itemId, List<VersionSuccessor<T>> edges) {
+  protected VersionHistoryDAG(long itemId, List<VersionSuccessor<T>> edges) {
     this.itemId = itemId;
     this.edgeIds = new ArrayList<>();
     this.parentChildMap = new HashMap<>();
@@ -48,12 +48,12 @@ public class VersionHistoryDAG<T extends Version> {
   }
 
   @JsonProperty
-  public String getItemId() {
+  public long getItemId() {
     return this.itemId;
   }
 
   @JsonProperty
-  public List<String> getEdgeIds() {
+  public List<Long> getEdgeIds() {
     return this.edgeIds;
   }
 
@@ -63,7 +63,7 @@ public class VersionHistoryDAG<T extends Version> {
    * @param id the ID to be checked
    * @return true if id is in the DAG, false otherwise
    */
-  public boolean checkItemInDag(String id) {
+  public boolean checkItemInDag(long id) {
     return this.parentChildMap.keySet().contains(id) || this.getLeaves().contains(id);
   }
 
@@ -73,7 +73,7 @@ public class VersionHistoryDAG<T extends Version> {
    * @param parentId the id of the "from" of the edge
    * @param childId  the id of the "to" of the edge
    */
-  public void addEdge(String parentId, String childId, String successorId) {
+  public void addEdge(long parentId, long childId, long successorId) {
     edgeIds.add(successorId);
     this.addToParentChildMap(parentId, childId);
   }
@@ -84,23 +84,23 @@ public class VersionHistoryDAG<T extends Version> {
    *
    * @return the list of the IDs of the leaves of this DAG
    */
-  public List<String> getLeaves() {
-    List<String> leaves = new ArrayList<>();
-    for (List<String> values : parentChildMap.values()) {
+  public List<Long> getLeaves() {
+    List<Long> leaves = new ArrayList<>();
+    for (List<Long> values : parentChildMap.values()) {
       leaves.addAll(values);
     }
 
     leaves.removeAll(this.parentChildMap.keySet());
 
-    Set<String> leafSet = new HashSet<>(leaves);
-    List<String> result = new ArrayList<>();
+    Set<Long> leafSet = new HashSet<>(leaves);
+    List<Long> result = new ArrayList<>();
     result.addAll(leafSet);
 
     return result;
   }
 
-  private void addToParentChildMap(String parent, String child) {
-    List<String> childList = this.parentChildMap.get(parent);
+  private void addToParentChildMap(long parent, long child) {
+    List<Long> childList = this.parentChildMap.get(parent);
     if (childList == null) {
       childList = new ArrayList<>();
     }

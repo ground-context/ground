@@ -29,7 +29,7 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
   private String name;
 
   @JsonCreator
-  protected LineageEdge(@JsonProperty("id") String id,
+  protected LineageEdge(@JsonProperty("id") long id,
                         @JsonProperty("name") String name) {
     super(id);
 
@@ -41,10 +41,6 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
     return this.name;
   }
 
-  public static String idToName(String id) {
-    return id.substring(13);
-  }
-
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof LineageEdge)) {
@@ -53,6 +49,6 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
 
     LineageEdge otherLineageEdge = (LineageEdge) other;
 
-    return this.name.equals(otherLineageEdge.name) && this.getId().equals(otherLineageEdge.getId());
+    return this.name.equals(otherLineageEdge.name) && this.getId() == otherLineageEdge.getId();
   }
 }

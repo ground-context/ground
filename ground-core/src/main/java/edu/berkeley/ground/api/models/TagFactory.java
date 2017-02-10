@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class TagFactory {
-  public abstract Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connection, String id) throws GroundException;
+  public abstract Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connection, long id) throws GroundException;
 
-  public abstract List<String> getIdsByTag(GroundDBConnection connection, String tag) throws GroundException;
+  public abstract List<Long> getIdsByTag(GroundDBConnection connection, String tag) throws GroundException;
 }
