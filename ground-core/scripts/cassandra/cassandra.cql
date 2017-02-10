@@ -29,7 +29,7 @@ create table structure (
 );
 
 create table structure_version (
-    id varchar primary key,
+    id varchar PRIMARY KEY,
     structure_id varchar
 );
 
@@ -92,7 +92,7 @@ create table edge_version (
 );
 
 create table graph_version (
-    id varchar primary key,
+    id varchar PRIMARY KEY,
     graph_id varchar,
 );
 
