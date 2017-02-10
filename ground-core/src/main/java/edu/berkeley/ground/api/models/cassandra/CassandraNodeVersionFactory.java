@@ -70,7 +70,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
       connection.insert("node_version", insertions);

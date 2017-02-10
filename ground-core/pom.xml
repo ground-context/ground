@@ -186,7 +186,7 @@
                         <!-- Since Neo4j is our recommended database, only run those tests and
                              Postgres tests by default. -->
                         <exclude>**/Gremlin*.java</exclude>
-                        <exclude>**/Cassandra*.java</exclude>
+                        <exclude>**/Neo4j*.java</exclude>
                         <exclude>**/Postgres*.java</exclude>
                     </excludes>
                 </configuration>

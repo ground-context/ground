@@ -83,7 +83,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
     CassandraConnection connection = this.dbClient.getConnection();
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
     QueryResults resultSet;
     try {
@@ -100,7 +100,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     try {
       List<DbDataContainer> attributePredicates = new ArrayList<>();
-      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.STRING, id));
+      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
       QueryResults attributesSet = connection.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
 
       while (attributesSet.next()) {

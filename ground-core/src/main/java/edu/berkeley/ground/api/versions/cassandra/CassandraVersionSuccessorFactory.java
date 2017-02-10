@@ -44,7 +44,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     QueryResults results;
     List<DbDataContainer> predicates = new ArrayList<>();
 
-    predicates.add(new DbDataContainer("id", GroundType.STRING, fromId));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
     try {
       results = connection.equalitySelect("version", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
@@ -56,7 +56,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     }
 
     predicates.clear();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, toId));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, toId));
     try {
       results = connection.equalitySelect("version", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
@@ -84,7 +84,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, dbId));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
     QueryResults resultSet;
     try {

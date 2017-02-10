@@ -241,6 +241,13 @@ public class CassandraClient implements DBClient {
           statement.setToNull(index);
         }
         break;
+      case LONG:
+        if (value != null && (long) value != -1) {
+          statement.setLong(index, (Long) value);
+        } else {
+          statement.setToNull(index);
+        }
+        break;
     }
   }
 }

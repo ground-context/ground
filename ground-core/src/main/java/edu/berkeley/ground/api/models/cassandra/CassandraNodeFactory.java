@@ -57,7 +57,7 @@ public class CassandraNodeFactory extends NodeFactory {
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
+      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
       connection.insert("node", insertions);
 

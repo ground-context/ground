@@ -11,11 +11,11 @@ create table version_successor (
 );
 
 create table item (
-    id varchar PRIMARY KEY
+    id bigint PRIMARY KEY
 );
 
 create table version_history_dag (
-    item_id varchar,
+    item_id bigint,
     version_successor_id bigint,
     PRIMARY KEY(item_id, version_successor_id)
 );
@@ -23,14 +23,14 @@ create table version_history_dag (
 /* MODELS */
 
 create table structure (
-    item_id varchar,
+    item_id bigint,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
 
 create table structure_version (
     id bigint primary key,
-    structure_id varchar
+    structure_id bigint
 );
 
 create table structure_version_attribute (
@@ -42,7 +42,7 @@ create table structure_version_attribute (
 
 create table rich_version (
     id bigint PRIMARY KEY,
-    structure_version_id varchar,
+    structure_version_id bigint,
     reference varchar
 );
 
@@ -62,38 +62,38 @@ create table tag (
 );
 
 create table edge (
-    item_id varchar,
+    item_id bigint,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
 
 create table node (
-    item_id varchar,
+    item_id bigint,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
 
 create table graph (
-    item_id varchar,
+    item_id bigint,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
 
 create table node_version (
     id bigint PRIMARY KEY,
-    node_id varchar
+    node_id bigint
 );
 
 create table edge_version (
     id bigint PRIMARY KEY,
-    edge_id varchar,
-    from_node_version_id varchar,
-    to_node_version_id varchar
+    edge_id bigint,
+    from_node_version_id bigint,
+    to_node_version_id bigint
 );
 
 create table graph_version (
     id bigint primary key,
-    graph_id varchar,
+    graph_id bigint
 );
 
 create table graph_version_edge (
@@ -105,30 +105,30 @@ create table graph_version_edge (
 /* USAGE */
 
 create table workflow (
-    graph_id varchar,
+    graph_id bigint,
     name varchar,
     PRIMARY KEY (graph_id, name)
 );
 
 create table principal (
-    node_id varchar,
+    node_id bigint,
     name varchar,
     PRIMARY KEY (node_id, name)
 );
 
 create table lineage_edge (
-    item_id varchar,
+    item_id bigint,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
 
 create table lineage_edge_version (
     id bigint PRIMARY KEY,
-    lineage_edge_id varchar,
+    lineage_edge_id bigint,
     from_rich_version_id bigint,
     to_rich_version_id bigint,
-    workflow_id varchar,
-    principal_id varchar,
+    workflow_id bigint,
+    principal_id bigint,
 );
 
 /* CREATE EMPTY VERSION */

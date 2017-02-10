@@ -96,7 +96,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {

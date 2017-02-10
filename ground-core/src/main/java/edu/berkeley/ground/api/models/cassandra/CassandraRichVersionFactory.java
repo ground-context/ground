@@ -60,7 +60,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     }
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
     insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, structureVersionId));
     insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
 
@@ -86,7 +86,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
 
     for (String key : referenceParameters.keySet()) {
       List<DbDataContainer> parameterInsertion = new ArrayList<>();
-      parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+      parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
       parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
 
@@ -112,7 +112,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     }
 
     List<DbDataContainer> parameterPredicates = new ArrayList<>();
-    parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+    parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
     try {
       QueryResults parameterSet = connection.equalitySelect("rich_version_external_parameter", DBClient.SELECT_STAR, parameterPredicates);

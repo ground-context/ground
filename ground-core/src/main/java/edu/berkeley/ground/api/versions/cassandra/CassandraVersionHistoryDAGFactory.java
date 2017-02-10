@@ -65,8 +65,8 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
     VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
-    insertions.add(new DbDataContainer("version_successor_id", GroundType.STRING, successor.getId()));
+    insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+    insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
 
     connection.insert("version_history_dag", insertions);
 

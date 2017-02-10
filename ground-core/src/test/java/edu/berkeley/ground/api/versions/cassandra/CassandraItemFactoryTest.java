@@ -14,8 +14,8 @@ import edu.berkeley.ground.exceptions.GroundException;
 import static org.junit.Assert.*;
 
 public class CassandraItemFactoryTest extends CassandraTest {
-    /* Note that there is no creation test here because there's no need to ever explicitly
-    * retrieve an Item. */
+  /* Note that there is no creation test here because there's no need to ever explicitly
+  * retrieve an Item. */
 
   public CassandraItemFactoryTest() throws GroundException {
     super();
@@ -91,7 +91,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
     VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
         connection, dag.getEdgeIds().get(0));
 
-    assertEquals("EMPTY", successor.getFromId());
+    assertEquals(0, successor.getFromId());
     assertEquals(toId, successor.getToId());
   }
 
@@ -136,7 +136,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       toSuccessor = tmp;
     }
 
-    assertEquals("EMPTY", fromSuccessor.getFromId());
+    assertEquals(0, fromSuccessor.getFromId());
     assertEquals(fromId, fromSuccessor.getToId());
 
     assertEquals(fromId, toSuccessor.getFromId());
