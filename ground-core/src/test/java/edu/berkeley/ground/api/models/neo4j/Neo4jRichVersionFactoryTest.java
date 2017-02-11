@@ -92,8 +92,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
     try {
       connection = super.neo4jClient.getConnection();
 
-            /* Create a NodeVersion because Neo4j's rich version factory looks for an existing
-             * version with this id */
+      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing * version with this id */
       long testNodeId = super.factories.getNodeFactory().create("testNode").getId();
       long id = super.createNodeVersion(testNodeId);
 

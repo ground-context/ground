@@ -69,7 +69,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
     }
 
     if (structureVersionId != -1) {
-      connection.setProperty(id, "structure_id", structureVersionId, true);
+      connection.setProperty(id, "structure_id", structureVersionId, false);
     }
 
     if (reference != null) {
@@ -80,7 +80,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+      tagInsertion.add(new DbDataContainer("richversion_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
@@ -100,7 +100,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
     Record record;
 
     try {

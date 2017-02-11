@@ -40,7 +40,7 @@ public class CassandraFactories {
   private CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
   public CassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
-    IdGenerator idGenerator = new IdGenerator(machineId, numMachines);
+    IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
 
     CassandraVersionFactory versionFactory = new CassandraVersionFactory();
     CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory(idGenerator);

@@ -34,7 +34,7 @@ public class PostgresTest {
     this.factories = new PostgresFactories(cassandraClient, 0, 1);
 
     this.versionFactory = new PostgresVersionFactory();
-    this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(new IdGenerator(0, 1));
+    this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(new IdGenerator(0, 1, false));
     this.versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
     this.itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
     this.tagFactory = new PostgresTagFactory();

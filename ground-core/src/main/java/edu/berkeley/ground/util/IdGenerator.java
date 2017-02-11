@@ -20,7 +20,10 @@ public class IdGenerator {
   private long successorCounter;
   private long itemCounter;
 
-  public IdGenerator(int machineId, int numMachines) {
+  // If true, only one counter will be used. If false, all three counters will be used.
+  private boolean globallyUnique;
+
+  public IdGenerator(int machineId, int numMachines, boolean globallyUnique) {
     long machineBits = 1;
     long fence = 2;
 
@@ -35,18 +38,27 @@ public class IdGenerator {
     this.versionCounter = 1;
     this.successorCounter = 1;
     this.itemCounter = 1;
+
+    this.globallyUnique = globallyUnique;
   }
 
   public synchronized long generateVersionId() {
     return prefix | this.versionCounter++;
   }
 
-
   public synchronized long generateSuccessorId() {
-    return prefix | this.successorCounter++;
+    if (this.globallyUnique) {
+      return prefix | this.versionCounter++;
+    } else {
+      return prefix | this.successorCounter++;
+    }
   }
 
   public synchronized long generateItemId() {
-    return prefix | this.itemCounter++;
+    if (this.globallyUnique) {
+      return prefix | this.versionCounter++;
+    } else {
+      return prefix | this.itemCounter++;
+    }
   }
 }

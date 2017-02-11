@@ -56,8 +56,6 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
 
       // this statement should be fail because the fromId does not exist
       super.versionSuccessorFactory.create(connection, 9, toId).getId();
-    } catch (Exception e) {
-      fail(e.getMessage());
     } finally {
       connection.abort();
     }

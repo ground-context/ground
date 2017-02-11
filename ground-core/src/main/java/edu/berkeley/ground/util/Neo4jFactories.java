@@ -39,7 +39,7 @@ public class Neo4jFactories {
   private Neo4jLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
   public Neo4jFactories(Neo4jClient neo4jClient, int machineId, int numMachines) {
-    IdGenerator idGenerator = new IdGenerator(machineId, numMachines);
+    IdGenerator idGenerator = new IdGenerator(machineId, numMachines, true);
 
     Neo4jVersionSuccessorFactory versionSuccessorFactory = new Neo4jVersionSuccessorFactory(idGenerator);
     Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(versionSuccessorFactory);

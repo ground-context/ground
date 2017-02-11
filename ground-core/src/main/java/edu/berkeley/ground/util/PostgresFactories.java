@@ -40,7 +40,7 @@ public class PostgresFactories {
   private PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
   public PostgresFactories(PostgresClient postgresClient, int machineId, int numMachines) {
-    IdGenerator idGenerator = new IdGenerator(machineId, numMachines);
+    IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
 
     PostgresVersionFactory versionFactory = new PostgresVersionFactory();
     PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory(idGenerator);

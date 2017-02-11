@@ -51,9 +51,8 @@ public class Neo4jItemFactory extends ItemFactory {
       dag = this.versionHistoryDAGFactory.create(itemId);
     }
 
-    /* TODO: Neo4j needs some sort of disambiguation between item ids and parent ids because they're, well, not in different tables... */
     for (long parentId : parentIds) {
-      if (!(parentId == 0) && !dag.checkItemInDag(parentId)) {
+      if (!(parentId == itemId) && !dag.checkItemInDag(parentId)) {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
 
         throw new GroundException(errorString);

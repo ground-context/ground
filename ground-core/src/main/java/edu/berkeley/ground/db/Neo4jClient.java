@@ -257,11 +257,13 @@ public class Neo4jClient implements DBClient {
     public List<Relationship> getDescendantEdgesByLabel(long startId, String label) {
 
       String query = "MATCH (a)-[e:" + label + "]-(b " +
-          "{node_id : " + startId + "}) WHERE a.id='" + startId +
-          "' OR a.node_id='" + startId + "' RETURN DISTINCT e";
+          "{node_id : " + startId + "}) WHERE a.id=" + startId +
+          " OR a.node_id=" + startId + " RETURN DISTINCT e";
 
       StatementResult result = this.transaction.run(query);
       Set<Relationship> response = new HashSet<>();
+
+      System.out.println(query);
 
       List<Record> resultList = result.list();
       if (!resultList.isEmpty()) {
