@@ -39,10 +39,10 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
     Map<String, Tag> tags = new HashMap<String, Tag>();
     GroundType typeString = GroundType.STRING;
     GroundType typeInt = GroundType.INTEGER;
-    Tag timeCreated = new Tag(" ", "timeCreated", record.get("timeCreated"), typeInt);
-    Tag length = new Tag(" ", "fileLength", record.get("length"), typeInt);
-    Tag modificationTime = new Tag(" ", "modificationTime", record.get("modificationTime"), typeInt);
-    Tag owner = new Tag(" ", "owner", record.get("owner"), typeString);
+    Tag timeCreated = new Tag(-1, "timeCreated", record.get("timeCreated"), typeInt);
+    Tag length = new Tag(-1, "fileLength", record.get("length"), typeInt);
+    Tag modificationTime = new Tag(-1, "modificationTime", record.get("modificationTime"), typeInt);
+    Tag owner = new Tag(-1, "owner", record.get("owner"), typeString);
     tags.put("timeCreated", timeCreated);
     tags.put("length", length);
     tags.put("modificationTime", modificationTime);
@@ -57,7 +57,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
   //method to create a Node given the name
   public void node(String name, Map<String, Tag> tags) throws IOException {
 
-    Node node = new Node("id", name);
+    Node node = new Node(-1, name);
     ObjectMapper mapper = new ObjectMapper();
     String jsonString = mapper.writeValueAsString(node);
     String uri = groundServerAddress + name;
@@ -72,16 +72,16 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
     ObjectMapper objectMapper = new ObjectMapper();
     JsonNode jsonNode = objectMapper.readValue(text, JsonNode.class);
     JsonNode nodeId = jsonNode.get("id");
-    String id = nodeId.asText();
+    long id = nodeId.asLong();
 
     //creating a NodeVersion using the nodeId and the metadata stored in tags
     Map<String, String> refParameters = new HashMap<String, String>();
-    nodeVersion("id", tags, null, null, refParameters, id);
+    nodeVersion(-1, tags, -1, null, refParameters, id);
 
   }
 
   //method to create the NodeVersion given the nodeId and the tags
-  public void nodeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference, Map<String, String> referenceParameters, String nodeId) throws IOException {
+  public void nodeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference, Map<String, String> referenceParameters, long nodeId) throws IOException {
 
     NodeVersion nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
     ObjectMapper mapper = new ObjectMapper();
