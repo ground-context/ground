@@ -17,12 +17,11 @@ public class PostgresNodeFactoryTest extends PostgresTest {
   @Test
   public void testNodeCreation() throws GroundException {
     String testName = "test";
-    PostgresNodeFactory edgeFactory = (PostgresNodeFactory) super.factories.getNodeFactory();
-    edgeFactory.create(testName);
+    PostgresNodeFactory nodeFactory = (PostgresNodeFactory) super.factories.getNodeFactory();
+    nodeFactory.create(testName);
 
-    Node edge = edgeFactory.retrieveFromDatabase(testName);
+    Node node = nodeFactory.retrieveFromDatabase(testName);
 
-    assertEquals(testName, edge.getName());
-    assertEquals("node." + testName, edge.getId());
+    assertEquals(testName, node.getName());
   }
 }

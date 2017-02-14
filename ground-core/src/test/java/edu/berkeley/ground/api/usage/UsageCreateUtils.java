@@ -17,7 +17,7 @@ package edu.berkeley.ground.api.usage;
 import java.util.HashMap;
 
 public class UsageCreateUtils {
-  public static LineageEdgeVersion getLineageEdgeVersion(String id, String lineageEdgeId, String fromId, String toId) {
-    return new LineageEdgeVersion(id, new HashMap<>(), null, null, new HashMap<>(), fromId, toId, lineageEdgeId);
+  public static LineageEdgeVersion getLineageEdgeVersion(long id, long lineageEdgeId, long fromId, long toId) {
+    return new LineageEdgeVersion(id, new HashMap<>(), -1, null, new HashMap<>(), fromId, toId, lineageEdgeId);
   }
 }

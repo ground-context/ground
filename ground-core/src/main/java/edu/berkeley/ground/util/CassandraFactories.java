@@ -39,25 +39,27 @@ public class CassandraFactories {
   private CassandraLineageEdgeFactory lineageEdgeFactory;
   private CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-  public CassandraFactories(CassandraClient cassandraClient) {
+  public CassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
+    IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
+
     CassandraVersionFactory versionFactory = new CassandraVersionFactory();
-    CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory();
+    CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory(idGenerator);
     CassandraVersionHistoryDAGFactory versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
     CassandraItemFactory itemFactory = new CassandraItemFactory(versionHistoryDAGFactory);
 
-    this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient);
-    this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient);
+    this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient, idGenerator);
+    this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient, idGenerator);
     CassandraTagFactory tagFactory = new CassandraTagFactory();
     CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
-    this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient);
-    this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient);
-    this.graphFactory = new CassandraGraphFactory(itemFactory, cassandraClient);
-    this.graphVersionFactory = new CassandraGraphVersionFactory(this.graphFactory, richVersionFactory, cassandraClient);
-    this.nodeFactory = new CassandraNodeFactory(itemFactory, cassandraClient);
-    this.nodeVersionFactory = new CassandraNodeVersionFactory(this.nodeFactory, richVersionFactory, cassandraClient);
+    this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient, idGenerator);
+    this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.graphFactory = new CassandraGraphFactory(itemFactory, cassandraClient, idGenerator);
+    this.graphVersionFactory = new CassandraGraphVersionFactory(this.graphFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.nodeFactory = new CassandraNodeFactory(itemFactory, cassandraClient, idGenerator);
+    this.nodeVersionFactory = new CassandraNodeVersionFactory(this.nodeFactory, richVersionFactory, cassandraClient, idGenerator);
 
-    this.lineageEdgeFactory = new CassandraLineageEdgeFactory(itemFactory, cassandraClient);
-    this.lineageEdgeVersionFactory = new CassandraLineageEdgeVersionFactory(this.lineageEdgeFactory, richVersionFactory, cassandraClient);
+    this.lineageEdgeFactory = new CassandraLineageEdgeFactory(itemFactory, cassandraClient, idGenerator);
+    this.lineageEdgeVersionFactory = new CassandraLineageEdgeVersionFactory(this.lineageEdgeFactory, richVersionFactory, cassandraClient, idGenerator);
   }
 
   public EdgeFactory getEdgeFactory() {

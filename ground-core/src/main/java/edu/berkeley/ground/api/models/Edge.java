@@ -24,7 +24,7 @@ public class Edge extends Item<EdgeVersion> {
   private String name;
 
   @JsonCreator
-  public Edge(@JsonProperty("id") String id,
+  public Edge(@JsonProperty("id") long id,
               @JsonProperty("name") String name) {
     super(id);
 
@@ -36,10 +36,6 @@ public class Edge extends Item<EdgeVersion> {
     return this.name;
   }
 
-  public static String idToName(String id) {
-    return id.substring(6);
-  }
-
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof Edge)) {
@@ -48,6 +44,6 @@ public class Edge extends Item<EdgeVersion> {
 
     Edge otherEdge = (Edge) other;
 
-    return this.name.equals(otherEdge.name) && this.getId().equals(otherEdge.getId());
+    return this.name.equals(otherEdge.name) && this.getId() == otherEdge.getId();
   }
 }

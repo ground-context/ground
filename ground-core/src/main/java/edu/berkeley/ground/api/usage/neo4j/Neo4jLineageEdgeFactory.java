@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
@@ -36,25 +37,27 @@ import java.util.List;
 public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jLineageEdgeFactory.class);
   private Neo4jClient dbClient;
-
   private Neo4jItemFactory itemFactory;
 
-  public Neo4jLineageEdgeFactory(Neo4jItemFactory itemFactory, Neo4jClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public Neo4jLineageEdgeFactory(Neo4jItemFactory itemFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
+    this.idGenerator = idGenerator;
   }
 
   public LineageEdge create(String name) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "LineageEdges." + name;
+      long uniqueId = this.idGenerator.generateItemId();
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("id", GroundType.STRING, uniqueId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
 
       connection.addVertex("LineageEdges", insertions);
 
@@ -83,7 +86,7 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
         throw new GroundException("No LineageEdge found with name " + name + ".");
       }
 
-      String id = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode().get("id"));
+      long id = record.get("v").asNode().get("id").asLong();
 
       connection.commit();
       LOGGER.info("Retrieved lineage edge " + name + ".");
@@ -96,7 +99,7 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
     }
   }
 
-  public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(connection, itemId, childId, parentIds);
   }
 }

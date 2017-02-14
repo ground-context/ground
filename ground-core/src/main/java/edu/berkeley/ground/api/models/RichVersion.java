@@ -26,9 +26,8 @@ public class RichVersion extends Version {
   // the map of Keys to Tags associated with this RichVersion
   private Map<String, Tag> tags;
 
-  @UnwrapValidatedValue
   // the StructureVersion associated with this RichVersion
-  private String structureVersionId;
+  private long structureVersionId;
 
   @UnwrapValidatedValue
   // the optional reference associated with this RichVersion
@@ -38,16 +37,16 @@ public class RichVersion extends Version {
   // the optional parameters associated with this RichVersion if there is a reference
   private Map<String, String> parameters;
 
-  public RichVersion(String id,
+  public RichVersion(long id,
                      Map<String, Tag> tags,
-                     String structureVersionId,
+                     long structureVersionId,
                      String reference,
                      Map<String, String> referenceParameters) {
 
     super(id);
 
     this.tags = tags;
-    this.structureVersionId = structureVersionId;
+    this.structureVersionId = structureVersionId == 0 ? -1 : structureVersionId;
     this.reference = reference;
     this.parameters = referenceParameters;
   }
@@ -58,7 +57,7 @@ public class RichVersion extends Version {
   }
 
   @JsonProperty
-  public String getStructureVersionId() {
+  public long getStructureVersionId() {
     return this.structureVersionId;
   }
 
@@ -80,9 +79,9 @@ public class RichVersion extends Version {
 
     RichVersion otherRichVersion = (RichVersion) other;
 
-    return this.getId().equals(otherRichVersion.getId()) &&
+    return this.getId() == otherRichVersion.getId() &&
         this.tags.equals(otherRichVersion.tags) &&
-        this.structureVersionId.equals(otherRichVersion.structureVersionId) &&
+        this.structureVersionId == otherRichVersion.structureVersionId &&
         this.reference.equals(otherRichVersion.reference) &&
         this.parameters.equals(otherRichVersion.parameters);
   }

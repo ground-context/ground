@@ -22,17 +22,17 @@ import java.util.Map;
 
 public abstract class RichVersionFactory {
   public abstract void insertIntoDatabase(GroundDBConnection connection,
-                                          String id,
+                                          long id,
                                           Map<String, Tag> tags,
-                                          String structureVersionId,
+                                          long structureVersionId,
                                           String reference,
                                           Map<String, String> referenceParameters) throws GroundException;
 
-  public abstract RichVersion retrieveFromDatabase(GroundDBConnection connection, String id) throws GroundException;
+  public abstract RichVersion retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException;
 
-  protected static RichVersion construct(String id,
+  protected static RichVersion construct(long id,
                                          Map<String, Tag> tags,
-                                         String structureVersionId,
+                                         long structureVersionId,
                                          String reference,
                                          Map<String, String> parameters) {
     return new RichVersion(id, tags, structureVersionId, reference, parameters);

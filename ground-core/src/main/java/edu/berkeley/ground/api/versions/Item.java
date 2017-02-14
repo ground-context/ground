@@ -18,14 +18,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Item<T extends Version> {
 
-  private String id;
+  private long id;
 
-  protected Item(String id) {
+  protected Item(long id) {
     this.id = id;
   }
 
   @JsonProperty
-  public String getId() {
+  public long getId() {
     return this.id;
   }
 

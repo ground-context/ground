@@ -24,6 +24,7 @@ import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
@@ -38,20 +39,23 @@ public class Neo4jNodeFactory extends NodeFactory {
   private Neo4jClient dbClient;
   private Neo4jItemFactory itemFactory;
 
-  public Neo4jNodeFactory(Neo4jItemFactory itemFactory, Neo4jClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public Neo4jNodeFactory(Neo4jItemFactory itemFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
+    this.idGenerator = idGenerator;
   }
 
   public Node create(String name) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "Nodes." + name;
+      long uniqueId = this.idGenerator.generateItemId();
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("id", GroundType.STRING, uniqueId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
 
       connection.addVertex("Node", insertions);
 
@@ -66,9 +70,11 @@ public class Neo4jNodeFactory extends NodeFactory {
     }
   }
 
-  public List<String> getLeaves(String name) throws GroundException {
+  public List<Long> getLeaves(String name) throws GroundException {
+    Node node = this.retrieveFromDatabase(name);
+
     Neo4jConnection connection = this.dbClient.getConnection();
-    List<String> leaves = this.itemFactory.getLeaves(connection, "Nodes." + name);
+    List<Long> leaves = this.itemFactory.getLeaves(connection, node.getId());
     connection.commit();
 
     return leaves;
@@ -88,7 +94,7 @@ public class Neo4jNodeFactory extends NodeFactory {
         throw new GroundException("No Node found with name " + name + ".");
       }
 
-      String id = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode().get("id"));
+      long id = record.get("v").asNode().get("id").asLong();
 
       connection.commit();
       LOGGER.info("Retrieved node " + name + ".");
@@ -101,7 +107,7 @@ public class Neo4jNodeFactory extends NodeFactory {
     }
   }
 
-  public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(connection, itemId, childId, parentIds);
   }
 }

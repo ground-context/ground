@@ -24,9 +24,9 @@ public abstract class EdgeFactory {
 
   public abstract Edge retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
+  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  protected static Edge construct(String id, String name) {
+  protected static Edge construct(long id, String name) {
     return new Edge(id, name);
   }
 }

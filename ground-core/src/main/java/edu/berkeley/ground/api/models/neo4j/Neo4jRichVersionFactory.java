@@ -42,15 +42,15 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
   }
 
   public void insertIntoDatabase(GroundDBConnection connectionPointer,
-                                 String id,
+                                 long id,
                                  Map<String, Tag> tags,
-                                 String structureVersionId,
+                                 long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters
   ) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
-    if (structureVersionId != null) {
+    if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
       RichVersionFactory.checkStructureTags(structureVersion, tags);
     }
@@ -59,7 +59,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       String value = referenceParameters.get(key);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+      insertions.add(new DbDataContainer("richversion_id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
       insertions.add(new DbDataContainer("value", GroundType.STRING, value));
 
@@ -68,8 +68,8 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       insertions.clear();
     }
 
-    if (structureVersionId != null) {
-      connection.setProperty(id, "structure_id", structureVersionId, true);
+    if (structureVersionId != -1) {
+      connection.setProperty(id, "structure_id", structureVersionId, false);
     }
 
     if (reference != null) {
@@ -80,7 +80,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+      tagInsertion.add(new DbDataContainer("richversion_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
@@ -96,11 +96,11 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
     }
   }
 
-  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
     Record record;
 
     try {
@@ -132,12 +132,11 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
           .get("reference"));
     }
 
-    String structureVersionId;
+    long structureVersionId;
     if (record.get("v").asNode().get("structure_id") instanceof NullValue) {
-      structureVersionId = null;
+      structureVersionId = -1;
     } else {
-      structureVersionId = Neo4jClient.getStringFromValue((StringValue) record.get("v").asNode()
-          .get("structure_id"));
+      structureVersionId = record.get("v").asNode().get("structure_id").asLong();
     }
 
     return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);

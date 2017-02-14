@@ -24,7 +24,7 @@ public class Structure extends Item<StructureVersion> {
   private String name;
 
   @JsonCreator
-  public Structure(@JsonProperty("id") String id,
+  public Structure(@JsonProperty("id") long id,
                    @JsonProperty("name") String name) {
     super(id);
 
@@ -36,10 +36,6 @@ public class Structure extends Item<StructureVersion> {
     return this.name;
   }
 
-  public static String idToName(String id) {
-    return id.substring(11);
-  }
-
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof Structure)) {
@@ -48,6 +44,6 @@ public class Structure extends Item<StructureVersion> {
 
     Structure otherStructure = (Structure) other;
 
-    return this.name.equals(otherStructure.name) && this.getId().equals(otherStructure.getId());
+    return this.name.equals(otherStructure.name) && this.getId() == otherStructure.getId();
   }
 }

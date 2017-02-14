@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class JGraphTUtilsTest {
-  private DirectedGraph<String, DefaultEdge> graph;
+  private DirectedGraph<Long, DefaultEdge> graph;
 
   @Before
   public void setup() {
@@ -19,7 +19,7 @@ public class JGraphTUtilsTest {
 
   @Test
   public void testAddVertex() {
-    String testId = "testId";
+    long testId = 1;
 
     JGraphTUtils.addVertex(this.graph, testId);
 
@@ -29,8 +29,8 @@ public class JGraphTUtilsTest {
 
   @Test
   public void testAddEdge() {
-    String fromId = "testFrom";
-    String toId = "testTo";
+    long fromId = 1;
+    long toId = 2;
     JGraphTUtils.addVertex(this.graph, fromId);
     JGraphTUtils.addVertex(this.graph, toId);
 
@@ -44,9 +44,9 @@ public class JGraphTUtilsTest {
 
   @Test
   public void testDFS() {
-    String idOne = "idOne";
-    String idTwo = "idTwo";
-    String idThree = "idThree";
+    long idOne = 1;
+    long idTwo = 2;
+    long idThree = 3;
     JGraphTUtils.addVertex(this.graph, idOne);
     JGraphTUtils.addVertex(this.graph, idTwo);
     JGraphTUtils.addVertex(this.graph, idThree);
@@ -54,7 +54,7 @@ public class JGraphTUtilsTest {
     JGraphTUtils.addEdge(this.graph, idOne, idTwo);
     JGraphTUtils.addEdge(this.graph, idTwo, idThree);
 
-    List<String> reachable = JGraphTUtils.runDFS(this.graph, idOne);
+    List<Long> reachable = JGraphTUtils.runDFS(this.graph, idOne);
 
     assertEquals(3, reachable.size());
     assert (reachable).contains(idTwo);

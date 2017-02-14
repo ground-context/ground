@@ -21,24 +21,24 @@ import java.util.Map;
 
 public class EdgeVersion extends RichVersion {
   // the id of the Edge containing this Version
-  private String edgeId;
+  private long edgeId;
 
   // the id of the NodeVersion that this EdgeVersion originates from
-  private String fromId;
+  private long fromId;
 
   // the id of the NodeVersion that this EdgeVersion points to
-  private String toId;
+  private long toId;
 
   @JsonCreator
   public EdgeVersion(
-      @JsonProperty("id") String id,
+      @JsonProperty("id") long id,
       @JsonProperty("tags") Map<String, Tag> tags,
-      @JsonProperty("structureVersionId") String structureVersionId,
+      @JsonProperty("structureVersionId") long structureVersionId,
       @JsonProperty("reference") String reference,
       @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-      @JsonProperty("edgeId") String edgeId,
-      @JsonProperty("fromId") String fromId,
-      @JsonProperty("toId") String toId) {
+      @JsonProperty("edgeId") long edgeId,
+      @JsonProperty("fromId") long fromId,
+      @JsonProperty("toId") long toId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
@@ -48,17 +48,17 @@ public class EdgeVersion extends RichVersion {
   }
 
   @JsonProperty
-  public String getEdgeId() {
+  public long getEdgeId() {
     return this.edgeId;
   }
 
   @JsonProperty
-  public String getFromId() {
+  public long getFromId() {
     return this.fromId;
   }
 
   @JsonProperty
-  public String getToId() {
+  public long getToId() {
     return this.toId;
   }
 
@@ -70,10 +70,10 @@ public class EdgeVersion extends RichVersion {
 
     EdgeVersion otherEdgeVersion = (EdgeVersion) other;
 
-    return this.edgeId.equals(otherEdgeVersion.edgeId) &&
-        this.fromId.equals(otherEdgeVersion.fromId) &&
-        this.toId.equals(otherEdgeVersion.toId) &&
-        this.getId().equals(otherEdgeVersion.getId()) &&
+    return this.edgeId == otherEdgeVersion.edgeId &&
+        this.fromId == otherEdgeVersion.fromId &&
+        this.toId == otherEdgeVersion.toId &&
+        this.getId() == otherEdgeVersion.getId() &&
         super.equals(other);
   }
 }

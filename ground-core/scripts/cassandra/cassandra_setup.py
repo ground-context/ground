@@ -20,10 +20,10 @@ dbname = sys.argv[1]
 drop = len(sys.argv) == 3
 
 if drop:
-    command_string = "cqlsh -k " + str(dbname) + " -f drop_cassandra.sql"
+    command_string = "cqlsh -k " + str(dbname) + " -f drop_cassandra.cql"
     os.system(command_string)
 
-command_string = "cqlsh -k " + str(dbname) + " -f cassandra.sql"
+command_string = "cqlsh -k " + str(dbname) + " -f cassandra.cql"
 os.system(command_string)
 
 print "Successfully reset Cassandra."

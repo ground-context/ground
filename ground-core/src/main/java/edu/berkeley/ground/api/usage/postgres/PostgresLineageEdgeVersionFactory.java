@@ -40,40 +40,42 @@ import java.util.stream.Collectors;
 public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresLineageEdgeVersionFactory.class);
   private PostgresClient dbClient;
-
   private PostgresLineageEdgeFactory lineageEdgeFactory;
   private PostgresRichVersionFactory richVersionFactory;
 
-  public PostgresLineageEdgeVersionFactory(PostgresLineageEdgeFactory lineageEdgeFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public PostgresLineageEdgeVersionFactory(PostgresLineageEdgeFactory lineageEdgeFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.lineageEdgeFactory = lineageEdgeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
 
   public LineageEdgeVersion create(Map<String, Tag> tags,
-                                   String structureVersionId,
+                                   long structureVersionId,
                                    String reference,
                                    Map<String, String> referenceParameters,
-                                   String fromId,
-                                   String toId,
-                                   String lineageEdgeId,
-                                   List<String> parentIds) throws GroundException {
+                                   long fromId,
+                                   long toId,
+                                   long lineageEdgeId,
+                                   List<Long> parentIds) throws GroundException {
 
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(lineageEdgeId);
+      long id = this.idGenerator.generateVersionId();
 
       tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("lineage_edge_id", GroundType.STRING, lineageEdgeId));
-      insertions.add(new DbDataContainer("from_rich_version_id", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("to_rich_version_id", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("lineage_edge_id", GroundType.LONG, lineageEdgeId));
+      insertions.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, fromId));
+      insertions.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, toId));
 
       connection.insert("lineage_edge_version", insertions);
 
@@ -90,14 +92,14 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
     }
   }
 
-  public LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException {
+  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
@@ -106,9 +108,9 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
-      String lineageEdgeId = resultSet.getString(2);
-      String fromId = resultSet.getString(3);
-      String toId = resultSet.getString(4);
+      long lineageEdgeId = resultSet.getLong(2);
+      long fromId = resultSet.getLong(3);
+      long toId = resultSet.getLong(4);
 
       connection.commit();
       LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");

@@ -26,6 +26,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,24 +37,27 @@ import java.util.List;
 public class CassandraGraphFactory extends GraphFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraGraphFactory.class);
   private CassandraClient dbClient;
-
   private CassandraItemFactory itemFactory;
 
-  public CassandraGraphFactory(CassandraItemFactory itemFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraGraphFactory(CassandraItemFactory itemFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
+    this.idGenerator = idGenerator;
   }
 
   public Graph create(String name) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "graph." + name;
+      long uniqueId = this.idGenerator.generateItemId();
+
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
+      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
       connection.insert("graph", insertions);
 
@@ -86,7 +90,7 @@ public class CassandraGraphFactory extends GraphFactory {
         throw new GroundException("No Graph found with name " + name + ".");
       }
 
-      String id = resultSet.getString(0);
+      long id = resultSet.getLong(0);
 
       connection.commit();
       LOGGER.info("Retrieved graph " + name + ".");
@@ -99,7 +103,7 @@ public class CassandraGraphFactory extends GraphFactory {
     }
   }
 
-  public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(connection, itemId, childId, parentIds);
   }
 }

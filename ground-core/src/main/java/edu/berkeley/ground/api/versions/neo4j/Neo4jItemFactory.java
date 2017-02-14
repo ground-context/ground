@@ -29,12 +29,13 @@ public class Neo4jItemFactory extends ItemFactory {
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
   }
 
-  public void insertIntoDatabase(GroundDBConnection connection, String id) throws GroundException {
+  public void insertIntoDatabase(GroundDBConnection connection, long id) throws GroundException {
     // DO NOTHING
   }
 
-  public void update(GroundDBConnection connectionPointer, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connectionPointer, long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
+
     if (parentIds.isEmpty()) {
       parentIds.add(itemId);
     }
@@ -50,8 +51,8 @@ public class Neo4jItemFactory extends ItemFactory {
       dag = this.versionHistoryDAGFactory.create(itemId);
     }
 
-    for (String parentId : parentIds) {
-      if (!parentId.equals(itemId) && !dag.checkItemInDag(parentId)) {
+    for (long parentId : parentIds) {
+      if (!(parentId == itemId) && !dag.checkItemInDag(parentId)) {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
 
         throw new GroundException(errorString);
@@ -61,7 +62,7 @@ public class Neo4jItemFactory extends ItemFactory {
     }
   }
 
-  public List<String> getLeaves(GroundDBConnection connection, String itemId) throws GroundException {
+  public List<Long> getLeaves(GroundDBConnection connection, long itemId) throws GroundException {
     try {
       VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
 

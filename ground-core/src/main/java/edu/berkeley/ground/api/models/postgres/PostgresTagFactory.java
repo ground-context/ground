@@ -28,11 +28,11 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class PostgresTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, String id) throws GroundException {
+  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
 
     Map<String, Tag> result = new HashMap<>();
 
@@ -58,7 +58,7 @@ public class PostgresTagFactory extends TagFactory {
     return result;
   }
 
-  public List<String> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -71,10 +71,10 @@ public class PostgresTagFactory extends TagFactory {
       return new ArrayList<>();
     }
 
-    List<String> result = new ArrayList<>();
+    List<Long> result = new ArrayList<>();
 
     while (resultSet.next()) {
-      result.add(resultSet.getString(1));
+      result.add(resultSet.getLong(1));
     }
 
     return result;

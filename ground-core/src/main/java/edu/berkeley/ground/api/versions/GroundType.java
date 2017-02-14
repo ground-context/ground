@@ -22,7 +22,8 @@ import edu.berkeley.ground.exceptions.GroundException;
 public enum GroundType {
   STRING(String.class, "string"),
   INTEGER(Integer.class, "integer"),
-  BOOLEAN(Boolean.class, "boolean");
+  BOOLEAN(Boolean.class, "boolean"),
+  LONG(Long.class, "long");
 
   private final Class<?> klass;
   private final String name;
@@ -49,6 +50,8 @@ public enum GroundType {
         return INTEGER;
       case "boolean":
         return BOOLEAN;
+      case "long":
+        return LONG;
 
       default: {
         throw new GroundException("Invalid type: " + str + ".");
@@ -69,6 +72,8 @@ public enum GroundType {
         return Integer.parseInt(str);
       case BOOLEAN:
         return Boolean.parseBoolean(str);
+      case LONG:
+        return Long.parseLong(str);
 
       default:
         return null;

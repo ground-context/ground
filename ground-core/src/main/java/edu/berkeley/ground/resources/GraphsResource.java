@@ -57,7 +57,7 @@ public class GraphsResource {
   @GET
   @Timed
   @Path("/versions/{id}")
-  public GraphVersion getGraphVersion(@PathParam("id") String id) throws GroundException {
+  public GraphVersion getGraphVersion(@PathParam("id") long id) throws GroundException {
     LOGGER.info("Retrieving graph version " + id + ".");
     return this.graphVersionFactory.retrieveFromDatabase(id);
   }
@@ -73,7 +73,7 @@ public class GraphsResource {
   @POST
   @Timed
   @Path("/versions")
-  public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion, @QueryParam("parent") List<String> parentIds) throws GroundException {
+  public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
     LOGGER.info("Creating graph version in graph " + graphVersion.getGraphId() + ".");
     return this.graphVersionFactory.create(graphVersion.getTags(),
         graphVersion.getStructureVersionId(),

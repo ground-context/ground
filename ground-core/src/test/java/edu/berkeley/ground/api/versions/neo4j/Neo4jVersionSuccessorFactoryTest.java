@@ -20,32 +20,34 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
     Neo4jConnection connection = null;
     try {
       connection = super.neo4jClient.getConnection();
-      String fromNodeId = super.factories.getNodeFactory().create("testFromNode").getId();
-      String toNodeId = super.factories.getNodeFactory().create("testToNode").getId();
-      String fromId = super.createNodeVersion(fromNodeId);
-      String toId = super.createNodeVersion(toNodeId);
+      long fromNodeId = super.factories.getNodeFactory().create("testFromNode").getId();
+      long toNodeId = super.factories.getNodeFactory().create("testToNode").getId();
+      long fromId = super.createNodeVersion(fromNodeId);
+      long toId = super.createNodeVersion(toNodeId);
 
-      String vsId = super.versionSuccessorFactory.create(connection, fromId, toId).getId();
+      long vsId = super.versionSuccessorFactory.create(connection, fromId, toId).getId();
 
       VersionSuccessor<?> retrieved = super.versionSuccessorFactory.retrieveFromDatabase(
           connection, vsId);
 
       assertEquals(fromId, retrieved.getFromId());
       assertEquals(toId, retrieved.getToId());
+    } catch (Exception e) {
+      fail(e.getMessage());
     } finally {
       connection.abort();
     }
   }
 
   @Test(expected = GroundException.class)
-  public void testBadVersionSuccesorCreation() throws GroundException {
+  public void testBadVersionSuccessorCreation() throws GroundException {
     Neo4jConnection connection = null;
     try {
-      String toId = null;
+      long toId = -1;
 
       try {
         String nodeName = "testNode";
-        String nodeId = super.factories.getNodeFactory().create(nodeName).getId();
+        long nodeId = super.factories.getNodeFactory().create(nodeName).getId();
         connection = super.neo4jClient.getConnection();
         toId = super.createNodeVersion(nodeId);
       } catch (GroundException ge) {
@@ -53,7 +55,7 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
       }
 
       // this statement should be fail because the fromId does not exist
-      super.versionSuccessorFactory.create(connection, "someBadId", toId).getId();
+      super.versionSuccessorFactory.create(connection, 9, toId).getId();
     } finally {
       connection.abort();
     }

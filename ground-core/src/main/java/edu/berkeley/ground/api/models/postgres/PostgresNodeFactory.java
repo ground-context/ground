@@ -26,6 +26,7 @@ import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,25 +37,27 @@ import java.util.List;
 public class PostgresNodeFactory extends NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresNodeFactory.class);
   private PostgresClient dbClient;
-
   private PostgresItemFactory itemFactory;
 
-  public PostgresNodeFactory(PostgresItemFactory itemFactory, PostgresClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public PostgresNodeFactory(PostgresItemFactory itemFactory, PostgresClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
+    this.idGenerator = idGenerator;
   }
 
   public Node create(String name) throws GroundException {
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "node." + name;
+      long uniqueId = this.idGenerator.generateItemId();
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
+      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
       connection.insert("node", insertions);
 
@@ -69,9 +72,11 @@ public class PostgresNodeFactory extends NodeFactory {
     }
   }
 
-  public List<String> getLeaves(String name) throws GroundException {
+  public List<Long> getLeaves(String name) throws GroundException {
+    Node node = this.retrieveFromDatabase(name);
+
     PostgresConnection connection = this.dbClient.getConnection();
-    List<String> leaves = this.itemFactory.getLeaves(connection, "node." + name);
+    List<Long> leaves = this.itemFactory.getLeaves(connection, node.getId());
     connection.commit();
 
     return leaves;
@@ -92,7 +97,7 @@ public class PostgresNodeFactory extends NodeFactory {
         throw new GroundException("No Node found with name " + name + ".");
       }
 
-      String id = resultSet.getString(1);
+      long id = resultSet.getLong(1);
 
       connection.commit();
       LOGGER.info("Retrieved node " + name + ".");
@@ -105,7 +110,7 @@ public class PostgresNodeFactory extends NodeFactory {
     }
   }
 
-  public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(connection, itemId, childId, parentIds);
   }
 }

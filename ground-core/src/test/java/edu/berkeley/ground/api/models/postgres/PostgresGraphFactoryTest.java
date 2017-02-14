@@ -23,6 +23,5 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     Graph edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals("graph." + testName, edge.getId());
   }
 }

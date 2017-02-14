@@ -28,7 +28,7 @@ public class LineageEdgeTest {
 
   @Test
   public void serializesToJSON() throws Exception {
-    LineageEdge lineageEdge = new LineageEdge("LineageEdges.test", "test");
+    LineageEdge lineageEdge = new LineageEdge(1, "test");
     String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class));
 
     assertThat(MAPPER.writeValueAsString(lineageEdge)).isEqualTo(expected);
@@ -36,7 +36,7 @@ public class LineageEdgeTest {
 
   @Test
   public void deserializesFromJSON() throws Exception {
-    LineageEdge lineageEdge = new LineageEdge("LineageEdges.test", "test");
+    LineageEdge lineageEdge = new LineageEdge(1, "test");
     assertThat(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class)).isEqualToComparingFieldByField(lineageEdge);
   }
 }

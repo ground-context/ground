@@ -64,6 +64,22 @@ public class CassandraResults implements QueryResults {
     }
   }
 
+  public long getLong(int index) throws GroundException {
+    try {
+      return this.currentRow.getLong(index);
+    } catch (Exception e) {
+      throw new GroundException(e);
+    }
+  }
+
+  public long getLong(String field) throws GroundException {
+    try {
+      return this.currentRow.getLong(field);
+    } catch (Exception e) {
+      throw new GroundException(e);
+    }
+  }
+
   public List<String> getStringList(int index) throws GroundException {
     try {
       Iterator<Row> rowIterator = this.resultSet.iterator();

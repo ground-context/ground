@@ -15,6 +15,7 @@ import edu.berkeley.ground.api.versions.neo4j.Neo4jVersionHistoryDAGFactory;
 import edu.berkeley.ground.api.versions.neo4j.Neo4jVersionSuccessorFactory;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
 
 public class Neo4jTest {
@@ -32,8 +33,8 @@ public class Neo4jTest {
 
   public Neo4jTest() {
     this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
-    this.factories = new Neo4jFactories(neo4jClient);
-    this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory();
+    this.factories = new Neo4jFactories(neo4jClient, 0, 1);
+    this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory(new IdGenerator(0, 1, true));
     this.versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(this.versionSuccessorFactory);
     this.itemFactory = new Neo4jItemFactory(this.versionHistoryDAGFactory);
     this.tagFactory = new Neo4jTagFactory();
@@ -56,8 +57,7 @@ public class Neo4jTest {
    *
    * @return A new, random NodeVersion's id.
    */
-  protected String createNodeVersion(String nodeId) throws GroundException {
-    return this.factories.getNodeVersionFactory().create(new HashMap<>(), null, null,
-        new HashMap<>(), nodeId, new ArrayList<>()).getId();
+  protected long createNodeVersion(long nodeId) throws GroundException {
+    return this.factories.getNodeVersionFactory().create(new HashMap<>(), -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
   }
 }

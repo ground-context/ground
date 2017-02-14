@@ -42,36 +42,38 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
 
   private CassandraEdgeFactory edgeFactory;
   private CassandraRichVersionFactory richVersionFactory;
+  private IdGenerator idGenerator;
 
-  public CassandraEdgeVersionFactory(CassandraEdgeFactory edgeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient) {
+  public CassandraEdgeVersionFactory(CassandraEdgeFactory edgeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.edgeFactory = edgeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
   public EdgeVersion create(Map<String, Tag> tags,
-                            String structureVersionId,
+                            long structureVersionId,
                             String reference,
                             Map<String, String> referenceParameters,
-                            String edgeId,
-                            String fromId,
-                            String toId,
-                            List<String> parentIds) throws GroundException {
+                            long edgeId,
+                            long fromId,
+                            long toId,
+                            List<Long> parentIds) throws GroundException {
 
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(edgeId);
+      long id = this.idGenerator.generateVersionId();
 
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("edge_id", GroundType.STRING, edgeId));
-      insertions.add(new DbDataContainer("from_node_version_id", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("to_node_version_id", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
+      insertions.add(new DbDataContainer("from_node_version_id", GroundType.LONG, fromId));
+      insertions.add(new DbDataContainer("to_node_version_id", GroundType.LONG, toId));
 
       connection.insert("edge_version", insertions);
 
@@ -87,14 +89,14 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
     }
   }
 
-  public EdgeVersion retrieveFromDatabase(String id) throws GroundException {
+  public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
@@ -107,9 +109,9 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 
-      String edgeId = resultSet.getString("edge_id");
-      String fromId = resultSet.getString("from_node_version_id");
-      String toId = resultSet.getString("to_node_version_id");
+      long edgeId = resultSet.getLong("edge_id");
+      long fromId = resultSet.getLong("from_node_version_id");
+      long toId = resultSet.getLong("to_node_version_id");
 
       connection.commit();
       LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");

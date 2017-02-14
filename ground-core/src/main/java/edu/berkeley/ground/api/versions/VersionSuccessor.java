@@ -20,33 +20,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class VersionSuccessor<T extends Version> {
 
   // the unique id of this VersionSuccessor
-  private String id;
+  private long id;
 
   // the id of the Version that originates this successor
-  private String fromId;
+  private long fromId;
 
   // the id of the Version that this success points to
-  private String toId;
+  private long toId;
 
-  protected VersionSuccessor(String id, String fromId, String toId) {
+  protected VersionSuccessor(long id, long fromId, long toId) {
     this.id = id;
     this.fromId = fromId;
     this.toId = toId;
   }
 
   @JsonProperty
-  public String getId() {
+  public long getId() {
     return this.id;
   }
 
   @JsonProperty
-  public String getFromId() {
+  public long getFromId() {
     return this.fromId;
   }
 
-  public String getToId() {
+  @JsonProperty
+  public long getToId() {
     return this.toId;
   }
-
-
 }

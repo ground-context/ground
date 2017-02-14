@@ -25,11 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraVersionFactory extends VersionFactory {
-  public void insertIntoDatabase(GroundDBConnection connectionPointer, String id) throws GroundException {
+  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.STRING, id));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
     connection.insert("version", insertions);
   }

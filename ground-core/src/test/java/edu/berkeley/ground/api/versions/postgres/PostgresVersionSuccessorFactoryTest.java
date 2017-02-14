@@ -19,8 +19,8 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
   public void testVersionSuccessorCreation() throws GroundException {
     PostgresConnection connection = null;
     try {
-      String fromId = "testFromId";
-      String toId = "testToId";
+      long fromId = 1;
+      long toId = 2;
 
       connection = super.cassandraClient.getConnection();
       super.versionFactory.insertIntoDatabase(connection, fromId);
@@ -43,8 +43,8 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
 
     try {
-      String fromId = "testFromId";
-      String toId = "testToId";
+      long fromId = 1;
+      long toId = 2;
 
       // Catch exceptions for these two lines because they should not fal
       try {

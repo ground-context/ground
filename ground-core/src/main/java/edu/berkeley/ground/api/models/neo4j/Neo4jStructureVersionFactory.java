@@ -36,26 +36,29 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
   private Neo4jClient dbClient;
   private Neo4jStructureFactory structureFactory;
 
-  public Neo4jStructureVersionFactory(Neo4jClient dbClient, Neo4jStructureFactory structureFactory) {
+  private IdGenerator idGenerator;
+
+  public Neo4jStructureVersionFactory(Neo4jClient dbClient, Neo4jStructureFactory structureFactory, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
+    this.idGenerator = idGenerator;
   }
 
-  public StructureVersion create(String structureId, Map<String, GroundType> attributes, List<String> parentIds) throws GroundException {
+  public StructureVersion create(long structureId, Map<String, GroundType> attributes, List<Long> parentIds) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(structureId);
+      long id = this.idGenerator.generateVersionId();
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
 
       connection.addVertex("StructureVersion", insertions);
 
       for (String key : attributes.keySet()) {
         List<DbDataContainer> itemInsertions = new ArrayList<>();
-        itemInsertions.add(new DbDataContainer("svid", GroundType.STRING, id));
+        itemInsertions.add(new DbDataContainer("svid", GroundType.LONG, id));
         itemInsertions.add(new DbDataContainer("skey", GroundType.STRING, key));
         itemInsertions.add(new DbDataContainer("stype", GroundType.STRING, attributes.get(key).toString()));
 
@@ -74,18 +77,17 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
     }
   }
 
-  public StructureVersion retrieveFromDatabase(String id) throws GroundException {
+  public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      String structureId;
+      long structureId;
 
       try {
-        structureId = Neo4jClient.getStringFromValue((StringValue) connection
-            .getVertex(predicates).get("v").asNode().get("structure_id"));
+        structureId = connection .getVertex(predicates).get("v").asNode().get("structure_id").asLong();
       } catch (EmptyResultException eer) {
         throw new GroundException("No StructureVersion found with id " + id + ".");
       }

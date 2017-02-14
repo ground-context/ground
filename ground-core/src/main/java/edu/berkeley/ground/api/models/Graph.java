@@ -24,7 +24,7 @@ public class Graph extends Item<GraphVersion> {
   private String name;
 
   @JsonCreator
-  public Graph(@JsonProperty("id") String id,
+  public Graph(@JsonProperty("id") long id,
                @JsonProperty("name") String name) {
     super(id);
 
@@ -36,10 +36,6 @@ public class Graph extends Item<GraphVersion> {
     return this.name;
   }
 
-  public static String idToName(String id) {
-    return id.substring(7);
-  }
-
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof Graph)) {
@@ -48,6 +44,6 @@ public class Graph extends Item<GraphVersion> {
 
     Graph otherGraph = (Graph) other;
 
-    return this.name.equals(otherGraph.name) && this.getId().equals(otherGraph.getId());
+    return this.name.equals(otherGraph.name) && this.getId() == otherGraph.getId();
   }
 }

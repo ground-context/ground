@@ -33,12 +33,12 @@ public class EdgeVersionTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    EdgeVersion edgeVersion = new EdgeVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Edges.test", "123", "456");
+    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class));
     assertThat(MAPPER.writeValueAsString(edgeVersion)).isEqualTo(expected);
@@ -47,12 +47,12 @@ public class EdgeVersionTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    EdgeVersion edgeVersion = new EdgeVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Edges.test", "123", "456");
+    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
 
     assertThat(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class)).isEqualToComparingFieldByField(edgeVersion);
   }

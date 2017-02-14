@@ -35,34 +35,36 @@ import java.util.*;
 public class CassandraStructureVersionFactory extends StructureVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraStructureVersionFactory.class);
   private CassandraClient dbClient;
-
   private CassandraStructureFactory structureFactory;
   private CassandraVersionFactory versionFactory;
 
-  public CassandraStructureVersionFactory(CassandraStructureFactory structureFactory, CassandraVersionFactory versionFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraStructureVersionFactory(CassandraStructureFactory structureFactory, CassandraVersionFactory versionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
     this.versionFactory = versionFactory;
+    this.idGenerator = idGenerator;
   }
 
-  public StructureVersion create(String structureId,
+  public StructureVersion create(long structureId,
                                  Map<String, GroundType> attributes,
-                                 List<String> parentIds) throws GroundException {
+                                 List<Long> parentIds) throws GroundException {
 
     CassandraConnection connection = this.dbClient.getConnection();
-    String id = IdGenerator.generateId(structureId);
+    long id = this.idGenerator.generateVersionId();
 
     this.versionFactory.insertIntoDatabase(connection, id);
 
     List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-    insertions.add(new DbDataContainer("structure_id", GroundType.STRING, structureId));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
 
     connection.insert("structure_version", insertions);
 
     for (String key : attributes.keySet()) {
       List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.STRING, id));
+      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
       itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
       itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
 
@@ -77,11 +79,11 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
-  public StructureVersion retrieveFromDatabase(String id) throws GroundException {
+  public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
     QueryResults resultSet;
     try {
@@ -98,7 +100,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     try {
       List<DbDataContainer> attributePredicates = new ArrayList<>();
-      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.STRING, id));
+      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
       QueryResults attributesSet = connection.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
 
       while (attributesSet.next()) {
@@ -108,7 +110,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       throw new GroundException("No StructureVersion attributes found for id " + id + ".");
     }
 
-    String structureId = resultSet.getString(1);
+    long structureId = resultSet.getLong(1);
 
     connection.commit();
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");

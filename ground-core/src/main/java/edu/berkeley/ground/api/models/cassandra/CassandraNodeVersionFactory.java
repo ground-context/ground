@@ -39,28 +39,30 @@ import java.util.stream.Collectors;
 public class CassandraNodeVersionFactory extends NodeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeVersionFactory.class);
   private CassandraClient dbClient;
-
   private CassandraNodeFactory nodeFactory;
   private CassandraRichVersionFactory richVersionFactory;
 
-  public CassandraNodeVersionFactory(CassandraNodeFactory nodeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraNodeVersionFactory(CassandraNodeFactory nodeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.nodeFactory = nodeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
 
   public NodeVersion create(Map<String, Tag> tags,
-                            String structureVersionId,
+                            long structureVersionId,
                             String reference,
                             Map<String, String> referenceParameters,
-                            String nodeId,
-                            List<String> parentIds) throws GroundException {
+                            long nodeId,
+                            List<Long> parentIds) throws GroundException {
 
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(nodeId);
+      long id = this.idGenerator.generateVersionId();
 
       // add the id of the version to the tag
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
@@ -68,8 +70,8 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
       connection.insert("node_version", insertions);
 
@@ -86,14 +88,14 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public NodeVersion retrieveFromDatabase(String id) throws GroundException {
+  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
@@ -106,7 +108,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
-      String nodeId = resultSet.getString(1);
+      long nodeId = resultSet.getLong(1);
 
       connection.commit();
       LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
@@ -119,17 +121,17 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public List<String> getTransitiveClosure(String nodeVersionId) throws GroundException {
+  public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
-    List<String> result = connection.transitiveClosure(nodeVersionId);
+    List<Long> result = connection.transitiveClosure(nodeVersionId);
 
     connection.commit();
     return result;
   }
 
-  public List<String> getAdjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
-    List<String> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+    List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
 
     connection.commit();
     return result;

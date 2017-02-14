@@ -23,15 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JGraphTUtils {
-  public static DirectedGraph<String, DefaultEdge> createGraph() {
+  public static DirectedGraph<Long, DefaultEdge> createGraph() {
     return new DefaultDirectedGraph<>(DefaultEdge.class);
   }
 
-  public static void addVertex(DirectedGraph<String, DefaultEdge> graph, String id) {
+  public static void addVertex(DirectedGraph<Long, DefaultEdge> graph, Long id) {
     graph.addVertex(id);
   }
 
-  public static void addEdge(DirectedGraph<String, DefaultEdge> graph, String from, String to) {
+  public static void addEdge(DirectedGraph<Long, DefaultEdge> graph, Long from, Long to) {
     graph.addEdge(from, to);
   }
 
@@ -42,10 +42,10 @@ public class JGraphTUtils {
    * @param start the start version
    * @return the list of reachable nodes
    */
-  public static List<String> runDFS(DirectedGraph<String, DefaultEdge> graph, String start) {
-    DepthFirstIterator<String, DefaultEdge> iterator = new DepthFirstIterator<>(graph, start);
+  public static List<Long> runDFS(DirectedGraph<Long, DefaultEdge> graph, Long start) {
+    DepthFirstIterator<Long, DefaultEdge> iterator = new DepthFirstIterator<>(graph, start);
 
-    List<String> result = new ArrayList<>();
+    List<Long> result = new ArrayList<>();
 
     while (iterator.hasNext()) {
       result.add(iterator.next());

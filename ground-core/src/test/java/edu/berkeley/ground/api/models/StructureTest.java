@@ -28,7 +28,7 @@ public class StructureTest {
 
   @Test
   public void serializesToJSON() throws Exception {
-    Structure structure = new Structure("Structures.test", "test");
+    Structure structure = new Structure(1, "test");
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/structure.json"), Structure.class));
 
     assertThat(MAPPER.writeValueAsString(structure)).isEqualTo(expected);
@@ -36,7 +36,7 @@ public class StructureTest {
 
   @Test
   public void deserializesFromJSON() throws Exception {
-    Structure structure = new Structure("Structures.test", "test");
+    Structure structure = new Structure(1, "test");
     assertThat(MAPPER.readValue(fixture("fixtures/models/structure.json"), Structure.class)).isEqualToComparingFieldByField(structure);
   }
 }

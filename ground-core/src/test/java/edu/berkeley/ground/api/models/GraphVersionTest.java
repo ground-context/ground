@@ -32,16 +32,16 @@ public class GraphVersionTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    List<String> edgeVersionIds = new ArrayList<>();
-    edgeVersionIds.add("abc");
-    edgeVersionIds.add("def");
+    List<Long> edgeVersionIds = new ArrayList<>();
+    edgeVersionIds.add(123L);
+    edgeVersionIds.add(456L);
 
-    GraphVersion graphVersion = new GraphVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Graphs.test", edgeVersionIds);
+    GraphVersion graphVersion = new GraphVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, edgeVersionIds);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class));
     assertThat(MAPPER.writeValueAsString(graphVersion)).isEqualTo(expected);
@@ -50,16 +50,16 @@ public class GraphVersionTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag("abcd", "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    List<String> edgeVersionIds = new ArrayList<>();
-    edgeVersionIds.add("abc");
-    edgeVersionIds.add("def");
+    List<Long> edgeVersionIds = new ArrayList<>();
+    edgeVersionIds.add(123L);
+    edgeVersionIds.add(456L);
 
-    GraphVersion graphVersion = new GraphVersion("abcd", tagsMap, null, "http://www.google.com", parametersMap, "Graphs.test", edgeVersionIds);
+    GraphVersion graphVersion = new GraphVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, edgeVersionIds);
 
     assertThat(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class)).isEqualToComparingFieldByField(graphVersion);
   }

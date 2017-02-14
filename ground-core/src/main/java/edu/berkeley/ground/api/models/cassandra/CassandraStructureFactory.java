@@ -26,6 +26,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,25 +37,27 @@ import java.util.List;
 public class CassandraStructureFactory extends StructureFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraStructureFactory.class);
   private CassandraClient dbClient;
-
   private CassandraItemFactory itemFactory;
 
-  public CassandraStructureFactory(CassandraItemFactory itemFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraStructureFactory(CassandraItemFactory itemFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
+    this.idGenerator = idGenerator;
   }
 
   public Structure create(String name) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "structure." + name;
+      long uniqueId = this.idGenerator.generateItemId();
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
+      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
       connection.insert("structure", insertions);
 
@@ -69,9 +72,11 @@ public class CassandraStructureFactory extends StructureFactory {
     }
   }
 
-  public List<String> getLeaves(String name) throws GroundException {
+  public List<Long> getLeaves(String name) throws GroundException {
+    Structure structure = this.retrieveFromDatabase(name);
+
     CassandraConnection connection = this.dbClient.getConnection();
-    List<String> leaves = this.itemFactory.getLeaves(connection, "structure." + name);
+    List<Long> leaves = this.itemFactory.getLeaves(connection, structure.getId());
     connection.commit();
 
     return leaves;
@@ -95,7 +100,7 @@ public class CassandraStructureFactory extends StructureFactory {
         throw new GroundException("No Structure found with name " + name + ".");
       }
 
-      String id = resultSet.getString(0);
+      long id = resultSet.getLong(0);
 
       connection.commit();
       LOGGER.info("Retrieved structure " + name + ".");
@@ -108,7 +113,7 @@ public class CassandraStructureFactory extends StructureFactory {
     }
   }
 
-  public void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException {
+  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(connection, itemId, childId, parentIds);
   }
 }

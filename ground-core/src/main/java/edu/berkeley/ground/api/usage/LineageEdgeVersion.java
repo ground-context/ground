@@ -26,26 +26,24 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 public class LineageEdgeVersion extends RichVersion {
-  private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdgeVersion.class);
-
   // the id of the LineageEdge containing this Version
-  private String lineageEdgeId;
+  private long lineageEdgeId;
 
   // the id of the RichVersion that this LineageEdgeVersion originates from
-  private String fromId;
+  private long fromId;
 
   // the id of the RichVersion that this LineageEdgeVersion points to
-  private String toId;
+  private long toId;
 
   @JsonCreator
-  protected LineageEdgeVersion(@JsonProperty("id") String id,
+  protected LineageEdgeVersion(@JsonProperty("id") long id,
                                @JsonProperty("tags") Map<String, Tag> tags,
-                               @JsonProperty("structureVersionId") String structureVersionId,
+                               @JsonProperty("structureVersionId") long structureVersionId,
                                @JsonProperty("reference") String reference,
                                @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-                               @JsonProperty("fromId") String fromId,
-                               @JsonProperty("toId") String toId,
-                               @JsonProperty("lineageEdgeId") String lineageEdgeId) {
+                               @JsonProperty("fromId") long fromId,
+                               @JsonProperty("toId") long toId,
+                               @JsonProperty("lineageEdgeId") long lineageEdgeId) {
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.lineageEdgeId = lineageEdgeId;
@@ -54,17 +52,17 @@ public class LineageEdgeVersion extends RichVersion {
   }
 
   @JsonProperty
-  public String getLineageEdgeId() {
+  public long getLineageEdgeId() {
     return this.lineageEdgeId;
   }
 
   @JsonProperty
-  public String getFromId() {
+  public long getFromId() {
     return this.fromId;
   }
 
   @JsonProperty
-  public String getToId() {
+  public long getToId() {
     return this.toId;
   }
 
@@ -76,10 +74,10 @@ public class LineageEdgeVersion extends RichVersion {
 
     LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
 
-    return this.lineageEdgeId.equals(otherLineageEdgeVersion.lineageEdgeId) &&
-        this.fromId.equals(otherLineageEdgeVersion.fromId) &&
-        this.toId.equals(otherLineageEdgeVersion.toId) &&
-        this.getId().equals(otherLineageEdgeVersion.getId()) &&
+    return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId &&
+        this.fromId == otherLineageEdgeVersion.fromId &&
+        this.toId == otherLineageEdgeVersion.toId &&
+        this.getId() == otherLineageEdgeVersion.getId() &&
         super.equals(other);
   }
 }

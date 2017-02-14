@@ -24,9 +24,9 @@ public abstract class LineageEdgeFactory {
 
   public abstract LineageEdge retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(GroundDBConnection connection, String itemId, String childId, List<String> parentIds) throws GroundException;
+  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  public static LineageEdge construct(String id, String name) {
+  public static LineageEdge construct(long id, String name) {
     return new LineageEdge(id, name);
   }
 }

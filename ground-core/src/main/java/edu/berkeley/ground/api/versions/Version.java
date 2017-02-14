@@ -17,14 +17,14 @@ package edu.berkeley.ground.api.versions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Version {
-  private String id;
+  private long id;
 
-  protected Version(@JsonProperty String id) {
+  protected Version(@JsonProperty long id) {
     this.id = id;
   }
 
   @JsonProperty
-  public String getId() {
+  public long getId() {
     return this.id;
   }
 }

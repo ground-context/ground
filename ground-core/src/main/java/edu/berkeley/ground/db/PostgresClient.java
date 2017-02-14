@@ -151,7 +151,7 @@ public class PostgresClient implements DBClient {
       }
     }
 
-    public List<String> transitiveClosure(String nodeVersionId) throws GroundException {
+    public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
       try {
         // recursive query implementation
                 /*
@@ -164,13 +164,13 @@ public class PostgresClient implements DBClient {
                                                     ") select vto from paths;"); */
 
         PreparedStatement statement = this.connection.prepareStatement("select reachable(?);");
-        statement.setString(1, nodeVersionId);
+        statement.setLong(1, nodeVersionId);
 
         ResultSet resultSet = statement.executeQuery();
 
-        List<String> result = new ArrayList<>();
+        List<Long> result = new ArrayList<>();
         while (resultSet.next()) {
-          result.add(resultSet.getString(1));
+          result.add(resultSet.getLong(1));
         }
 
         return result;
@@ -179,7 +179,7 @@ public class PostgresClient implements DBClient {
       }
     }
 
-    public List<String> adjacentNodes(String nodeVersionId, String edgeNameRegex) throws GroundException {
+    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
       String query = "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?";
       query += " and ev.edge_id like ?;";
 
@@ -187,14 +187,14 @@ public class PostgresClient implements DBClient {
 
       try {
         PreparedStatement statement = this.connection.prepareStatement(query);
-        statement.setString(1, nodeVersionId);
+        statement.setLong(1, nodeVersionId);
         statement.setString(2, edgeNameRegex);
 
         ResultSet resultSet = statement.executeQuery();
-        List<String> result = new ArrayList<>();
+        List<Long> result = new ArrayList<>();
 
         while (resultSet.next()) {
-          result.add(resultSet.getString(1));
+          result.add(resultSet.getLong(1));
         }
 
         return result;
@@ -245,6 +245,12 @@ public class PostgresClient implements DBClient {
           preparedStatement.setBoolean(index, (Boolean) value);
         }
         break;
+      case LONG:
+        if (value == null || (long) value == -1) {
+          preparedStatement.setNull(index, Types.BIGINT);
+        } else {
+          preparedStatement.setLong(index, (Long) value);
+        }
     }
   }
 }

@@ -24,14 +24,14 @@ import java.util.*;
 
 public class StructureVersion extends Version {
   // the id of the Structure containing this Version
-  private String structureId;
+  private long structureId;
 
   // the map of attribute names to types
   private Map<String, GroundType> attributes;
 
   @JsonCreator
-  public StructureVersion(@JsonProperty("id") String id,
-                          @JsonProperty("structureId") String structureId,
+  public StructureVersion(@JsonProperty("id") long id,
+                          @JsonProperty("structureId") long structureId,
                           @JsonProperty("attributes") Map<String, GroundType> attributes) {
     super(id);
 
@@ -40,7 +40,7 @@ public class StructureVersion extends Version {
   }
 
   @JsonProperty
-  public String getStructureId() {
+  public long getStructureId() {
     return this.structureId;
   }
 
@@ -57,8 +57,8 @@ public class StructureVersion extends Version {
 
     StructureVersion otherStructureVersion = (StructureVersion) other;
 
-    return this.structureId.equals(otherStructureVersion.structureId) &&
+    return this.structureId == otherStructureVersion.structureId &&
         this.attributes.equals(otherStructureVersion.attributes) &&
-        this.getId().equals(otherStructureVersion.getId());
+        this.getId() == otherStructureVersion.getId();
   }
 }

@@ -40,40 +40,42 @@ import java.util.stream.Collectors;
 public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLineageEdgeVersionFactory.class);
   private CassandraClient dbClient;
-
   private CassandraLineageEdgeFactory lineageEdgeFactory;
   private CassandraRichVersionFactory richVersionFactory;
 
-  public CassandraLineageEdgeVersionFactory(CassandraLineageEdgeFactory lineageEdgeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient) {
+  private IdGenerator idGenerator;
+
+  public CassandraLineageEdgeVersionFactory(CassandraLineageEdgeFactory lineageEdgeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.lineageEdgeFactory = lineageEdgeFactory;
     this.richVersionFactory = richVersionFactory;
+    this.idGenerator = idGenerator;
   }
 
 
   public LineageEdgeVersion create(Map<String, Tag> tags,
-                                   String structureVersionId,
+                                   long structureVersionId,
                                    String reference,
                                    Map<String, String> referenceParameters,
-                                   String fromId,
-                                   String toId,
-                                   String lineageEdgeId,
-                                   List<String> parentIds) throws GroundException {
+                                   long fromId,
+                                   long toId,
+                                   long lineageEdgeId,
+                                   List<Long> parentIds) throws GroundException {
 
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String id = IdGenerator.generateId(lineageEdgeId);
+      long id = this.idGenerator.generateVersionId();
 
       tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
       this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.STRING, id));
-      insertions.add(new DbDataContainer("lineage_edge_id", GroundType.STRING, lineageEdgeId));
-      insertions.add(new DbDataContainer("from_rich_version_id", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("to_rich_version_id", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("lineage_edge_id", GroundType.LONG, lineageEdgeId));
+      insertions.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, fromId));
+      insertions.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, toId));
 
       connection.insert("lineage_edge_version", insertions);
 
@@ -90,14 +92,14 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
     }
   }
 
-  public LineageEdgeVersion retrieveFromDatabase(String id) throws GroundException {
+  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.STRING, id));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
@@ -110,9 +112,9 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
-      String lineageEdgeId = resultSet.getString("lineage_edge_id");
-      String fromId = resultSet.getString("from_rich_version_id");
-      String toId = resultSet.getString("to_rich_version_id");
+      long lineageEdgeId = resultSet.getLong("lineage_edge_id");
+      long fromId = resultSet.getLong("from_rich_version_id");
+      long toId = resultSet.getLong("to_rich_version_id");
 
       connection.commit();
       LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");

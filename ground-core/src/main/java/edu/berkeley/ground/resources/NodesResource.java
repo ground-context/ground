@@ -58,7 +58,7 @@ public class NodesResource {
   @GET
   @Timed
   @Path("/versions/{id}")
-  public NodeVersion getNodeVersion(@PathParam("id") String id) throws GroundException {
+  public NodeVersion getNodeVersion(@PathParam("id") long id) throws GroundException {
     LOGGER.info("Retrieving node version " + id + ".");
     return this.nodeVersionFactory.retrieveFromDatabase(id);
   }
@@ -74,7 +74,7 @@ public class NodesResource {
   @POST
   @Timed
   @Path("/versions")
-  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parents") List<String> parentIds) throws GroundException {
+  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parents") List<Long> parentIds) throws GroundException {
     LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
     return this.nodeVersionFactory.create(nodeVersion.getTags(),
         nodeVersion.getStructureVersionId(),
@@ -87,7 +87,7 @@ public class NodesResource {
   @GET
   @Timed
   @Path("/{name}/latest")
-  public List<String> getLatestVersions(@PathParam("name") String name) throws GroundException {
+  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
     LOGGER.info("Retrieving the latest version of node " + name + ".");
     return this.nodeFactory.getLeaves(name);
   }
@@ -95,7 +95,7 @@ public class NodesResource {
   @GET
   @Timed
   @Path("/closure/{id}")
-  public List<String> transitiveClosure(@PathParam("id") String nodeVersionId) throws GroundException {
+  public List<Long> transitiveClosure(@PathParam("id") long nodeVersionId) throws GroundException {
     LOGGER.info("Running transitive closure on node version  " + nodeVersionId + ".");
 
     return this.nodeVersionFactory.getTransitiveClosure(nodeVersionId);
@@ -104,7 +104,7 @@ public class NodesResource {
   @GET
   @Timed
   @Path("/adjacent/{id}/{edgeName}")
-  public List<String> adjacentNodes(@PathParam("id") String nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
+  public List<Long> adjacentNodes(@PathParam("id") long nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
     LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");
 
     return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);

@@ -14,6 +14,7 @@ import edu.berkeley.ground.api.versions.postgres.PostgresVersionHistoryDAGFactor
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionSuccessorFactory;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.PostgresFactories;
 
 public class PostgresTest {
@@ -30,10 +31,10 @@ public class PostgresTest {
 
   public PostgresTest() throws GroundDBException {
     this.cassandraClient = new PostgresClient("localhost", 5432, "test", "test", "");
-    this.factories = new PostgresFactories(cassandraClient);
+    this.factories = new PostgresFactories(cassandraClient, 0, 1);
 
     this.versionFactory = new PostgresVersionFactory();
-    this.versionSuccessorFactory = new PostgresVersionSuccessorFactory();
+    this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(new IdGenerator(0, 1, false));
     this.versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
     this.itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
     this.tagFactory = new PostgresTagFactory();

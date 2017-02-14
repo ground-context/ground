@@ -19,12 +19,11 @@ public class Neo4jVersionHistoryDAGFactoryTest extends Neo4jTest {
   public void testVersionHistoryDAGCreation() throws GroundException {
     Neo4jConnection connection = null;
     try {
-      String testId = "Nodes.test";
+      long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
       connection = super.neo4jClient.getConnection();
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-          testId);
+      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection, testId);
 
       assertEquals(0, dag.getEdgeIds().size());
     } finally {

@@ -27,6 +27,10 @@ public interface QueryResults {
 
   boolean getBoolean(int index) throws GroundException;
 
+  long getLong(int index) throws GroundException;
+
+  long getLong(String field) throws GroundException;
+
   List<String> getStringList(int index) throws GroundException;
 
   boolean next() throws GroundException;
