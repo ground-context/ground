@@ -24,7 +24,7 @@ public class CassandraStructureFactoryTest extends CassandraTest {
       Structure edge = edgeFactory.retrieveFromDatabase(testName);
 
       assertEquals(testName, edge.getName());
-      assertEquals("Structures." + testName, edge.getId());
+      assertEquals("structure." + testName, edge.getId());
     } catch (GroundException ge) {
       fail(ge.getMessage());
     }

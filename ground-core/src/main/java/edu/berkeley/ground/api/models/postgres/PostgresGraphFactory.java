@@ -48,14 +48,14 @@ public class PostgresGraphFactory extends GraphFactory {
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "Graphs." + name;
+      String uniqueId = "graph." + name;
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
-      connection.insert("Graphs", insertions);
+      connection.insert("graph", insertions);
 
       connection.commit();
       LOGGER.info("Created graph " + name + ".");
@@ -77,7 +77,7 @@ public class PostgresGraphFactory extends GraphFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("Graphs", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("graph", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No Graph found with name " + name + ".");
       }

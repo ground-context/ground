@@ -45,7 +45,7 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("VersionHistoryDAGs", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("version_history_dag", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       // do nothing' this just means that no versions have been added yet.
       return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
@@ -66,9 +66,9 @@ public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("item_id", GroundType.STRING, itemId));
-    insertions.add(new DbDataContainer("successor_id", GroundType.STRING, successor.getId()));
+    insertions.add(new DbDataContainer("version_successor_id", GroundType.STRING, successor.getId()));
 
-    connection.insert("VersionHistoryDAGs", insertions);
+    connection.insert("version_history_dag", insertions);
 
     dag.addEdge(parentId, childId, successor.getId());
   }

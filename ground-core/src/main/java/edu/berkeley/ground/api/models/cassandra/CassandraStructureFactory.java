@@ -48,7 +48,7 @@ public class CassandraStructureFactory extends StructureFactory {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
-      String uniqueId = "Structures." + name;
+      String uniqueId = "structure." + name;
 
       this.itemFactory.insertIntoDatabase(connection, uniqueId);
 
@@ -56,7 +56,7 @@ public class CassandraStructureFactory extends StructureFactory {
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.STRING, uniqueId));
 
-      connection.insert("Structures", insertions);
+      connection.insert("structure", insertions);
 
       connection.commit();
       LOGGER.info("Created structure " + name + ".");
@@ -71,7 +71,7 @@ public class CassandraStructureFactory extends StructureFactory {
 
   public List<String> getLeaves(String name) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
-    List<String> leaves = this.itemFactory.getLeaves(connection, "Nodes." + name);
+    List<String> leaves = this.itemFactory.getLeaves(connection, "structure." + name);
     connection.commit();
 
     return leaves;
@@ -86,7 +86,7 @@ public class CassandraStructureFactory extends StructureFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("Structures", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("structure", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No Structure found with name " + name + ".");
       }

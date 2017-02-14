@@ -32,13 +32,13 @@ public class PostgresTagFactory extends TagFactory {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("richversion_id", GroundType.STRING, id));
+    predicates.add(new DbDataContainer("rich_version_id", GroundType.STRING, id));
 
     Map<String, Tag> result = new HashMap<>();
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("tag", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       return new HashMap<>();
     }
@@ -66,7 +66,7 @@ public class PostgresTagFactory extends TagFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("Tags", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect("tag", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       return new ArrayList<>();
     }

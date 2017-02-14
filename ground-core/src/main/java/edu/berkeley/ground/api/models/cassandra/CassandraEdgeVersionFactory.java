@@ -70,10 +70,10 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.STRING, id));
       insertions.add(new DbDataContainer("edge_id", GroundType.STRING, edgeId));
-      insertions.add(new DbDataContainer("endpoint_one", GroundType.STRING, fromId));
-      insertions.add(new DbDataContainer("endpoint_two", GroundType.STRING, toId));
+      insertions.add(new DbDataContainer("from_node_version_id", GroundType.STRING, fromId));
+      insertions.add(new DbDataContainer("to_node_version_id", GroundType.STRING, toId));
 
-      connection.insert("EdgeVersions", insertions);
+      connection.insert("edge_version", insertions);
 
       this.edgeFactory.update(connection, edgeId, id, parentIds);
 
@@ -98,7 +98,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("EdgeVersions", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("edge_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
@@ -108,11 +108,11 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       }
 
       String edgeId = resultSet.getString("edge_id");
-      String fromId = resultSet.getString("endpoint_one");
-      String toId = resultSet.getString("endpoint_two");
+      String fromId = resultSet.getString("from_node_version_id");
+      String toId = resultSet.getString("to_node_version_id");
 
       connection.commit();
-      LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
+      LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 
       return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);
     } catch (GroundException e) {

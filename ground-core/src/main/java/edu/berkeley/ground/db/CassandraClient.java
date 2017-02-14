@@ -47,20 +47,20 @@ public class CassandraClient implements DBClient {
     this.keyspace = dbName;
 
     // at startup, load all nodes & edges into JGraphT for later in-memory processing
-    ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select id from nodeversions;");
+    ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select id from node_version;");
     this.graph = JGraphTUtils.createGraph();
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addVertex(graph, r.getString(0));
     }
 
-    resultSet = this.cluster.connect(this.keyspace).execute("select endpoint_one, endpoint_two from edgeversions;");
+    resultSet = this.cluster.connect(this.keyspace).execute("select from_node_version_id, to_node_version_id from edge_version;");
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addEdge(graph, r.getString(0), r.getString(1));
     }
 
-    this.adjacencyStatement = this.cluster.connect(this.keyspace).prepare("select endpoint_two, edge_id from EdgeVersions where endpoint_one = ? allow filtering;");
+    this.adjacencyStatement = this.cluster.connect(this.keyspace).prepare("select to_node_version_id, edge_id from edge_version where from_node_version_id = ? allow filtering;");
   }
 
   public CassandraConnection getConnection() throws GroundDBException {
@@ -86,7 +86,7 @@ public class CassandraClient implements DBClient {
      */
     public void insert(String table, List<DbDataContainer> insertValues) {
       // hack to keep JGraphT up to date
-      if (table.equals("NodeVersions")) {
+      if (table.equals("node_version")) {
         String id = null;
         for (DbDataContainer container : insertValues) {
           if (container.getField().equals("id")) {
@@ -96,16 +96,16 @@ public class CassandraClient implements DBClient {
 
         JGraphTUtils.addVertex(this.graph, id);
       }
-      if (table.equals("EdgeVersions")) {
+      if (table.equals("edge_version")) {
         String nvFromId = null;
         String nvToId = null;
 
         for (DbDataContainer container : insertValues) {
-          if (container.getField().equals("endpoint_one")) {
+          if (container.getField().equals("from_node_version_id")) {
             nvFromId = container.getValue().toString();
           }
 
-          if (container.getField().equals("endpoint_two")) {
+          if (container.getField().equals("to_node_version_id")) {
             nvToId = container.getValue().toString();
           }
         }

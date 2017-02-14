@@ -71,7 +71,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       insertions.add(new DbDataContainer("id", GroundType.STRING, id));
       insertions.add(new DbDataContainer("node_id", GroundType.STRING, nodeId));
 
-      connection.insert("NodeVersions", insertions);
+      connection.insert("node_version", insertions);
 
       this.nodeFactory.update(connection, nodeId, id, parentIds);
 
@@ -97,7 +97,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("NodeVersions", DBClient.SELECT_STAR, predicates);
+        resultSet = connection.equalitySelect("node_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
