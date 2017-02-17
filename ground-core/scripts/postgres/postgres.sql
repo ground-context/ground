@@ -15,6 +15,14 @@ create table item (
     id bigint NOT NULL PRIMARY KEY
 );
 
+create table item_tag (
+    item_id bigint NOT NULL REFERENCES item(id),
+    key varchar NOT NULL,
+    value varchar,
+    type data_type,
+    CONSTRAINT item_tag_pkey (item_id, key);
+);
+
 create table version_history_dag (
     item_id bigint NOT NULL REFERENCES item(id),
     version_successor_id bigint NOT NULL REFERENCES version_successor(id),
@@ -56,12 +64,12 @@ create table rich_version_external_parameter (
     CONSTRAINT rich_version_external_parameter_pkey PRIMARY KEY (rich_version_id, key)
 );
 
-create table tag (
+create table rich_version_tag (
     rich_version_id bigint REFERENCES rich_version(id),
     key varchar NOT NULL,
     value varchar,
     type data_type,
-    CONSTRAINT tag_pkey PRIMARY KEY (rich_version_id, key)
+    CONSTRAINT rich_version_tag_pkey PRIMARY KEY (rich_version_id, key)
 );
 
 create table edge (

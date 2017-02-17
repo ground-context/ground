@@ -22,17 +22,18 @@ import edu.berkeley.ground.api.versions.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Node extends Item<NodeVersion> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(Node.class);
+import java.util.Map;
 
+public class Node extends Item<NodeVersion> {
   // the name of this Node
   private String name;
 
   @JsonCreator
   public Node(
       @JsonProperty("id") long id,
-      @JsonProperty("name") String name) {
-    super(id);
+      @JsonProperty("name") String name,
+      @JsonProperty("tags") Map<String, Tag> tags) {
+    super(id, tags);
 
     this.name = name;
   }

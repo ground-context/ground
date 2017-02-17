@@ -65,7 +65,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
     for (String key : tags.keySet()) {
       assert (retrievedTags).containsKey(key);
       assertEquals(tags.get(key), retrievedTags.get(key));
-      assertEquals(retrieved.getId(), retrievedTags.get(key).getVersionId());
+      assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
     }
   }
 

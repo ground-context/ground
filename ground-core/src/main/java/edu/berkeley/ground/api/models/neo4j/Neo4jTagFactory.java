@@ -30,7 +30,7 @@ import org.neo4j.driver.v1.Record;
 import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id) throws GroundException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connectionPointer, long id) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
     List<String> returnFields = new ArrayList<>();
@@ -66,7 +66,7 @@ public class Neo4jTagFactory extends TagFactory {
     return tags;
   }
 
-  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+  public List<Long> getVersionIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();

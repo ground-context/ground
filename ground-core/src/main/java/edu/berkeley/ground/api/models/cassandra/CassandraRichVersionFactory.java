@@ -124,7 +124,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       // do nothing; this just means that there are no referenceParameters
     }
 
-    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
+    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(connection, id);
 
     String reference = resultSet.getString("reference");
     long structureVersionId = resultSet.getLong("structure_version_id");

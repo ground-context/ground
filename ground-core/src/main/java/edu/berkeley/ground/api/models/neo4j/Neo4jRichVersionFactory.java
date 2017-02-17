@@ -122,7 +122,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       }
     }
 
-    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connectionPointer, id);
+    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(connectionPointer, id);
 
     String reference;
     if (record.get("v").asNode().get("reference") instanceof NullValue) {

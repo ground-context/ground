@@ -28,7 +28,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class CassandraTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id) throws GroundException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connectionPointer, long id) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -59,7 +59,7 @@ public class CassandraTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+  public List<Long> getVersionIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
     List<Long> result = new ArrayList<>();
 
