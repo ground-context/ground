@@ -84,7 +84,7 @@ public class GroundDatabase {
   }
 
   Edge getEdge(NodeVersion nodeVersion) throws GroundException {
-    String edgeId = nodeVersion.getNodeId();
+    String edgeId = "" + nodeVersion.getNodeId();
     try {
       LOG.debug("Fetching database table edge: " + edgeId);
       return groundReadWrite.getEdgeFactory().retrieveFromDatabase(edgeId);
@@ -109,7 +109,7 @@ public class GroundDatabase {
 
   Database getDatabase(String dbName) throws NoSuchObjectException {
     try {
-      List<String> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
+      List<Long> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
       if (versions.isEmpty()) {
         throw new GroundException("Database node not found: " + dbName);
       }
@@ -135,19 +135,19 @@ public class GroundDatabase {
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       structVersionAttribs.put(dbName, GroundType.STRING);
       StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(dbStruct.getId(),
-          structVersionAttribs, new ArrayList<String>());
+          structVersionAttribs, new ArrayList<Long>());
 
-      Tag dbTag = new Tag("1.0.0", dbName, JsonUtil.toJSON(db), GroundType.STRING);
+      Tag dbTag = new Tag(0, dbName, JsonUtil.toJSON(db), GroundType.STRING);
       String reference = db.getLocationUri();
       HashMap<String, Tag> tags = new HashMap<>();
       tags.put(dbName, dbTag);
 
       Map<String, String> dbParamMap = db.getParameters();
       if (dbParamMap == null) {
-        dbParamMap = new HashMap<String, String>();
+        dbParamMap = new HashMap<>();
       }
-      List<String> parent = new ArrayList<String>();
-      List<String> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
+      List<Long> parent = new ArrayList<>();
+      List<Long> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
       if (!versions.isEmpty()) {
         LOG.debug("leaves {}", versions.get(0));
         parent.add(versions.get(0));
@@ -167,10 +167,10 @@ public class GroundDatabase {
       NodeVersion tableNodeVersion = groundTable.createTableNodeVersion(table);
       Database prevDb = this.getDatabase(dbName);
 
-      List<String> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
+      List<Long> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
 
       NodeVersion dbNodeVersion = this.createDatabase(prevDb);
-      String dbNodeVersionId = dbNodeVersion.getId();
+      long dbNodeVersionId = dbNodeVersion.getId();
 
       Edge edge = this.getEdge(tableNodeVersion);
       Structure structure = this.getEdgeStructure(tableNodeVersion);
@@ -183,12 +183,12 @@ public class GroundDatabase {
 
       groundReadWrite.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
           tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
-          tableNodeVersion.getId(), new ArrayList<String>());
+          tableNodeVersion.getId(), new ArrayList<Long>());
 
       if (!versions.isEmpty() && versions.size() != 0) {
-        String prevVersionId = versions.get(0);
-        List<String> nodeIds = groundReadWrite.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-        for (String nodeId : nodeIds) {
+        long prevVersionId = versions.get(0);
+        List<Long> nodeIds = groundReadWrite.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+        for (long nodeId : nodeIds) {
           NodeVersion oldNV = groundReadWrite.getNodeVersionFactory().retrieveFromDatabase(nodeId);
           edge = this.getEdge(oldNV);
 
@@ -202,7 +202,7 @@ public class GroundDatabase {
               new ArrayList<>());
           groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
               oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
-              new ArrayList<String>());
+              new ArrayList<>());
         }
       }
 
@@ -219,14 +219,14 @@ public class GroundDatabase {
       throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
     try {
       boolean found = false;
-      List<String> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
+      List<Long> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
 
       if (versions.isEmpty()) {
         LOG.error("Could not find table to drop named {}", tableName);
         return null;
       } else {
-        String prevVersionId = versions.get(0);
-        List<String> nodeIds = groundReadWrite.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+        long prevVersionId = versions.get(0);
+        List<Long> nodeIds = groundReadWrite.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
 
         if (nodeIds.size() == 0) {
           LOG.error("Failed to drop table {}", dbName);
@@ -234,13 +234,13 @@ public class GroundDatabase {
         }
         Database db = this.getDatabase(dbName);
         NodeVersion dbNodeVersion = this.createDatabase(db);
-        String dbVersionId = dbNodeVersion.getId();
+        long dbVersionId = dbNodeVersion.getId();
         String tableNodeId = "Nodes." + tableName;
 
-        for (String nodeId : nodeIds) {
+        for (long nodeId : nodeIds) {
           NodeVersion oldNV = groundReadWrite.getNodeVersionFactory().retrieveFromDatabase(nodeId);
 
-          if (!oldNV.getNodeId().equals(tableNodeId)) {
+          if (!("" + oldNV.getNodeId()).equals(tableNodeId)) {
             Edge edge = this.getEdge(oldNV);
             Structure structure = this.getEdgeStructure(oldNV);
 
@@ -256,7 +256,7 @@ public class GroundDatabase {
                 structVersionAttribs, new ArrayList<>());
             groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(),
                 oldNV.getReference(), oldNV.getParameters(), edge.getId(), dbVersionId, oldNV.getId(),
-                new ArrayList<String>());
+                new ArrayList<>());
           }
         }
         return dbNodeVersion;
@@ -281,10 +281,10 @@ public class GroundDatabase {
       NodeVersion tableNodeVersion = groundTable.addPartitions(dbName, tableName, parts);
       Database prevDb = this.getDatabase(dbName);
 
-      List<String> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
+      List<Long> versions = groundReadWrite.getNodeFactory().getLeaves(dbName);
 
       NodeVersion dbNodeVersion = this.createDatabase(prevDb);
-      String dbNodeVersionId = dbNodeVersion.getId();
+      long dbNodeVersionId = dbNodeVersion.getId();
 
       Edge edge = this.getEdge(tableNodeVersion);
       Structure structure = this.getEdgeStructure(tableNodeVersion);
@@ -297,12 +297,12 @@ public class GroundDatabase {
 
       groundReadWrite.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
           tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
-          tableNodeVersion.getId(), new ArrayList<String>());
+          tableNodeVersion.getId(), new ArrayList<Long>());
 
       if (!versions.isEmpty() && versions.size() > 0) {
-        String prevVersionId = versions.get(0);
-        List<String> nodeIds = groundReadWrite.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-        for (String nodeId : nodeIds) {
+        long prevVersionId = versions.get(0);
+        List<Long> nodeIds = groundReadWrite.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+        for (long nodeId : nodeIds) {
           NodeVersion oldNV = groundReadWrite.getNodeVersionFactory().retrieveFromDatabase(nodeId);
           edge = this.getEdge(oldNV);
 
@@ -316,7 +316,7 @@ public class GroundDatabase {
               new ArrayList<>());
           groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
               oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
-              new ArrayList<String>());
+              new ArrayList<>());
         }
       }
       return dbNodeVersion;

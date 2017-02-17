@@ -205,7 +205,7 @@ public class GroundReadWrite {
   }
 
   private void createNeo4jInstance() {
-    Neo4jFactories neo4JFactories = new Neo4jFactories((Neo4jClient) dbClient);
+    Neo4jFactories neo4JFactories = new Neo4jFactories((Neo4jClient) dbClient, 0, 1);
     this.nodeFactory = neo4JFactories.getNodeFactory();
     this.nodeVersionFactory = neo4JFactories.getNodeVersionFactory();
     this.edgeFactory = neo4JFactories.getEdgeFactory();
@@ -216,7 +216,7 @@ public class GroundReadWrite {
   }
 
   private void createPostgresInstance() throws GroundDBException {
-    PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient);
+    PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient, 0, 1);
     this.nodeFactory = postgresFactories.getNodeFactory();
     this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
     this.edgeFactory = postgresFactories.getEdgeFactory();

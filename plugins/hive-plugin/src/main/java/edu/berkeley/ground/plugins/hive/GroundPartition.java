@@ -110,22 +110,22 @@ public class GroundPartition {
         partId += ":" + value;
       }
 
-      Tag partTag = new Tag(DUMMY_NOT_USED, partId, JsonUtil.toJSON(part), GroundType.STRING);
+      Tag partTag = new Tag(0, partId, JsonUtil.toJSON(part), GroundType.STRING);
 
       Node node = this.getNode(partId);
-      String nodeId = node.getId();
+      long nodeId = node.getId();
       Structure partStruct = this.getNodeStructure(partId);
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       structVersionAttribs.put(partId, GroundType.STRING);
       StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(partStruct.getId(), structVersionAttribs,
-          new ArrayList<String>());
+          new ArrayList<Long>());
 
       String reference = part.getSd().getLocation();
       HashMap<String, Tag> tags = new HashMap<>();
       tags.put(partId, partTag);
 
-      String versionId = sv.getId();
-      List<String> parentId = new ArrayList<String>();
+      long versionId = sv.getId();
+      List<Long> parentId = new ArrayList<>();
 
       Map<String, String> parameters = part.getParameters();
 
