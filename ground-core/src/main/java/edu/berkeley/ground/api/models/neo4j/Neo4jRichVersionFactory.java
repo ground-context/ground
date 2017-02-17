@@ -59,7 +59,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       String value = referenceParameters.get(key);
 
       List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("richversion_id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
       insertions.add(new DbDataContainer("value", GroundType.STRING, value));
 
@@ -80,7 +80,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("richversion_id", GroundType.LONG, id));
+      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
@@ -91,7 +91,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      connection.addVertexAndEdge("Tag", tagInsertion, "TagConnection", id, new ArrayList<>());
+      connection.addVertexAndEdge("RichVersionTag", tagInsertion, "RichVersionTagConnection", id, new ArrayList<>());
       tagInsertion.clear();
     }
   }

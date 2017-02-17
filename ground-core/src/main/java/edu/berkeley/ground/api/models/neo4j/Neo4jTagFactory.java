@@ -30,7 +30,15 @@ import org.neo4j.driver.v1.Record;
 import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connectionPointer, long id) throws GroundException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connection, long id) throws GroundException {
+    return this.retrieveFromDatabaseById(connection, id, "RichVersion");
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseByItemId(GroundDBConnection connection, long id) throws GroundException {
+    return this.retrieveFromDatabaseById(connection, id, "Item");
+  }
+
+  private Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id, String keyPrefix) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
     List<String> returnFields = new ArrayList<>();
@@ -38,7 +46,7 @@ public class Neo4jTagFactory extends TagFactory {
     returnFields.add("value");
     returnFields.add("type");
 
-    List<Record> tagsRecords = connection.getAdjacentVerticesByEdgeLabel("TagConnection", id, returnFields);
+    List<Record> tagsRecords = connection.getAdjacentVerticesByEdgeLabel(keyPrefix + "TagConnection", id, returnFields);
 
     Map<String, Tag> tags = new HashMap<>();
 
@@ -66,12 +74,21 @@ public class Neo4jTagFactory extends TagFactory {
     return tags;
   }
 
-  public List<Long> getVersionIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+  public List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
+    return this.getIdsByTag(connection, tag, "rich_version_id");
+  }
+
+  public List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
+    return this.getIdsByTag(connection, tag, "item_id");
+  }
+
+
+  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag, String idAttribute) throws GroundException {
     Neo4jConnection connection = (Neo4jConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
 
-    return connection.getVerticesByAttributes(predicates);
+    return connection.getVerticesByAttributes(predicates, idAttribute);
   }
 }
