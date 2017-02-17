@@ -20,31 +20,27 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
   }
 
   @Test
-  public void testStructureVersionCreation() {
-    try {
-      String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName).getId();
+  public void testStructureVersionCreation() throws GroundException {
+    String structureName = "testStructure";
+    long structureId = super.factories.getStructureFactory().create(structureName).getId();
 
-      Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-      structureVersionAttributes.put("intfield", GroundType.INTEGER);
-      structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-      structureVersionAttributes.put("strfield", GroundType.STRING);
+    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
+    structureVersionAttributes.put("intfield", GroundType.INTEGER);
+    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
+    structureVersionAttributes.put("strfield", GroundType.STRING);
 
-      long structureVersionId = super.factories.getStructureVersionFactory().create(
-          structureId, structureVersionAttributes, new ArrayList<>()).getId();
+    long structureVersionId = super.factories.getStructureVersionFactory().create(
+        structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
-      StructureVersion retrieved = super.factories.getStructureVersionFactory()
-          .retrieveFromDatabase(structureVersionId);
+    StructureVersion retrieved = super.factories.getStructureVersionFactory()
+        .retrieveFromDatabase(structureVersionId);
 
-      assertEquals(structureId, retrieved.getStructureId());
-      Map<String, GroundType> retrievedAttributes = retrieved.getAttributes();
+    assertEquals(structureId, retrieved.getStructureId());
+    Map<String, GroundType> retrievedAttributes = retrieved.getAttributes();
 
-      for (String key : structureVersionAttributes.keySet()) {
-        assert (retrievedAttributes).containsKey(key);
-        assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
-      }
-    } catch (GroundException ge) {
-      fail(ge.getMessage());
+    for (String key : structureVersionAttributes.keySet()) {
+      assert (retrievedAttributes).containsKey(key);
+      assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
     }
   }
 }
