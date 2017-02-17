@@ -24,10 +24,10 @@ public class PostgresNodeVersionFactoryTest extends PostgresTest {
   @Test
   public void testNodeVersionCreation() throws GroundException {
     String nodeName = "testNode";
-    long nodeId = super.factories.getNodeFactory().create(nodeName).getId();
+    long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

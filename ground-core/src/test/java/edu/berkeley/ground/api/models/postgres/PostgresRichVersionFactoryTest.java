@@ -91,7 +91,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       long id = 2;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -129,7 +129,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
         connection = super.cassandraClient.getConnection();
 
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);

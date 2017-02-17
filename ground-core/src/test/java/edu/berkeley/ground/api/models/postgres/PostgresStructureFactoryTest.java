@@ -2,6 +2,8 @@ package edu.berkeley.ground.api.models.postgres;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import edu.berkeley.ground.api.PostgresTest;
 import edu.berkeley.ground.api.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -18,7 +20,7 @@ public class PostgresStructureFactoryTest extends PostgresTest {
   public void testStructureCreation() throws GroundException {
     String testName = "test";
     PostgresStructureFactory edgeFactory = (PostgresStructureFactory) super.factories.getStructureFactory();
-    edgeFactory.create(testName);
+    edgeFactory.create(testName, new HashMap<>());
 
     Structure edge = edgeFactory.retrieveFromDatabase(testName);
 

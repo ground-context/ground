@@ -75,7 +75,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
     long id = 1;
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -108,7 +108,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       connection = super.cassandraClient.getConnection();
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);

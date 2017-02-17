@@ -25,17 +25,17 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
   @Test
   public void testGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode).getId();
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
     long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode).getId();
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, new HashMap<>()).getId();
     long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName).getId();
+    long edgeId = super.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
     long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId, new ArrayList<>()).getId();
 
@@ -43,10 +43,10 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName).getId();
+    long graphId = super.factories.getGraphFactory().create(graphName, new HashMap<>()).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

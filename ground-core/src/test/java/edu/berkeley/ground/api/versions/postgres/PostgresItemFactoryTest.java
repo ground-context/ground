@@ -3,6 +3,7 @@ package edu.berkeley.ground.api.versions.postgres;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.api.PostgresTest;
@@ -27,7 +28,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
@@ -78,7 +79,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
       long toId = 2;
       super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -111,7 +112,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
@@ -168,7 +169,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       try {
         connection = super.cassandraClient.getConnection();
 
-        super.itemFactory.insertIntoDatabase(connection, testId);
+        super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
         super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -193,7 +194,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long parentOne = 2;
       long parentTwo = 3;

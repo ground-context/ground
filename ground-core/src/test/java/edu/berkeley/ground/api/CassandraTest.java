@@ -36,8 +36,8 @@ public class CassandraTest {
     this.versionFactory = new CassandraVersionFactory();
     this.versionSuccessorFactory = new CassandraVersionSuccessorFactory(new IdGenerator(0, 1, false));
     this.versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
-    this.itemFactory = new CassandraItemFactory(versionHistoryDAGFactory);
     this.tagFactory = new CassandraTagFactory();
+    this.itemFactory = new CassandraItemFactory(versionHistoryDAGFactory, tagFactory);
 
     this.richVersionFactory = new CassandraRichVersionFactory(versionFactory,
         (CassandraStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);

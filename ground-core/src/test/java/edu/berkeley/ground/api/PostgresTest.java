@@ -36,8 +36,8 @@ public class PostgresTest {
     this.versionFactory = new PostgresVersionFactory();
     this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(new IdGenerator(0, 1, false));
     this.versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
-    this.itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
     this.tagFactory = new PostgresTagFactory();
+    this.itemFactory = new PostgresItemFactory(versionHistoryDAGFactory, tagFactory);
 
     this.richVersionFactory = new PostgresRichVersionFactory(versionFactory,
         (PostgresStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);

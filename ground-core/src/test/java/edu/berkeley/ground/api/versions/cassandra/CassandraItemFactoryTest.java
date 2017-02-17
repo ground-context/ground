@@ -3,6 +3,7 @@ package edu.berkeley.ground.api.versions.cassandra;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.api.CassandraTest;
@@ -26,7 +27,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
     long testId = 1;
     CassandraConnection connection = super.cassandraClient.getConnection();
 
-    super.itemFactory.insertIntoDatabase(connection, testId);
+    super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
     long fromId = 123;
     long toId = 456;
@@ -72,7 +73,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
     long testId = 1;
     CassandraConnection connection = super.cassandraClient.getConnection();
 
-    super.itemFactory.insertIntoDatabase(connection, testId);
+    super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
     long toId = 123;
     super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -100,7 +101,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
     long testId = 1;
     CassandraConnection connection = super.cassandraClient.getConnection();
 
-    super.itemFactory.insertIntoDatabase(connection, testId);
+    super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
     long fromId = 123;
     long toId = 456;
@@ -153,7 +154,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
     try {
       connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -173,7 +174,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
     long testId = 1;
     CassandraConnection connection = super.cassandraClient.getConnection();
 
-    super.itemFactory.insertIntoDatabase(connection, testId);
+    super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
     long parentOne = 123;
     long parentTwo = 456;

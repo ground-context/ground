@@ -16,9 +16,14 @@ package edu.berkeley.ground.api.usage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.versions.GroundType;
 import io.dropwizard.jackson.Jackson;
 
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +33,10 @@ public class LineageEdgeTest {
 
   @Test
   public void serializesToJSON() throws Exception {
-    LineageEdge lineageEdge = new LineageEdge(1, "test");
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+
+    LineageEdge lineageEdge = new LineageEdge(1, "test", tagsMap);
     String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class));
 
     assertThat(MAPPER.writeValueAsString(lineageEdge)).isEqualTo(expected);
@@ -36,7 +44,10 @@ public class LineageEdgeTest {
 
   @Test
   public void deserializesFromJSON() throws Exception {
-    LineageEdge lineageEdge = new LineageEdge(1, "test");
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+
+    LineageEdge lineageEdge = new LineageEdge(1, "test", tagsMap);
     assertThat(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class)).isEqualToComparingFieldByField(lineageEdge);
   }
 }
