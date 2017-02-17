@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.api.usage.cassandra;
 
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.usage.LineageEdge;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.versions.GroundType;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLineageEdgeFactory.class);
@@ -47,13 +49,13 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public LineageEdge create(String name) throws GroundException {
+  public LineageEdge create(String name, Map<String, Tag> tags) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId);
+      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -64,7 +66,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
       connection.commit();
       LOGGER.info("Created lineage edge " + name + ".");
 
-      return LineageEdgeFactory.construct(uniqueId, name);
+      return LineageEdgeFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
@@ -91,11 +93,12 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
       }
 
       long id = resultSet.getLong("item_id");
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
 
       connection.commit();
       LOGGER.info("Retrieved lineage edge " + name + ".");
 
-      return LineageEdgeFactory.construct(id, name);
+      return LineageEdgeFactory.construct(id, name, tags);
     } catch (GroundException e) {
       connection.abort();
 

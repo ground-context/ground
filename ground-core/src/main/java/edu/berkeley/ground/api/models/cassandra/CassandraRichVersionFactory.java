@@ -81,7 +81,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      connection.insert("tag", tagInsertion);
+      connection.insert("rich_version_tag", tagInsertion);
     }
 
     for (String key : referenceParameters.keySet()) {
