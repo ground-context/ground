@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.models.NodeVersion;
 import edu.berkeley.ground.api.models.NodeVersionFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 
@@ -31,6 +32,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
 
 @Path("/nodes")
 @Api(value = "/nodes", description = "Interact with the nodes in the graph")
@@ -66,9 +68,9 @@ public class NodesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Node createNode(@PathParam("name") String name) throws GroundException {
+  public Node createNode(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating node " + name + ".");
-    return this.nodeFactory.create(name);
+    return this.nodeFactory.create(name, tags);
   }
 
   @POST

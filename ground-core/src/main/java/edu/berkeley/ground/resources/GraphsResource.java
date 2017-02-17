@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.models.Graph;
 import edu.berkeley.ground.api.models.GraphFactory;
 import edu.berkeley.ground.api.models.GraphVersion;
 import edu.berkeley.ground.api.models.GraphVersionFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 
@@ -31,6 +32,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
 
 @Path("/graphs")
 @Api(value = "/graphs", description = "Interact with the graphs in ground")
@@ -65,9 +67,9 @@ public class GraphsResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Graph createGraph(@PathParam("name") String name) throws GroundException {
+  public Graph createGraph(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating graph " + name + ".");
-    return this.graphFactory.create(name);
+    return this.graphFactory.create(name, tags);
   }
 
   @POST

@@ -45,11 +45,11 @@ public class CassandraFactories {
     CassandraVersionFactory versionFactory = new CassandraVersionFactory();
     CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory(idGenerator);
     CassandraVersionHistoryDAGFactory versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
-    CassandraItemFactory itemFactory = new CassandraItemFactory(versionHistoryDAGFactory);
+    CassandraTagFactory tagFactory = new CassandraTagFactory();
+    CassandraItemFactory itemFactory = new CassandraItemFactory(versionHistoryDAGFactory, tagFactory);
 
     this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient, idGenerator);
     this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient, idGenerator);
-    CassandraTagFactory tagFactory = new CassandraTagFactory();
     CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
     this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient, idGenerator);
     this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient, idGenerator);
