@@ -110,7 +110,6 @@ public class GroundMetastoreTest {
     conf.set(GRAPHFACTORY_CLASS, PostgresGraphVersionFactory.class.getName());
     conf.set(NODEFACTORY_CLASS, PostgresNodeVersionFactory.class.getName());
     conf.set(EDGEFACTORY_CLASS, PostgresEdgeVersionFactory.class.getName());
-    GroundReadWrite.setConf(conf);
     groundStore = new GroundStore();
     groundStore.setConf(conf);
     // dropAllStoreObjects(groundStore);
@@ -123,7 +122,7 @@ public class GroundMetastoreTest {
   /**
    * Test database operations
    */
-  // @Test
+  @Test
   public void testDatabaseOps() throws MetaException, InvalidObjectException, NoSuchObjectException {
     int numDBs = groundStore.getAllDatabases().size();
     Database db1 = new Database(DB1, "description", "locationurl", new HashMap<String, String>());
@@ -166,7 +165,7 @@ public class GroundMetastoreTest {
   /**
    * Test table operations
    */
-  // @Test
+  @Test
   public void testTableOps()
       throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
     Database db1 = new Database(DBTBL1, "description", "locationurl", new HashMap<String, String>());
@@ -185,7 +184,7 @@ public class GroundMetastoreTest {
     assertEquals(true, groundStore.dropTable(DBTBL1, TABLE1));
   }
 
-  // @Test
+  @Test
   public void testPartitionOps()
       throws MetaException, InvalidObjectException, NoSuchObjectException, InvalidInputException {
     Database db1 = new Database(DBPART1, "description", "locationurl", new HashMap<String, String>());

@@ -54,6 +54,8 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.berkeley.ground.exceptions.GroundDBException;
+
 /**
  *
  */
@@ -265,7 +267,7 @@ public class TestGroundStore {
   }
 
   @Before
-  public void init() throws IOException {
+  public void init() throws IOException, GroundDBException {
     MockitoAnnotations.initMocks(this);
     HiveConf conf = new HiveConf();
     conf.setBoolean(GroundReadWrite.NO_CACHE_CONF, true);

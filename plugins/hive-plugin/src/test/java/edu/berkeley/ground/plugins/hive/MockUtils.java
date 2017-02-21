@@ -27,8 +27,14 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Table;
 
+import edu.berkeley.ground.exceptions.GroundDBException;
+
 public class MockUtils {
   public class MockGroundStore extends GroundStore {
+    public MockGroundStore() throws GroundDBException {
+        super();
+    }
+
     Map<String, Database> databaseMap = new HashMap<String, Database>();
     Map<String, Table> tableMap = new HashMap<String, Table>();
 
@@ -55,7 +61,7 @@ public class MockUtils {
 
   private static MockUtils mockUtils = new MockUtils();
 
-  public static GroundStore init(HiveConf conf) {
+  public static GroundStore init(HiveConf conf) throws GroundDBException {
     return mockUtils.new MockGroundStore();
   }
 

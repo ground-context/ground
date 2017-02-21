@@ -67,12 +67,12 @@ public class GroundMetaStore {
   Node getNode() throws GroundException {
     try {
       LOG.debug("Fetching metastore node: {}", METASTORE_NODE);
-      return ground.getNodeFactory().retrieveFromDatabase(METASTORE_NODE);
+      return ground.getNode(METASTORE_NODE);
     } catch (GroundException ge1) {
-      LOG.debug("Not found - Creating metastore node: {}", METASTORE_NODE);
-      Node node = ground.getNodeFactory().create(METASTORE_NODE);
-      Structure nodeStruct = ground.getStructureFactory().create(node.getName());
-      LOG.debug("node struct created {}", nodeStruct.getName());
+      LOG.error("Not found - Creating metastore node: {}", METASTORE_NODE);
+      Node node = ground.createNode(METASTORE_NODE);
+      Structure nodeStruct = ground.createStructure(node.getName());
+      LOG.error("node struct created {}", nodeStruct.getName());
       return node;
     }
   }
@@ -81,7 +81,7 @@ public class GroundMetaStore {
     try {
       LOG.debug("Fetching metastore node structure: " + METASTORE_NODE);
       Node node = this.getNode();
-      return ground.getStructureFactory().retrieveFromDatabase(node.getName());
+      return ground.getStructure(node.getName());
     } catch (GroundException e) {
       LOG.debug("Not found - metastore node structure: " + METASTORE_NODE);
       throw e;
@@ -89,14 +89,14 @@ public class GroundMetaStore {
   }
 
   Edge getEdge(NodeVersion nodeVersion) throws GroundException {
-    String edgeId = "" + nodeVersion.getId();
+    String edgeId = nodeVersion.getNodeId();
     try {
       LOG.debug("Fetching metastore database edge: " + edgeId);
-      return ground.getEdgeFactory().retrieveFromDatabase(edgeId);
+      return ground.getEdge(edgeId);
     } catch (GroundException e) {
       LOG.debug("Not found - Creating metastore table edge: {}", edgeId);
-      Edge edge = ground.getEdgeFactory().create(edgeId);
-      Structure edgeStruct = ground.getStructureFactory().create(edge.getName());
+      Edge edge = ground.createEdge(edgeId);
+      Structure edgeStruct = ground.createStructure(edge.getName());
       return edge;
     }
   }
@@ -105,7 +105,7 @@ public class GroundMetaStore {
     try {
       LOG.debug("Fetching metastore database edge structure: " + nodeVersion.getNodeId());
       Edge edge = this.getEdge(nodeVersion);
-      return ground.getStructureFactory().retrieveFromDatabase(edge.getName());
+      return ground.getStructure(edge.getName());
     } catch (GroundException e) {
       LOG.debug("Not found - metastore table edge structure: " + nodeVersion.getNodeId());
       throw e;
@@ -118,8 +118,8 @@ public class GroundMetaStore {
   NodeVersion getNodeVersion() throws GroundException {
     try {
       Node node = this.getNode();
-      long nodeVersionId = ground.getNodeFactory().getLeaves(node.getName()).get(0);
-      return ground.getNodeVersionFactory().retrieveFromDatabase(nodeVersionId);
+      String nodeVersionId = ground.getLatestVersions(node.getName()).get(0);
+      return ground.getNodeVersion(nodeVersionId);
     } catch (GroundException ex) {
       throw ex;
     }
@@ -128,27 +128,27 @@ public class GroundMetaStore {
   NodeVersion createNodeVersion() throws GroundException {
     try {
       Node node = this.getNode();
-      long nodeId = node.getId();
+      String nodeId = node.getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put(_TIMESTAMP, GroundType.STRING);
 
       Structure structure = this.getNodeStructure();
-      StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(),
-          structureVersionAttributes, new ArrayList<>());
+      StructureVersion sv = ground.createStructureVersion(structure.getName(), structure.getId(),
+          structureVersionAttributes);
 
       Map<String, Tag> tags = new HashMap<>();
       String timestamp = Date.from(Instant.now()).toString();
-      tags.put(METASTORE_NODE, new Tag(0, _TIMESTAMP, timestamp, GroundType.STRING));
+      tags.put(METASTORE_NODE, new Tag(DUMMY_NOT_USED, _TIMESTAMP, timestamp, GroundType.STRING));
 
-      List<Long> parent = new ArrayList<>();
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+      List<String> parent = new ArrayList<String>();
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
       if (!versions.isEmpty()) {
         parent.add(versions.get(0));
       }
 
       // TODO: put version and other information in tags
-      return ground.getNodeVersionFactory().create(tags, sv.getId(), "" + nodeId, EMPTY_MAP, nodeId, parent);
+      return ground.createNodeVersion(node.getName(), tags, sv.getId(), nodeId, EMPTY_MAP, nodeId);
     } catch (GroundException ex) {
       LOG.error("Unable to initialize Ground Metastore: " + ex);
       throw ex;
@@ -157,31 +157,33 @@ public class GroundMetaStore {
 
   // Database related functions
 
-  Database getDatabase(String name) throws NoSuchObjectException {
+  Database getDatabase(String name) throws GroundException {
     try {
-      List<String> dbNames = this.getDatabases(name);
+      List<String> dbNames = getDatabases(name);
       if (dbNames.contains(name)) {
         return groundDatabase.getDatabase(name);
       }
       return null;
     } catch (NoSuchObjectException e) {
       LOG.error("Unable to locate table {}", name);
-      throw e;
+      throw new GroundException(e);
     }
   }
 
   List<String> getDatabases(String dbPattern) throws NoSuchObjectException {
     List<String> databases = new ArrayList<String>();
     try {
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
-
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
+      if (versions == null) {
+          ground.createNode(METASTORE_NODE);
+      }
       if (!versions.isEmpty()) {
-        long metaVersionId = versions.get(0);
-        List<Long> dbNodeIds = ground.getNodeVersionFactory().getAdjacentNodes(metaVersionId, dbPattern);
-        for (long dbNodeId : dbNodeIds) {
-          NodeVersion dbNodeVersion = ground.getNodeVersionFactory().retrieveFromDatabase(dbNodeId);
+        String metaVersionId = versions.get(0);
+        List<String> dbNodeIds = ground.getAdjacentNodes(metaVersionId, dbPattern);
+        for (String dbNodeId : dbNodeIds) {
+          NodeVersion dbNodeVersion = ground.getNodeVersion(dbNodeId);
           // fetch the edge for the dbname
-          Edge edge = ground.getEdgeFactory().retrieveFromDatabase("" + dbNodeVersion.getId());
+          Edge edge = ground.getEdge(dbNodeVersion.getNodeId());
           databases.add(edge.getName().split("Nodes.")[1]);
         }
       }
@@ -196,28 +198,27 @@ public class GroundMetaStore {
     try {
       NodeVersion nv = groundDatabase.createDatabase(db);
 
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
 
       NodeVersion metaNodeVersion = this.createNodeVersion();
-      long metaVersionId = metaNodeVersion.getId();
+      String metaVersionId = metaNodeVersion.getId();
       Edge edge = this.getEdge(nv);
       Structure structure = this.getEdgeStructure(nv);
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       for (String key : nv.getTags().keySet()) {
         structVersionAttribs.put(key, GroundType.STRING);
       }
-      StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-          new ArrayList<>());
+      StructureVersion sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
 
-      ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
-          edge.getId(), metaVersionId, nv.getId(), new ArrayList<Long>());
+      ground.createEdgeVersion(edge.getName(), nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
+          edge.getId(), metaVersionId, nv.getId());
 
       if (!versions.isEmpty()) {
         if (versions.size() != 0) {
-          long prevVersionId = versions.get(0);
-          List<Long> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-          for (long nodeId : nodeIds) {
-            NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+          String prevVersionId = versions.get(0);
+          List<String> nodeIds = ground.getAdjacentNodes(prevVersionId, "");
+          for (String nodeId : nodeIds) {
+            NodeVersion oldNV = ground.getNodeVersion(nodeId);
             edge = this.getEdge(oldNV);
 
             structVersionAttribs = new HashMap<>();
@@ -226,11 +227,9 @@ public class GroundMetaStore {
             }
 
             // create an edge version for a dbname
-            sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-                new ArrayList<>());
-            ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-                oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
-                new ArrayList<>());
+            sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
+            ground.createEdgeVersion(edge.getName(), oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId());
           }
         }
       }
@@ -245,27 +244,27 @@ public class GroundMetaStore {
   boolean dropDatabase(String dbName) throws GroundException {
     try {
       boolean found = false;
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
 
       if (versions.isEmpty()) {
         LOG.error("Could not find datbase to drop named " + dbName);
         return false;
       } else {
-        long prevVersionId = versions.get(0);
-        List<Long> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
+        String prevVersionId = versions.get(0);
+        List<String> nodeIds = ground.getAdjacentNodes(prevVersionId, "");
 
         if (nodeIds.size() == 0) {
           LOG.error("Failed to drop database {}", dbName);
           return false;
         }
         NodeVersion metaNodeVersion = this.createNodeVersion();
-        long metaVersionId = metaNodeVersion.getId();
+        String metaVersionId = metaNodeVersion.getId();
         String dbNodeId = "Nodes." + dbName;
 
-        for (long nodeId : nodeIds) {
-          NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+        for (String nodeId : nodeIds) {
+          NodeVersion oldNV = ground.getNodeVersion(nodeId);
 
-          if (oldNV.getNodeId() != 0) {
+          if (!oldNV.getNodeId().equals(dbNodeId)) {
             Edge edge = this.getEdge(oldNV);
             Structure structure = this.getEdgeStructure(oldNV);
 
@@ -277,11 +276,10 @@ public class GroundMetaStore {
             }
             // create an edge for each dbname other than the one
             // being deleted
-            StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(),
-                structVersionAttribs, new ArrayList<>());
-            ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-                oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
-                new ArrayList<>());
+            StructureVersion sv = ground.createStructureVersion(structure.getName(), structure.getId(),
+                structVersionAttribs);
+            ground.createEdgeVersion(edge.getName(), oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId());
           } else {
             found = true;
           }
@@ -301,44 +299,41 @@ public class GroundMetaStore {
 
       NodeVersion nv = groundDatabase.createTableComponents(table);
 
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
 
       NodeVersion metaNodeVersion = this.createNodeVersion();
-      long metaVersionId = metaNodeVersion.getId();
+      String metaVersionId = metaNodeVersion.getId();
       Edge edge = this.getEdge(nv);
       Structure structure = this.getEdgeStructure(nv);
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       for (String key : nv.getTags().keySet()) {
         structVersionAttribs.put(key, GroundType.STRING);
       }
-      StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-          new ArrayList<>());
+      StructureVersion sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
 
-      ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
-          edge.getId(), metaVersionId, nv.getId(), new ArrayList<>());
+      ground.createEdgeVersion(edge.getName(), nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
+          edge.getId(), metaVersionId, nv.getId());
 
       String dbNodeId = "Nodes." + dbName;
 
       if (!versions.isEmpty()) {
         if (versions.size() != 0) {
-          long prevVersionId = versions.get(0);
-          List<Long> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-          for (long nodeId : nodeIds) {
-            NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+          String prevVersionId = versions.get(0);
+          List<String> nodeIds = ground.getAdjacentNodes(prevVersionId, "");
+          for (String nodeId : nodeIds) {
+            NodeVersion oldNV = ground.getNodeVersion(nodeId);
             edge = this.getEdge(oldNV);
 
-            if (oldNV.getNodeId() != 0) {
+            if (!oldNV.getNodeId().equals(dbNodeId)) {
               structVersionAttribs = new HashMap<>();
               for (String key : oldNV.getTags().keySet()) {
                 structVersionAttribs.put(key, GroundType.STRING);
               }
 
               // create an edge version for a dbname
-              sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-                  new ArrayList<>());
-              ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-                  oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
-                  new ArrayList<>());
+              sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
+              ground.createEdgeVersion(edge.getName(), oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                  oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId());
             }
           }
         }
@@ -359,44 +354,41 @@ public class GroundMetaStore {
         throw new NoSuchObjectException("Table not found: " + tableName);
       }
 
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
 
       NodeVersion metaNodeVersion = this.createNodeVersion();
-      long metaVersionId = metaNodeVersion.getId();
+      String metaVersionId = metaNodeVersion.getId();
       Edge edge = this.getEdge(nv);
       Structure structure = this.getEdgeStructure(nv);
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       for (String key : nv.getTags().keySet()) {
         structVersionAttribs.put(key, GroundType.STRING);
       }
-      StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-          new ArrayList<>());
+      StructureVersion sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
 
-      ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
-          edge.getId(), metaVersionId, nv.getId(), new ArrayList<>());
+      ground.createEdgeVersion(edge.getName(), nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
+          edge.getId(), metaVersionId, nv.getId());
 
       String dbNodeId = "Nodes." + dbName;
 
       if (!versions.isEmpty()) {
         if (versions.size() != 0) {
-          long prevVersionId = versions.get(0);
-          List<Long> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-          for (long nodeId : nodeIds) {
-            NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+          String prevVersionId = versions.get(0);
+          List<String> nodeIds = ground.getAdjacentNodes(prevVersionId, "");
+          for (String nodeId : nodeIds) {
+            NodeVersion oldNV = ground.getNodeVersion(nodeId);
             edge = this.getEdge(oldNV);
 
-            if (oldNV.getNodeId() != 0) {
+            if (!oldNV.getNodeId().equals(dbNodeId)) {
               structVersionAttribs = new HashMap<>();
               for (String key : oldNV.getTags().keySet()) {
                 structVersionAttribs.put(key, GroundType.STRING);
               }
 
               // create an edge version for a dbname
-              sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-                  new ArrayList<>());
-              ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-                  oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
-                  new ArrayList<>());
+              sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
+              ground.createEdgeVersion(edge.getName(), oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                  oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId());
             }
           }
         }
@@ -432,44 +424,41 @@ public class GroundMetaStore {
             "Unable to create partition for table " + tableName + " in database " + dbName);
       }
 
-      List<Long> versions = ground.getNodeFactory().getLeaves(METASTORE_NODE);
+      List<String> versions = ground.getLatestVersions(METASTORE_NODE);
 
       NodeVersion metaNodeVersion = this.createNodeVersion();
-      long metaVersionId = metaNodeVersion.getId();
+      String metaVersionId = metaNodeVersion.getId();
       Edge edge = this.getEdge(nv);
       Structure structure = this.getEdgeStructure(nv);
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       for (String key : nv.getTags().keySet()) {
         structVersionAttribs.put(key, GroundType.STRING);
       }
-      StructureVersion sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-          new ArrayList<>());
+      StructureVersion sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
 
-      ground.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
-          edge.getId(), metaVersionId, nv.getId(), new ArrayList<>());
+      ground.createEdgeVersion(edge.getName(), nv.getTags(), sv.getId(), nv.getReference(), nv.getParameters(),
+          edge.getId(), metaVersionId, nv.getId());
 
       String dbNodeId = "Nodes." + dbName;
 
       if (!versions.isEmpty()) {
         if (versions.size() != 0) {
-          long prevVersionId = versions.get(0);
-          List<Long> nodeIds = ground.getNodeVersionFactory().getAdjacentNodes(prevVersionId, "");
-          for (long nodeId : nodeIds) {
-            NodeVersion oldNV = ground.getNodeVersionFactory().retrieveFromDatabase(nodeId);
+          String prevVersionId = versions.get(0);
+          List<String> nodeIds = ground.getAdjacentNodes(prevVersionId, "");
+          for (String nodeId : nodeIds) {
+            NodeVersion oldNV = ground.getNodeVersion(nodeId);
             edge = this.getEdge(oldNV);
 
-            if (oldNV.getNodeId() != 0) {
+            if (!oldNV.getNodeId().equals(dbNodeId)) {
               structVersionAttribs = new HashMap<>();
               for (String key : oldNV.getTags().keySet()) {
                 structVersionAttribs.put(key, GroundType.STRING);
               }
 
               // create an edge version for a dbname
-              sv = ground.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
-                  new ArrayList<>());
-              ground.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-                  oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId(),
-                  new ArrayList<>());
+              sv = ground.createStructureVersion(structure.getName(), structure.getId(), structVersionAttribs);
+              ground.createEdgeVersion(edge.getName(), oldNV.getTags(), sv.getId(), oldNV.getReference(),
+                  oldNV.getParameters(), edge.getId(), metaVersionId, oldNV.getId());
             }
           }
         }
