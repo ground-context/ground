@@ -13,6 +13,7 @@ import edu.berkeley.ground.api.models.postgres.PostgresNodeVersionFactory;
 import edu.berkeley.ground.api.models.postgres.PostgresRichVersionFactory;
 import edu.berkeley.ground.api.models.postgres.PostgresStructureFactory;
 import edu.berkeley.ground.api.models.postgres.PostgresStructureVersionFactory;
+import edu.berkeley.ground.api.models.postgres.PostgresTagFactory;
 import edu.berkeley.ground.api.versions.ItemFactory;
 import edu.berkeley.ground.api.versions.VersionFactory;
 import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
@@ -32,10 +33,10 @@ public class TestUtils {
     IdGenerator idGenerator = new IdGenerator(0, 1, true);
     PostgresVersionSuccessorFactory succ = new PostgresVersionSuccessorFactory(idGenerator);
     PostgresVersionHistoryDAGFactory dagFactory = new PostgresVersionHistoryDAGFactory(succ);
-    PostgresItemFactory itemFactory = new PostgresItemFactory(dagFactory);
+    PostgresItemFactory itemFactory = new PostgresItemFactory(dagFactory, new PostgresTagFactory());
     NodeFactory nf = new PostgresNodeFactory(itemFactory, (PostgresClient) dbClient, idGenerator);
     VersionFactory vf = new PostgresVersionFactory();
-    ItemFactory iff = new PostgresItemFactory(null);
+    ItemFactory iff = new PostgresItemFactory(null, new PostgresTagFactory());
     StructureFactory sf = new PostgresStructureFactory((PostgresItemFactory) iff, (PostgresClient) dbClient, idGenerator);
     StructureVersionFactory svf = new PostgresStructureVersionFactory((PostgresStructureFactory) sf,
         (PostgresVersionFactory) vf, (PostgresClient) dbClient, idGenerator);

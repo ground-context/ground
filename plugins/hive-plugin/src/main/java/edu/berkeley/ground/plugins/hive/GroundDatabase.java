@@ -66,8 +66,8 @@ public class GroundDatabase {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating databsae node: {}", dbName);
 
-      Node node = groundReadWrite.getNodeFactory().create(dbName);
-      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName());
+      Node node = groundReadWrite.getNodeFactory().create(dbName, new HashMap<>());
+      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName(), new HashMap<>());
       LOG.debug("node structure created {}", nodeStruct);
       return node;
     }
@@ -90,8 +90,8 @@ public class GroundDatabase {
       return groundReadWrite.getEdgeFactory().retrieveFromDatabase(edgeId);
     } catch (GroundException e) {
       LOG.debug("Not found - Creating database table edge: " + edgeId);
-      Edge edge = groundReadWrite.getEdgeFactory().create(edgeId);
-      Structure edgeStruct = groundReadWrite.getStructureFactory().create(edge.getName());
+      Edge edge = groundReadWrite.getEdgeFactory().create(edgeId, new HashMap<>());
+      Structure edgeStruct = groundReadWrite.getStructureFactory().create(edge.getName(), new HashMap<>());
       return edge;
     }
   }
@@ -130,7 +130,7 @@ public class GroundDatabase {
     try {
       String dbName = db.getName();
       Node dbNode = this.getNode(dbName);
-      Structure dbStruct = groundReadWrite.getStructureFactory().create(dbNode.getName());
+      Structure dbStruct = groundReadWrite.getStructureFactory().create(dbNode.getName(), new HashMap<>());
       LOG.debug("Node and Structure {}, {}", dbNode.getId(), dbStruct.getId());
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       structVersionAttribs.put(dbName, GroundType.STRING);
