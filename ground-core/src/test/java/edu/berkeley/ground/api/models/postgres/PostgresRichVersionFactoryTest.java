@@ -26,7 +26,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
 
     try {
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       long id = 1;
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
@@ -55,7 +55,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
 
     try {
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       long id = 1;
 
       Map<String, Tag> tags = new HashMap<>();
@@ -87,7 +87,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
   public void testStructureVersionConformation() throws GroundException {
     PostgresConnection connection = null;
     try {
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       long id = 2;
 
       String structureName = "testStructure";
@@ -126,7 +126,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
 
       // none of these operations should fail
       try {
-        connection = super.cassandraClient.getConnection();
+        connection = super.postgresClient.getConnection();
 
         String structureName = "testStructure";
         long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
