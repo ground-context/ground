@@ -40,6 +40,7 @@ public class CassandraItemFactory extends ItemFactory {
 
   public CassandraItemFactory(CassandraVersionHistoryDAGFactory versionHistoryDAGFactory, CassandraTagFactory tagFactory) {
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+    this.tagFactory = tagFactory;
   }
 
   public void insertIntoDatabase(GroundDBConnection connectionPointer, long id, Map<String, Tag> tags) throws GroundException {

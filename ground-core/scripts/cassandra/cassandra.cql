@@ -61,7 +61,7 @@ create table rich_version_external_parameter (
     PRIMARY KEY (rich_version_id, key)
 );
 
-create table rich_version>tag (
+create table rich_version_tag (
     rich_version_id bigint,
     key varchar,
     value varchar,

@@ -49,6 +49,8 @@ public class PostgresItemFactory extends ItemFactory {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
+    connection.insert("item", insertions);
+
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
@@ -66,8 +68,6 @@ public class PostgresItemFactory extends ItemFactory {
 
       connection.insert("item_tag", tagInsertion);
     }
-
-    connection.insert("item", insertions);
   }
 
   public Item retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException {

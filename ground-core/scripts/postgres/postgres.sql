@@ -1,4 +1,5 @@
 /* VERSIONS */
+create type data_type as enum ('integer', 'string', 'boolean');
 
 create table version (
     id bigint NOT NULL PRIMARY KEY
@@ -20,7 +21,7 @@ create table item_tag (
     key varchar NOT NULL,
     value varchar,
     type data_type,
-    CONSTRAINT item_tag_pkey (item_id, key);
+    CONSTRAINT item_tag_pkey PRIMARY KEY (item_id, key)
 );
 
 create table version_history_dag (
@@ -29,10 +30,7 @@ create table version_history_dag (
     CONSTRAINT version_history_dag_pkey PRIMARY KEY (item_id, version_successor_id)
 );
 
-
 /* MODELS */
-create type data_type as enum ('integer', 'string', 'boolean');
-
 
 create table structure (
     item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
