@@ -51,10 +51,6 @@ RUN apt-get install -y neo4j
 RUN sed -i "s|#dbms.security.auth_enabled=false|dbms.security.auth_enabled=false|g" /etc/neo4j/neo4j.conf
 RUN sed -i "s|#dbms.shell|dbms.shell|g" /etc/neo4j/neo4j.conf
 
-# set environment variables
-RUN export PULL_PATH=master
-RUN export COVERALLS_TOKEN=token
-
 # install git
 RUN apt-get install -y git
 
@@ -62,4 +58,4 @@ RUN apt-get install -y git
 ADD start_servers_and_test.sh /tmp/
 
 # run the actual tests
-CMD sh /tmp/start_servers_and_test.sh
+CMD sh -e /tmp/start_servers_and_test.sh
