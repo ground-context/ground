@@ -17,12 +17,14 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
   }
 
   @Test
-  public void testVersionSuccessorCreation() {
+  public void testVersionSuccessorCreation() throws GroundException {
+    CassandraConnection connection = null;
+
     try {
       long fromId = 123;
       long toId = 456;
 
-      CassandraConnection connection = super.cassandraClient.getConnection();
+      connection = super.cassandraClient.getConnection();
       super.versionFactory.insertIntoDatabase(connection, fromId);
       super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -33,27 +35,32 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
 
       assertEquals(fromId, retrieved.getFromId());
       assertEquals(toId, retrieved.getToId());
-    } catch (GroundException ge) {
-      fail(ge.getMessage());
+    } finally {
+      connection.abort();
     }
   }
 
   @Test(expected = GroundException.class)
   public void testBadVersionSuccessorCreation() throws GroundException {
-    long fromId = 123;
-    long toId = 456;
     CassandraConnection connection = null;
 
-    // Catch exceptions for these two lines because they should not fal
     try {
-      // the main difference is that we're not creating a Version for the toId
-      connection = super.cassandraClient.getConnection();
-      super.versionFactory.insertIntoDatabase(connection, fromId);
-    } catch (GroundException ge) {
-      fail(ge.getMessage());
-    }
+      long fromId = 123;
+      long toId = 456;
 
-    // This statement should fail because toId is not in the database
-    super.versionSuccessorFactory.create(connection, fromId, toId);
+      // Catch exceptions for these two lines because they should not fal
+      try {
+        // the main difference is that we're not creating a Version for the toId
+        connection = super.cassandraClient.getConnection();
+        super.versionFactory.insertIntoDatabase(connection, fromId);
+      } catch (GroundException ge) {
+        fail(ge.getMessage());
+      }
+
+      // This statement should fail because toId is not in the database
+      super.versionSuccessorFactory.create(connection, fromId, toId);
+    } finally {
+      connection.abort();
+    }
   }
 }

@@ -20,45 +20,54 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
 
   @Test
   public void testVersionHistoryDAGCreation() throws GroundException {
-    long testId = 1;
-    super.versionHistoryDAGFactory.create(testId);
-    CassandraConnection connection = super.cassandraClient.getConnection();
+    CassandraConnection connection = null;
+    try {
+      connection = super.cassandraClient.getConnection();
+      long testId = 1;
+      super.versionHistoryDAGFactory.create(testId);
 
-    VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-        testId);
+      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+          testId);
 
-    assertEquals(0, dag.getEdgeIds().size());
-
-    connection.abort();
+      assertEquals(0, dag.getEdgeIds().size());
+    } finally {
+      connection.abort();
+    }
   }
 
   @Test
   public void testAddEdge() throws GroundException {
-    long testId = 1;
-    CassandraConnection connection = super.cassandraClient.getConnection();
-    super.versionHistoryDAGFactory.create(testId);
+    CassandraConnection connection = null;
 
-    VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-        testId);
+    try {
+      connection = super.cassandraClient.getConnection();
+      long testId = 1;
+      super.versionHistoryDAGFactory.create(testId);
 
-    long fromId = 123;
-    long toId = 456;
+      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+          testId);
 
-    super.versionFactory.insertIntoDatabase(connection, fromId);
-    super.versionFactory.insertIntoDatabase(connection, toId);
+      long fromId = 123;
+      long toId = 456;
 
-    super.versionHistoryDAGFactory.addEdge(connection, dag, fromId, toId, testId);
+      super.versionFactory.insertIntoDatabase(connection, fromId);
+      super.versionFactory.insertIntoDatabase(connection, toId);
 
-    VersionHistoryDAG<?> retrieved = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-        testId);
+      super.versionHistoryDAGFactory.addEdge(connection, dag, fromId, toId, testId);
 
-    assertEquals(1, retrieved.getEdgeIds().size());
-    assertEquals(toId, (long) retrieved.getLeaves().get(0));
+      VersionHistoryDAG<?> retrieved = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
+          testId);
 
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
-        connection, retrieved.getEdgeIds().get(0));
+      assertEquals(1, retrieved.getEdgeIds().size());
+      assertEquals(toId, (long) retrieved.getLeaves().get(0));
 
-    assertEquals(fromId, successor.getFromId());
-    assertEquals(toId, successor.getToId());
+      VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+          connection, retrieved.getEdgeIds().get(0));
+
+      assertEquals(fromId, successor.getFromId());
+      assertEquals(toId, successor.getToId());
+    } finally {
+      connection.abort();
+    }
   }
 }
