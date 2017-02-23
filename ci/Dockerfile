@@ -53,7 +53,7 @@ RUN sed -i "s|#dbms.shell|dbms.shell|g" /etc/neo4j/neo4j.conf
 
 # set environment variables
 RUN export PULL_PATH=master
-RUN export COVERALLS_TOKEN=hthPYCbg6FsedoTaKeGkA8mcjSJ6zfQ3D
+RUN export COVERALLS_TOKEN=token
 
 # install git
 RUN apt-get install -y git
