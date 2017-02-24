@@ -18,12 +18,12 @@ public class CassandraGraphFactoryTest extends CassandraTest {
   public void testGraphCreation() {
     try {
       String testName = "test";
-      CassandraGraphFactory edgeFactory = (CassandraGraphFactory) super.factories.getGraphFactory();
-      edgeFactory.create(testName);
+      CassandraGraphFactory graphFactory = (CassandraGraphFactory) super.factories.getGraphFactory();
+      graphFactory.create(testName);
 
-      Graph edge = edgeFactory.retrieveFromDatabase(testName);
+      Graph graph = graphFactory.retrieveFromDatabase(testName);
 
-      assertEquals(testName, edge.getName());
+      assertEquals(testName, graph.getName());
     } catch (GroundException ge) {
       fail(ge.getMessage());
     }

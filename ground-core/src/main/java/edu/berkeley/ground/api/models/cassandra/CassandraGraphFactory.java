@@ -83,10 +83,14 @@ public class CassandraGraphFactory extends GraphFactory {
       try {
         resultSet = connection.equalitySelect("graph", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No Graph found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No Graph found with name " + name + ".");
       }
 

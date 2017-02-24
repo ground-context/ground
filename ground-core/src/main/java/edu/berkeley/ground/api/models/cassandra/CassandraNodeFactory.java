@@ -76,10 +76,16 @@ public class CassandraNodeFactory extends NodeFactory {
     Node node = this.retrieveFromDatabase(name);
 
     CassandraConnection connection = this.dbClient.getConnection();
-    List<Long> leaves = this.itemFactory.getLeaves(connection, node.getId());
-    connection.commit();
+    try {
+      List<Long> leaves = this.itemFactory.getLeaves(connection, node.getId());
+      connection.commit();
 
-    return leaves;
+      return leaves;
+    } catch (GroundException e) {
+      connection.abort();
+
+      throw e;
+    }
   }
 
   public Node retrieveFromDatabase(String name) throws GroundException {
@@ -93,10 +99,14 @@ public class CassandraNodeFactory extends NodeFactory {
       try {
         resultSet = connection.equalitySelect("node", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No Node found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No Node found with name " + name + ".");
       }
 

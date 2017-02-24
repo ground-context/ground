@@ -101,10 +101,14 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       try {
         resultSet = connection.equalitySelect("node_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
@@ -123,17 +127,30 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
 
   public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
-    List<Long> result = connection.transitiveClosure(nodeVersionId);
+    try {
+      List<Long> result = connection.transitiveClosure(nodeVersionId);
 
-    connection.commit();
-    return result;
+      connection.commit();
+      return result;
+    } catch (GroundException e) {
+      connection.abort();
+
+      throw e;
+    }
   }
 
   public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
-    List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
 
-    connection.commit();
-    return result;
+    try {
+      List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+
+      connection.commit();
+      return result;
+    } catch (GroundException e) {
+      connection.abort();
+
+      throw e;
+    }
   }
 }

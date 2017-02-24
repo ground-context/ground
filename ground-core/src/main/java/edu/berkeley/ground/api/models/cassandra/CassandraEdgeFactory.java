@@ -83,10 +83,14 @@ public class CassandraEdgeFactory extends EdgeFactory {
       try {
         resultSet = connection.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No Edge found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No Edge found with name " + name + ".");
       }
 
