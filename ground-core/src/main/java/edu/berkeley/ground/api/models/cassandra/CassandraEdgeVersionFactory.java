@@ -102,10 +102,14 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       try {
         resultSet = connection.equalitySelect("edge_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 

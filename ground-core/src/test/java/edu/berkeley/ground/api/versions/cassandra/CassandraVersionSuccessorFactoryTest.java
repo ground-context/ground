@@ -54,6 +54,8 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
         connection = super.cassandraClient.getConnection();
         super.versionFactory.insertIntoDatabase(connection, fromId);
       } catch (GroundException ge) {
+        connection.abort();
+
         fail(ge.getMessage());
       }
 

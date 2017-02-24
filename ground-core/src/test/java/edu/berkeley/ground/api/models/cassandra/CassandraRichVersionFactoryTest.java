@@ -136,6 +136,8 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
 
         structureVersionId = super.factories.getStructureVersionFactory().create(structureId, structureVersionAttributes, new ArrayList<>()).getId();
       } catch (GroundException ge) {
+        connection.abort();
+
         fail(ge.getMessage());
       }
 

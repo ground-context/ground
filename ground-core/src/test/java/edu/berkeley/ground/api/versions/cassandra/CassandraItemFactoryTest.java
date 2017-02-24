@@ -180,6 +180,8 @@ public class CassandraItemFactoryTest extends CassandraTest {
         super.versionFactory.insertIntoDatabase(connection, toId);
 
       } catch (GroundException ge) {
+        connection.abort();
+
         fail(ge.getMessage());
       }
 

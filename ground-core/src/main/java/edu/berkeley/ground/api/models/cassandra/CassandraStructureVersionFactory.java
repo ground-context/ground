@@ -52,69 +52,89 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
                                  List<Long> parentIds) throws GroundException {
 
     CassandraConnection connection = this.dbClient.getConnection();
-    long id = this.idGenerator.generateVersionId();
 
-    this.versionFactory.insertIntoDatabase(connection, id);
+    try {
+      long id = this.idGenerator.generateVersionId();
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
+      this.versionFactory.insertIntoDatabase(connection, id);
 
-    connection.insert("structure_version", insertions);
+      List<DbDataContainer> insertions = new ArrayList<>();
+      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+      insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
 
-    for (String key : attributes.keySet()) {
-      List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-      itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
+      connection.insert("structure_version", insertions);
 
-      connection.insert("structure_version_attribute", itemInsertions);
+      for (String key : attributes.keySet()) {
+        List<DbDataContainer> itemInsertions = new ArrayList<>();
+        itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+        itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
+        itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
+
+        connection.insert("structure_version_attribute", itemInsertions);
+      }
+
+      this.structureFactory.update(connection, structureId, id, parentIds);
+
+      connection.commit();
+      LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
+
+      return StructureVersionFactory.construct(id, structureId, attributes);
+    } catch (GroundException e) {
+      connection.abort();
+
+      throw e;
     }
-
-    this.structureFactory.update(connection, structureId, id, parentIds);
-
-    connection.commit();
-    LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-
-    return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-    QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
-      throw new GroundException("No StructureVersion found with id " + id + ".");
-    }
 
-    if (!resultSet.next()) {
-      throw new GroundException("No StructureVersion found with id " + id + ".");
-    }
+      List<DbDataContainer> predicates = new ArrayList<>();
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    Map<String, GroundType> attributes = new HashMap<>();
+      QueryResults resultSet;
+      try {
+        resultSet = connection.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException eer) {
+        connection.abort();
 
-    try {
-      List<DbDataContainer> attributePredicates = new ArrayList<>();
-      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-      QueryResults attributesSet = connection.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
-
-      while (attributesSet.next()) {
-        attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet.getString(2)));
+        throw new GroundException("No StructureVersion found with id " + id + ".");
       }
-    } catch (EmptyResultException eer) {
-      throw new GroundException("No StructureVersion attributes found for id " + id + ".");
+
+      if (!resultSet.next()) {
+        connection.abort();
+
+        throw new GroundException("No StructureVersion found with id " + id + ".");
+      }
+
+      Map<String, GroundType> attributes = new HashMap<>();
+
+      try {
+        List<DbDataContainer> attributePredicates = new ArrayList<>();
+        attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+        QueryResults attributesSet = connection.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
+
+        while (attributesSet.next()) {
+          attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet.getString(2)));
+        }
+      } catch (EmptyResultException eer) {
+        connection.abort();
+
+        throw new GroundException("No StructureVersion attributes found for id " + id + ".");
+      }
+
+      long structureId = resultSet.getLong(1);
+
+      connection.commit();
+      LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
+
+      return StructureVersionFactory.construct(id, structureId, attributes);
+    } catch (GroundException e) {
+      connection.abort();
+
+      throw e;
     }
-
-    long structureId = resultSet.getLong(1);
-
-    connection.commit();
-    LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-
-    return StructureVersionFactory.construct(id, structureId, attributes);
   }
 }
