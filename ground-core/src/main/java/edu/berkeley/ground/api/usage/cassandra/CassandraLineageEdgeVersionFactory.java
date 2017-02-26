@@ -105,10 +105,14 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
       try {
         resultSet = connection.equalitySelect("lineage_edge_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 

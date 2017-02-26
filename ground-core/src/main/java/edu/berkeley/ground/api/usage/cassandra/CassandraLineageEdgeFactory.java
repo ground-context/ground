@@ -83,10 +83,14 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
       try {
         resultSet = connection.equalitySelect("lineage_edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No LineageEdge found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No LineageEdge found with name " + name + ".");
       }
 

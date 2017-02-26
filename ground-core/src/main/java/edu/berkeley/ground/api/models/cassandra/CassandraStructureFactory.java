@@ -76,10 +76,17 @@ public class CassandraStructureFactory extends StructureFactory {
     Structure structure = this.retrieveFromDatabase(name);
 
     CassandraConnection connection = this.dbClient.getConnection();
-    List<Long> leaves = this.itemFactory.getLeaves(connection, structure.getId());
-    connection.commit();
 
-    return leaves;
+    try {
+      List<Long> leaves = this.itemFactory.getLeaves(connection, structure.getId());
+      connection.commit();
+
+      return leaves;
+    } catch (GroundException e) {
+      connection.abort();
+
+      throw e;
+    }
   }
 
   public Structure retrieveFromDatabase(String name) throws GroundException {
@@ -93,10 +100,14 @@ public class CassandraStructureFactory extends StructureFactory {
       try {
         resultSet = connection.equalitySelect("structure", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException eer) {
+        connection.abort();
+
         throw new GroundException("No Structure found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
+        connection.abort();
+
         throw new GroundException("No Structure found with name " + name + ".");
       }
 

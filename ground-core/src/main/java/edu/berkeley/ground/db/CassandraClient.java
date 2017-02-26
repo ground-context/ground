@@ -209,11 +209,11 @@ public class CassandraClient implements DBClient {
     }
 
     public void commit() throws GroundDBException {
-      // do nothing; Cassandra doesn't have txns
+      this.session.close();
     }
 
     public void abort() throws GroundDBException {
-      // do nothing; Cassandra doesn't have txns
+      this.session.close();
     }
   }
 
@@ -249,5 +249,9 @@ public class CassandraClient implements DBClient {
         }
         break;
     }
+  }
+
+  public void closeCluster() {
+    this.cluster.close();
   }
 }
