@@ -44,10 +44,7 @@ public class Neo4jTest {
 
   @Before
   public void setup() throws IOException, InterruptedException {
-    Process p = Runtime.getRuntime().exec("neo4j-shell -file delete_data.cypher", null, new File("scripts/neo4j/"));
-    p.waitFor();
-
-    p.destroy();
+    this.neo4jClient.dropData();
   }
 
   /**

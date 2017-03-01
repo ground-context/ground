@@ -14,6 +14,8 @@
 
 package edu.berkeley.ground.db;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
@@ -365,5 +367,18 @@ public class Neo4jClient implements DBClient {
   public static String getStringFromValue(StringValue value) {
     String stringWithQuotes = value.toString();
     return stringWithQuotes.substring(1, stringWithQuotes.length() - 1);
+  }
+
+  @VisibleForTesting
+  public void dropData() {
+    Session session = this.driver.session();
+    Transaction transaction = session.beginTransaction();
+    transaction.run("MATCH ()-[e]->() DELETE e;");
+    transaction.run("MATCH (n) DELETE n;");
+
+    transaction.success();
+    transaction.close();
+
+    session.close();
   }
 }
