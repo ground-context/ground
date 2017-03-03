@@ -1,6 +1,6 @@
 # Ground
 
-[![Build Status](https://travis-ci.org/ground-context/ground.svg?branch=master)](https://travis-ci.org/ground-context/ground)
+[![Build Status](https://amplab.cs.berkeley.edu/jenkins/buildStatus/icon?job=Ground-PRB)](https://amplab.cs.berkeley.edu/jenkins/job/Ground-PRB/)
 [![Coverage Status](https://coveralls.io/repos/github/ground-context/ground/badge.svg?branch=master)](https://coveralls.io/github/ground-context/ground?branch=master)
 
 Ground is an open-source data context service under development in UC Berkeley's [RISE Lab](http://rise.cs.berkeley.edu). Ground serves as a central model, API, and repistory for capturing the broad context in which data is used. Our goal is to address practical problems for the Big Data community in the short term and to open up opportunities for long-term research and innovation.
