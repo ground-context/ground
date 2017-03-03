@@ -81,7 +81,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      connection.insert("tag", tagInsertion);
+      connection.insert("rich_version_tag", tagInsertion);
     }
 
     for (String key : referenceParameters.keySet()) {
@@ -124,7 +124,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       // do nothing; this just means that there are no referenceParameters
     }
 
-    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
+    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(connection, id);
 
     String reference = resultSet.getString("reference");
     long structureVersionId = resultSet.getLong("structure_version_id");

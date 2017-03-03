@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.cassandra;
 
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CassandraNodeFactory extends NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeFactory.class);
@@ -47,13 +49,13 @@ public class CassandraNodeFactory extends NodeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Node create(String name) throws GroundException {
+  public Node create(String name, Map<String, Tag> tags) throws GroundException {
     CassandraConnection connection = this.dbClient.getConnection();
 
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId);
+      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -64,7 +66,7 @@ public class CassandraNodeFactory extends NodeFactory {
       connection.commit();
       LOGGER.info("Created node " + name + ".");
 
-      return NodeFactory.construct(uniqueId, name);
+      return NodeFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
@@ -111,11 +113,12 @@ public class CassandraNodeFactory extends NodeFactory {
       }
 
       long id = resultSet.getLong(0);
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
 
       connection.commit();
       LOGGER.info("Retrieved node " + name + ".");
 
-      return NodeFactory.construct(id, name);
+      return NodeFactory.construct(id, name, tags);
     } catch (GroundException e) {
       connection.abort();
 

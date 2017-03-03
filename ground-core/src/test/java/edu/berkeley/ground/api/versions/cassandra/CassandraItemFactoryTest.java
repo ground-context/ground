@@ -3,9 +3,14 @@ package edu.berkeley.ground.api.versions.cassandra;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.ground.api.CassandraTest;
+import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
@@ -24,13 +29,11 @@ public class CassandraItemFactoryTest extends CassandraTest {
   @Test
   public void testCorrectUpdateWithParent() throws GroundException {
     CassandraConnection connection = null;
-
     try {
+      long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      long testId = 1;
-
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long fromId = 123;
       long toId = 456;
@@ -61,14 +64,12 @@ public class CassandraItemFactoryTest extends CassandraTest {
         }
       }
 
-      if (successor != null) {
-        assertEquals(fromId, successor.getFromId());
-        assertEquals(toId, successor.getToId());
-
-        return;
+      if (successor == null) {
+        fail();
       }
 
-      fail();
+      assertEquals(fromId, successor.getFromId());
+      assertEquals(toId, successor.getToId());
     } finally {
       connection.abort();
     }
@@ -77,13 +78,11 @@ public class CassandraItemFactoryTest extends CassandraTest {
   @Test
   public void testCorrectUpdateWithoutParent() throws GroundException {
     CassandraConnection connection = null;
-
     try {
+      long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      long testId = 1;
-
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
       long toId = 123;
       super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -117,7 +116,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       long testId = 1;
       connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long fromId = 123;
       long toId = 456;
@@ -166,22 +165,19 @@ public class CassandraItemFactoryTest extends CassandraTest {
   @Test(expected = GroundException.class)
   public void testIncorrectUpdate() throws GroundException {
     CassandraConnection connection = null;
-
     try {
       long testId = 1;
-    long fromId = 123;
-    long toId = 456;
+      long fromId = 123;
+      long toId = 456;
 
       try {
         connection = super.cassandraClient.getConnection();
 
-        super.itemFactory.insertIntoDatabase(connection, testId);
+        super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
         super.versionFactory.insertIntoDatabase(connection, toId);
 
       } catch (GroundException ge) {
-        connection.abort();
-
         fail(ge.getMessage());
       }
 
@@ -198,12 +194,11 @@ public class CassandraItemFactoryTest extends CassandraTest {
   @Test
   public void testMultipleParents() throws GroundException {
     CassandraConnection connection = null;
-
     try {
-      connection = super.cassandraClient.getConnection();
       long testId = 1;
+      connection = super.cassandraClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long parentOne = 123;
       long parentTwo = 456;
@@ -232,6 +227,38 @@ public class CassandraItemFactoryTest extends CassandraTest {
       assertEquals(child, (long) dag.getLeaves().get(0));
 
       // No need to check the version successors because we have tests for those.
+    } finally {
+      connection.abort();
+    }
+  }
+
+  @Test
+  public void testTags() throws GroundException {
+    CassandraConnection connection = null;
+
+    try {
+      long testId = 1;
+      connection = super.cassandraClient.getConnection();
+      Map<String, Tag> tags = new HashMap<>();
+      tags.put("justkey", new Tag(-1, "justkey", null, null));
+      tags.put("withintvalue", new Tag(-1, "withintvalue", 1, GroundType.INTEGER));
+      tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
+      tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
+
+
+      super.itemFactory.insertIntoDatabase(connection, testId, tags);
+
+      Item retrieved = super.itemFactory.retrieveFromDatabase(connection, testId);
+
+      assertEquals(testId, retrieved.getId());
+      assertEquals(tags.size(), retrieved.getTags().size());
+
+      Map<String, Tag> retrievedTags = retrieved.getTags();
+      for (String key : tags.keySet()) {
+        assert (retrievedTags).containsKey(key);
+        assertEquals(tags.get(key), retrievedTags.get(key));
+        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
+      }
     } finally {
       connection.abort();
     }

@@ -14,6 +14,14 @@ create table item (
     id bigint PRIMARY KEY
 );
 
+create table item_tag (
+    item_id bigint,
+    key varchar,
+    value varchar,
+    type varchar,
+    PRIMARY KEY (item_id, key)
+);
+
 create table version_history_dag (
     item_id bigint,
     version_successor_id bigint,
@@ -53,7 +61,7 @@ create table rich_version_external_parameter (
     PRIMARY KEY (rich_version_id, key)
 );
 
-create table tag (
+create table rich_version_tag (
     rich_version_id bigint,
     key varchar,
     value varchar,

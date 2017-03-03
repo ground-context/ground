@@ -14,23 +14,55 @@
 
 package edu.berkeley.ground.api.versions.neo4j;
 
+import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.models.neo4j.Neo4jTagFactory;
+import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.ItemFactory;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.db.DbDataContainer;
+import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Neo4jItemFactory extends ItemFactory {
   private Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private Neo4jTagFactory tagFactory;
 
-  public Neo4jItemFactory(Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory) {
+  public Neo4jItemFactory(Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory, Neo4jTagFactory tagFactory) {
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+    this.tagFactory = tagFactory;
   }
 
-  public void insertIntoDatabase(GroundDBConnection connection, long id) throws GroundException {
-    // DO NOTHING
+  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id, Map<String, Tag> tags) throws GroundException {
+    Neo4jConnection connection = (Neo4jConnection) connectionPointer;
+
+    for (String key : tags.keySet()) {
+      Tag tag = tags.get(key);
+
+      List<DbDataContainer> tagInsertion = new ArrayList<>();
+      tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
+      tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
+
+      if (tag.getValue() != null) {
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+      } else {
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+      }
+
+      connection.addVertexAndEdge("ItemTag", tagInsertion, "ItemTagConnection", id, new ArrayList<>());
+      tagInsertion.clear();
+    }
+  }
+
+  public Item retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException {
+    return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(connection, id));
   }
 
   public void update(GroundDBConnection connectionPointer, long itemId, long childId, List<Long> parentIds) throws GroundException {

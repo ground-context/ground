@@ -2,6 +2,8 @@ package edu.berkeley.ground.api.models.postgres;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import edu.berkeley.ground.api.PostgresTest;
 import edu.berkeley.ground.api.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -18,7 +20,7 @@ public class PostgresGraphFactoryTest extends PostgresTest {
   public void testGraphCreation() throws GroundException {
     String testName = "test";
     PostgresGraphFactory edgeFactory = (PostgresGraphFactory) super.factories.getGraphFactory();
-    edgeFactory.create(testName);
+    edgeFactory.create(testName, new HashMap<>());
 
     Graph edge = edgeFactory.retrieveFromDatabase(testName);
 

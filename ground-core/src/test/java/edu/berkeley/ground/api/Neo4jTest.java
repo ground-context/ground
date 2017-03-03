@@ -36,8 +36,8 @@ public class Neo4jTest {
     this.factories = new Neo4jFactories(neo4jClient, 0, 1);
     this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory(new IdGenerator(0, 1, true));
     this.versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(this.versionSuccessorFactory);
-    this.itemFactory = new Neo4jItemFactory(this.versionHistoryDAGFactory);
     this.tagFactory = new Neo4jTagFactory();
+    this.itemFactory = new Neo4jItemFactory(this.versionHistoryDAGFactory, tagFactory);
     this.richVersionFactory = new Neo4jRichVersionFactory((Neo4jStructureVersionFactory)
         this.factories.getStructureVersionFactory(), this.tagFactory);
   }

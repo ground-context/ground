@@ -26,7 +26,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
 
     try {
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       long id = 1;
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
@@ -55,7 +55,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
 
     try {
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       long id = 1;
 
       Map<String, Tag> tags = new HashMap<>();
@@ -76,7 +76,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       for (String key : tags.keySet()) {
         assert (retrievedTags).containsKey(key);
         assertEquals(tags.get(key), retrievedTags.get(key));
-        assertEquals(retrieved.getId(), retrievedTags.get(key).getVersionId());
+        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
       connection.abort();
@@ -87,11 +87,11 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
   public void testStructureVersionConformation() throws GroundException {
     PostgresConnection connection = null;
     try {
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       long id = 2;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -126,10 +126,10 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
 
       // none of these operations should fail
       try {
-        connection = super.cassandraClient.getConnection();
+        connection = super.postgresClient.getConnection();
 
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);

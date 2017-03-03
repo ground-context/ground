@@ -18,9 +18,10 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class StructureFactory {
-  public abstract Structure create(String name) throws GroundException;
+  public abstract Structure create(String name, Map<String, Tag> tags) throws GroundException;
 
   public abstract Structure retrieveFromDatabase(String name) throws GroundException;
 
@@ -28,7 +29,7 @@ public abstract class StructureFactory {
 
   public abstract List<Long> getLeaves(String name) throws GroundException;
 
-  protected static Structure construct(long id, String name) {
-    return new Structure(id, name);
+  protected static Structure construct(long id, String name, Map<String, Tag> tags) {
+    return new Structure(id, name, tags);
   }
 }

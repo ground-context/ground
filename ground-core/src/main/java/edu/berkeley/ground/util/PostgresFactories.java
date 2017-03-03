@@ -45,11 +45,11 @@ public class PostgresFactories {
     PostgresVersionFactory versionFactory = new PostgresVersionFactory();
     PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory(idGenerator);
     PostgresVersionHistoryDAGFactory versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
-    PostgresItemFactory itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
+    PostgresTagFactory tagFactory = new PostgresTagFactory();
+    PostgresItemFactory itemFactory = new PostgresItemFactory(versionHistoryDAGFactory, tagFactory);
 
     this.structureFactory = new PostgresStructureFactory(itemFactory, postgresClient, idGenerator);
     this.structureVersionFactory = new PostgresStructureVersionFactory(this.structureFactory, versionFactory, postgresClient, idGenerator);
-    PostgresTagFactory tagFactory = new PostgresTagFactory();
     PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
     this.edgeFactory = new PostgresEdgeFactory(itemFactory, postgresClient, idGenerator);
     this.edgeVersionFactory = new PostgresEdgeVersionFactory(this.edgeFactory, richVersionFactory, postgresClient, idGenerator);

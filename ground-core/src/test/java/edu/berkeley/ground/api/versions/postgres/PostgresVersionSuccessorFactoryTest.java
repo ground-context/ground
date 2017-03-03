@@ -22,7 +22,7 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
       long fromId = 1;
       long toId = 2;
 
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
       super.versionFactory.insertIntoDatabase(connection, fromId);
       super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -49,7 +49,7 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
       // Catch exceptions for these two lines because they should not fal
       try {
         // the main difference is that we're not creating a Version for the toId
-        connection = super.cassandraClient.getConnection();
+        connection = super.postgresClient.getConnection();
         super.versionFactory.insertIntoDatabase(connection, fromId);
       } catch (GroundException ge) {
         fail(ge.getMessage());

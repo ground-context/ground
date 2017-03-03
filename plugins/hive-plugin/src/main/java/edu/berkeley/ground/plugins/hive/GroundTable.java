@@ -61,8 +61,8 @@ public class GroundTable {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating table node: " + tableName);
 
-      Node node = groundReadWrite.getNodeFactory().create(tableName);
-      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName());
+      Node node = groundReadWrite.getNodeFactory().create(tableName, new HashMap<>());
+      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName(), new HashMap<>());
 
       return node;
     }
@@ -85,8 +85,8 @@ public class GroundTable {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating table partition edge: " + nodeVersion.getNodeId());
 
-      Edge edge = groundReadWrite.getEdgeFactory().create("" + nodeVersion.getNodeId());
-      Structure edgeStruct = groundReadWrite.getStructureFactory().create("" + nodeVersion.getNodeId());
+      Edge edge = groundReadWrite.getEdgeFactory().create("" + nodeVersion.getNodeId(), new HashMap<>());
+      Structure edgeStruct = groundReadWrite.getStructureFactory().create("" + nodeVersion.getNodeId(), new HashMap<>());
       return edge;
     }
   }

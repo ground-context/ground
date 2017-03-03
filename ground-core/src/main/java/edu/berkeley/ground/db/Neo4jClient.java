@@ -179,7 +179,7 @@ public class Neo4jClient implements DBClient {
      *
      * @param attributes the attributes to filter by
      */
-    public List<Long> getVerticesByAttributes(List<DbDataContainer> attributes) {
+    public List<Long> getVerticesByAttributes(List<DbDataContainer> attributes, String idAttribute) {
       String query = "MATCH (f {";
 
       query = this.addValuesToStatement(query, attributes);
@@ -189,7 +189,7 @@ public class Neo4jClient implements DBClient {
 
       List<Long> result = new ArrayList<>();
       while (queryResult.hasNext()) {
-        result.add((Long) GroundType.stringToType(queryResult.next().get("f").asNode().get("id").toString(), GroundType.LONG));
+        result.add((Long) GroundType.stringToType(queryResult.next().get("f").asNode().get(idAttribute).toString(), GroundType.LONG));
       }
 
       return result;

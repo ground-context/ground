@@ -2,6 +2,8 @@ package edu.berkeley.ground.api.models.neo4j;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import edu.berkeley.ground.api.Neo4jTest;
 import edu.berkeley.ground.api.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -18,7 +20,7 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
   public void testStructureCreation() throws GroundException {
     String testName = "test";
     Neo4jStructureFactory edgeFactory = (Neo4jStructureFactory) super.factories.getStructureFactory();
-    edgeFactory.create(testName);
+    edgeFactory.create(testName, new HashMap<>());
 
     Structure edge = edgeFactory.retrieveFromDatabase(testName);
 

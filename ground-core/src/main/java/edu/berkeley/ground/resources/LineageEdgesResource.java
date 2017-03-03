@@ -16,6 +16,7 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.usage.LineageEdge;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersion;
@@ -31,6 +32,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
 
 @Path("/lineage")
 @Api(value = "/lineage", description = "Interact with lineage edges")
@@ -65,9 +67,9 @@ public class LineageEdgesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public LineageEdge createLineageEdge(@PathParam("name") String name) throws GroundException {
+  public LineageEdge createLineageEdge(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating lineage edge " + name + ".");
-    return this.lineageEdgeFactory.create(name);
+    return this.lineageEdgeFactory.create(name, tags);
   }
 
   @POST

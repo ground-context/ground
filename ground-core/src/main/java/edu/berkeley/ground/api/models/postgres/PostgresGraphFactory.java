@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.postgres;
 
 import edu.berkeley.ground.api.models.Graph;
 import edu.berkeley.ground.api.models.GraphFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PostgresGraphFactory extends GraphFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphFactory.class);
@@ -47,13 +49,13 @@ public class PostgresGraphFactory extends GraphFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Graph create(String name) throws GroundException {
+  public Graph create(String name, Map<String, Tag> tags) throws GroundException {
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId);
+      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -64,7 +66,7 @@ public class PostgresGraphFactory extends GraphFactory {
       connection.commit();
       LOGGER.info("Created graph " + name + ".");
 
-      return GraphFactory.construct(uniqueId, name);
+      return GraphFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
@@ -87,11 +89,12 @@ public class PostgresGraphFactory extends GraphFactory {
       }
 
       long id = resultSet.getLong(1);
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
 
       connection.commit();
       LOGGER.info("Retrieved graph " + name + ".");
 
-      return GraphFactory.construct(id, name);
+      return GraphFactory.construct(id, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
