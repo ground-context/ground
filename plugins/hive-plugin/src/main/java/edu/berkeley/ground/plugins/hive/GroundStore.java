@@ -30,14 +30,18 @@ import org.slf4j.LoggerFactory;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
+/** RawStore Implementation using Ground APIs. */
 public class GroundStore extends GroundStoreBase {
 
     static final private Logger LOG = LoggerFactory.getLogger(GroundStore.class.getName());
 
     // Do not access this directly, call getHBase to make sure it is
     // initialized.
-    private GroundReadWrite ground = null;
-    private GroundMetaStore metastore = null;
+    private GroundReadWrite ground;
+    private GroundDatabase groundDatabase;
+    private GroundTable groundTable;
+    private GroundPartition groundPartition;
+
     private Configuration conf;
     private int txnNestLevel;
 
@@ -47,7 +51,9 @@ public class GroundStore extends GroundStoreBase {
 
     public GroundStore() throws GroundDBException {
         ground = getGround();
-        metastore = new GroundMetaStore(ground);
+        groundDatabase = new GroundDatabase(ground);
+        groundTable = new GroundTable(ground);
+        groundPartition = new GroundPartition(ground);
     }
 
     private GroundReadWrite getGround() throws GroundDBException {
@@ -95,7 +101,7 @@ public class GroundStore extends GroundStoreBase {
 
     /**
      * create a database using ground APIs. Uses node and node version.
-     * 
+     *
      * @throws MetaException
      * @throws InvalidObjectException
      */
@@ -105,15 +111,16 @@ public class GroundStore extends GroundStoreBase {
             throw new InvalidObjectException("Invalid database object null");
 
         try {
-            Database database = metastore.getDatabase(db.getName());
+            Database database = groundDatabase.getDatabase(db.getName());
             if (database != null) {
                 LOG.error("Database already exists: {}", db.getName());
+                return;
             }
         } catch (GroundException e) {
             // ignore if the database does not exist
         }
         try {
-            metastore.createDatabase(db);
+            groundDatabase.createDatabaseNodeVersion(db, EntityState.ACTIVE.name());
         } catch (InvalidObjectException | MetaException e) {
             LOG.error("Unable to create database: {}", e.getMessage());
             throw new MetaException(e.getMessage());
@@ -124,7 +131,7 @@ public class GroundStore extends GroundStoreBase {
     public Database getDatabase(String dbName) throws NoSuchObjectException {
         Database database = null;
         try {
-            database = metastore.getDatabase(dbName);
+            database = groundDatabase.getDatabase(dbName);
             return database;
         } catch (GroundException e) {
             throw new NoSuchObjectException("Database not found: " + dbName);
@@ -134,11 +141,11 @@ public class GroundStore extends GroundStoreBase {
     @Override
     public boolean dropDatabase(String dbName) throws NoSuchObjectException, MetaException {
         try {
-            metastore.dropDatabase(dbName);
+            groundDatabase.dropDatabase(dbName, EntityState.DELETED.name());
         } catch (GroundException e) {
-            throw new MetaException("Unable to drop database " + dbName + " with error: " + e.getMessage());
+            throw new MetaException(e.getMessage());
         }
-        LOG.info("database deleted: {}, {}", dbName);
+        LOG.info("database deleted: {}", dbName);
         return true;
     }
 
@@ -161,12 +168,7 @@ public class GroundStore extends GroundStoreBase {
 
     @Override
     public List<String> getDatabases(String pattern) throws MetaException {
-        try {
-            return metastore.getDatabases(pattern);
-        } catch (NoSuchObjectException ex) {
-            LOG.error("Failed to get databases with pattern {}", pattern);
-            throw new MetaException(ex.getMessage());
-        }
+        return groundDatabase.getDatabases(pattern);
     }
 
     @Override
@@ -202,12 +204,13 @@ public class GroundStore extends GroundStoreBase {
      * table T is in a particular file format (Parquet or Avro) would be a tag
      * on the table node.
      */
+    @Override
     public void createTable(Table tbl) throws InvalidObjectException, MetaException {
         if (tbl == null)
             throw new InvalidObjectException("Table passed is null");
         try {
             this.getDatabase(tbl.getDbName());
-            this.metastore.createTable(tbl);
+            this.groundTable.createTableNodeVersion(tbl);
         } catch (NoSuchObjectException ex) {
             throw new MetaException(ex.getMessage());
         }
@@ -216,12 +219,16 @@ public class GroundStore extends GroundStoreBase {
     @Override
     public boolean dropTable(String dbName, String tableName)
             throws MetaException, NoSuchObjectException, InvalidObjectException, InvalidInputException {
-        return this.metastore.dropTable(dbName, tableName);
+        try {
+            return this.groundTable.dropTable(dbName, tableName, EntityState.DELETED.name());
+        } catch (GroundException e) {
+            throw new MetaException(e.getMessage());
+        }
     }
 
     @Override
     public Table getTable(String dbName, String tableName) throws MetaException {
-        return this.metastore.getTable(dbName, tableName);
+        return this.groundTable.getTable(dbName, tableName);
     }
 
     @Override
@@ -243,7 +250,7 @@ public class GroundStore extends GroundStoreBase {
     public boolean addPartitions(String dbName, String tableName, List<Partition> parts)
             throws InvalidObjectException, MetaException {
         try {
-            return this.metastore.addPartitions(dbName, tableName, parts);
+            return this.groundTable.addPartitions(dbName, tableName, parts);
         } catch (InvalidObjectException | MetaException ex) {
             LOG.error("Unable to add partition to table {} database {} with error: {}", tableName, dbName,
                     ex.getMessage());
@@ -252,16 +259,16 @@ public class GroundStore extends GroundStoreBase {
     }
 
     @Override
-    public Partition getPartition(String dbName, String tableName, List<String> part_vals)
+    public List<Partition> getPartitionsByNames(String dbName, String tableName, List<String> part_vals)
             throws MetaException, NoSuchObjectException {
-        return this.metastore.getPartition(dbName, tableName, part_vals.get(2));
+        return this.groundTable.getPartitions(dbName, tableName, part_vals);
     }
 
     @Override
     public boolean doesPartitionExist(String dbName, String tableName, List<String> part_vals)
             throws MetaException, NoSuchObjectException {
         try {
-            Partition partition = this.metastore.getPartition(dbName, tableName, part_vals.get(2));
+            List<Partition> partition = this.groundTable.getPartitions(dbName, tableName, part_vals);
             return (partition != null);
         } catch (MetaException | NoSuchObjectException ex) {
             throw ex;
@@ -278,7 +285,7 @@ public class GroundStore extends GroundStoreBase {
     public List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
-            return this.metastore.getPartitions(dbName, tableName, max);
+            return this.groundTable.getPartitions(dbName, tableName, max);
         } catch (MetaException | NoSuchObjectException ex) {
             LOG.error("Get partitions failed table {} database {} error: {}", tableName, dbName, ex.getMessage());
             throw ex;
@@ -289,28 +296,17 @@ public class GroundStore extends GroundStoreBase {
     public void alterTable(String dbName, String tableName, Table newTable)
             throws InvalidObjectException, MetaException {
         try {
-            this.metastore.dropTable(dbName, tableName);
-        } catch (MetaException | InvalidObjectException ex) {
-            LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
-            throw ex;
-        } catch (NoSuchObjectException ex) {
-            LOG.error("Unable to drop previous version of table {} in database {}", tableName, dbName);
-            throw new MetaException("Table " + tableName + " not found in database" + dbName);
-        } catch (InvalidInputException ex) {
-            LOG.error("Invalid input to alter table {} in database {}", tableName, dbName);
-            throw new MetaException("Invalid input to alter table " + tableName + " in database {}" + dbName);
-        }
-        try {
-            this.metastore.createTable(newTable);
-        } catch (InvalidObjectException | MetaException ex) {
-            LOG.error("Unable to alter table {} in database {}", tableName, dbName);
-            throw ex;
+            this.groundTable.dropTable(dbName, tableName, EntityState.DELETED.name());
+            this.groundTable.createTableNodeVersion(newTable);
+        } catch (GroundException e) {
+            // TODO Auto-generated catch block
+            throw new MetaException(e.getMessage());
         }
     }
 
     @Override
     public List<String> getTables(String dbName, String pattern) throws MetaException {
-        return metastore.getTables(dbName, pattern);
+        return groundTable.getTables(dbName, pattern);
     }
 
     @Override
@@ -321,7 +317,7 @@ public class GroundStore extends GroundStoreBase {
     @Override
     public List<String> listTableNamesByFilter(String dbName, String filter, short max_tables)
             throws MetaException, UnknownDBException {
-        return metastore.getTables(dbName, filter);
+        return groundTable.getTables(dbName, filter);
     }
 
 }

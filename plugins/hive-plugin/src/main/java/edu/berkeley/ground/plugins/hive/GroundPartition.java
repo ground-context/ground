@@ -17,10 +17,7 @@
  */
 package edu.berkeley.ground.plugins.hive;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.hive.common.ObjectPair;
@@ -39,15 +36,13 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.plugins.hive.util.JsonUtil;
+import edu.berkeley.ground.plugins.hive.util.PluginUtil;
 
 public class GroundPartition {
 
     static final private Logger LOG = LoggerFactory.getLogger(GroundTable.class.getName());
 
-    private static final String DUMMY_NOT_USED = "DUMMY_NOT_USED";
-    private static final List<String> EMPTY_PARENT_LIST = new ArrayList<String>();
-
+    private static final long DUMMY_NOT_USED = 1L;
     private GroundReadWrite groundReadWrite = null;
 
     public GroundPartition(GroundReadWrite ground) {
@@ -94,25 +89,29 @@ public class GroundPartition {
                 partId += ":" + value;
             }
 
-            Tag partTag = new Tag(DUMMY_NOT_USED, partId, JsonUtil.toJSON(part), GroundType.STRING);
+            Tag partTag = new Tag(DUMMY_NOT_USED, partId, PluginUtil.toJSON(part), GroundType.STRING);
 
             Node node = this.getNode(partId);
-            String nodeId = node.getId();
-            Structure partStruct = this.getNodeStructure(partId);
-            Map<String, GroundType> structVersionAttribs = new HashMap<>();
-            structVersionAttribs.put(partId, GroundType.STRING);
-            StructureVersion sv = groundReadWrite.createStructureVersion(partStruct.getName(), partStruct.getId(),
-                    structVersionAttribs);
+            long nodeId = node.getId();
+            Structure partStruct = groundReadWrite.getStructure("partition");
+            StructureVersion sv;
+            if (partStruct == null) { // create a new structure version
+                partStruct = groundReadWrite.createStructure("partition");
+                LOG.debug("Node and Structure {}", partStruct.getId());
+                Map<String, GroundType> structVersionAttribs = new HashMap<>();
+                structVersionAttribs.put(GroundStore.EntityState.ACTIVE.name(), GroundType.STRING);
+                sv = groundReadWrite.createStructureVersion(partStruct.getId(), partStruct.getId(), structVersionAttribs);
+            } else {
+                sv = groundReadWrite.getStructureVersion(partStruct.getId());
+            }
 
             String reference = part.getSd().getLocation();
             HashMap<String, Tag> tags = new HashMap<>();
             tags.put(partId, partTag);
 
-            String versionId = sv.getId();
-            List<String> parentId = new ArrayList<String>();
-
+            long versionId = sv.getId();
             Map<String, String> parameters = part.getParameters();
-            return groundReadWrite.createNodeVersion(node.getName(), tags, versionId, reference, parameters, nodeId);
+            return groundReadWrite.createNodeVersion(1L, tags, versionId, reference, parameters, nodeId);
         } catch (GroundException e) {
             throw new MetaException("Unable to create partition " + e.getMessage());
         }

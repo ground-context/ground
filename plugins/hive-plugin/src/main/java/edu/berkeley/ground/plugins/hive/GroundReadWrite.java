@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
@@ -49,18 +66,12 @@ public class GroundReadWrite {
         }
     }
 
-    
     // create node for input Tag
     public Node createNode(String name) throws GroundException {
-        Node node = new Node("id", name);
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString;
         try {
-            jsonString = mapper.writeValueAsString(node);
             String encodedUri = groundServerAddress + "nodes/" + URLEncoder.encode(name, "UTF-8");
             PostMethod post = new PostMethod(encodedUri);
             post.setRequestHeader("Content-type", "application/json");
-            post.setRequestBody(jsonString);
             return getNode(post);
         } catch (IOException e) {
             throw new GroundException(e);
@@ -78,13 +89,15 @@ public class GroundReadWrite {
     }
 
     // method to create the NodeVersion given the nodeId and the tags
-    public NodeVersion createNodeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference,
-            Map<String, String> referenceParameters, String nodeId) throws GroundException {
-        NodeVersion nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString;
+    public NodeVersion createNodeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference,
+            Map<String, String> referenceParameters, long nodeId) throws GroundException {
         try {
-            jsonString = mapper.writeValueAsString(nodeVersion);
+            NodeVersion nodeVersion = getNodeVersion(nodeId);
+            if (nodeVersion != null) return nodeVersion;
+            nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters,
+                    nodeId);
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(nodeVersion);
             String uri = groundServerAddress + "nodes/versions";
             PostMethod post = new PostMethod(uri);
             post.setRequestHeader("Content-type", "application/json");
@@ -93,10 +106,9 @@ public class GroundReadWrite {
         } catch (IOException e) {
             throw new GroundException(e);
         }
-
     }
 
-    public NodeVersion getNodeVersion(String nodeVersionId) throws GroundException {
+    public NodeVersion getNodeVersion(long nodeVersionId) throws GroundException {
         GetMethod get = new GetMethod(groundServerAddress + "nodes/versions/" + nodeVersionId);
         try {
             return getNodeVersion(get);
@@ -105,9 +117,8 @@ public class GroundReadWrite {
         }
     }
 
-    public List<String> getLatestVersions(String dbName) throws GroundException {
-        // TODO Auto-generated method stub
-        GetMethod get = new GetMethod(groundServerAddress + "nodes/" + dbName + "/latest");
+    public List<Long> getLatestVersions(String name) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "nodes/" + name + "/latest");
         try {
             return getList(get);
         } catch (IOException e) {
@@ -117,22 +128,18 @@ public class GroundReadWrite {
 
     // create edge for input Tag
     public Edge createEdge(String name) throws GroundException {
-        Edge node = new Edge("id", name);
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonString = mapper.writeValueAsString(node);
             String encodedUri = groundServerAddress + "edges/" + URLEncoder.encode(name, "UTF-8");
             PostMethod post = new PostMethod(encodedUri);
             post.setRequestHeader("Content-type", "application/json");
-            post.setRequestBody(jsonString);
             return getEdge(post);
         } catch (IOException e) {
             throw new GroundException(e);
         }
     }
 
-    public Edge getEdge(String edgeId) throws GroundException {
-        GetMethod get = new GetMethod(groundServerAddress + "edges/" + edgeId);
+    public Edge getEdge(String edgeName) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "edges/" + edgeName);
         try {
             return getEdge(get);
         } catch (IOException e) {
@@ -140,7 +147,7 @@ public class GroundReadWrite {
         }
     }
 
-    public EdgeVersion getEdgeVersion(String edgeId) throws GroundException {
+    public EdgeVersion getEdgeVersion(long edgeId) throws GroundException {
         GetMethod get = new GetMethod(groundServerAddress + "edges/versions" + edgeId);
         try {
             return getEdgeVersion(get);
@@ -151,23 +158,19 @@ public class GroundReadWrite {
 
     // create node for input Tag
     public Structure createStructure(String name) throws GroundException {
-        Structure node = new Structure("id", name);
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonString = mapper.writeValueAsString(node);
             String encodedUri = groundServerAddress + "structures/" + URLEncoder.encode(name, "UTF-8");
             PostMethod post = new PostMethod(encodedUri);
             post.setRequestHeader("Content-type", "application/json");
-            post.setRequestBody(jsonString);
             return getStructure(post);
         } catch (IOException ioe) {
             throw new GroundException(ioe);
         }
     }
 
-    // method to create the StructureVersion given the nodeId and the tags
-    public StructureVersion createStructureVersion(String id, String structureVersionId,
-            Map<String, GroundType> attributes) throws GroundException {
+    // method to create StructureVersion given the nodeId and the tags
+    public StructureVersion createStructureVersion(long id, long structureVersionId, Map<String, GroundType> attributes)
+            throws GroundException {
         StructureVersion structureVersion = new StructureVersion(id, structureVersionId, attributes);
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -191,8 +194,8 @@ public class GroundReadWrite {
         }
     }
 
-    public StructureVersion getStructureVersion(String dbName) throws GroundException {
-        GetMethod get = new GetMethod(groundServerAddress + "structures/versions/" + dbName);
+    public StructureVersion getStructureVersion(long id) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "structures/versions/" + id);
         try {
             return getStructureVersion(get);
         } catch (IOException e) {
@@ -201,8 +204,8 @@ public class GroundReadWrite {
     }
 
     // method to create the edgeVersion given the nodeId and the tags
-    public EdgeVersion createEdgeVersion(String id, Map<String, Tag> tags, String structureVersionId, String reference,
-            Map<String, String> referenceParameters, String edgeId, String fromId, String toId) throws GroundException {
+    public EdgeVersion createEdgeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference,
+            Map<String, String> referenceParameters, long edgeId, long fromId, long toId) throws GroundException {
         try {
             EdgeVersion edgeVersion = new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
                     edgeId, fromId, toId);
@@ -218,9 +221,8 @@ public class GroundReadWrite {
         }
     }
 
-    public List<String> getAdjacentNodes(String prevVersionId, String edgeName) throws GroundException {
-        // TODO Auto-generated method stub
-        GetMethod get = new GetMethod(groundServerAddress + "structures/" + prevVersionId + "/" + edgeName);
+    public List<Long> getAdjacentNodes(Long prevVersionId, String edgeName) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "adjacent/" + prevVersionId + "/" + edgeName);
         try {
             return getList(get);
         } catch (IOException e) {
@@ -285,7 +287,7 @@ public class GroundReadWrite {
         return null;
     }
 
-    private List<String> getList(HttpMethod method)
+    private List<Long> getList(HttpMethod method)
             throws JsonParseException, JsonMappingException, HttpException, IOException {
         if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
             // getting the nodeId of the node created
@@ -318,8 +320,7 @@ public class GroundReadWrite {
         return null;
     }
 
-    public List<String> getTransitiveClosure(String tableNodeVersionId)
-            throws GroundException {
+    public List<Long> getTransitiveClosure(Long tableNodeVersionId) throws GroundException {
         GetMethod get = new GetMethod(groundServerAddress + "nodes/" + tableNodeVersionId + "/closure");
         try {
             return getList(get);
