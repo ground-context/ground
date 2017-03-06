@@ -17,12 +17,11 @@ package edu.berkeley.ground.db;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public interface DBClient {
-  List<String> SELECT_STAR = Stream.of("*").collect(Collectors.toList());
+  List<String> SELECT_STAR = Collections.singletonList("*");
 
   GroundDBConnection getConnection() throws GroundDBException;
 

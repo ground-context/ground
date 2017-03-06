@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.models.Structure;
 import edu.berkeley.ground.api.models.StructureFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.StructureVersionFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 
@@ -31,6 +32,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
 
 @Path("/structures")
 @Api(value = "/structures", description = "Interact with the structures in the graph")
@@ -65,9 +67,9 @@ public class StructuresResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Structure createStructure(@PathParam("name") String name) throws GroundException {
+  public Structure createStructure(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating structure " + name + ".");
-    return this.structureFactory.create(name);
+    return this.structureFactory.create(name, tags);
   }
 
   @POST

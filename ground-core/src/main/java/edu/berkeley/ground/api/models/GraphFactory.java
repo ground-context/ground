@@ -18,15 +18,16 @@ import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class GraphFactory {
-  public abstract Graph create(String name) throws GroundException;
+  public abstract Graph create(String name, Map<String, Tag> tags) throws GroundException;
 
   public abstract Graph retrieveFromDatabase(String name) throws GroundException;
 
   public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  protected static Graph construct(long id, String name) {
-    return new Graph(id, name);
+  protected static Graph construct(long id, String name, Map<String, Tag> tags) {
+    return new Graph(id, name, tags);
   }
 }

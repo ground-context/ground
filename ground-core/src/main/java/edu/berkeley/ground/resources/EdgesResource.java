@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,6 +33,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Map;
 
 @Path("/edges")
 @Api(value = "/edges", description = "Interact with the edges in the graph")
@@ -67,9 +69,9 @@ public class EdgesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Edge createEdge(@PathParam("name") String name) throws GroundException {
+  public Edge createEdge(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating edge " + name + ".");
-    return this.edgeFactory.create(name);
+    return this.edgeFactory.create(name, tags);
   }
 
   @POST

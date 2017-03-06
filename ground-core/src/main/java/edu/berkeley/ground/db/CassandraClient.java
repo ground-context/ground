@@ -28,7 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CassandraClient implements DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
@@ -39,7 +41,7 @@ public class CassandraClient implements DBClient {
   private PreparedStatement adjacencyStatement;
 
   public CassandraClient(String host, int port, String dbName, String username, String password) throws GroundDBException {
-    cluster = Cluster.builder()
+    this.cluster = Cluster.builder()
         .addContactPoint(host)
         .withAuthProvider(new PlainTextAuthProvider(username, password))
         .build();
@@ -54,13 +56,15 @@ public class CassandraClient implements DBClient {
       JGraphTUtils.addVertex(graph, r.getLong(0));
     }
 
-    resultSet = this.cluster.connect(this.keyspace).execute("select from_node_version_id, to_node_version_id from edge_version;");
+    resultSet = this.cluster.connect(this.keyspace).execute(
+        "select from_node_version_id, to_node_version_id from edge_version;");
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addEdge(graph, r.getLong(0), r.getLong(1));
     }
 
-    this.adjacencyStatement = this.cluster.connect(this.keyspace).prepare("select to_node_version_id, edge_id from edge_version where from_node_version_id = ? allow filtering;");
+    this.adjacencyStatement = this.cluster.connect(this.keyspace).prepare(
+        "select to_node_version_id, edge_id from edge_version where from_node_version_id = ? allow filtering;");
   }
 
   public CassandraConnection getConnection() throws GroundDBException {
@@ -113,16 +117,14 @@ public class CassandraClient implements DBClient {
         JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
       }
 
-      String insertString = "insert into " + table + "(";
-      String valuesString = "values (";
+      String fieldsString = insertValues.stream()
+          .map(DbDataContainer::getField)
+          .collect(Collectors.joining(", "));
+      String actualValuesString = String.join(", ",
+          Collections.nCopies(insertValues.size(), "?"));
 
-      for (DbDataContainer container : insertValues) {
-        insertString += container.getField() + ", ";
-        valuesString += "?, ";
-      }
-
-      insertString = insertString.substring(0, insertString.length() - 2) + ")";
-      valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
+      String insertString = "insert into " + table + "(" + fieldsString + ")";
+      String valuesString = "values (" + actualValuesString + ")";
 
       String prepString = insertString + valuesString + ";";
 
@@ -148,24 +150,17 @@ public class CassandraClient implements DBClient {
      * @param predicatesAndValues the predicates
      */
     public CassandraResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws EmptyResultException, GroundDBException {
-      String select = "select ";
-      for (String item : projection) {
-        select += item + ", ";
-      }
-
-      select = select.substring(0, select.length() - 2) + " from " + table;
+      String items = String.join(", ", projection);
+      String select = "select " + items + " from " + table;
 
       if (predicatesAndValues.size() > 0) {
-        select += " where ";
-
-        for (DbDataContainer container : predicatesAndValues) {
-          select += container.getField() + " = ? and ";
-        }
-
-        select = select.substring(0, select.length() - 4);
+        String predicatesString = predicatesAndValues.stream()
+            .map(predicate -> predicate.getField() + " = ?")
+            .collect(Collectors.joining(" and "));
+        select += " where " + predicatesString;
       }
 
-      BoundStatement statement = new BoundStatement(this.session.prepare(select + "ALLOW FILTERING;"));
+      BoundStatement statement = new BoundStatement(this.session.prepare(select + " ALLOW FILTERING;"));
 
       int index = 0;
       for (DbDataContainer container : predicatesAndValues) {
@@ -175,7 +170,6 @@ public class CassandraClient implements DBClient {
       }
 
       LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
-
 
       ResultSet resultSet = this.session.execute(statement);
 

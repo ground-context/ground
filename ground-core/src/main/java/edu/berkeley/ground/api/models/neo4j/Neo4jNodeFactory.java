@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.neo4j;
 
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.neo4j.Neo4jItemFactory;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Neo4jNodeFactory extends NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jNodeFactory.class);
@@ -47,7 +49,7 @@ public class Neo4jNodeFactory extends NodeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Node create(String name) throws GroundException {
+  public Node create(String name, Map<String, Tag> tags) throws GroundException {
     Neo4jConnection connection = this.dbClient.getConnection();
 
     try {
@@ -58,11 +60,12 @@ public class Neo4jNodeFactory extends NodeFactory {
       insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
 
       connection.addVertex("Node", insertions);
+      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
 
       connection.commit();
       LOGGER.info("Created node " + name + ".");
 
-      return NodeFactory.construct(uniqueId, name);
+      return NodeFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
@@ -95,11 +98,12 @@ public class Neo4jNodeFactory extends NodeFactory {
       }
 
       long id = record.get("v").asNode().get("id").asLong();
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
 
       connection.commit();
       LOGGER.info("Retrieved node " + name + ".");
 
-      return NodeFactory.construct(id, name);
+      return NodeFactory.construct(id, name, tags);
     } catch (GroundException e) {
       connection.abort();
 

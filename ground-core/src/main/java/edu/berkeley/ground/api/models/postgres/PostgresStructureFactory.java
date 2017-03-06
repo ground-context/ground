@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.postgres;
 
 import edu.berkeley.ground.api.models.Structure;
 import edu.berkeley.ground.api.models.StructureFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PostgresStructureFactory extends StructureFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureFactory.class);
@@ -47,13 +49,13 @@ public class PostgresStructureFactory extends StructureFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Structure create(String name) throws GroundException {
+  public Structure create(String name, Map<String, Tag> tags) throws GroundException {
     PostgresConnection connection = this.dbClient.getConnection();
 
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId);
+      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -64,7 +66,7 @@ public class PostgresStructureFactory extends StructureFactory {
       connection.commit();
       LOGGER.info("Created structure " + name + ".");
 
-      return StructureFactory.construct(uniqueId, name);
+      return StructureFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
@@ -97,11 +99,12 @@ public class PostgresStructureFactory extends StructureFactory {
       }
 
       long id = resultSet.getLong(1);
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
 
       connection.commit();
       LOGGER.info("Retrieved structure " + name + ".");
 
-      return StructureFactory.construct(id, name);
+      return StructureFactory.construct(id, name, tags);
     } catch (GroundException e) {
       connection.abort();
 

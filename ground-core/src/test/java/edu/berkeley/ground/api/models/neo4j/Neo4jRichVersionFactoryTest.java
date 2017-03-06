@@ -28,7 +28,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       connection = super.neo4jClient.getConnection();
 
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode").getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
       long id = super.createNodeVersion(testNodeId);
 
       String testReference = "http://www.google.com";
@@ -59,7 +59,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       connection = super.neo4jClient.getConnection();
 
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode").getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
       long id = super.createNodeVersion(testNodeId);
 
       Map<String, Tag> tags = new HashMap<>();
@@ -79,7 +79,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       for (String key : tags.keySet()) {
         assert (retrievedTags).containsKey(key);
         assertEquals(tags.get(key), retrievedTags.get(key));
-        assertEquals(retrieved.getId(), retrievedTags.get(key).getVersionId());
+        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
       connection.abort();
@@ -93,11 +93,11 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       connection = super.neo4jClient.getConnection();
 
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing * version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode").getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
       long id = super.createNodeVersion(testNodeId);
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -129,7 +129,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
 
     try {
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode").getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
       long id = super.createNodeVersion(testNodeId);
 
       // none of these operations should fail
@@ -137,7 +137,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
         connection = super.neo4jClient.getConnection();
 
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);

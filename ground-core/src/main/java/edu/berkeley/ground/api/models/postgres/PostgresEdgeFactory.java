@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.postgres;
 
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.EdgeFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PostgresEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeFactory.class);
@@ -47,13 +49,13 @@ public class PostgresEdgeFactory extends EdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Edge create(String name) throws GroundException {
+  public Edge create(String name, Map<String, Tag> tags) throws GroundException {
     PostgresConnection connection = dbClient.getConnection();
 
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId);
+      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -63,7 +65,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
 
       connection.commit();
       LOGGER.info("Created edge " + name + ".");
-      return EdgeFactory.construct(uniqueId, name);
+      return EdgeFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
       connection.abort();
 
@@ -87,11 +89,12 @@ public class PostgresEdgeFactory extends EdgeFactory {
       }
 
       long id = resultSet.getLong(1);
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
 
       connection.commit();
       LOGGER.info("Retrieved edge " + name + ".");
 
-      return EdgeFactory.construct(id, name);
+      return EdgeFactory.construct(id, name, tags);
     } catch (GroundException e) {
       connection.abort();
 

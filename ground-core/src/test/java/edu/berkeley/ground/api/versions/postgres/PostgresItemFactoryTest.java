@@ -3,9 +3,14 @@ package edu.berkeley.ground.api.versions.postgres;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.ground.api.PostgresTest;
+import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
@@ -25,9 +30,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
 
     try {
       long testId = 1;
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
@@ -76,9 +81,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
 
     try {
       long testId = 1;
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
       long toId = 2;
       super.versionFactory.insertIntoDatabase(connection, toId);
 
@@ -109,9 +114,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
     try {
       long testId = 1;
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
@@ -166,12 +171,10 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long toId = 3;
 
       try {
-        connection = super.cassandraClient.getConnection();
-
-        super.itemFactory.insertIntoDatabase(connection, testId);
+        connection = super.postgresClient.getConnection();
+        super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
         super.versionFactory.insertIntoDatabase(connection, toId);
-
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -191,9 +194,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
     PostgresConnection connection = null;
     try {
       long testId = 1;
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
 
-      super.itemFactory.insertIntoDatabase(connection, testId);
+      super.itemFactory.insertIntoDatabase(connection, testId, new HashMap<>());
 
       long parentOne = 2;
       long parentTwo = 3;
@@ -245,6 +248,37 @@ public class PostgresItemFactoryTest extends PostgresTest {
       assertEquals(parentTwo, childTwoSuccessor.getFromId());
       assertEquals(child, childTwoSuccessor.getToId());
       assertEquals(child, childTwoSuccessor.getToId());
+    } finally {
+      connection.abort();
+    }
+  }
+
+  @Test
+  public void testTags() throws GroundException {
+    PostgresConnection connection = null;
+    try {
+      long testId = 1;
+      connection = super.postgresClient.getConnection();
+      Map<String, Tag> tags = new HashMap<>();
+      tags.put("justkey", new Tag(-1, "justkey", null, null));
+      tags.put("withintvalue", new Tag(-1, "withintvalue", 1, GroundType.INTEGER));
+      tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
+      tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
+
+
+      super.itemFactory.insertIntoDatabase(connection, testId, tags);
+
+      Item retrieved = super.itemFactory.retrieveFromDatabase(connection, testId);
+
+      assertEquals(testId, retrieved.getId());
+      assertEquals(tags.size(), retrieved.getTags().size());
+
+      Map<String, Tag> retrievedTags = retrieved.getTags();
+      for (String key : tags.keySet()) {
+        assert (retrievedTags).containsKey(key);
+        assertEquals(tags.get(key), retrievedTags.get(key));
+        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
+      }
     } finally {
       connection.abort();
     }

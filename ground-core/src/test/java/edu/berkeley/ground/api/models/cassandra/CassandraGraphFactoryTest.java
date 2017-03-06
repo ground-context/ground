@@ -2,6 +2,8 @@ package edu.berkeley.ground.api.models.cassandra;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import edu.berkeley.ground.api.CassandraTest;
 import edu.berkeley.ground.api.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -19,7 +21,7 @@ public class CassandraGraphFactoryTest extends CassandraTest {
     try {
       String testName = "test";
       CassandraGraphFactory graphFactory = (CassandraGraphFactory) super.factories.getGraphFactory();
-      graphFactory.create(testName);
+      graphFactory.create(testName, new HashMap<>());
 
       Graph graph = graphFactory.retrieveFromDatabase(testName);
 

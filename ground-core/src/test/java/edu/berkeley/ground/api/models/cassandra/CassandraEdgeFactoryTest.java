@@ -2,6 +2,8 @@ package edu.berkeley.ground.api.models.cassandra;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import edu.berkeley.ground.api.CassandraTest;
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -18,7 +20,7 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
   public void testEdgeCreation() throws GroundException {
     String testName = "test";
     CassandraEdgeFactory edgeFactory = (CassandraEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName);
+    edgeFactory.create(testName, new HashMap<>());
 
     Edge edge = edgeFactory.retrieveFromDatabase(testName);
 

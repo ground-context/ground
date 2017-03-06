@@ -2,6 +2,8 @@ package edu.berkeley.ground.api.versions.neo4j;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+
 import edu.berkeley.ground.api.Neo4jTest;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
@@ -20,8 +22,8 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
     Neo4jConnection connection = null;
     try {
       connection = super.neo4jClient.getConnection();
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode").getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode").getId();
+      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", new HashMap<>()).getId();
+      long toNodeId = super.factories.getNodeFactory().create("testToNode", new HashMap<>()).getId();
       long fromId = super.createNodeVersion(fromNodeId);
       long toId = super.createNodeVersion(toNodeId);
 
@@ -47,7 +49,7 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
 
       try {
         String nodeName = "testNode";
-        long nodeId = super.factories.getNodeFactory().create(nodeName).getId();
+        long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
         connection = super.neo4jClient.getConnection();
         toId = super.createNodeVersion(nodeId);
       } catch (GroundException ge) {

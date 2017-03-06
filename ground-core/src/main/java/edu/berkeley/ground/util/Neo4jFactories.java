@@ -43,11 +43,11 @@ public class Neo4jFactories {
 
     Neo4jVersionSuccessorFactory versionSuccessorFactory = new Neo4jVersionSuccessorFactory(idGenerator);
     Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(versionSuccessorFactory);
-    Neo4jItemFactory itemFactory = new Neo4jItemFactory(versionHistoryDAGFactory);
+    Neo4jTagFactory tagFactory = new Neo4jTagFactory();
+    Neo4jItemFactory itemFactory = new Neo4jItemFactory(versionHistoryDAGFactory, tagFactory);
 
     this.structureFactory = new Neo4jStructureFactory(neo4jClient, itemFactory, idGenerator);
     this.structureVersionFactory = new Neo4jStructureVersionFactory(neo4jClient, this.structureFactory, idGenerator);
-    Neo4jTagFactory tagFactory = new Neo4jTagFactory();
     Neo4jRichVersionFactory richVersionFactory = new Neo4jRichVersionFactory(structureVersionFactory, tagFactory);
     this.edgeFactory = new Neo4jEdgeFactory(itemFactory, neo4jClient, idGenerator);
     this.edgeVersionFactory = new Neo4jEdgeVersionFactory(this.edgeFactory, richVersionFactory, neo4jClient, idGenerator);

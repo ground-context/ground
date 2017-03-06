@@ -14,6 +14,9 @@
 
 package edu.berkeley.ground.api.versions.postgres;
 
+import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.models.postgres.PostgresTagFactory;
+import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.ItemFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
@@ -27,24 +30,50 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PostgresItemFactory extends ItemFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresItemFactory.class);
 
   private PostgresVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private PostgresTagFactory tagFactory;
 
-  public PostgresItemFactory(PostgresVersionHistoryDAGFactory versionHistoryDAGFactory) {
+  public PostgresItemFactory(PostgresVersionHistoryDAGFactory versionHistoryDAGFactory, PostgresTagFactory tagFactory) {
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+    this.tagFactory = tagFactory;
   }
 
-  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
+  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id, Map<String, Tag> tags) throws GroundException {
     PostgresConnection connection = (PostgresConnection) connectionPointer;
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
     connection.insert("item", insertions);
+
+    for (String key : tags.keySet()) {
+      Tag tag = tags.get(key);
+
+      List<DbDataContainer> tagInsertion = new ArrayList<>();
+      tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
+      tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+
+      if (tag.getValue() != null) {
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+      } else {
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+      }
+
+      connection.insert("item_tag", tagInsertion);
+    }
   }
+
+  public Item retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException {
+    return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(connection, id));
+  }
+
 
   public void update(GroundDBConnection connectionPointer, long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.

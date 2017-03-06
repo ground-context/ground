@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PostgresClient implements DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
@@ -35,7 +37,7 @@ public class PostgresClient implements DBClient {
   private String password;
 
   public PostgresClient(String host, int port, String dbName, String username, String password) {
-    connectionString = String.format(PostgresClient.JDBCString, host, port, dbName);
+    this.connectionString = String.format(PostgresClient.JDBCString, host, port, dbName);
     this.username = username;
     this.password = password;
   }
@@ -64,23 +66,21 @@ public class PostgresClient implements DBClient {
      * @param insertValues the values to put into table
      */
     public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
-      String insertString = "insert into " + table + "(";
-      String valuesString = "values (";
+      String fieldsString = insertValues.stream()
+          .map(DbDataContainer::getField)
+          .collect(Collectors.joining(", "));
+      String actualValuesString = String.join(", ",
+          Collections.nCopies(insertValues.size(), "?"));
 
-      for (DbDataContainer container : insertValues) {
-        insertString += container.getField() + ", ";
-        valuesString += "?, ";
-      }
+      String insertString = "insert into " + table + "(" + fieldsString + ")";
+      String valuesString = "values (" + actualValuesString + ")";
 
-      insertString = insertString.substring(0, insertString.length() - 2) + ")";
-      valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
-
-      try {
-        PreparedStatement preparedStatement = this.connection.prepareStatement(insertString + valuesString + ";");
-
+      try (PreparedStatement preparedStatement =
+          this.connection.prepareStatement(insertString + " " + valuesString + ";")) {
         int index = 1;
         for (DbDataContainer container : insertValues) {
-          PostgresClient.setValue(preparedStatement, container.getValue(), container.getGroundType(), index);
+          PostgresClient.setValue(preparedStatement, container.getValue(),
+              container.getGroundType(), index);
 
           index++;
         }
@@ -93,7 +93,6 @@ public class PostgresClient implements DBClient {
 
         throw new GroundDBException(e.getClass().toString() + ": " + e.getMessage());
       }
-
     }
 
     /**
@@ -106,22 +105,14 @@ public class PostgresClient implements DBClient {
     public QueryResults equalitySelect(String table, List<String> projection,
                                        List<DbDataContainer> predicatesAndValues)
         throws GroundDBException, EmptyResultException {
-      String select = "select ";
-
-      for (String item : projection) {
-        select += item + ", ";
-      }
-
-      select = select.substring(0, select.length() - 2) + " from " + table;
+      String items = String.join(", ", projection);
+      String select = "select " + items + " from " + table;
 
       if (predicatesAndValues.size() > 0) {
-        select += " where ";
-
-        for (DbDataContainer container : predicatesAndValues) {
-          select += container.getField() + " = ? and ";
-        }
-
-        select = select.substring(0, select.length() - 4);
+        String predicatesString = predicatesAndValues.stream()
+            .map(predicate -> predicate.getField() + " = ?")
+            .collect(Collectors.joining(" and "));
+        select += " where " + predicatesString;
       }
 
       try {
@@ -152,18 +143,17 @@ public class PostgresClient implements DBClient {
     }
 
     public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
-      try {
+      try (PreparedStatement statement =
+          this.connection.prepareStatement("select reachable(?);")) {
         // recursive query implementation
-                /*
-                PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
-                                                    "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
-                                                    "    union\n" +
-                                                    "    (select p.vfrom, ev.endpoint_two\n" +
-                                                    "    from paths p, edgeversions ev\n" +
-                                                    "    where p.vto = ev.endpoint_one)\n" +
-                                                    ") select vto from paths;"); */
-
-        PreparedStatement statement = this.connection.prepareStatement("select reachable(?);");
+        /*
+        PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
+                                            "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
+                                            "    union\n" +
+                                            "    (select p.vfrom, ev.endpoint_two\n" +
+                                            "    from paths p, edgeversions ev\n" +
+                                            "    where p.vto = ev.endpoint_one)\n" +
+                                            ") select vto from paths;"); */
         statement.setLong(1, nodeVersionId);
 
         ResultSet resultSet = statement.executeQuery();
@@ -180,13 +170,12 @@ public class PostgresClient implements DBClient {
     }
 
     public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
-      String query = "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?";
-      query += " and ev.edge_id like ?;";
+      String query = "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?" +
+          " and ev.edge_id like ?;";
 
       edgeNameRegex = '%' + edgeNameRegex + '%';
 
-      try {
-        PreparedStatement statement = this.connection.prepareStatement(query);
+      try (PreparedStatement statement = this.connection.prepareStatement(query)) {
         statement.setLong(1, nodeVersionId);
         statement.setString(2, edgeNameRegex);
 

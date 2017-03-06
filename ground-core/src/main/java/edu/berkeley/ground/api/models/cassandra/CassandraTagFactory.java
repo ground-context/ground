@@ -28,17 +28,25 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class CassandraTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id) throws GroundException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connection, long id) throws GroundException {
+    return this.retrieveFromDatabaseById(connection, id, "rich_version");
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseByItemId(GroundDBConnection connection, long id) throws GroundException {
+    return this.retrieveFromDatabaseById(connection, id, "item");
+  }
+
+  private Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id, String keyPrefix) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+    predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
 
     Map<String, Tag> result = new HashMap<>();
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("tag", DBClient.SELECT_STAR, predicates);
+      resultSet = connection.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException eer) {
       // this means that there are no tags
       return result;
@@ -59,7 +67,15 @@ public class CassandraTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
+  public List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
+    return this.getIdsByTag(connection, tag, "rich_version");
+  }
+
+  public List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
+    return this.getIdsByTag(connection, tag, "item");
+  }
+
+  private List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag, String keyPrefix) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
     List<Long> result = new ArrayList<>();
 
@@ -67,7 +83,7 @@ public class CassandraTagFactory extends TagFactory {
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
     List<String> projections = new ArrayList<>();
-    projections.add("rich_version_id");
+    projections.add(keyPrefix + "_id");
 
     QueryResults resultSet;
     try {

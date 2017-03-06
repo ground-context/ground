@@ -21,7 +21,7 @@ public class PostgresVersionHistoryDAGFactoryTest extends PostgresTest {
     try {
       long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
-      connection = super.cassandraClient.getConnection();
+      connection = super.postgresClient.getConnection();
 
       VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
           testId);
