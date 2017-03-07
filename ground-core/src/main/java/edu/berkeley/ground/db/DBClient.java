@@ -25,7 +25,7 @@ public interface DBClient {
 
   GroundDBConnection getConnection() throws GroundDBException;
 
-  abstract class GroundDBConnection {
+  abstract class GroundDBConnection implements AutoCloseable {
     public abstract void commit() throws GroundDBException;
 
     public abstract void abort() throws GroundDBException;

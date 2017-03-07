@@ -17,7 +17,6 @@ package edu.berkeley.ground.db;
 import com.google.common.annotations.VisibleForTesting;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 public class Neo4jClient implements DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jClient.class);
 
-  private Driver driver;
+  private final Driver driver;
 
   public Neo4jClient(String host, String username, String password) {
     this.driver = GraphDatabase.driver("bolt://" + host, AuthTokens.basic(username, password));
@@ -45,8 +44,8 @@ public class Neo4jClient implements DBClient {
   }
 
   public class Neo4jConnection extends GroundDBConnection {
-    private Transaction transaction;
-    private Session session;
+    private final Transaction transaction;
+    private final Session session;
 
     public Neo4jConnection(Session session) {
       this.transaction = session.beginTransaction();
@@ -309,18 +308,6 @@ public class Neo4jClient implements DBClient {
       return result.list();
     }
 
-    public void commit() throws GroundDBException {
-      this.transaction.success();
-      this.transaction.close();
-      this.session.close();
-    }
-
-    public void abort() throws GroundDBException {
-      this.transaction.failure();
-      this.transaction.close();
-      this.session.close();
-    }
-
     public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
       String query =
           "MATCH (a: NodeVersion {id: "
@@ -375,6 +362,24 @@ public class Neo4jClient implements DBClient {
               .collect(Collectors.toList());
 
       return result;
+    }
+
+    @Override
+    public void commit() {
+      this.transaction.success();
+      this.close();
+    }
+
+    @Override
+    public void abort() {
+      this.transaction.failure();
+      this.close();
+    }
+
+    @Override
+    public void close() {
+      this.transaction.close();
+      this.session.close();
     }
   }
 
