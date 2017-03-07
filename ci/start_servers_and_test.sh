@@ -1,7 +1,6 @@
-set -x
-
 # set environment variables
 export COVERALLS_TOKEN=token
+export MASTER_BUILD="false"
 
 # start Postgres
 service postgresql start
@@ -31,7 +30,7 @@ mvn clean test
 
 # generate the test coverage report and send it to Coveralls only if we're
 # building on the master branch
-if [ -z "$MASTER_BUILD" ]
+if [[ $MASTER_BUILD = "true" ]]
 then
   mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
 fi
