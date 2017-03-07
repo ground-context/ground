@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # set environment variables
 export COVERALLS_TOKEN=token
 export MASTER_BUILD="false"
