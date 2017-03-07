@@ -2,7 +2,6 @@
 
 # set environment variables
 export COVERALLS_TOKEN=token
-export MASTER_BUILD="false"
 
 # start Postgres
 service postgresql start
@@ -21,7 +20,9 @@ cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 
 # start Neo4j
 service neo4j start
 
-cd /tmp/ground/
+rm -rf /tmp/ground/
+git clone https://github.com/ground-context/ground
+cd ground
 
 # set Postgres and Cassandra schemas
 cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
@@ -30,9 +31,5 @@ cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../.
 # run tests
 mvn clean test
 
-# generate the test coverage report and send it to Coveralls only if we're
-# building on the master branch
-if [ $MASTER_BUILD = "true" ]
-then
-  mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN -Dbranch=master
-fi
+# generate the test coverage report and send it to Coveralls 
+mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN -Dbranch=master
