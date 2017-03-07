@@ -34,5 +34,8 @@ mvn clean test
 # building on the master branch
 if [ $MASTER_BUILD = "true" ]
 then
+  # explicitly check out to master to get the Coveralls branch to register
+  # correctly
+  git checkout master
   mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
 fi
