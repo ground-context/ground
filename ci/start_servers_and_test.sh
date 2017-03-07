@@ -32,7 +32,7 @@ mvn clean test
 
 # generate the test coverage report and send it to Coveralls only if we're
 # building on the master branch
-if [[ $MASTER_BUILD = "true" ]]
+if [ $MASTER_BUILD = "true" ]
 then
   mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
 fi
