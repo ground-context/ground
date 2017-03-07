@@ -15,12 +15,10 @@
 package edu.berkeley.ground.db;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
-
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;
 import org.neo4j.driver.v1.types.Relationship;
@@ -32,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Neo4jClient implements DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jClient.class);
@@ -92,7 +89,7 @@ public class Neo4jClient implements DBClient {
     /**
      * Add a new vertex to the graph.
      *
-     * @param label      the vertex label
+     * @param label the vertex label
      * @param attributes the vertex's attributes
      */
     public void addVertex(String label, List<DbDataContainer> attributes) {
@@ -107,15 +104,24 @@ public class Neo4jClient implements DBClient {
     /**
      * Add a new edge to the graph.
      *
-     * @param label      the edge label
-     * @param fromId     the id of the source vertex
-     * @param toId       the id of the destination vertex
+     * @param label the edge label
+     * @param fromId the id of the source vertex
+     * @param toId the id of the destination vertex
      * @param attributes the edge's attributes
      */
     public void addEdge(String label, long fromId, long toId, List<DbDataContainer> attributes) {
-      String insert = "MATCH (f" + "{id : " + fromId + " })" +
-          "MATCH (t" + "{id : " + toId + " })" +
-          "CREATE (f)-[:" + label + "{";
+      String insert =
+          "MATCH (f"
+              + "{id : "
+              + fromId
+              + " })"
+              + "MATCH (t"
+              + "{id : "
+              + toId
+              + " })"
+              + "CREATE (f)-[:"
+              + label
+              + "{";
 
       insert = this.addValuesToStatement(insert, attributes);
       insert += "}]->(t)";
@@ -126,9 +132,9 @@ public class Neo4jClient implements DBClient {
     /**
      * Add a new edge to the graph.
      *
-     * @param label      the edge label
-     * @param fromId     the id of the source vertex
-     * @param toId       the id of the destination vertex
+     * @param label the edge label
+     * @param fromId the id of the source vertex
+     * @param toId the id of the destination vertex
      * @param attributes the edge's attributes
      */
     public void addEdge(String label, String fromId, long toId, List<DbDataContainer> attributes) {
@@ -145,13 +151,18 @@ public class Neo4jClient implements DBClient {
     /**
      * Add a new vertex and an edge connecting it to another vertex
      *
-     * @param label          the vertex label
-     * @param attributes     the vertex's attributes
-     * @param edgeLabel      the edge label
-     * @param fromId         the source of the edge
+     * @param label the vertex label
+     * @param attributes the vertex's attributes
+     * @param edgeLabel the edge label
+     * @param fromId the source of the edge
      * @param edgeAttributes the edge's attributes
      */
-    public void addVertexAndEdge(String label, List<DbDataContainer> attributes, String edgeLabel, long fromId, List<DbDataContainer> edgeAttributes) {
+    public void addVertexAndEdge(
+        String label,
+        List<DbDataContainer> attributes,
+        String edgeLabel,
+        long fromId,
+        List<DbDataContainer> edgeAttributes) {
       String insert = "MATCH (f {id: " + fromId + "})";
       insert += "CREATE (t: " + label + "{";
 
@@ -180,7 +191,8 @@ public class Neo4jClient implements DBClient {
      *
      * @param attributes the attributes to filter by
      */
-    public List<Long> getVerticesByAttributes(List<DbDataContainer> attributes, String idAttribute) {
+    public List<Long> getVerticesByAttributes(
+        List<DbDataContainer> attributes, String idAttribute) {
       String query = "MATCH (f {";
 
       query = this.addValuesToStatement(query, attributes);
@@ -190,8 +202,11 @@ public class Neo4jClient implements DBClient {
 
       List<Long> result = new ArrayList<>();
       while (queryResult.hasNext()) {
-        result.add((Long) GroundType.stringToType(queryResult.next().get("f").asNode().
-            get(idAttribute).toString(), GroundType.LONG));
+        result.add(
+            (Long)
+                GroundType.stringToType(
+                    queryResult.next().get("f").asNode().get(idAttribute).toString(),
+                    GroundType.LONG));
       }
 
       return result;
@@ -200,11 +215,12 @@ public class Neo4jClient implements DBClient {
     /**
      * Get a vertex with a set of attributes and with a particular label.
      *
-     * @param label      the vertex label
+     * @param label the vertex label
      * @param attributes the attributes to filter by
      * @return the Record with the vertex
      */
-    public Record getVertex(String label, List<DbDataContainer> attributes) throws EmptyResultException {
+    public Record getVertex(String label, List<DbDataContainer> attributes)
+        throws EmptyResultException {
       String query = "MATCH (v";
       if (label == null) {
         query += " {";
@@ -226,11 +242,12 @@ public class Neo4jClient implements DBClient {
     /**
      * Retrieve an edge.
      *
-     * @param label      the edge label
+     * @param label the edge label
      * @param attributes the attributes to filter by
      * @return the Neo4j Relationship for this edge
      */
-    public Relationship getEdge(String label, List<DbDataContainer> attributes) throws EmptyResultException {
+    public Relationship getEdge(String label, List<DbDataContainer> attributes)
+        throws EmptyResultException {
       String query = "MATCH (v)-[e:" + label + "{";
 
       query = this.addValuesToStatement(query, attributes);
@@ -247,11 +264,11 @@ public class Neo4jClient implements DBClient {
     }
 
     /**
-     * Get all the edges with a particular label that are reachable from a particular
-     * starting vertex.
+     * Get all the edges with a particular label that are reachable from a particular starting
+     * vertex.
      *
      * @param startId the starting point for the query
-     * @param label   the edge label we are looking for
+     * @param label the edge label we are looking for
      * @return the list of valid edges
      */
     public List<Relationship> getDescendantEdgesByLabel(long startId, String label) {
@@ -269,22 +286,24 @@ public class Neo4jClient implements DBClient {
     }
 
     /**
-     * Get all vertices that are one edge away, where the edge connecting them has a
-     * particular label.
+     * Get all vertices that are one edge away, where the edge connecting them has a particular
+     * label.
      *
-     * @param id           the vertex to start from
-     * @param edgeLabel    the edge label we are looking for
+     * @param id the vertex to start from
+     * @param edgeLabel the edge label we are looking for
      * @param returnFields the list of fields we want to select
      * @return a list of adjacent vertices related by edgeLabel
      */
-    public List<Record> getAdjacentVerticesByEdgeLabel(String edgeLabel, long id, List<String> returnFields) {
-      String query = "MATCH (a {id: " + id + " })" +
-          "MATCH (a)-[:" + edgeLabel + "]->(b)" +
-          "RETURN ";
+    public List<Record> getAdjacentVerticesByEdgeLabel(
+        String edgeLabel, long id, List<String> returnFields) {
+      String query =
+          "MATCH (a {id: " + id + " })" + "MATCH (a)-[:" + edgeLabel + "]->(b)" + "RETURN ";
 
-      query += returnFields.stream()
-          .map(field -> "b." + field + " as " + field)
-          .collect(Collectors.joining(", "));
+      query +=
+          returnFields
+              .stream()
+              .map(field -> "b." + field + " as " + field)
+              .collect(Collectors.joining(", "));
 
       StatementResult result = this.transaction.run(query);
       return result.list();
@@ -303,13 +322,15 @@ public class Neo4jClient implements DBClient {
     }
 
     public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
-      String query = "MATCH (a: NodeVersion {id: " + nodeVersionId + "})-" +
-          "[:EdgeVersionConnection*]->(b: NodeVersion) RETURN b.id";
+      String query =
+          "MATCH (a: NodeVersion {id: "
+              + nodeVersionId
+              + "})-"
+              + "[:EdgeVersionConnection*]->(b: NodeVersion) RETURN b.id";
 
       List<Record> records = this.transaction.run(query).list();
-      List<Long> result = records.stream()
-          .map(record -> record.get("b.id").asLong())
-          .collect(Collectors.toList());
+      List<Long> result =
+          records.stream().map(record -> record.get("b.id").asLong()).collect(Collectors.toList());
 
       return result;
     }
@@ -317,9 +338,9 @@ public class Neo4jClient implements DBClient {
     /**
      * For a particular object, set a given attribute.
      *
-     * @param id       the id of the object
-     * @param key      the key of the attribute
-     * @param value    the value of the attribute
+     * @param id the id of the object
+     * @param key the key of the attribute
+     * @param value the value of the attribute
      * @param isString determines whether or not to encapsulate value in quotes
      */
     public void setProperty(long id, String key, Object value, boolean isString) {
@@ -334,17 +355,24 @@ public class Neo4jClient implements DBClient {
       this.transaction.run(insert);
     }
 
-
-    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
-      String query = "MATCH (n: NodeVersion {id: '" + nodeVersionId + "'})" +
-          "-[e: EdgeVersionConnection]->(evn: EdgeVersion) where evn.edge_id =~ '.*" + edgeNameRegex + ".*'" +
-          "MATCH (evn)-[f: EdgeVersionConnection]->(dst)" +
-          "return dst.id";
+    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex)
+        throws GroundException {
+      String query =
+          "MATCH (n: NodeVersion {id: '"
+              + nodeVersionId
+              + "'})"
+              + "-[e: EdgeVersionConnection]->(evn: EdgeVersion) where evn.edge_id =~ '.*"
+              + edgeNameRegex
+              + ".*'"
+              + "MATCH (evn)-[f: EdgeVersionConnection]->(dst)"
+              + "return dst.id";
 
       List<Record> records = this.transaction.run(query).list();
-      List<Long> result = records.stream()
-          .map(record -> record.get("dst.id").asLong())
-          .collect(Collectors.toList());
+      List<Long> result =
+          records
+              .stream()
+              .map(record -> record.get("dst.id").asLong())
+              .collect(Collectors.toList());
 
       return result;
     }

@@ -1,24 +1,20 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +40,8 @@ public class PostgresClient implements DBClient {
 
   public PostgresConnection getConnection() throws GroundDBException {
     try {
-      return new PostgresConnection(DriverManager.getConnection(connectionString, username, password));
+      return new PostgresConnection(
+          DriverManager.getConnection(connectionString, username, password));
     } catch (SQLException e) {
       throw new GroundDBException(e);
     }
@@ -58,19 +55,16 @@ public class PostgresClient implements DBClient {
       this.connection.setAutoCommit(false);
     }
 
-
     /**
      * Insert a new row into table with insertValues.
      *
-     * @param table        the table to update
+     * @param table the table to update
      * @param insertValues the values to put into table
      */
     public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
-      String fieldsString = insertValues.stream()
-          .map(DbDataContainer::getField)
-          .collect(Collectors.joining(", "));
-      String actualValuesString = String.join(", ",
-          Collections.nCopies(insertValues.size(), "?"));
+      String fieldsString =
+          insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
+      String actualValuesString = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
       String insertString = "insert into " + table + "(" + fieldsString + ")";
       String valuesString = "values (" + actualValuesString + ")";
@@ -79,8 +73,8 @@ public class PostgresClient implements DBClient {
           this.connection.prepareStatement(insertString + " " + valuesString + ";")) {
         int index = 1;
         for (DbDataContainer container : insertValues) {
-          PostgresClient.setValue(preparedStatement, container.getValue(),
-              container.getGroundType(), index);
+          PostgresClient.setValue(
+              preparedStatement, container.getValue(), container.getGroundType(), index);
 
           index++;
         }
@@ -98,20 +92,22 @@ public class PostgresClient implements DBClient {
     /**
      * Retrieve rows based on a set of predicates.
      *
-     * @param table               the table to query
-     * @param projection          the set of columns to retrieve
+     * @param table the table to query
+     * @param projection the set of columns to retrieve
      * @param predicatesAndValues the predicates
      */
-    public QueryResults equalitySelect(String table, List<String> projection,
-                                       List<DbDataContainer> predicatesAndValues)
+    public QueryResults equalitySelect(
+        String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
         throws GroundDBException, EmptyResultException {
       String items = String.join(", ", projection);
       String select = "select " + items + " from " + table;
 
       if (predicatesAndValues.size() > 0) {
-        String predicatesString = predicatesAndValues.stream()
-            .map(predicate -> predicate.getField() + " = ?")
-            .collect(Collectors.joining(" and "));
+        String predicatesString =
+            predicatesAndValues
+                .stream()
+                .map(predicate -> predicate.getField() + " = ?")
+                .collect(Collectors.joining(" and "));
         select += " where " + predicatesString;
       }
 
@@ -120,7 +116,8 @@ public class PostgresClient implements DBClient {
 
         int index = 1;
         for (DbDataContainer container : predicatesAndValues) {
-          PostgresClient.setValue(preparedStatement, container.getValue(), container.getGroundType(), index);
+          PostgresClient.setValue(
+              preparedStatement, container.getValue(), container.getGroundType(), index);
 
           index++;
         }
@@ -129,7 +126,8 @@ public class PostgresClient implements DBClient {
 
         ResultSet resultSet = preparedStatement.executeQuery();
         if (!resultSet.isBeforeFirst()) {
-          throw new EmptyResultException("No results found for query: " + preparedStatement.toString());
+          throw new EmptyResultException(
+              "No results found for query: " + preparedStatement.toString());
         }
 
         // Moves the cursor to the first element so that data can be accessed directly.
@@ -145,15 +143,16 @@ public class PostgresClient implements DBClient {
     public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
       try {
         // recursive query implementation
-        PreparedStatement statement = this.connection.prepareStatement
-            ("with recursive paths(vfrom, vto) as (\n" +
-            "    (select from_node_version_id, to_node_version_id from edge_version where " +
-            "     from_node_version_id = ?) " +
-            "union\n" +
-            "    (select p.vfrom, ev.to_node_version_id\n" +
-            "    from paths p, edge_version ev\n" +
-            "    where p.vto = ev.from_node_version_id)\n" +
-            ") select vto from paths;");
+        PreparedStatement statement =
+            this.connection.prepareStatement(
+                "with recursive paths(vfrom, vto) as (\n"
+                    + "    (select from_node_version_id, to_node_version_id from edge_version where "
+                    + "     from_node_version_id = ?) "
+                    + "union\n"
+                    + "    (select p.vfrom, ev.to_node_version_id\n"
+                    + "    from paths p, edge_version ev\n"
+                    + "    where p.vto = ev.from_node_version_id)\n"
+                    + ") select vto from paths;");
 
         statement.setLong(1, nodeVersionId);
 
@@ -170,9 +169,11 @@ public class PostgresClient implements DBClient {
       }
     }
 
-    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
-      String query = "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?" +
-          " and ev.edge_id like ?;";
+    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex)
+        throws GroundException {
+      String query =
+          "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?"
+              + " and ev.edge_id like ?;";
 
       edgeNameRegex = '%' + edgeNameRegex + '%';
 
@@ -212,7 +213,9 @@ public class PostgresClient implements DBClient {
     }
   }
 
-  private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index) throws SQLException {
+  private static void setValue(
+      PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
+      throws SQLException {
     switch (groundType) {
       case STRING:
         if (value == null) {

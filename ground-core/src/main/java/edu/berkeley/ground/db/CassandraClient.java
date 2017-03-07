@@ -1,28 +1,23 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.berkeley.ground.db;
 
 import com.datastax.driver.core.*;
-
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.JGraphTUtils;
-
-import org.jgrapht.*;
+import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,24 +35,29 @@ public class CassandraClient implements DBClient {
   private DirectedGraph<Long, DefaultEdge> graph;
   private PreparedStatement adjacencyStatement;
 
-  public CassandraClient(String host, int port, String dbName, String username, String password) throws GroundDBException {
-    this.cluster = Cluster.builder()
-        .addContactPoint(host)
-        .withAuthProvider(new PlainTextAuthProvider(username, password))
-        .build();
+  public CassandraClient(String host, int port, String dbName, String username, String password)
+      throws GroundDBException {
+    this.cluster =
+        Cluster.builder()
+            .addContactPoint(host)
+            .withAuthProvider(new PlainTextAuthProvider(username, password))
+            .build();
 
     this.keyspace = dbName;
 
     // at startup, load all nodes & edges into JGraphT for later in-memory processing
-    ResultSet resultSet = this.cluster.connect(this.keyspace).execute("select id from node_version;");
+    ResultSet resultSet =
+        this.cluster.connect(this.keyspace).execute("select id from node_version;");
     this.graph = JGraphTUtils.createGraph();
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addVertex(graph, r.getLong(0));
     }
 
-    resultSet = this.cluster.connect(this.keyspace).execute(
-        "select from_node_version_id, to_node_version_id from edge_version;");
+    resultSet =
+        this.cluster
+            .connect(this.keyspace)
+            .execute("select from_node_version_id, to_node_version_id from edge_version;");
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addEdge(graph, r.getLong(0), r.getLong(1));
@@ -85,7 +85,7 @@ public class CassandraClient implements DBClient {
     /**
      * Insert a new row into table with insertValues.
      *
-     * @param table        the table to update
+     * @param table the table to update
      * @param insertValues the values to put into table
      */
     public void insert(String table, List<DbDataContainer> insertValues) {
@@ -117,11 +117,9 @@ public class CassandraClient implements DBClient {
         JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
       }
 
-      String fieldsString = insertValues.stream()
-          .map(DbDataContainer::getField)
-          .collect(Collectors.joining(", "));
-      String actualValuesString = String.join(", ",
-          Collections.nCopies(insertValues.size(), "?"));
+      String fieldsString =
+          insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
+      String actualValuesString = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
       String insertString = "insert into " + table + "(" + fieldsString + ")";
       String valuesString = "values (" + actualValuesString + ")";
@@ -145,22 +143,27 @@ public class CassandraClient implements DBClient {
     /**
      * Retrieve rows based on a set of predicates.
      *
-     * @param table               the table to query
-     * @param projection          the set of columns to retrieve
+     * @param table the table to query
+     * @param projection the set of columns to retrieve
      * @param predicatesAndValues the predicates
      */
-    public CassandraResults equalitySelect(String table, List<String> projection, List<DbDataContainer> predicatesAndValues) throws EmptyResultException, GroundDBException {
+    public CassandraResults equalitySelect(
+        String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
+        throws EmptyResultException, GroundDBException {
       String items = String.join(", ", projection);
       String select = "select " + items + " from " + table;
 
       if (predicatesAndValues.size() > 0) {
-        String predicatesString = predicatesAndValues.stream()
-            .map(predicate -> predicate.getField() + " = ?")
-            .collect(Collectors.joining(" and "));
+        String predicatesString =
+            predicatesAndValues
+                .stream()
+                .map(predicate -> predicate.getField() + " = ?")
+                .collect(Collectors.joining(" and "));
         select += " where " + predicatesString;
       }
 
-      BoundStatement statement = new BoundStatement(this.session.prepare(select + " ALLOW FILTERING;"));
+      BoundStatement statement =
+          new BoundStatement(this.session.prepare(select + " ALLOW FILTERING;"));
 
       int index = 0;
       for (DbDataContainer container : predicatesAndValues) {
@@ -184,7 +187,8 @@ public class CassandraClient implements DBClient {
       return JGraphTUtils.runDFS(this.graph, nodeVersionId);
     }
 
-    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
+    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex)
+        throws GroundException {
       BoundStatement statement = new BoundStatement(this.adjacencyStatement);
 
       statement.setLong(0, nodeVersionId);
@@ -211,7 +215,8 @@ public class CassandraClient implements DBClient {
     }
   }
 
-  private static void setValue(BoundStatement statement, Object value, GroundType groundType, int index) {
+  private static void setValue(
+      BoundStatement statement, Object value, GroundType groundType, int index) {
     switch (groundType) {
       case STRING:
         if (value != null) {
