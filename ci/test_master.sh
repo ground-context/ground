@@ -32,4 +32,4 @@ cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../.
 mvn clean test
 
 # generate the test coverage report and send it to Coveralls 
-mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN -Dbranch=master
+mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
