@@ -1,3 +1,5 @@
+set -x
+
 # set environment variables
 export COVERALLS_TOKEN=token
 
