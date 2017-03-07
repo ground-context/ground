@@ -54,10 +54,10 @@ RUN sed -i "s|#dbms.shell|dbms.shell|g" /etc/neo4j/neo4j.conf
 # install git
 RUN apt-get install -y git
 
-ADD ground/ /tmp/ground
+ADD ./ /tmp/ground
 
 # add test running script for CMD
-ADD ground/ci/start_servers_and_test.sh /tmp/
+ADD ./ci/start_servers_and_test.sh /tmp/
 
 # run the actual tests
 CMD sh -e /tmp/start_servers_and_test.sh
