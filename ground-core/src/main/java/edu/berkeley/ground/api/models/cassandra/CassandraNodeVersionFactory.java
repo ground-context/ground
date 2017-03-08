@@ -125,32 +125,19 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
+  public List<Long> getTransitiveClosure(long nodeVersionId) {
     CassandraConnection connection = this.dbClient.getConnection();
-    try {
-      List<Long> result = connection.transitiveClosure(nodeVersionId);
+    List<Long> result = connection.transitiveClosure(nodeVersionId);
 
-      connection.commit();
-      return result;
-    } catch (GroundException e) {
-      connection.abort();
-
-      throw e;
-    }
+    connection.commit();
+    return result;
   }
 
-  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
+  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) {
     CassandraConnection connection = this.dbClient.getConnection();
+    List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
 
-    try {
-      List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
-
-      connection.commit();
-      return result;
-    } catch (GroundException e) {
-      connection.abort();
-
-      throw e;
-    }
+    connection.commit();
+    return result;
   }
 }
