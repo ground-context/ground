@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class LineageEdgeTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -48,6 +49,6 @@ public class LineageEdgeTest {
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     LineageEdge lineageEdge = new LineageEdge(1, "test", tagsMap);
-    assertThat(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class)).isEqualToComparingFieldByField(lineageEdge);
+    assertEquals(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class), lineageEdge);
   }
 }

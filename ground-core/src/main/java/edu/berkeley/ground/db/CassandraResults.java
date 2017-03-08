@@ -80,21 +80,6 @@ public class CassandraResults implements QueryResults {
     }
   }
 
-  public List<String> getStringList(int index) throws GroundException {
-    try {
-      Iterator<Row> rowIterator = this.resultSet.iterator();
-      List<String> result = new ArrayList<>();
-
-      while (rowIterator.hasNext()) {
-        result.add(rowIterator.next().getString(index));
-      }
-
-      return result;
-    } catch (Exception e) {
-      throw new GroundException(e);
-    }
-  }
-
   public boolean next() throws GroundException {
     this.currentRow = this.resultSet.one();
 

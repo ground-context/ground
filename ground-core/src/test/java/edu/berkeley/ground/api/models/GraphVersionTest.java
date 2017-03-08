@@ -25,6 +25,7 @@ import java.util.*;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class GraphVersionTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -61,6 +62,6 @@ public class GraphVersionTest {
 
     GraphVersion graphVersion = new GraphVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, edgeVersionIds);
 
-    assertThat(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class)).isEqualToComparingFieldByField(graphVersion);
+    assertEquals(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class), graphVersion);
   }
 }

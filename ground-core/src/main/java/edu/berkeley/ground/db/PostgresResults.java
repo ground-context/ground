@@ -90,19 +90,4 @@ public class PostgresResults implements QueryResults {
       throw new GroundException(e);
     }
   }
-
-  public List<String> getStringList(int index) throws GroundException {
-    try {
-      List<String> stringList = new ArrayList<>();
-      do {
-        stringList.add(this.getString(index));
-      } while (resultSet.next());
-
-      return stringList;
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
-
-      throw new GroundException(e);
-    }
-  }
 }

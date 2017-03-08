@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class GraphTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -47,6 +48,6 @@ public class GraphTest {
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     Graph graph = new Graph(1, "test", tagsMap);
-    assertThat(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class)).isEqualToComparingFieldByField(graph);
+    assertEquals(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class), graph);
   }
 }

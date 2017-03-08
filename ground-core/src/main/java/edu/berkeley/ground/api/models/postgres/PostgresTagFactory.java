@@ -90,9 +90,9 @@ public class PostgresTagFactory extends TagFactory {
 
     List<Long> result = new ArrayList<>();
 
-    while (resultSet.next()) {
+    do {
       result.add(resultSet.getLong(1));
-    }
+    } while (resultSet.next());
 
     return result;
   }

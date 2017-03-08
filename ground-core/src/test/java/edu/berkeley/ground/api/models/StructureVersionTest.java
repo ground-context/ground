@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class StructureVersionTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -50,6 +51,6 @@ public class StructureVersionTest {
 
     StructureVersion structureVersion = new StructureVersion(1, 1, attributes);
 
-    assertThat(MAPPER.readValue(fixture("fixtures/models/structure_version.json"), StructureVersion.class)).isEqualToComparingFieldByField(structureVersion);
+    assertEquals(MAPPER.readValue(fixture("fixtures/models/structure_version.json"), StructureVersion.class), structureVersion);
   }
 }

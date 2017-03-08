@@ -2,7 +2,9 @@ package edu.berkeley.ground.api.models.neo4j;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.api.Neo4jTest;
@@ -63,5 +65,22 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     } finally {
       connection.abort();
     }
+  }
+
+
+  @Test
+  public void testLeafRetrieval() throws GroundException {
+    String nodeName = "testNode1";
+    long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+
+    long nodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+    long secondNVId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
+        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+    List<Long> leaves = super.factories.getNodeFactory().getLeaves(nodeName);
+
+    assertTrue(leaves.contains(nodeVersionId));
+    assertTrue(leaves.contains(secondNVId));
   }
 }

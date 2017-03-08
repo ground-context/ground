@@ -76,4 +76,46 @@ public class PostgresNodeVersionFactoryTest extends PostgresTest {
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(1 == leaves.size());
   }
+
+  @Test
+  public void testTransitiveClosure() throws GroundException {
+    String nodeName = "testNode1";
+    long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+
+    long nodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+    nodeName = "testNode2";
+    nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+
+    long secondNVId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
+        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+    String edgeName = "testEdge1";
+    long edgeId = super.factories.getEdgeFactory()
+        .create(edgeName, new HashMap<>()).getId();
+
+    super.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
+        HashMap<>(), edgeId, secondNVId, nodeVersionId, new ArrayList<>()).getId();
+
+    nodeName = "testNode3";
+    nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+
+    long thirdNVId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
+        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+
+    edgeName = "testEdge3";
+    edgeId = super.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
+
+    super.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
+        HashMap<>(), edgeId, thirdNVId, secondNVId, new ArrayList<>()).getId();
+
+
+    List<Long> reachable = super.factories.getNodeVersionFactory()
+        .getTransitiveClosure(thirdNVId);
+
+    assertTrue(reachable.contains(nodeVersionId));
+    assertTrue(reachable.contains(secondNVId));
+  }
 }
