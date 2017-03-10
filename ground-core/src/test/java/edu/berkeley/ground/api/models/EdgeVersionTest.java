@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class EdgeVersionTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -54,6 +55,6 @@ public class EdgeVersionTest {
 
     EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
 
-    assertThat(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class)).isEqualToComparingFieldByField(edgeVersion);
+    assertEquals(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class), edgeVersion);
   }
 }

@@ -1,5 +1,6 @@
+#!/bin/bash
+
 # set environment variables
-export PULL_PATH=master
 export COVERALLS_TOKEN=token
 
 # start Postgres
@@ -19,18 +20,9 @@ cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 
 # start Neo4j
 service neo4j start
 
-# clone Ground repo
+rm -rf /tmp/ground/
 git clone https://github.com/ground-context/ground
-
-# switch to the correct branch if we're building a pull request; otherwise just
-# cd into the directory
-if [ $PULL_PATH != "master" ] 
-then
-  cd ground && git fetch origin $PULL_PATH:ci_testing
-  git checkout ci_testing
-else 
-  cd ground
-fi
+cd ground
 
 # set Postgres and Cassandra schemas
 cd ground-core/scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
@@ -39,9 +31,5 @@ cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../.
 # run tests
 mvn clean test
 
-# generate the test coverage report and send it to Coveralls only if we're
-# building on the master branch
-if [ $PULL_PATH == "master" ] 
-then
-  mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
-fi
+# generate the test coverage report and send it to Coveralls 
+mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN

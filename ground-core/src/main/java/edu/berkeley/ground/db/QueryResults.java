@@ -31,7 +31,5 @@ public interface QueryResults {
 
   long getLong(String field) throws GroundException;
 
-  List<String> getStringList(int index) throws GroundException;
-
   boolean next() throws GroundException;
 }

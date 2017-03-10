@@ -24,17 +24,19 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
   @Test
   public void testNodeVersionCreation() throws GroundException {
     String nodeName = "testNode";
-    long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+    long nodeId = CassandraTest.factories.getNodeFactory()
+        .create(nodeName, new HashMap<>()).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = CassandraTest.factories.getStructureFactory()
+        .create(structureName, new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
     Map<String, Tag> tags = new HashMap<>();
@@ -46,10 +48,12 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long nodeVersionId = super.factories.getNodeVersionFactory().create(tags,
+    long nodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(tags,
         structureVersionId, testReference, parameters, nodeId, new ArrayList<>()).getId();
 
-    NodeVersion retrieved = super.factories.getNodeVersionFactory().retrieveFromDatabase(nodeVersionId);
+    NodeVersion retrieved = CassandraTest.factories.
+        getNodeVersionFactory().
+        retrieveFromDatabase(nodeVersionId);
 
     assertEquals(nodeId, retrieved.getNodeId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -71,9 +75,52 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
 
-    List<Long> leaves = super.factories.getNodeFactory().getLeaves(nodeName);
+    List<Long> leaves = CassandraTest.factories.getNodeFactory().getLeaves(nodeName);
 
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(1 == leaves.size());
+  }
+
+  @Test
+  public void testTransitiveClosure() throws GroundException {
+    String nodeName = "testNode1";
+    long nodeId = CassandraTest.factories.getNodeFactory()
+        .create(nodeName, new HashMap<>()).getId();
+
+    long nodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+    nodeName = "testNode2";
+    nodeId = CassandraTest.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+
+    long secondNVId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
+        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+    String edgeName = "testEdge1";
+    long edgeId = CassandraTest.factories.getEdgeFactory()
+        .create(edgeName, new HashMap<>()).getId();
+
+    CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
+        HashMap<>(), edgeId, secondNVId, nodeVersionId, new ArrayList<>()).getId();
+
+    nodeName = "testNode3";
+    nodeId = CassandraTest.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+
+    long thirdNVId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
+        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+
+
+    edgeName = "testEdge3";
+    edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
+
+    CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
+        HashMap<>(), edgeId, thirdNVId, secondNVId, new ArrayList<>()).getId();
+
+
+    List<Long> reachable = CassandraTest.factories.getNodeVersionFactory().getTransitiveClosure
+        (thirdNVId);
+
+    assertTrue(reachable.contains(nodeVersionId));
+    assertTrue(reachable.contains(secondNVId));
   }
 }

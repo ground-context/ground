@@ -143,17 +143,18 @@ public class PostgresClient implements DBClient {
     }
 
     public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
-      try (PreparedStatement statement =
-          this.connection.prepareStatement("select reachable(?);")) {
+      try {
         // recursive query implementation
-        /*
-        PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
-                                            "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
-                                            "    union\n" +
-                                            "    (select p.vfrom, ev.endpoint_two\n" +
-                                            "    from paths p, edgeversions ev\n" +
-                                            "    where p.vto = ev.endpoint_one)\n" +
-                                            ") select vto from paths;"); */
+        PreparedStatement statement = this.connection.prepareStatement
+            ("with recursive paths(vfrom, vto) as (\n" +
+            "    (select from_node_version_id, to_node_version_id from edge_version where " +
+            "     from_node_version_id = ?) " +
+            "union\n" +
+            "    (select p.vfrom, ev.to_node_version_id\n" +
+            "    from paths p, edge_version ev\n" +
+            "    where p.vto = ev.from_node_version_id)\n" +
+            ") select vto from paths;");
+
         statement.setLong(1, nodeVersionId);
 
         ResultSet resultSet = statement.executeQuery();

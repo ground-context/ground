@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Neo4jClient implements DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jClient.class);
@@ -183,13 +184,14 @@ public class Neo4jClient implements DBClient {
       String query = "MATCH (f {";
 
       query = this.addValuesToStatement(query, attributes);
-      query += "}) return f";
+      query += "}) where exists(f." + idAttribute + ") return f";
 
-      StatementResult queryResult = this.session.run(query);
+      StatementResult queryResult = this.transaction.run(query);
 
       List<Long> result = new ArrayList<>();
       while (queryResult.hasNext()) {
-        result.add((Long) GroundType.stringToType(queryResult.next().get("f").asNode().get(idAttribute).toString(), GroundType.LONG));
+        result.add((Long) GroundType.stringToType(queryResult.next().get("f").asNode().
+            get(idAttribute).toString(), GroundType.LONG));
       }
 
       return result;
@@ -253,17 +255,15 @@ public class Neo4jClient implements DBClient {
      * @return the list of valid edges
      */
     public List<Relationship> getDescendantEdgesByLabel(long startId, String label) {
-
-      String query = "MATCH (a)-[e:" + label + "]-(b " +
-          "{node_id : " + startId + "}) WHERE a.id=" + startId +
-          " OR a.node_id=" + startId + " RETURN DISTINCT e";
-
+      String query = "MATCH (a {id: " + startId + "})-[e: " + label + "*]->(b) return distinct e;";
       StatementResult result = this.transaction.run(query);
-      System.out.println(query);
 
-      Set<Relationship> response = result.list().stream()
-          .map(r -> r.get("e").asRelationship())
-          .collect(Collectors.toSet());
+      Set<Relationship> response = new HashSet<>();
+
+      while (result.hasNext()) {
+        List<Object> list = result.next().get("e").asList();
+        list.forEach(s -> response.add((Relationship) s));
+      }
 
       return new ArrayList<>(response);
     }
@@ -303,8 +303,8 @@ public class Neo4jClient implements DBClient {
     }
 
     public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
-      String query = "MATCH (a: NodeVersion {id: '" + nodeVersionId + "'})-[:EdgeVersionConnection*]->(b)" +
-          "RETURN b.id";
+      String query = "MATCH (a: NodeVersion {id: " + nodeVersionId + "})-" +
+          "[:EdgeVersionConnection*]->(b: NodeVersion) RETURN b.id";
 
       List<Record> records = this.transaction.run(query).list();
       List<Long> result = records.stream()

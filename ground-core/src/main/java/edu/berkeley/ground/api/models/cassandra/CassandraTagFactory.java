@@ -87,7 +87,7 @@ public class CassandraTagFactory extends TagFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("tag", projections, predicates);
+      resultSet = connection.equalitySelect(keyPrefix + "_tag", projections, predicates);
     } catch (EmptyResultException eer) {
       // this means that there are no tags
       return result;
