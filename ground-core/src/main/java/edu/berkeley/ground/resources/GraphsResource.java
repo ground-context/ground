@@ -67,7 +67,8 @@ public class GraphsResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Graph createGraph(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
+  public Graph createGraph(@PathParam("name") String name, @Valid Map<String, Tag> tags) throws
+      GroundException {
     LOGGER.info("Creating graph " + name + ".");
     return this.graphFactory.create(name, tags);
   }

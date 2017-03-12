@@ -67,7 +67,8 @@ public class StructuresResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Structure createStructure(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
+  public Structure createStructure(@PathParam("name") String name, @Valid Map<String, Tag> tags)
+      throws GroundException {
     LOGGER.info("Creating structure " + name + ".");
     return this.structureFactory.create(name, tags);
   }

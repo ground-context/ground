@@ -68,7 +68,8 @@ public class NodesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Node createNode(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
+  public Node createNode(@PathParam("name") String name, @Valid Map<String, Tag> tags) throws
+      GroundException {
     LOGGER.info("Creating node " + name + ".");
     return this.nodeFactory.create(name, tags);
   }
