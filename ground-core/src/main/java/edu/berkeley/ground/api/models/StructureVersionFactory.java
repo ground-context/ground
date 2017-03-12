@@ -15,7 +15,7 @@
 package edu.berkeley.ground.api.models;
 
 import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
@@ -23,9 +23,9 @@ import java.util.Map;
 public abstract class StructureVersionFactory {
   public abstract StructureVersion create(long structureId,
                                           Map<String, GroundType> attributes,
-                                          List<Long> parentIds) throws GroundException;
+                                          List<Long> parentIds) throws GroundDBException;
 
-  public abstract StructureVersion retrieveFromDatabase(long id) throws GroundException;
+  public abstract StructureVersion retrieveFromDatabase(long id) throws GroundDBException;
 
   protected static StructureVersion construct(long id, long structureId, Map<String, GroundType> attributes) {
     return new StructureVersion(id, structureId, attributes);

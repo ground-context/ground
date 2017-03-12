@@ -17,7 +17,7 @@ package edu.berkeley.ground.api.versions;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 public enum GroundType {
   STRING(String.class, "string"),
@@ -38,7 +38,7 @@ public enum GroundType {
   }
 
   @JsonCreator
-  public static GroundType fromString(String str) throws GroundException {
+  public static GroundType fromString(String str) throws GroundDBException {
     if (str == null) {
       return null;
     }
@@ -54,7 +54,7 @@ public enum GroundType {
         return LONG;
 
       default: {
-        throw new GroundException("Invalid type: " + str + ".");
+        throw new GroundDBException("Invalid type: " + str + ".");
       }
     }
   }

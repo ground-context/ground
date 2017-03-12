@@ -21,9 +21,8 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.StringValue;
@@ -38,11 +37,11 @@ import java.util.stream.Collectors;
 
 public class Neo4jGraphVersionFactory extends GraphVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jGraphVersionFactory.class);
-  private Neo4jClient dbClient;
-  private IdGenerator idGenerator;
+  private final Neo4jClient dbClient;
+  private final IdGenerator idGenerator;
 
-  private Neo4jGraphFactory graphFactory;
-  private Neo4jRichVersionFactory richVersionFactory;
+  private final Neo4jGraphFactory graphFactory;
+  private final Neo4jRichVersionFactory richVersionFactory;
 
   public Neo4jGraphVersionFactory(Neo4jClient dbClient, Neo4jGraphFactory graphFactory, Neo4jRichVersionFactory richVersionFactory, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -57,9 +56,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
                              Map<String, String> referenceParameters,
                              long graphId,
                              List<Long> edgeVersionIds,
-                             List<Long> parentIds) throws GroundException {
-
-    Neo4jConnection connection = this.dbClient.getConnection();
+                             List<Long> parentIds) throws GroundDBException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -70,48 +67,44 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("graph_id", GroundType.LONG, graphId));
 
-      connection.addVertex("GraphVersion", insertions);
+      this.dbClient.addVertex("GraphVersion", insertions);
 
-      connection.commit();
-      connection = this.dbClient.getConnection();
+      this.dbClient.commit();
 
-      this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-      connection.commit();
-      connection = this.dbClient.getConnection();
+      this.dbClient.commit();
 
       for (long edgeVersionId : edgeVersionIds) {
-        connection.addEdge("GraphVersionEdge", id, edgeVersionId, new ArrayList<>());
+        this.dbClient.addEdge("GraphVersionEdge", id, edgeVersionId, new ArrayList<>());
       }
 
-      this.graphFactory.update(connection, graphId, id, parentIds);
+      this.graphFactory.update(graphId, id, parentIds);
 
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
       return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public GraphVersion retrieveFromDatabase(long id) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
+  public GraphVersion retrieveFromDatabase(long id) throws GroundDBException {
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       Record versionRecord;
       try {
-        versionRecord = connection.getVertex(predicates);
-      } catch (EmptyResultException eer) {
-        throw new GroundException("No GraphVersion found with id " + id + ".");
+        versionRecord = this.dbClient.getVertex(predicates);
+      } catch (EmptyResultException e) {
+        throw new GroundDBException("No GraphVersion found with id " + id + ".");
       }
 
       long graphId = versionRecord.get("v") .asNode().get("graph_id").asLong();
@@ -119,17 +112,17 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
       List<String> returnFields = new ArrayList<>();
       returnFields.add("id");
 
-      List<Record> edgeVersionVertices = connection.getAdjacentVerticesByEdgeLabel("GraphVersionEdge", id, returnFields);
+      List<Record> edgeVersionVertices = this.dbClient.getAdjacentVerticesByEdgeLabel("GraphVersionEdge", id, returnFields);
       List<Long> edgeVersionIds = new ArrayList<>();
 
       edgeVersionVertices.forEach(edgeVersionVertex -> edgeVersionIds.add(edgeVersionVertex.get("id").asLong()));
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
 
       return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), graphId, edgeVersionIds);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }

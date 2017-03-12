@@ -23,25 +23,27 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CassandraClient implements DBClient {
+public class CassandraClient implements DBClient, AutoCloseable {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
   private final Cluster cluster;
-  private final String keyspace;
+  private final Session session;
+  private final Map<String, PreparedStatement> preparedStatements;
   private final DirectedGraph<Long, DefaultEdge> graph;
 
-  public CassandraClient(String host, int port, String dbName, String username, String password) {
+  public CassandraClient(String host, int port, String keyspace, String username, String password) {
     this.cluster =
         Cluster.builder()
             .addContactPoint(host)
             .withAuthProvider(new PlainTextAuthProvider(username, password))
+            .withPort(port)
             .build();
 
-    this.keyspace = dbName;
+    this.session = this.cluster.connect(keyspace);
+    this.preparedStatements = new HashMap<>();
 
     // at startup, load all nodes & edges into JGraphT for later in-memory processing
-    ResultSet resultSet =
-        this.cluster.connect(this.keyspace).execute("select id from node_version;");
+    ResultSet resultSet = this.session.execute("select id from node_version;");
     this.graph = JGraphTUtils.createGraph();
 
     for (Row r : resultSet.all()) {
@@ -49,169 +51,149 @@ public class CassandraClient implements DBClient {
     }
 
     resultSet =
-        this.cluster
-            .connect(this.keyspace)
-            .execute("select from_node_version_id, to_node_version_id from edge_version;");
+        this.session.execute("select from_node_version_id, to_node_version_id from edge_version;");
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addEdge(graph, r.getLong(0), r.getLong(1));
     }
   }
 
-  public CassandraConnection getConnection() {
-    return new CassandraConnection(this.cluster.connect(this.keyspace), this.graph);
+  /**
+   * Insert a new row into table with insertValues.
+   *
+   * @param table the table to update
+   * @param insertValues the values to put into table
+   */
+  public void insert(String table, List<DbDataContainer> insertValues) {
+    // hack to keep JGraphT up to date
+    if (table.equals("node_version")) {
+      long id = -1;
+      for (DbDataContainer container : insertValues) {
+        if (container.getField().equals("id")) {
+          id = (Long) container.getValue();
+        }
+      }
+
+      JGraphTUtils.addVertex(this.graph, id);
+    }
+    if (table.equals("edge_version")) {
+      long nvFromId = -1;
+      long nvToId = -1;
+
+      for (DbDataContainer container : insertValues) {
+        if (container.getField().equals("from_node_version_id")) {
+          nvFromId = (Long) container.getValue();
+        }
+
+        if (container.getField().equals("to_node_version_id")) {
+          nvToId = (Long) container.getValue();
+        }
+      }
+
+      JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
+    }
+
+    String fields =
+        insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
+    String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
+
+    String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
+    BoundStatement statement = this.prepareStatement(insert);
+
+    int index = 0;
+    for (DbDataContainer container : insertValues) {
+      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
+
+      index++;
+    }
+
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+    this.session.execute(statement);
   }
 
-  public class CassandraConnection extends GroundDBConnection {
-    private final Session session;
-    private final DirectedGraph<Long, DefaultEdge> graph;
-    private final Map<String, PreparedStatement> preparedStatements;
+  /**
+   * Retrieve rows based on a set of predicates.
+   *
+   * @param table the table to query
+   * @param projection the set of columns to retrieve
+   * @param predicatesAndValues the predicates
+   */
+  public CassandraResults equalitySelect(
+      String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
+      throws EmptyResultException {
+    String items = String.join(", ", projection);
+    String select = "select " + items + " from " + table;
 
-    public CassandraConnection(Session session, DirectedGraph<Long, DefaultEdge> graph) {
-      this.session = session;
-      this.graph = graph;
-      this.preparedStatements = new HashMap<>();
+    if (predicatesAndValues.size() > 0) {
+      String predicatesString =
+          predicatesAndValues
+              .stream()
+              .map(predicate -> predicate.getField() + " = ?")
+              .collect(Collectors.joining(" and "));
+      select += " where " + predicatesString;
     }
 
-    /**
-     * Insert a new row into table with insertValues.
-     *
-     * @param table the table to update
-     * @param insertValues the values to put into table
-     */
-    public void insert(String table, List<DbDataContainer> insertValues) {
-      // hack to keep JGraphT up to date
-      if (table.equals("node_version")) {
-        long id = -1;
-        for (DbDataContainer container : insertValues) {
-          if (container.getField().equals("id")) {
-            id = (Long) container.getValue();
-          }
-        }
+    select += " ALLOW FILTERING;";
+    BoundStatement statement = this.prepareStatement(select);
 
-        JGraphTUtils.addVertex(this.graph, id);
+    int index = 0;
+    for (DbDataContainer container : predicatesAndValues) {
+      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
+
+      index++;
+    }
+
+    LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
+    ResultSet resultSet = this.session.execute(statement);
+
+    if (resultSet == null || resultSet.isExhausted()) {
+      throw new EmptyResultException("No results found for query: " + statement.toString());
+    }
+
+    return new CassandraResults(resultSet);
+  }
+
+  @Override
+  public List<Long> transitiveClosure(long nodeVersionId) {
+    return JGraphTUtils.runDFS(this.graph, nodeVersionId);
+  }
+
+  public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) {
+    BoundStatement statement =
+        this.prepareStatement(
+            "select to_node_version_id, edge_id from edge_version"
+                + "where from_node_version_id = ? allow filtering;");
+
+    statement.setLong(0, nodeVersionId);
+    ResultSet resultSet = this.session.execute(statement);
+
+    List<Long> result = new ArrayList<>();
+    for (Row row : resultSet) {
+      if (row.getString(1).contains(edgeNameRegex)) {
+        result.add(row.getLong(0));
       }
-      if (table.equals("edge_version")) {
-        long nvFromId = -1;
-        long nvToId = -1;
-
-        for (DbDataContainer container : insertValues) {
-          if (container.getField().equals("from_node_version_id")) {
-            nvFromId = (Long) container.getValue();
-          }
-
-          if (container.getField().equals("to_node_version_id")) {
-            nvToId = (Long) container.getValue();
-          }
-        }
-
-        JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
-      }
-
-      String fields =
-          insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
-      String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
-
-      String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
-      BoundStatement statement = this.prepareStatement(insert);
-
-      int index = 0;
-      for (DbDataContainer container : insertValues) {
-        CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-        index++;
-      }
-
-      LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
-      this.session.execute(statement);
     }
 
-    /**
-     * Retrieve rows based on a set of predicates.
-     *
-     * @param table the table to query
-     * @param projection the set of columns to retrieve
-     * @param predicatesAndValues the predicates
-     */
-    public CassandraResults equalitySelect(
-        String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
-        throws EmptyResultException {
-      String items = String.join(", ", projection);
-      String select = "select " + items + " from " + table;
+    return result;
+  }
 
-      if (predicatesAndValues.size() > 0) {
-        String predicatesString =
-            predicatesAndValues
-                .stream()
-                .map(predicate -> predicate.getField() + " = ?")
-                .collect(Collectors.joining(" and "));
-        select += " where " + predicatesString;
-      }
+  @Override
+  public void commit() {}
 
-      select += " ALLOW FILTERING;";
-      BoundStatement statement = this.prepareStatement(select);
+  @Override
+  public void abort() {}
 
-      int index = 0;
-      for (DbDataContainer container : predicatesAndValues) {
-        CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
+  @Override
+  public void close() {
+    this.session.close();
+    this.cluster.close();
+  }
 
-        index++;
-      }
-
-      LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
-      ResultSet resultSet = this.session.execute(statement);
-
-      if (resultSet == null || resultSet.isExhausted()) {
-        throw new EmptyResultException("No results found for query: " + statement.toString());
-      }
-
-      return new CassandraResults(resultSet);
-    }
-
-    public List<Long> transitiveClosure(long nodeVersionId) {
-      return JGraphTUtils.runDFS(this.graph, nodeVersionId);
-    }
-
-    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) {
-      BoundStatement statement =
-          this.prepareStatement(
-              "select to_node_version_id, edge_id from edge_version"
-                  + "where from_node_version_id = ? allow filtering;");
-
-      statement.setLong(0, nodeVersionId);
-      ResultSet resultSet = this.session.execute(statement);
-
-      List<Long> result = new ArrayList<>();
-      for (Row row : resultSet) {
-        if (row.getString(1).contains(edgeNameRegex)) {
-          result.add(row.getLong(0));
-        }
-      }
-
-      return result;
-    }
-
-    @Override
-    public void commit() {
-      this.close();
-    }
-
-    @Override
-    public void abort() {
-      this.close();
-    }
-
-    @Override
-    public void close() {
-      this.session.close();
-    }
-
-    private BoundStatement prepareStatement(String sql) {
-      // Use the cached statement if possible; otherwise, prepare a new statement.
-      PreparedStatement statement =
-          this.preparedStatements.computeIfAbsent(sql, this.session::prepare);
-      return new BoundStatement(statement);
-    }
+  private BoundStatement prepareStatement(String sql) {
+    // Use the cached statement if possible; otherwise, prepare a new statement.
+    PreparedStatement statement =
+        this.preparedStatements.computeIfAbsent(sql, this.session::prepare);
+    return new BoundStatement(statement);
   }
 
   private static void setValue(
@@ -247,9 +229,5 @@ public class CassandraClient implements DBClient {
         }
         break;
     }
-  }
-
-  public void closeCluster() {
-    this.cluster.close();
   }
 }

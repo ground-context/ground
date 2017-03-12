@@ -14,20 +14,19 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
 
 public abstract class StructureFactory {
-  public abstract Structure create(String name, Map<String, Tag> tags) throws GroundException;
+  public abstract Structure create(String name, Map<String, Tag> tags) throws GroundDBException;
 
-  public abstract Structure retrieveFromDatabase(String name) throws GroundException;
+  public abstract Structure retrieveFromDatabase(String name) throws GroundDBException;
 
-  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException;
 
-  public abstract List<Long> getLeaves(String name) throws GroundException;
+  public abstract List<Long> getLeaves(String name) throws GroundDBException;
 
   protected static Structure construct(long id, String name, Map<String, Tag> tags) {
     return new Structure(id, name, tags);

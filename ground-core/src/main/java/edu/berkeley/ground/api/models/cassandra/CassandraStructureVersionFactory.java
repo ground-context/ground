@@ -19,12 +19,11 @@ import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -34,11 +33,11 @@ import java.util.*;
 
 public class CassandraStructureVersionFactory extends StructureVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraStructureVersionFactory.class);
-  private CassandraClient dbClient;
-  private CassandraStructureFactory structureFactory;
-  private CassandraVersionFactory versionFactory;
+  private final CassandraClient dbClient;
+  private final CassandraStructureFactory structureFactory;
+  private final CassandraVersionFactory versionFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public CassandraStructureVersionFactory(CassandraStructureFactory structureFactory, CassandraVersionFactory versionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -49,20 +48,18 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
   public StructureVersion create(long structureId,
                                  Map<String, GroundType> attributes,
-                                 List<Long> parentIds) throws GroundException {
-
-    CassandraConnection connection = this.dbClient.getConnection();
+                                 List<Long> parentIds) throws GroundDBException {
 
     try {
       long id = this.idGenerator.generateVersionId();
 
-      this.versionFactory.insertIntoDatabase(connection, id);
+      this.versionFactory.insertIntoDatabase(id);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
 
-      connection.insert("structure_version", insertions);
+      this.dbClient.insert("structure_version", insertions);
 
       for (String key : attributes.keySet()) {
         List<DbDataContainer> itemInsertions = new ArrayList<>();
@@ -70,25 +67,23 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
         itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
         itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
 
-        connection.insert("structure_version_attribute", itemInsertions);
+        this.dbClient.insert("structure_version_attribute", itemInsertions);
       }
 
-      this.structureFactory.update(connection, structureId, id, parentIds);
+      this.structureFactory.update(structureId, id, parentIds);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public StructureVersion retrieveFromDatabase(long id) throws GroundException {
-    CassandraConnection connection = this.dbClient.getConnection();
-
+  public StructureVersion retrieveFromDatabase(long id) throws GroundDBException {
     try {
 
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -96,17 +91,17 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException eer) {
-        connection.abort();
+        resultSet = this.dbClient.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException e) {
+        this.dbClient.abort();
 
-        throw new GroundException("No StructureVersion found with id " + id + ".");
+        throw new GroundDBException("No StructureVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
-        connection.abort();
+        this.dbClient.abort();
 
-        throw new GroundException("No StructureVersion found with id " + id + ".");
+        throw new GroundDBException("No StructureVersion found with id " + id + ".");
       }
 
       Map<String, GroundType> attributes = new HashMap<>();
@@ -114,25 +109,25 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       try {
         List<DbDataContainer> attributePredicates = new ArrayList<>();
         attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-        QueryResults attributesSet = connection.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
+        QueryResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
 
         while (attributesSet.next()) {
           attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet.getString(2)));
         }
-      } catch (EmptyResultException eer) {
-        connection.abort();
+      } catch (EmptyResultException e) {
+        this.dbClient.abort();
 
-        throw new GroundException("No StructureVersion attributes found for id " + id + ".");
+        throw new GroundDBException("No StructureVersion attributes found for id " + id + ".");
       }
 
       long structureId = resultSet.getLong(1);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }

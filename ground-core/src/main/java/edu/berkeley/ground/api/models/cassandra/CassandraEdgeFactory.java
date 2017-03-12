@@ -20,13 +20,11 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -38,10 +36,10 @@ import java.util.Map;
 
 public class CassandraEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
-  private CassandraClient dbClient;
-  private CassandraItemFactory itemFactory;
+  private final CassandraClient dbClient;
+  private final CassandraItemFactory itemFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public CassandraEdgeFactory(CassandraItemFactory itemFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -49,33 +47,29 @@ public class CassandraEdgeFactory extends EdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Edge create(String name, Map<String, Tag> tags) throws GroundException {
-    CassandraConnection connection = this.dbClient.getConnection();
-
+  public Edge create(String name, Map<String, Tag> tags) throws GroundDBException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
+      this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
-      connection.insert("edge", insertions);
+      this.dbClient.insert("edge", insertions);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
       return EdgeFactory.construct(uniqueId, name, tags);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public Edge retrieveFromDatabase(String name) throws GroundException {
-    CassandraConnection connection = this.dbClient.getConnection();
-
+  public Edge retrieveFromDatabase(String name) throws GroundDBException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
 
@@ -83,34 +77,34 @@ public class CassandraEdgeFactory extends EdgeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException eer) {
-        connection.abort();
+        resultSet = this.dbClient.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException e) {
+        this.dbClient.abort();
 
-        throw new GroundException("No Edge found with name " + name + ".");
+        throw new GroundDBException("No Edge found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
-        connection.abort();
+        this.dbClient.abort();
 
-        throw new GroundException("No Edge found with name " + name + ".");
+        throw new GroundDBException("No Edge found with name " + name + ".");
       }
 
       long id = resultSet.getLong(0);
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved edge " + name + ".");
 
       return EdgeFactory.construct(id, name, tags);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(connection, itemId, childId, parentIds);
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+    this.itemFactory.update(itemId, childId, parentIds);
   }
 }

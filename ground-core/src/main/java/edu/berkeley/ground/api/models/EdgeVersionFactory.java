@@ -14,7 +14,7 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
@@ -27,10 +27,10 @@ public abstract class EdgeVersionFactory {
                                      long edgeId,
                                      long fromId,
                                      long toId,
-                                     List<Long> parentIds) throws GroundException;
+                                     List<Long> parentIds) throws GroundDBException;
 
 
-  public abstract EdgeVersion retrieveFromDatabase(long id) throws GroundException;
+  public abstract EdgeVersion retrieveFromDatabase(long id) throws GroundDBException;
 
   protected static EdgeVersion construct(long id,
                                          Map<String, Tag> tags,
@@ -39,7 +39,7 @@ public abstract class EdgeVersionFactory {
                                          Map<String, String> referenceParameters,
                                          long edgeId,
                                          long fromId,
-                                         long toId) throws GroundException {
+                                         long toId) throws GroundDBException {
 
     return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
   }

@@ -14,18 +14,17 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
 
 public abstract class TagFactory {
-  public abstract Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connection, long id) throws GroundException;
+  public abstract Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundDBException;
 
-  public abstract Map<String, Tag> retrieveFromDatabaseByItemId(GroundDBConnection connection, long id) throws GroundException;
+  public abstract Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundDBException;
 
-  public abstract List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException;
+  public abstract List<Long> getVersionIdsByTag(String tag) throws GroundDBException;
 
-  public abstract List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException;
+  public abstract List<Long> getItemIdsByTag(String tag) throws GroundDBException;
 }

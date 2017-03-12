@@ -14,7 +14,7 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
@@ -25,13 +25,13 @@ public abstract class NodeVersionFactory {
                                      String reference,
                                      Map<String, String> referenceParameters,
                                      long nodeId,
-                                     List<Long> parentIds) throws GroundException;
+                                     List<Long> parentIds) throws GroundDBException;
 
-  public abstract NodeVersion retrieveFromDatabase(long id) throws GroundException;
+  public abstract NodeVersion retrieveFromDatabase(long id) throws GroundDBException;
 
-  public abstract List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException;
+  public abstract List<Long> getTransitiveClosure(long nodeVersionId) throws GroundDBException;
 
-  public abstract List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameLike) throws GroundException;
+  public abstract List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameLike) throws GroundDBException;
 
   public static NodeVersion construct(long id,
                                       Map<String, Tag> tags,

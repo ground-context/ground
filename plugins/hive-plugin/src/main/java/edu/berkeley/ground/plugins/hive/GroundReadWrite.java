@@ -27,7 +27,6 @@ import com.google.common.annotations.VisibleForTesting;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.models.postgres.*;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundDBException;

@@ -14,7 +14,7 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +26,9 @@ public abstract class GraphVersionFactory {
                                       Map<String, String> referenceParameters,
                                       long graphId,
                                       List<Long> edgeVersionIds,
-                                      List<Long> parentIds) throws GroundException;
+                                      List<Long> parentIds) throws GroundDBException;
 
-  public abstract GraphVersion retrieveFromDatabase(long id) throws GroundException;
+  public abstract GraphVersion retrieveFromDatabase(long id) throws GroundDBException;
 
   protected static GraphVersion construct(long id,
                                           Map<String, Tag> tags,

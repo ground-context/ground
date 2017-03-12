@@ -15,16 +15,15 @@
 package edu.berkeley.ground.api.versions;
 
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.List;
 import java.util.Map;
 
 public abstract class ItemFactory {
-  public abstract void insertIntoDatabase(GroundDBConnection connection, long id, Map<String, Tag> tags) throws GroundException;
+  public abstract void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDBException;
 
-  public abstract Item retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException;
+  public abstract Item retrieveFromDatabase(long id) throws GroundDBException;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
@@ -35,7 +34,7 @@ public abstract class ItemFactory {
    * @param childId   the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException;
 
   public static Item construct(long id, Map<String, Tag> tags) {
     return new Item(id, tags);

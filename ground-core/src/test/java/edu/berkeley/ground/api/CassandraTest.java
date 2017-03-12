@@ -36,13 +36,13 @@ public class CassandraTest {
     cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
     factories = new CassandraFactories(cassandraClient, 0, 1);
 
-    versionFactory = new CassandraVersionFactory();
-    versionSuccessorFactory = new CassandraVersionSuccessorFactory(new IdGenerator(0, 1, false));
-    versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
-    tagFactory = new CassandraTagFactory();
-    itemFactory = new CassandraItemFactory(versionHistoryDAGFactory, tagFactory);
+    versionFactory = new CassandraVersionFactory(cassandraClient);
+    versionSuccessorFactory = new CassandraVersionSuccessorFactory(cassandraClient, new IdGenerator(0, 1, false));
+    versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(cassandraClient, versionSuccessorFactory);
+    tagFactory = new CassandraTagFactory(cassandraClient);
+    itemFactory = new CassandraItemFactory(cassandraClient, versionHistoryDAGFactory, tagFactory);
 
-    richVersionFactory = new CassandraRichVersionFactory(versionFactory,
+    richVersionFactory = new CassandraRichVersionFactory(cassandraClient, versionFactory,
         (CassandraStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);
   }
 
@@ -56,6 +56,6 @@ public class CassandraTest {
 
   @AfterClass
   public static void tearDown() throws IOException, InterruptedException {
-    cassandraClient.closeCluster();
+    cassandraClient.close();
   }
 }
