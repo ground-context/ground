@@ -36,7 +36,6 @@ public class CassandraClient implements DBClient, AutoCloseable {
         Cluster.builder()
             .addContactPoint(host)
             .withAuthProvider(new PlainTextAuthProvider(username, password))
-            .withPort(port)
             .build();
 
     this.session = this.cluster.connect(keyspace);
