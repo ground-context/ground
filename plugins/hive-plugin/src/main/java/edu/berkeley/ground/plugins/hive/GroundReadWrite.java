@@ -62,10 +62,8 @@ public class GroundReadWrite {
   final static String TEST_CONN = "test_connection";
 
   protected static final String DEFAULT_FACTORY = "neo4j";
-  private static GroundDBConnection testConn;
 
   private static Configuration staticConf = null;
-  private GroundDBConnection conn;
 
   private NodeFactory nodeFactory;
 
@@ -169,7 +167,6 @@ public class GroundReadWrite {
       password = props.getProperty("edu.berkeley.ground.model.config.password");
       LOG.info("client cass is " + clientClass);
       if (TEST_CONN.equals(clientClass)) {
-        setConn(testConn);
         factoryType = props.getProperty("edu.berkeley.ground.model.config.factoryType");
         LOG.info("Using test connection."); // for unit and integration test
         if (factoryType.contains("neo4j")) {
@@ -225,30 +222,15 @@ public class GroundReadWrite {
     this.structureVersionFactory = postgresFactories.getStructureVersionFactory();
   }
 
-  /**
-   * Use this for unit testing only, so that a mock connection object can be
-   * passed in.
-   *
-   * @param connection Mock connection objecct
-   */
-  @VisibleForTesting
-  static void setTestConnection(GroundDBConnection connection) {
-    testConn = connection;
-  }
-
   public void close() throws IOException {
   }
 
   public void begin() {
-    try {
-      dbClient.getConnection();
-    } catch (GroundDBException e) {
-    }
   }
 
   public void commit() {
     try {
-      dbClient.getConnection().commit();
+      dbClient.commit();
     } catch (GroundDBException e) {
       throw new RuntimeException(e);
     }
@@ -270,12 +252,8 @@ public class GroundReadWrite {
     return factoryType;
   }
 
-  public GroundDBConnection getConn() {
-    return conn;
-  }
-
-  public void setConn(GroundDBConnection conn) {
-    this.conn = conn;
+  public DBClient getDbClient() {
+    return dbClient;
   }
 
   public NodeFactory getNodeFactory() {
