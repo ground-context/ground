@@ -67,7 +67,8 @@ public class LineageEdgesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public LineageEdge createLineageEdge(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
+  public LineageEdge createLineageEdge(@PathParam("name") String name, @Valid Map<String, Tag>
+      tags) throws GroundException {
     LOGGER.info("Creating lineage edge " + name + ".");
     return this.lineageEdgeFactory.create(name, tags);
   }

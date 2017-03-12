@@ -69,7 +69,8 @@ public class EdgesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Edge createEdge(@PathParam("name") String name, @QueryParam("tags") Map<String, Tag> tags) throws GroundException {
+  public Edge createEdge(@PathParam("name") String name, @Valid Map<String, Tag>
+      tags) throws GroundException {
     LOGGER.info("Creating edge " + name + ".");
     return this.edgeFactory.create(name, tags);
   }
