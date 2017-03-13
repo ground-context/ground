@@ -75,7 +75,7 @@ public class GroundPartition {
             return groundReadWrite.getStructure(edge.getName());
         } catch (GroundException e) {
             LOG.error("Unable to fetch table partition edge structure");
-            throw new GroundException (e);
+            throw new GroundException(e);
         }
     }
 
@@ -88,30 +88,17 @@ public class GroundPartition {
             for (String value : part.getValues()) {
                 partId += ":" + value;
             }
-
             Tag partTag = new Tag(DUMMY_NOT_USED, partId, PluginUtil.toJSON(part), GroundType.STRING);
-
-            Node node = this.getNode(partId);
-            long nodeId = node.getId();
-            Structure partStruct = groundReadWrite.getStructure("partition");
-            StructureVersion sv;
-            if (partStruct == null) { // create a new structure version
-                partStruct = groundReadWrite.createStructure("partition");
-                LOG.debug("Node and Structure {}", partStruct.getId());
-                Map<String, GroundType> structVersionAttribs = new HashMap<>();
-                structVersionAttribs.put(GroundStore.EntityState.ACTIVE.name(), GroundType.STRING);
-                sv = groundReadWrite.createStructureVersion(partStruct.getId(), partStruct.getId(), structVersionAttribs);
-            } else {
-                sv = groundReadWrite.getStructureVersion(partStruct.getId());
-            }
-
+            Map<String, GroundType> structureVersionAttribs = new HashMap<>();
+            structureVersionAttribs.put(GroundStore.EntityState.ACTIVE.name(), GroundType.STRING);
+            StructureVersion sv = groundReadWrite.getStructureVersion(partId, structureVersionAttribs);
             String reference = part.getSd().getLocation();
             HashMap<String, Tag> tags = new HashMap<>();
             tags.put(partId, partTag);
 
             long versionId = sv.getId();
             Map<String, String> parameters = part.getParameters();
-            return groundReadWrite.createNodeVersion(1L, tags, versionId, reference, parameters, nodeId);
+            return groundReadWrite.createNodeVersion(1L, tags, versionId, reference, parameters, partId);
         } catch (GroundException e) {
             throw new MetaException("Unable to create partition " + e.getMessage());
         }

@@ -28,16 +28,8 @@ public class PluginUtil {
 
   public static StructureVersion getStructureVersion(GroundReadWrite groundReadWrite,
           String entityType, String state) throws GroundException {
-      Structure dbStruct = groundReadWrite.getStructure(entityType);
-      StructureVersion sv;
-      if (dbStruct == null) { // create a new structure version
-          dbStruct = groundReadWrite.createStructure(entityType);
-          Map<String, GroundType> structVersionAttribs = new HashMap<>();
-          structVersionAttribs.put(state, GroundType.STRING);
-          sv = groundReadWrite.createStructureVersion(dbStruct.getId(), dbStruct.getId(), structVersionAttribs);
-      } else {
-          sv = groundReadWrite.getStructureVersion(dbStruct.getId());
-      }
-      return sv;
+      Map<String, GroundType> structureVersionAttribs = new HashMap<>();
+      //structureVersionAttribs.put(state, GroundType.STRING);
+      return groundReadWrite.getStructureVersion(entityType, structureVersionAttribs);
   }
 }

@@ -26,7 +26,6 @@ import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.plugins.hive.GroundStore.EntityState;
 import edu.berkeley.ground.plugins.hive.util.PluginUtil;
 
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -61,12 +60,15 @@ public class GroundDatabase {
 
     GroundDatabase(GroundReadWrite groundReadWrite) {
         this.groundReadWrite = groundReadWrite;
-        this.groundTable = new GroundTable(groundReadWrite);
     }
 
-    Node getNode(String dbName) throws GroundException {
+    Node getNode(String dbName, Map<String, Tag> tagMap) throws GroundException {
         LOG.debug("Fetching database node: " + dbName);
-        return this.groundReadWrite.getNode(dbName);
+        Node node = this.groundReadWrite.getNode(dbName);
+        if (node == null) {
+            return this.groundReadWrite.createNode(dbName, tagMap);
+        }
+        return node;
     }
 
     Structure getNodeStructure(String dbName) throws GroundException {
@@ -96,8 +98,8 @@ public class GroundDatabase {
     }
 
     NodeVersion getDatabaseNodeVersion(String dbName) throws GroundException {
-        List<Long> versions = this.groundReadWrite.getLatestVersions(dbName);
-        if (versions.isEmpty()) {
+        List<Long> versions = (List<Long>) this.groundReadWrite.getLatestVersions(dbName, "nodes");
+        if (versions == null || versions.isEmpty()) {
             throw new GroundException("Database node not found: " + dbName);
         }
         NodeVersion latestVersion = this.groundReadWrite.getNodeVersion(versions.get(0));
@@ -109,10 +111,8 @@ public class GroundDatabase {
             throw new InvalidObjectException("Database object passed is null");
         }
         try {
-            StructureVersion sv = getDatabaseStructureVersion(state);
             // create a new tag for new database node version entry
             String dbName = db.getName();
-            Node dbNode = this.getNode(dbName);
             String reference = db.getLocationUri();
             Map<String, Tag> tags = new HashMap<>();
             Tag stateTag = new Tag(1L, dbName + DB_STATE, state, GroundType.STRING);
@@ -124,14 +124,9 @@ public class GroundDatabase {
             if (referenceParameterMap == null) {
                 referenceParameterMap = new HashMap<String, String>();
             }
-            List<Long> parent = new ArrayList<Long>();
-            List<Long> versions = this.groundReadWrite.getLatestVersions(dbName);
-            if (!versions.isEmpty()) {
-                LOG.debug("leaves {}", versions.get(0));
-                parent.add(versions.get(0));
-            }
+            StructureVersion sv = this.getDatabaseStructureVersion(state);
             return this.groundReadWrite.createNodeVersion(1L, tags, sv.getId(), reference, referenceParameterMap,
-                    dbNode.getId());
+                    dbName);
         } catch (GroundException e) {
             LOG.error("Failure to create a database node: {}", e);
             throw new MetaException(e.getMessage());
@@ -139,18 +134,7 @@ public class GroundDatabase {
     }
 
     private StructureVersion getDatabaseStructureVersion(String state) throws GroundException {
-        Structure dbStruct = this.groundReadWrite.getStructure(DATABASE);
-        StructureVersion sv;
-        if (dbStruct == null) { // create a new structure version
-            dbStruct = this.groundReadWrite.createStructure(DATABASE);
-            LOG.debug("Node and Structure {}", dbStruct.getId());
-            Map<String, GroundType> structVersionAttribs = new HashMap<>();
-            structVersionAttribs.put(state, GroundType.STRING);
-            sv = this.groundReadWrite.createStructureVersion(dbStruct.getId(), dbStruct.getId(), structVersionAttribs);
-        } else {
-            sv = this.groundReadWrite.getStructureVersion(dbStruct.getId());
-        }
-        return sv;
+        return PluginUtil.getStructureVersion(groundReadWrite, DATABASE, state);
     }
 
     // Table related functions
@@ -196,7 +180,6 @@ public class GroundDatabase {
     }
 
     NodeVersion dropDatabase(String dbName, String state) throws GroundException {
-        Node dbNode = getNode(dbName);
         NodeVersion databaseNodeVersion = getDatabaseNodeVersion(dbName);
         Map<String, Tag> dbTagMap = databaseNodeVersion.getTags();
         if (dbTagMap == null) {
@@ -206,15 +189,10 @@ public class GroundDatabase {
         StructureVersion sv = getDatabaseStructureVersion(state);
         Tag stateTag = new Tag(1L, DB_STATE, state, GroundType.STRING);
         dbTagMap.put(DB_STATE, stateTag); //update state to deleted
-        List<Long> parent = new ArrayList<Long>();
-        List<Long> versions = this.groundReadWrite.getLatestVersions(dbName);
-        if (!versions.isEmpty()) {
-            LOG.debug("leaves {}", versions.get(0));
-            parent.add(versions.get(0));
-        }
+        // Node dbNode = getNode(dbName, dbTagMap);
         LOG.info("database deleted: {}, {}", dbName, databaseNodeVersion.getNodeId());
         return this.groundReadWrite.createNodeVersion(1L, dbTagMap, sv.getId(), "", new HashMap<String, String>(),
-                dbNode.getId());
+                dbName);
     }
 
     public List<String> getDatabases(String pattern) {
