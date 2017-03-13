@@ -21,7 +21,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PostgresClient implements DBClient, AutoCloseable {
+public class PostgresClient extends DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
   private static final String JDBCString = "jdbc:postgresql://%s:%d/%s?stringtype=unspecified";
 

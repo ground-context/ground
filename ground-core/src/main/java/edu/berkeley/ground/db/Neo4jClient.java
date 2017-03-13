@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Neo4jClient implements DBClient, AutoCloseable {
+public class Neo4jClient extends DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jClient.class);
 
   private final Driver driver;

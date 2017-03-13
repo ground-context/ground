@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CassandraClient implements DBClient, AutoCloseable {
+public class CassandraClient extends DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
   private final Cluster cluster;

@@ -16,12 +16,12 @@ import edu.berkeley.ground.exceptions.GroundDBException;
 import java.util.Collections;
 import java.util.List;
 
-public interface DBClient {
-  List<String> SELECT_STAR = Collections.singletonList("*");
+public abstract class DBClient implements AutoCloseable {
+  public static final List<String> SELECT_STAR = Collections.singletonList("*");
 
-  void commit() throws GroundDBException;
+  public abstract void commit() throws GroundDBException;
 
-  void abort() throws GroundDBException;
+  public abstract void abort() throws GroundDBException;
 
   /**
    * Run transitive closure from nodeVersionId.
@@ -29,5 +29,5 @@ public interface DBClient {
    * @param nodeVersionId the start id
    * @return the list of reachable ids
    */
-  List<Long> transitiveClosure(long nodeVersionId) throws GroundDBException;
+  public abstract List<Long> transitiveClosure(long nodeVersionId) throws GroundDBException;
 }
