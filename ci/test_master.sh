@@ -31,5 +31,12 @@ cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../.
 # run tests
 mvn clean test
 
+# build the server and make sure it is still running after 10 seconds
+mvn clean package
+java -jar ground-core/target/ground-core-0.1-SNAPSHOT.jar server ground-core/conf/config.yml &
+SERVER_PID=$!
+sleep 10
+kill -0 $SERVER_PID
+
 # generate the test coverage report and send it to Coveralls 
 mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN
