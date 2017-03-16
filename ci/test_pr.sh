@@ -15,7 +15,7 @@ sleep 20
 cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
 
 # start Neo4j
-service neo4j start
+neo4j-community-NEO4J_VERSION/bin/neo4j start
 
 cd /tmp/ground/
 
