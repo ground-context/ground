@@ -14,12 +14,12 @@
 
 package edu.berkeley.ground.api.versions;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 public abstract class VersionSuccessorFactory {
-  public abstract <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundDBException;
+  public abstract <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException;
 
-  public abstract <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundDBException;
+  public abstract <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException;
 
   protected static <T extends Version> VersionSuccessor<T> construct(long id, long fromId, long toId) {
     return new VersionSuccessor<>(id, fromId, toId);

@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models;
 
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.Map;
 
@@ -24,9 +25,9 @@ public abstract class RichVersionFactory {
                                           Map<String, Tag> tags,
                                           long structureVersionId,
                                           String reference,
-                                          Map<String, String> referenceParameters) throws GroundDBException;
+                                          Map<String, String> referenceParameters) throws GroundException;
 
-  public abstract RichVersion retrieveFromDatabase(long id) throws GroundDBException;
+  public abstract RichVersion retrieveFromDatabase(long id) throws GroundException;
 
   protected static RichVersion construct(long id,
                                          Map<String, Tag> tags,
@@ -42,7 +43,7 @@ public abstract class RichVersionFactory {
    * @param structureVersion the StructureVersion to check against
    * @param tags             the provided tags
    */
-  protected static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags) throws GroundDBException {
+  protected static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags) throws GroundException {
     Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 
     if (tags.isEmpty()) {

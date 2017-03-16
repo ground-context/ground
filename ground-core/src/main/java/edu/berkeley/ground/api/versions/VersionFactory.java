@@ -14,8 +14,8 @@
 
 package edu.berkeley.ground.api.versions;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 public abstract class VersionFactory {
-  public abstract void insertIntoDatabase(long id) throws GroundDBException;
+  public abstract void insertIntoDatabase(long id) throws GroundException;
 }

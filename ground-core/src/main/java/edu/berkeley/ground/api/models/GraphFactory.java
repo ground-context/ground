@@ -14,17 +14,17 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.Map;
 
 public abstract class GraphFactory {
-  public abstract Graph create(String name, Map<String, Tag> tags) throws GroundDBException;
+  public abstract Graph create(String name, Map<String, Tag> tags) throws GroundException;
 
-  public abstract Graph retrieveFromDatabase(String name) throws GroundDBException;
+  public abstract Graph retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   protected static Graph construct(long id, String name, Map<String, Tag> tags) {
     return new Graph(id, name, tags);

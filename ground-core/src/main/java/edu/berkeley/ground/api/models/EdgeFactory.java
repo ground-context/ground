@@ -14,17 +14,17 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
 import java.util.Map;
 
 public abstract class EdgeFactory {
-  public abstract Edge create(String name, Map<String, Tag> tags) throws GroundDBException;
+  public abstract Edge create(String name, Map<String, Tag> tags) throws GroundException;
 
-  public abstract Edge retrieveFromDatabase(String name) throws GroundDBException;
+  public abstract Edge retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   protected static Edge construct(long id, String name, Map<String, Tag> tags) {
     return new Edge(id, name, tags);
