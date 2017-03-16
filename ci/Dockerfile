@@ -55,7 +55,7 @@ RUN apt-get install -y git
 ADD ./ /tmp/ground
 
 # add test running script for CMD
-ADD ./ci/test_master.sh /tmp/
+ADD ./ci/TEST_SCRIPT /tmp/
 
 # run the actual tests
-CMD sh -e /tmp/test_master.sh
+CMD sh -e /tmp/TEST_SCRIPT
