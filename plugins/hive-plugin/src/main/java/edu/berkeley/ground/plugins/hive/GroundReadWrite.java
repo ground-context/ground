@@ -19,276 +19,314 @@ package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.postgres.*;
-import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
-import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
-import edu.berkeley.ground.util.Neo4jFactories;
-import edu.berkeley.ground.util.PostgresFactories;
+import edu.berkeley.ground.api.versions.GroundType;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.util.HttpURLConnection;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 public class GroundReadWrite {
 
-  private static final String GROUNDCONF = "ground.properties";
+    private static final String GROUNDCONF = "ground.properties";
+    private static final String DEFAULT_ADDRESS = "http://localhost:9090/";
+    public static final String NO_CACHE_CONF = null;
+    HttpClient client = new HttpClient();
+    private final String groundServerAddress;
 
-  static final private Logger LOG = LoggerFactory.getLogger(GroundReadWrite.class.getName());
-
-  static final String GRAPHFACTORY_CLASS = "ground.graph.factory";
-
-  static final String NODEFACTORY_CLASS = "ground.node.factory";
-
-  static final String EDGEFACTORY_CLASS = "ground.edge.factory";
-
-  static final String NO_CACHE_CONF = "no.use.cache";
-  private DBClient dbClient;
-  private GraphFactory graphFactory;
-  private GraphVersionFactory graphVersionFactory;
-  private NodeVersionFactory nodeVersionFactory;
-  private EdgeVersionFactory edgeVersionFactory;
-  private String factoryType;
-
-  @VisibleForTesting
-  final static String TEST_CONN = "test_connection";
-
-  protected static final String DEFAULT_FACTORY = "neo4j";
-  private static GroundDBConnection testConn;
-
-  private static Configuration staticConf = null;
-  private GroundDBConnection conn;
-
-  private NodeFactory nodeFactory;
-
-  private EdgeFactory edgeFactory;
-
-  private StructureVersionFactory structureVersionFactory;
-
-  private StructureFactory structureFactory;
-
-  private String dbName;
-
-  private String userName;
-
-  private String password;
-
-  private String host;
-
-  public StructureVersionFactory getStructureVersionFactory() {
-    return structureVersionFactory;
-  }
-
-  public void setStructureVersionFactory(StructureVersionFactory svf) {
-    this.structureVersionFactory = svf;
-  }
-
-  /**
-   * @return the sf
-   */
-  public StructureFactory getStructureFactory() {
-    return structureFactory;
-  }
-
-  /**
-   * @param sf the sf to set
-   */
-  public void setStructureFactory(StructureFactory sf) {
-    this.structureFactory = sf;
-  }
-
-  private static ThreadLocal<GroundReadWrite> self = new ThreadLocal<GroundReadWrite>() {
-    @Override
-    protected GroundReadWrite initialValue() {
-      if (staticConf == null) {
-        throw new RuntimeException("Must set conf object before getting an instance");
-      }
-      try {
-        return new GroundReadWrite(staticConf);
-      } catch (GroundDBException e) {
-        LOG.error("create groundreadwrite failed {}", e.getMessage());
-      }
-      return null;
-    }
-  };
-
-  /**
-   * Set the configuration for all GroundReadWrite instances.
-   *
-   * @param conf the configuration object
-   */
-  public static synchronized void setConf(Configuration conf) {
-    /** TODO(krishna) Need to change - temporarily using test connection
-     * for hive command line as well as test.
-     */
-    if (staticConf == null) {
-      staticConf = conf;
-      //conf.setVar(HiveConf.ConfVars.METASTORE_EXPRESSION_PROXY_CLASS, MockPartitionExpressionProxy.class.getName());
-      HiveConf.setVar(conf, HiveConf.ConfVars.METASTORE_CONNECTION_DRIVER, "test_connection");
-      conf.set(GRAPHFACTORY_CLASS, PostgresGraphVersionFactory.class.getName());
-      conf.set(NODEFACTORY_CLASS, PostgresNodeVersionFactory.class.getName());
-      conf.set(EDGEFACTORY_CLASS, PostgresEdgeVersionFactory.class.getName());
-    } else {
-      LOG.info("Attempt to set conf when it has already been set.");
-    }
-  }
-
-  /**
-   * Get the instance of GroundReadWrite for the current thread.
-   */
-  static GroundReadWrite getInstance() {
-    if (staticConf == null) {
-      throw new RuntimeException("Must set conf object before getting an instance");
-    }
-    return self.get();
-  }
-
-  private GroundReadWrite(Configuration conf) throws GroundDBException {
-    Properties props = new Properties();
-    try {
-      String groundPropertyResource = GROUNDCONF; //ground properties from resources
-      ClassLoader loader = Thread.currentThread().getContextClassLoader();
-      try (InputStream resourceStream = loader.getResourceAsStream(groundPropertyResource)) {
-        props.load(resourceStream);
-        resourceStream.close();
-      }
-      //
-      String clientClass = props.getProperty("edu.berkeley.ground.model.config.dbClient");
-      host = props.getProperty("edu.berkeley.ground.model.config.host");
-      int port = new Integer(props.getProperty("edu.berkeley.ground.model.config.port"));
-      dbName = props.getProperty("edu.berkeley.ground.model.config.dbName");
-      userName = props.getProperty("edu.berkeley.ground.model.config.user");
-      password = props.getProperty("edu.berkeley.ground.model.config.password");
-      LOG.info("client cass is " + clientClass);
-      if (TEST_CONN.equals(clientClass)) {
-        setConn(testConn);
-        factoryType = props.getProperty("edu.berkeley.ground.model.config.factoryType");
-        LOG.info("Using test connection."); // for unit and integration test
-        if (factoryType.contains("neo4j")) {
-          dbClient = new Neo4jClient(host, userName, password);
-          createNeo4jInstance();
-        } else {
-          dbClient = new PostgresClient("127.0.0.1", 5432, "test", "test", "test");
-          createPostgresInstance();
+    public GroundReadWrite() throws GroundDBException {
+        Properties properties = new Properties();
+        try {
+            String groundPropertyResource = GROUNDCONF; // ground properties
+                                                        // from resources
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            try (InputStream resourceStream = loader.getResourceAsStream(groundPropertyResource)) {
+                properties.load(resourceStream);
+                resourceStream.close();
+            }
+            //
+            groundServerAddress = properties.getProperty("edu.berkeley.ground.server.address", DEFAULT_ADDRESS);
+        } catch (Exception e) {
+            throw new GroundDBException(e);
         }
-      } else {
-        conf.set("edu.berkeley.ground.model.config.clientClass", clientClass);
-        conf.set("edu.berkeley.ground.model.config.host", host);
-        conf.set("edu.berkeley.ground.model.config.dbName", dbName);
-        conf.set("edu.berkeley.ground.model.config.userName", userName);
-        conf.set("edu.berkeley.ground.model.config.password", password);
-        conf.setInt("edu.berkeley.ground.model.config.port", port);
-        Class<?> clazz = Class.forName(clientClass);
-        Constructor<?> constructor = clazz.getConstructor(String.class, Integer.class,
-            String.class, String.class, String.class);
-        dbClient = (DBClient) constructor.newInstance(host, port, dbName, userName, password);
-        // dbClient = new PostgresClient(host, port, dbName, userName, password);
-        LOG.debug("Instantiating connection class " + clientClass);
-        if (staticConf.get("factoryType", DEFAULT_FACTORY).equals("postgres")) {
-          createPostgresInstance();
-        } else {
-          createNeo4jInstance();
+    }
+
+    // create node for input Tag
+    public Node createNode(String name) throws GroundException {
+        try {
+            String encodedUri = groundServerAddress + "nodes/" + URLEncoder.encode(name, "UTF-8");
+            PostMethod post = new PostMethod(encodedUri);
+            post.setRequestHeader("Content-type", "application/json");
+            return getNode(post);
+        } catch (IOException e) {
+            throw new GroundException(e);
         }
-      }
-    } catch (Exception e) {
-      throw new GroundDBException(e);
+
     }
-  }
 
-  private void createNeo4jInstance() {
-    Neo4jFactories neo4JFactories = new Neo4jFactories((Neo4jClient) dbClient, 0, 1);
-    this.nodeFactory = neo4JFactories.getNodeFactory();
-    this.nodeVersionFactory = neo4JFactories.getNodeVersionFactory();
-    this.edgeFactory = neo4JFactories.getEdgeFactory();
-    this.edgeVersionFactory = neo4JFactories.getEdgeVersionFactory();
-    this.graphFactory = neo4JFactories.getGraphFactory();
-    this.structureFactory = neo4JFactories.getStructureFactory();
-    this.structureVersionFactory = neo4JFactories.getStructureVersionFactory();
-  }
-
-  private void createPostgresInstance() throws GroundDBException {
-    PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient, 0, 1);
-    this.nodeFactory = postgresFactories.getNodeFactory();
-    this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
-    this.edgeFactory = postgresFactories.getEdgeFactory();
-    this.edgeVersionFactory = postgresFactories.getEdgeVersionFactory();
-    this.graphFactory = postgresFactories.getGraphFactory();
-    this.structureFactory = postgresFactories.getStructureFactory();
-    this.structureVersionFactory = postgresFactories.getStructureVersionFactory();
-  }
-
-  /**
-   * Use this for unit testing only, so that a mock connection object can be
-   * passed in.
-   *
-   * @param connection Mock connection objecct
-   */
-  @VisibleForTesting
-  static void setTestConnection(GroundDBConnection connection) {
-    testConn = connection;
-  }
-
-  public void close() throws IOException {
-  }
-
-  public void begin() {
-    try {
-      dbClient.getConnection();
-    } catch (GroundDBException e) {
+    public Node getNode(String dbName) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "nodes/" + dbName);
+        try {
+            return getNode(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
     }
-  }
 
-  public void commit() {
-    try {
-      dbClient.getConnection().commit();
-    } catch (GroundDBException e) {
-      throw new RuntimeException(e);
+    // method to create the NodeVersion given the nodeId and the tags
+    public NodeVersion createNodeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference,
+            Map<String, String> referenceParameters, long nodeId) throws GroundException {
+        try {
+            NodeVersion nodeVersion = getNodeVersion(nodeId);
+            if (nodeVersion != null) return nodeVersion;
+            nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters,
+                    nodeId);
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(nodeVersion);
+            String uri = groundServerAddress + "nodes/versions";
+            PostMethod post = new PostMethod(uri);
+            post.setRequestHeader("Content-type", "application/json");
+            post.setRequestBody(jsonString);
+            return getNodeVersion(post);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
     }
-  }
 
-  public GraphFactory getGraphFactory() {
-    return graphFactory;
-  }
+    public NodeVersion getNodeVersion(long nodeVersionId) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "nodes/versions/" + nodeVersionId);
+        try {
+            return getNodeVersion(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public NodeVersionFactory getNodeVersionFactory() {
-    return nodeVersionFactory;
-  }
+    public List<Long> getLatestVersions(String name) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "nodes/" + name + "/latest");
+        try {
+            return getList(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public EdgeVersionFactory getEdgeVersionFactory() {
-    return edgeVersionFactory;
-  }
+    // create edge for input Tag
+    public Edge createEdge(String name) throws GroundException {
+        try {
+            String encodedUri = groundServerAddress + "edges/" + URLEncoder.encode(name, "UTF-8");
+            PostMethod post = new PostMethod(encodedUri);
+            post.setRequestHeader("Content-type", "application/json");
+            return getEdge(post);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public String getFactoryType() {
-    return factoryType;
-  }
+    public Edge getEdge(String edgeName) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "edges/" + edgeName);
+        try {
+            return getEdge(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public GroundDBConnection getConn() {
-    return conn;
-  }
+    public EdgeVersion getEdgeVersion(long edgeId) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "edges/versions" + edgeId);
+        try {
+            return getEdgeVersion(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public void setConn(GroundDBConnection conn) {
-    this.conn = conn;
-  }
+    // create node for input Tag
+    public Structure createStructure(String name) throws GroundException {
+        try {
+            String encodedUri = groundServerAddress + "structures/" + URLEncoder.encode(name, "UTF-8");
+            PostMethod post = new PostMethod(encodedUri);
+            post.setRequestHeader("Content-type", "application/json");
+            return getStructure(post);
+        } catch (IOException ioe) {
+            throw new GroundException(ioe);
+        }
+    }
 
-  public NodeFactory getNodeFactory() {
-    return nodeFactory;
-  }
+    // method to create StructureVersion given the nodeId and the tags
+    public StructureVersion createStructureVersion(long id, long structureVersionId, Map<String, GroundType> attributes)
+            throws GroundException {
+        StructureVersion structureVersion = new StructureVersion(id, structureVersionId, attributes);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(structureVersion);
+            String uri = groundServerAddress + "structures/versions";
+            PostMethod post = new PostMethod(uri);
+            post.setRequestHeader("Content-type", "application/json");
+            post.setRequestBody(jsonString);
+            return getStructureVersion(post);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public EdgeFactory getEdgeFactory() {
-    return edgeFactory;
-  }
+    public Structure getStructure(String dbName) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "structures/" + dbName);
+        try {
+            return getStructure(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
-  public GraphVersionFactory getGraphVersionFactory() {
-    return graphVersionFactory;
-  }
+    public StructureVersion getStructureVersion(long id) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "structures/versions/" + id);
+        try {
+            return getStructureVersion(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
+
+    // method to create the edgeVersion given the nodeId and the tags
+    public EdgeVersion createEdgeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference,
+            Map<String, String> referenceParameters, long edgeId, long fromId, long toId) throws GroundException {
+        try {
+            EdgeVersion edgeVersion = new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
+                    edgeId, fromId, toId);
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = mapper.writeValueAsString(edgeVersion);
+            String uri = groundServerAddress + "edges/versions";
+            PostMethod post = new PostMethod(uri);
+            post.setRequestHeader("Content-type", "application/json");
+            post.setRequestBody(jsonString);
+            return getEdgeVersion(post);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
+
+    public List<Long> getAdjacentNodes(Long prevVersionId, String edgeName) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "adjacent/" + prevVersionId + "/" + edgeName);
+        try {
+            return getList(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
+
+    String checkStatus(HttpMethod method) throws GroundException {
+        try {
+            if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                String text = method.getResponseBodyAsString();
+                JsonNode jsonNode = objectMapper.readValue(text, JsonNode.class);
+                JsonNode nodeId = jsonNode.get("id");
+                return nodeId.asText();
+            }
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+        return null;
+    }
+
+    private Node getNode(HttpMethod method)
+            throws IOException, HttpException, JsonParseException, JsonMappingException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, Node.class);
+        }
+        return null;
+    }
+
+    private NodeVersion getNodeVersion(HttpMethod method)
+            throws IOException, HttpException, JsonParseException, JsonMappingException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, NodeVersion.class);
+        }
+        return null;
+    }
+
+    private Structure getStructure(HttpMethod method) throws IOException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, Structure.class);
+        }
+        return null;
+    }
+
+    private StructureVersion getStructureVersion(HttpMethod method) throws IOException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, StructureVersion.class);
+        }
+        return null;
+    }
+
+    private List<Long> getList(HttpMethod method)
+            throws JsonParseException, JsonMappingException, HttpException, IOException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, List.class);
+        }
+        return null;
+    }
+
+    private Edge getEdge(HttpMethod method)
+            throws JsonParseException, JsonMappingException, HttpException, IOException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, Edge.class);
+        }
+        return null;
+    }
+
+    private EdgeVersion getEdgeVersion(HttpMethod method)
+            throws JsonParseException, JsonMappingException, HttpException, IOException {
+        if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+            // getting the nodeId of the node created
+            String text = method.getResponseBodyAsString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(text, EdgeVersion.class);
+        }
+        return null;
+    }
+
+    public List<Long> getTransitiveClosure(Long tableNodeVersionId) throws GroundException {
+        GetMethod get = new GetMethod(groundServerAddress + "nodes/" + tableNodeVersionId + "/closure");
+        try {
+            return getList(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
 
 }
