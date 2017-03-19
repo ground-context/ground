@@ -18,7 +18,7 @@ sleep 20
 cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
 
 # start Neo4j
-service neo4j start
+neo4j-community-NEO4J_VERSION/bin/neo4j start
 
 rm -rf /tmp/ground/
 git clone https://github.com/ground-context/ground
@@ -30,6 +30,13 @@ cd ground-core/scripts/cassandra && python2.7 cassandra_setup.py test && cd ../.
 
 # run tests
 mvn clean test
+
+# build the server and make sure it is still running after 10 seconds
+mvn clean package
+java -jar ground-core/target/ground-core-0.1-SNAPSHOT.jar server ground-core/conf/config.yml &
+SERVER_PID=$!
+sleep 10
+kill -0 $SERVER_PID
 
 # generate the test coverage report and send it to Coveralls 
 mvn clean test jacoco:report coveralls:report -DrepoToken=$COVERALLS_TOKEN

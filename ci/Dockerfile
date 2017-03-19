@@ -44,12 +44,10 @@ RUN apt-get install -y --allow-unauthenticated cassandra
 RUN printf "[cql]\nversion = 3.4.2\n" > ~/.cqlshrc
 
 # download Neo4j
-RUN wget --no-check-certificate -O - https://debian.neo4j.org/neotechnology.gpg.key | apt-key add -
-RUN echo 'deb http://debian.neo4j.org/repo stable/' >/etc/apt/sources.list.d/neo4j.list
-RUN apt-get update
-RUN apt-get install -y neo4j
-RUN sed -i "s|#dbms.security.auth_enabled=false|dbms.security.auth_enabled=false|g" /etc/neo4j/neo4j.conf
-RUN sed -i "s|#dbms.shell|dbms.shell|g" /etc/neo4j/neo4j.conf
+RUN tail -n 1 ~/.bashrc
+RUN wget -O neo4j-community-NEO4J_VERSION-unix.tar.gz https://neo4j.com/artifact.php?name=neo4j-community-NEO4J_VERSION-unix.tar.gz
+RUN tar -xzf neo4j-community-NEO4J_VERSION-unix.tar.gz
+RUN sed -i "s|#dbms.security.auth_enabled=false|dbms.security.auth_enabled=false|g" neo4j-community-NEO4J_VERSION/conf/neo4j.conf
 
 # install git
 RUN apt-get install -y git
