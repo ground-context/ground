@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
@@ -34,15 +35,15 @@ public class Neo4jTagFactory extends TagFactory {
     this.dbClient = dbClient;
   }
 
-  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundDBException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "RichVersion");
   }
 
-  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundDBException {
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "Item");
   }
 
-  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundDBException {
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundException {
     List<String> returnFields = new ArrayList<>();
     returnFields.add("tkey");
     returnFields.add("value");

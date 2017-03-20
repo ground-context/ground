@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -56,7 +56,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                              Map<String, String> referenceParameters,
                              long graphId,
                              List<Long> edgeVersionIds,
-                             List<Long> parentIds) throws GroundDBException {
+                             List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -85,14 +85,14 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
       LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
       return GraphVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public GraphVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
@@ -106,7 +106,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
       try {
         resultSet = this.dbClient.equalitySelect("graph_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No GraphVersion found with id " + id + ".");
+        throw new GroundException("No GraphVersion found with id " + id + ".");
       }
 
       long graphId = resultSet.getLong(2);
@@ -127,7 +127,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
       LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
 
       return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), graphId, edgeVersionIds);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;

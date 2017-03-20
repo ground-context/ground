@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Edge create(String name, Map<String, Tag> tags) throws GroundDBException {
+  public Edge create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -62,14 +62,14 @@ public class PostgresEdgeFactory extends EdgeFactory {
       this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
       return EdgeFactory.construct(uniqueId, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public Edge retrieveFromDatabase(String name) throws GroundDBException {
+  public Edge retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
 
@@ -79,7 +79,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
       try {
         resultSet = this.dbClient.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No Edge found with name " + name + ".");
+        throw new GroundException("No Edge found with name " + name + ".");
       }
 
       long id = resultSet.getLong(1);
@@ -89,14 +89,14 @@ public class PostgresEdgeFactory extends EdgeFactory {
       LOGGER.info("Retrieved edge " + name + ".");
 
       return EdgeFactory.construct(id, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 }

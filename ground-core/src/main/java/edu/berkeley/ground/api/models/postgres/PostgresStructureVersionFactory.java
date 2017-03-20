@@ -23,7 +23,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
   public StructureVersion create(long structureId,
                                  Map<String, GroundType> attributes,
-                                 List<Long> parentIds) throws GroundDBException {
+                                 List<Long> parentIds) throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
 
@@ -77,14 +77,14 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
-  public StructureVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
     QueryResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("No StructureVersion found with id " + id + ".");
+      throw new GroundException("No StructureVersion found with id " + id + ".");
     }
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
@@ -94,7 +94,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     try {
       attributesSet = this.dbClient.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("No attributes found for StructureVersion with id " + id + ".");
+      throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
     }
 
     Map<String, GroundType> attributes = new HashMap<>();

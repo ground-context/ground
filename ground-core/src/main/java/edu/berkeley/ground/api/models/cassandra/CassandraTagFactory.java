@@ -22,7 +22,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
 
@@ -33,15 +33,15 @@ public class CassandraTagFactory extends TagFactory {
     this.dbClient = dbClient;
   }
 
-  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundDBException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "rich_version");
   }
 
-  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundDBException {
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "item");
   }
 
-  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundDBException {
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
 
@@ -70,15 +70,15 @@ public class CassandraTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getVersionIdsByTag(String tag) throws GroundDBException {
+  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
     return this.getIdsByTag(tag, "rich_version");
   }
 
-  public List<Long> getItemIdsByTag(String tag) throws GroundDBException {
+  public List<Long> getItemIdsByTag(String tag) throws GroundException {
     return this.getIdsByTag(tag, "item");
   }
 
-  private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundDBException {
+  private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
     List<Long> result = new ArrayList<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();

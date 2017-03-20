@@ -23,9 +23,9 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
-import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
                             String reference,
                             Map<String, String> referenceParameters,
                             long nodeId,
-                            List<Long> parentIds) throws GroundDBException {
+                            List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -84,7 +84,7 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public NodeVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 

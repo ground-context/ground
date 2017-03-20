@@ -21,7 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
                             String reference,
                             Map<String, String> referenceParameters,
                             long nodeId,
-                            List<Long> parentIds) throws GroundDBException {
+                            List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -75,14 +75,14 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
       LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
       return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public NodeVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
@@ -93,7 +93,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
       try {
         resultSet = this.dbClient.equalitySelect("node_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No NodeVersion found with id " + id + ".");
+        throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
       long nodeId = resultSet.getLong(2);
@@ -102,21 +102,21 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
       LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
 
       return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), nodeId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundDBException {
+  public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
     List<Long> result = this.dbClient.transitiveClosure(nodeVersionId);
 
     this.dbClient.commit();
     return result;
   }
 
-  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundDBException {
+  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
     List<Long> result = this.dbClient.adjacentNodes(nodeVersionId, edgeNameRegex);
 
     this.dbClient.commit();

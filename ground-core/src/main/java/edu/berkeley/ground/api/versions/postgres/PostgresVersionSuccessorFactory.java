@@ -23,7 +23,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     this.idGenerator = idGenerator;
   }
 
-  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundDBException {
+  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     long dbId = idGenerator.generateSuccessorId();
 
@@ -51,7 +51,7 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundDBException {
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
@@ -59,7 +59,7 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     try {
       resultSet = this.dbClient.equalitySelect("version_successor", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("No VersionSuccessor found with id " + dbId + ".");
+      throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
     long toId = resultSet.getLong(2);

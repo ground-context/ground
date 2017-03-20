@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.StringValue;
@@ -43,7 +44,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
     this.idGenerator = idGenerator;
   }
 
-  public StructureVersion create(long structureId, Map<String, GroundType> attributes, List<Long> parentIds) throws GroundDBException {
+  public StructureVersion create(long structureId, Map<String, GroundType> attributes, List<Long> parentIds) throws GroundException {
     try {
       long id = this.idGenerator.generateVersionId();
 
@@ -74,7 +75,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
     }
   }
 
-  public StructureVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));

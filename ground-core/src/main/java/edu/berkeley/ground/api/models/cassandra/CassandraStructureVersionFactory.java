@@ -23,7 +23,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
   public StructureVersion create(long structureId,
                                  Map<String, GroundType> attributes,
-                                 List<Long> parentIds) throws GroundDBException {
+                                 List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -76,14 +76,14 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public StructureVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     try {
 
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -95,13 +95,13 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No StructureVersion found with id " + id + ".");
+        throw new GroundException("No StructureVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No StructureVersion found with id " + id + ".");
+        throw new GroundException("No StructureVersion found with id " + id + ".");
       }
 
       Map<String, GroundType> attributes = new HashMap<>();
@@ -117,7 +117,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No StructureVersion attributes found for id " + id + ".");
+        throw new GroundException("No StructureVersion attributes found for id " + id + ".");
       }
 
       long structureId = resultSet.getLong(1);
@@ -126,7 +126,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;

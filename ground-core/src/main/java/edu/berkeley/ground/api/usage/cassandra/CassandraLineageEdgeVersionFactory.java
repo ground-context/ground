@@ -25,7 +25,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
                                    long fromId,
                                    long toId,
                                    long lineageEdgeId,
-                                   List<Long> parentIds) throws GroundDBException {
+                                   List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -82,14 +82,14 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
       LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
       return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
@@ -102,13 +102,13 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No LineageEdgeVersion found with id " + id + ".");
+        throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No LineageEdgeVersion found with id " + id + ".");
+        throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
       long lineageEdgeId = resultSet.getLong("lineage_edge_id");
@@ -119,7 +119,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
       LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
       return LineageEdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;

@@ -18,7 +18,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.VersionFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class PostgresVersionFactory extends VersionFactory {
     this.dbClient = dbClient;
   }
 
-  public void insertIntoDatabase(long id) throws GroundDBException {
+  public void insertIntoDatabase(long id) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 

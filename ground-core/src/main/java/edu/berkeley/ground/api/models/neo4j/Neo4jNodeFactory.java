@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.StringValue;
@@ -47,7 +48,7 @@ public class Neo4jNodeFactory extends NodeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Node create(String name, Map<String, Tag> tags) throws GroundDBException {
+  public Node create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -69,7 +70,7 @@ public class Neo4jNodeFactory extends NodeFactory {
     }
   }
 
-  public List<Long> getLeaves(String name) throws GroundDBException {
+  public List<Long> getLeaves(String name) throws GroundException {
     Node node = this.retrieveFromDatabase(name);
 
     List<Long> leaves = this.itemFactory.getLeaves(node.getId());
@@ -78,7 +79,7 @@ public class Neo4jNodeFactory extends NodeFactory {
     return leaves;
   }
 
-  public Node retrieveFromDatabase(String name) throws GroundDBException {
+  public Node retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -104,7 +105,7 @@ public class Neo4jNodeFactory extends NodeFactory {
     }
   }
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 }

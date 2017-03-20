@@ -22,7 +22,7 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class CassandraItemFactory extends ItemFactory {
     this.tagFactory = tagFactory;
   }
 
-  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDBException {
+  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
@@ -71,12 +71,12 @@ public class CassandraItemFactory extends ItemFactory {
     }
   }
 
-  public Item retrieveFromDatabase(long id) throws GroundDBException {
+  public Item retrieveFromDatabase(long id) throws GroundException {
     return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
   }
 
   // TODO: Refactor logic for parent into function in ItemFactory
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY, which is version 0.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
@@ -85,7 +85,7 @@ public class CassandraItemFactory extends ItemFactory {
     VersionHistoryDAG dag;
     try {
       dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       if (!e.getMessage().contains("No VersionHistoryDAG for Item")) {
         throw e;
       }
@@ -98,19 +98,19 @@ public class CassandraItemFactory extends ItemFactory {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
 
         LOGGER.error(errorString);
-        throw new GroundDBException(errorString);
+        throw new GroundException(errorString);
       }
 
       this.versionHistoryDAGFactory.addEdge(dag, parentId, childId, itemId);
     }
   }
 
-  public List<Long> getLeaves(long itemId) throws GroundDBException {
+  public List<Long> getLeaves(long itemId) throws GroundException {
     try {
       VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
 
       return dag.getLeaves();
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       if (!e.getMessage().contains("No results found for query:")) {
         throw e;
       }

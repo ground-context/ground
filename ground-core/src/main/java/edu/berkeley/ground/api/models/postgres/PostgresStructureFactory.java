@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class PostgresStructureFactory extends StructureFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Structure create(String name, Map<String, Tag> tags) throws GroundDBException {
+  public Structure create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -63,14 +63,14 @@ public class PostgresStructureFactory extends StructureFactory {
       LOGGER.info("Created structure " + name + ".");
 
       return StructureFactory.construct(uniqueId, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public List<Long> getLeaves(String name) throws GroundDBException {
+  public List<Long> getLeaves(String name) throws GroundException {
     Structure structure = this.retrieveFromDatabase(name);
 
     List<Long> leaves = this.itemFactory.getLeaves(structure.getId());
@@ -79,7 +79,7 @@ public class PostgresStructureFactory extends StructureFactory {
     return leaves;
   }
 
-  public Structure retrieveFromDatabase(String name) throws GroundDBException {
+  public Structure retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -88,7 +88,7 @@ public class PostgresStructureFactory extends StructureFactory {
       try {
         resultSet = this.dbClient.equalitySelect("structure", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No Structure found with name " + name + ".");
+        throw new GroundException("No Structure found with name " + name + ".");
       }
 
       long id = resultSet.getLong(1);
@@ -98,14 +98,14 @@ public class PostgresStructureFactory extends StructureFactory {
       LOGGER.info("Retrieved structure " + name + ".");
 
       return StructureFactory.construct(id, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 }

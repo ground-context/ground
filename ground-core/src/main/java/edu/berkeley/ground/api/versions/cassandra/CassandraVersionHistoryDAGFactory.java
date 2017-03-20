@@ -20,7 +20,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,11 +35,11 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
-  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundDBException {
+  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException {
     return construct(itemId);
   }
 
-  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundDBException {
+  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
     QueryResults resultSet;
@@ -59,7 +59,7 @@ public class CassandraVersionHistoryDAGFactory extends VersionHistoryDAGFactory 
     return VersionHistoryDAGFactory.construct(itemId, edges);
   }
 
-  public void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundDBException {
+  public void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException {
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
     List<DbDataContainer> insertions = new ArrayList<>();

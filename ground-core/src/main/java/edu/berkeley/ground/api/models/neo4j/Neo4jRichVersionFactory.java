@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
@@ -48,7 +49,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
                                  long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters
-  ) throws GroundDBException {
+  ) throws GroundException {
     if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
       RichVersionFactory.checkStructureTags(structureVersion, tags);
@@ -95,7 +96,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
     }
   }
 
-  public RichVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public RichVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
     Record record;

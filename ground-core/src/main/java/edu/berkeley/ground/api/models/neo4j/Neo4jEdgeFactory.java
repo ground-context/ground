@@ -23,6 +23,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.v1.Record;
@@ -46,7 +47,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Edge create(String name, Map<String, Tag> tags) throws GroundDBException {
+  public Edge create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = idGenerator.generateItemId();
 
@@ -68,7 +69,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
     }
   }
 
-  public Edge retrieveFromDatabase(String name) throws GroundDBException {
+  public Edge retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -95,7 +96,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
   }
 
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 }

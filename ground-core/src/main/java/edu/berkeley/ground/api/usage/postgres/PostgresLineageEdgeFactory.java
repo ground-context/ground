@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public LineageEdge create(String name, Map<String, Tag> tags) throws GroundDBException {
+  public LineageEdge create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -63,14 +63,14 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
       LOGGER.info("Created lineage edge " + name + ".");
 
       return LineageEdgeFactory.construct(uniqueId, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public LineageEdge retrieveFromDatabase(String name) throws GroundDBException {
+  public LineageEdge retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -79,7 +79,7 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
       try {
         resultSet = this.dbClient.equalitySelect("lineage_edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No LineageEdge found with name " + name + ".");
+        throw new GroundException("No LineageEdge found with name " + name + ".");
       }
 
       long id = resultSet.getLong(1);
@@ -89,14 +89,14 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
       LOGGER.info("Retrieved lineage edge " + name + ".");
 
       return LineageEdgeFactory.construct(id, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 }

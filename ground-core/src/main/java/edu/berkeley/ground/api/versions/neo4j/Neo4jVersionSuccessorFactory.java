@@ -22,6 +22,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.IntegerValue;
@@ -41,7 +42,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     this.idGenerator = idGenerator;
   }
 
-  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundDBException {
+  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException {
     // check if both IDs exist
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
@@ -81,7 +82,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     return VersionSuccessorFactory.construct(dbId, fromId, toId);
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundDBException {
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 

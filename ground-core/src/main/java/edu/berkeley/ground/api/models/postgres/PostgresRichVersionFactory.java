@@ -25,7 +25,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.*;
 
@@ -50,7 +50,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
                                  Map<String, Tag> tags,
                                  long structureVersionId,
                                  String reference,
-                                 Map<String, String> referenceParameters) throws GroundDBException {
+                                 Map<String, String> referenceParameters) throws GroundException {
     this.versionFactory.insertIntoDatabase(id);
 
     if (structureVersionId != -1) {
@@ -94,7 +94,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     }
   }
 
-  public RichVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public RichVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
@@ -102,7 +102,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     try {
       resultSet = this.dbClient.equalitySelect("rich_version", DBClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("No RichVersion found with id " + id + ".");
+      throw new GroundException("No RichVersion found with id " + id + ".");
     }
 
     List<DbDataContainer> parameterPredicates = new ArrayList<>();

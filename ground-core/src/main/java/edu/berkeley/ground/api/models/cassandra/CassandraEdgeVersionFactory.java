@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
                             long edgeId,
                             long fromId,
                             long toId,
-                            List<Long> parentIds) throws GroundDBException {
+                            List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -80,13 +80,13 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
       return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
       throw e;
     }
   }
 
-  public EdgeVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
@@ -99,13 +99,13 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No EdgeVersion found with id " + id + ".");
+        throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No EdgeVersion found with id " + id + ".");
+        throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 
       long edgeId = resultSet.getLong("edge_id");
@@ -116,7 +116,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 
       return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;

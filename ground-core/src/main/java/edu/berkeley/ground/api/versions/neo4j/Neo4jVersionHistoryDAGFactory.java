@@ -20,6 +20,7 @@ import edu.berkeley.ground.api.versions.VersionHistoryDAGFactory;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.types.Relationship;
@@ -37,11 +38,11 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
-  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundDBException {
+  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException {
     return construct(itemId);
   }
 
-  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundDBException {
+  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundException {
     List<Relationship> result = this.dbClient.getDescendantEdgesByLabel(itemId, "VersionSuccessor");
 
     if (result.isEmpty()) {
@@ -58,7 +59,7 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     return construct(itemId, edges);
   }
 
-  public void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundDBException {
+  public void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException {
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
     dag.addEdge(parentId, childId, successor.getId());

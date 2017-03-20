@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class CassandraGraphFactory extends GraphFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Graph create(String name, Map<String, Tag> tags) throws GroundDBException {
+  public Graph create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -63,14 +63,14 @@ public class CassandraGraphFactory extends GraphFactory {
       LOGGER.info("Created graph " + name + ".");
 
       return GraphFactory.construct(uniqueId, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public Graph retrieveFromDatabase(String name) throws GroundDBException {
+  public Graph retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -81,13 +81,13 @@ public class CassandraGraphFactory extends GraphFactory {
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No Graph found with name " + name + ".");
+        throw new GroundException("No Graph found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No Graph found with name " + name + ".");
+        throw new GroundException("No Graph found with name " + name + ".");
       }
 
       long id = resultSet.getLong(0);
@@ -97,14 +97,14 @@ public class CassandraGraphFactory extends GraphFactory {
       LOGGER.info("Retrieved graph " + name + ".");
 
       return GraphFactory.construct(id, name, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 }

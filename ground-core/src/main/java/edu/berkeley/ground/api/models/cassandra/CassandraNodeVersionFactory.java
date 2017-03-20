@@ -24,7 +24,7 @@ import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -56,7 +56,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
                             String reference,
                             Map<String, String> referenceParameters,
                             long nodeId,
-                            List<Long> parentIds) throws GroundDBException {
+                            List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -78,14 +78,14 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
       return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public NodeVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
@@ -98,13 +98,13 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No NodeVersion found with id " + id + ".");
+        throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
       if (!resultSet.next()) {
         this.dbClient.abort();
 
-        throw new GroundDBException("No NodeVersion found with id " + id + ".");
+        throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
       long nodeId = resultSet.getLong(1);
@@ -113,7 +113,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
 
       return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), nodeId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;

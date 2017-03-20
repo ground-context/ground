@@ -21,7 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.slf4j.Logger;
@@ -54,7 +54,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
                             long edgeId,
                             long fromId,
                             long toId,
-                            List<Long> parentIds) throws GroundDBException {
+                            List<Long> parentIds) throws GroundException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -77,13 +77,13 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
       LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
       return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
       throw e;
     }
   }
 
-  public EdgeVersion retrieveFromDatabase(long id) throws GroundDBException {
+  public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
@@ -94,7 +94,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
       try {
         resultSet = this.dbClient.equalitySelect("edge_version", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No EdgeVersion found with id " + id + ".");
+        throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
       long edgeId = resultSet.getLong(2);
       long fromId = resultSet.getLong(3);
@@ -104,7 +104,7 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
       LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
 
       return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);
-    } catch (GroundDBException e) {
+    } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;

@@ -23,6 +23,7 @@ import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,11 +63,11 @@ public class Neo4jItemFactory extends ItemFactory {
     }
   }
 
-  public Item retrieveFromDatabase(long id) throws GroundDBException {
+  public Item retrieveFromDatabase(long id) throws GroundException {
     return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
   }
 
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(itemId);
@@ -94,7 +95,7 @@ public class Neo4jItemFactory extends ItemFactory {
     }
   }
 
-  public List<Long> getLeaves(long itemId) throws GroundDBException {
+  public List<Long> getLeaves(long itemId) throws GroundException {
     try {
       VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
 
