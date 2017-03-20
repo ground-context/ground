@@ -51,13 +51,13 @@ public class GroundPartition {
 
     public Node getNode(String partitionName) throws GroundException {
         LOG.debug("Fetching partition node: " + partitionName);
-        return groundReadWrite.getNode(partitionName);
+        return groundReadWrite.getGroundReadWriteNodeResource().getNode(partitionName);
     }
 
     public Structure getNodeStructure(String partitionName) throws GroundException {
         try {
             Node node = this.getNode(partitionName);
-            return groundReadWrite.getStructure(node.getName());
+            return groundReadWrite.getGroundReadWriteStructureResource().getStructure(node.getName());
         } catch (GroundException e) {
             LOG.error("Unable to fetch parition node structure");
             throw new GroundException(e);
@@ -66,13 +66,13 @@ public class GroundPartition {
 
     public Edge getEdge(String partitionName) throws GroundException {
         LOG.debug("Fetching table partition edge: " + partitionName);
-        return groundReadWrite.getEdge(partitionName);
+        return groundReadWrite.getGroundReadWriteEdgeResource().getEdge(partitionName);
     }
 
     public Structure getEdgeStructure(String partitionName) throws GroundException {
         try {
             Edge edge = getEdge(partitionName);
-            return groundReadWrite.getStructure(edge.getName());
+            return groundReadWrite.getGroundReadWriteStructureResource().getStructure(edge.getName());
         } catch (GroundException e) {
             LOG.error("Unable to fetch table partition edge structure");
             throw new GroundException(e);
@@ -88,17 +88,19 @@ public class GroundPartition {
             for (String value : part.getValues()) {
                 partId += ":" + value;
             }
-            Tag partTag = new Tag(DUMMY_NOT_USED, partId, PluginUtil.toJSON(part), GroundType.STRING);
+            Tag partTag = new Tag(DUMMY_NOT_USED, partId, PluginUtil.toJson(part), GroundType.STRING);
             Map<String, GroundType> structureVersionAttribs = new HashMap<>();
             structureVersionAttribs.put(GroundStore.EntityState.ACTIVE.name(), GroundType.STRING);
-            StructureVersion sv = groundReadWrite.getStructureVersion(partId, structureVersionAttribs);
+            StructureVersion sv = groundReadWrite.getGroundReadWriteStructureResource().getStructureVersion(partId,
+                    structureVersionAttribs);
             String reference = part.getSd().getLocation();
             HashMap<String, Tag> tags = new HashMap<>();
             tags.put(partId, partTag);
 
             long versionId = sv.getId();
             Map<String, String> parameters = part.getParameters();
-            return groundReadWrite.createNodeVersion(1L, tags, versionId, reference, parameters, partId);
+            return groundReadWrite.getGroundReadWriteNodeResource().createNodeVersion(1L, tags, versionId, reference,
+                    parameters, partId);
         } catch (GroundException e) {
             throw new MetaException("Unable to create partition " + e.getMessage());
         }

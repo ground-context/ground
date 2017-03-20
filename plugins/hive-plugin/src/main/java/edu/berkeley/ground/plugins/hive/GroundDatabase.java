@@ -38,8 +38,6 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +51,7 @@ public class GroundDatabase {
 
     static final String DATABASE_TABLE_EDGE = "_DATABASE_TABLE";
 
-    private static final String DB_STATE = "DATABASE_STATE";
+    private static final String DB_STATE = "_DATABASE_STATE";
 
     private GroundReadWrite groundReadWrite = null;
     private GroundTable groundTable = null;
@@ -64,19 +62,19 @@ public class GroundDatabase {
 
     Node getNode(String dbName, Map<String, Tag> tagMap) throws GroundException {
         LOG.debug("Fetching database node: " + dbName);
-        Node node = this.groundReadWrite.getNode(dbName);
+        Node node = this.groundReadWrite.getGroundReadWriteNodeResource().getNode(dbName);
         if (node == null) {
-            return this.groundReadWrite.createNode(dbName, tagMap);
+            return this.groundReadWrite.getGroundReadWriteNodeResource().createNode(dbName, tagMap);
         }
         return node;
     }
 
     Structure getNodeStructure(String dbName) throws GroundException {
-        return this.groundReadWrite.getStructure(dbName);
+        return this.groundReadWrite.getGroundReadWriteStructureResource().getStructure(dbName);
     }
 
     Edge getEdge(EdgeVersion edgeVersion) throws GroundException {
-        //TODO
+        // TODO
         return null;
     }
 
@@ -84,7 +82,7 @@ public class GroundDatabase {
         try {
             LOG.debug("Fetching database table edge structure: " + edgeVersion.getEdgeId());
             Edge edge = this.getEdge(edgeVersion);
-            return this.groundReadWrite.getStructure(edge.getName());
+            return this.groundReadWrite.getGroundReadWriteStructureResource().getStructure(edge.getName());
         } catch (GroundException e) {
             LOG.debug("Not found - database table edge structure: " + edgeVersion.getEdgeId());
             throw new GroundException(e);
@@ -93,17 +91,19 @@ public class GroundDatabase {
 
     Database getDatabase(String dbName) throws GroundException {
         NodeVersion latestVersion = getDatabaseNodeVersion(dbName);
+        LOG.info("database versions id: {}", latestVersion.getNodeId());
+        LOG.info("database versions structureVersion: {}", latestVersion.getStructureVersionId());
         Map<String, Tag> dbTag = latestVersion.getTags();
-        return PluginUtil.fromJSON((String) dbTag.get(dbName).getValue(), Database.class);
+        return PluginUtil.fromJson((String) dbTag.get(dbName).getValue(), Database.class);
     }
 
     NodeVersion getDatabaseNodeVersion(String dbName) throws GroundException {
-        List<Long> versions = (List<Long>) this.groundReadWrite.getLatestVersions(dbName, "nodes");
+        List<Long> versions = (List<Long>) GroundReadWrite.getLatestVersions(dbName, "nodes");
         if (versions == null || versions.isEmpty()) {
             throw new GroundException("Database node not found: " + dbName);
         }
-        NodeVersion latestVersion = this.groundReadWrite.getNodeVersion(versions.get(0));
-        return latestVersion;
+        LOG.info("database versions size: {}", versions.size());
+        return this.groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(versions.get(0));
     }
 
     NodeVersion createDatabaseNodeVersion(Database db, String state) throws InvalidObjectException, MetaException {
@@ -117,7 +117,7 @@ public class GroundDatabase {
             Map<String, Tag> tags = new HashMap<>();
             Tag stateTag = new Tag(1L, dbName + DB_STATE, state, GroundType.STRING);
             tags.put(DB_STATE, stateTag);
-            Tag dbTag = new Tag(1L, dbName, PluginUtil.toJSON(db), GroundType.STRING);
+            Tag dbTag = new Tag(1L, dbName, PluginUtil.toJson(db), GroundType.STRING);
             tags.put(dbName, dbTag);
             tags.put(DB_STATE, stateTag);
             Map<String, String> referenceParameterMap = db.getParameters();
@@ -125,8 +125,8 @@ public class GroundDatabase {
                 referenceParameterMap = new HashMap<String, String>();
             }
             StructureVersion sv = this.getDatabaseStructureVersion(state);
-            return this.groundReadWrite.createNodeVersion(1L, tags, sv.getId(), reference, referenceParameterMap,
-                    dbName);
+            return this.groundReadWrite.getGroundReadWriteNodeResource().createNodeVersion(1L, tags, sv.getId(),
+                    reference, referenceParameterMap, dbName);
         } catch (GroundException e) {
             LOG.error("Failure to create a database node: {}", e);
             throw new MetaException(e.getMessage());
@@ -188,11 +188,11 @@ public class GroundDatabase {
         }
         StructureVersion sv = getDatabaseStructureVersion(state);
         Tag stateTag = new Tag(1L, DB_STATE, state, GroundType.STRING);
-        dbTagMap.put(DB_STATE, stateTag); //update state to deleted
+        dbTagMap.put(DB_STATE, stateTag); // update state to deleted
         // Node dbNode = getNode(dbName, dbTagMap);
         LOG.info("database deleted: {}, {}", dbName, databaseNodeVersion.getNodeId());
-        return this.groundReadWrite.createNodeVersion(1L, dbTagMap, sv.getId(), "", new HashMap<String, String>(),
-                dbName);
+        return this.groundReadWrite.getGroundReadWriteNodeResource().createNodeVersion(1L, dbTagMap, sv.getId(), "",
+                new HashMap<String, String>(), dbName);
     }
 
     public List<String> getDatabases(String pattern) {

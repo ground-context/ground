@@ -17,17 +17,14 @@
  */
 package edu.berkeley.ground.plugins.hive;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.api.*;
-import org.apache.hadoop.hive.conf.HiveConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 /** RawStore Implementation using Ground APIs. */
@@ -40,8 +37,6 @@ public class GroundStore extends GroundStoreBase {
     private GroundReadWrite ground;
     private GroundDatabase groundDatabase;
     private GroundTable groundTable;
-    private GroundPartition groundPartition;
-
     private Configuration conf;
     private int txnNestLevel;
 
@@ -49,14 +44,14 @@ public class GroundStore extends GroundStoreBase {
         ACTIVE, DELETED
     }
 
-    public GroundStore() throws GroundDBException {
+    public GroundStore() throws GroundException {
         ground = getGround();
         groundDatabase = new GroundDatabase(ground);
         groundTable = new GroundTable(ground);
-        groundPartition = new GroundPartition(ground);
+        new GroundPartition(ground);
     }
 
-    private GroundReadWrite getGround() throws GroundDBException {
+    private GroundReadWrite getGround() throws GroundException {
         if (ground == null) {
             this.ground = new GroundReadWrite();
         }

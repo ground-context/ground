@@ -66,10 +66,10 @@ public class GroundTable {
     Node getNode(String tableName, Map<String, Tag> tags) throws GroundException {
         try {
             LOG.debug("Fetching table node: {}", tableName);
-            return groundReadWrite.getNode(tableName);
+            return groundReadWrite.getGroundReadWriteNodeResource().getNode(tableName);
         } catch (GroundException ge1) {
             LOG.debug("Not found - Creating table node: " + tableName);
-            Node node = groundReadWrite.createNode(tableName, tags);
+            Node node = groundReadWrite.getGroundReadWriteNodeResource().createNode(tableName, tags);
             return node;
         }
     }
@@ -80,13 +80,13 @@ public class GroundTable {
         }
         try {
             String tableName = table.getTableName();
-            List<Long> tableNodeVersionList = groundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> tableNodeVersionList = GroundReadWrite.getLatestVersions(tableName, "nodes");
             if (tableNodeVersionList != null) {
                 LOG.info("table node exists: {}", tableName);
-                return groundReadWrite.getNodeVersion(tableNodeVersionList.get(0));
+                return groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(tableNodeVersionList.get(0));
             }
             StructureVersion sv = PluginUtil.getStructureVersion(groundReadWrite, TABLE, EntityState.ACTIVE.name());
-            Tag tableTag = new Tag(1L, tableName, PluginUtil.toJSON(table), GroundType.STRING);
+            Tag tableTag = new Tag(1L, tableName, PluginUtil.toJson(table), GroundType.STRING);
             String reference = table.getDbName();
             HashMap<String, Tag> tags = new HashMap<>();
             tags.put(tableName, tableTag);
@@ -97,18 +97,18 @@ public class GroundTable {
             }
             Map<String, String> parameters = tableParamMap;
             List<Long> parent = new ArrayList<Long>();
-            List<Long> versions = groundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
             if (!versions.isEmpty()) {
                 parent.add(versions.get(0));
             }
-            NodeVersion tableNodeVersion = groundReadWrite.createNodeVersion(tableNode.getId(), tags, sv.getId(),
-                    reference, parameters, tableName);
-            //create an edge from database node to tableNode
-            Edge edge =
-                    groundReadWrite.createEdge(table.getDbName() + "-" + table.getTableName(), tags);
-            NodeVersion dbNodeVersion =
-                    groundReadWrite.getNodeVersion(groundReadWrite.getLatestVersions(table.getDbName(), "nodes").get(0));
-            groundReadWrite.createEdgeVersion(edge.getId(), tags, sv.getId(),
+            NodeVersion tableNodeVersion = groundReadWrite.getGroundReadWriteNodeResource()
+                    .createNodeVersion(tableNode.getId(), tags, sv.getId(), reference, parameters, tableName);
+            // create an edge from database node to tableNode
+            Edge edge = groundReadWrite.getGroundReadWriteEdgeResource()
+                    .createEdge(table.getDbName() + "-" + table.getTableName(), tags);
+            NodeVersion dbNodeVersion = groundReadWrite.getGroundReadWriteNodeResource()
+                    .getNodeVersion(GroundReadWrite.getLatestVersions(table.getDbName(), "nodes").get(0));
+            groundReadWrite.getGroundReadWriteEdgeResource().createEdgeVersion(edge.getId(), tags, sv.getId(),
                     reference, parameters, edge.getId(), dbNodeVersion.getId(), tableNodeVersion.getId());
             return tableNodeVersion;
         } catch (GroundException e) {
@@ -119,21 +119,22 @@ public class GroundTable {
 
     Table getTable(String dbName, String tableName) throws MetaException {
         try {
-            List<Long> dbVersions = groundReadWrite.getLatestVersions(dbName, "nodes");
+            List<Long> dbVersions = GroundReadWrite.getLatestVersions(dbName, "nodes");
             if (dbVersions.isEmpty()) {
                 throw new MetaException("Database node not found: " + dbName);
             }
-            List<Long> adjacentNodeIds = groundReadWrite
+            List<Long> adjacentNodeIds = groundReadWrite.getGroundReadWriteNodeResource()
                     .getAdjacentNodes(dbVersions.get(0), dbName + "-" + tableName);
-            List<Long> versions = groundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
             if (versions.isEmpty()) {
                 throw new MetaException("Table node not found: " + tableName);
             }
-            NodeVersion latestVersion = groundReadWrite.getNodeVersion(versions.get(0));
+            NodeVersion latestVersion = groundReadWrite.getGroundReadWriteNodeResource()
+                    .getNodeVersion(versions.get(0));
             for (long adjacentNodeId : adjacentNodeIds) {
                 if (adjacentNodeId == latestVersion.getId()) {
                     Map<String, Tag> dbTag = latestVersion.getTags();
-                    return PluginUtil.fromJSON((String) dbTag.get(tableName).getValue(), Table.class);
+                    return PluginUtil.fromJson((String) dbTag.get(tableName).getValue(), Table.class);
                 }
             }
         } catch (GroundException ex) {
@@ -145,12 +146,14 @@ public class GroundTable {
     List<String> getTables(String dbName, String pattern) throws MetaException {
         List<String> tables = new ArrayList<String>();
         try {
-            List<Long> versions = groundReadWrite.getLatestVersions(dbName, "nodes");
+            List<Long> versions = GroundReadWrite.getLatestVersions(dbName, "nodes");
             if (!versions.isEmpty()) {
                 Long dbVersionId = versions.get(0);
-                List<Long> tableNodeIds = groundReadWrite.getAdjacentNodes(dbVersionId, pattern);
+                List<Long> tableNodeIds = groundReadWrite.getGroundReadWriteNodeResource().getAdjacentNodes(dbVersionId,
+                        pattern);
                 for (Long tableNodeId : tableNodeIds) {
-                    NodeVersion tableNodeVersion = groundReadWrite.getNodeVersion(tableNodeId);
+                    NodeVersion tableNodeVersion = groundReadWrite.getGroundReadWriteNodeResource()
+                            .getNodeVersion(tableNodeId);
                     tables.add(tableNodeVersion.getTags().keySet().iterator().next());
                 }
             }
@@ -170,12 +173,14 @@ public class GroundTable {
             for (Partition part : parts) {
                 StringBuilder sb = new StringBuilder();
                 NodeVersion nv = groundPartition.createPartition(dbName, tableName, part);
-                Edge edge = groundReadWrite
-                        .createEdge(sb.append(dbName).append("-").append(tableName).append("-").append(part).toString(), nv.getTags());
-                StructureVersion structureVersion = PluginUtil.getStructureVersion(groundReadWrite, EDGE, EntityState.ACTIVE.name());
-                groundReadWrite.createEdgeVersion(edge.getId(), nv.getTags(), structureVersion.getId(),
-                        tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(),
-                        tableNodeVersionId, nv.getId());
+                Edge edge = groundReadWrite.getGroundReadWriteEdgeResource().createEdge(
+                        sb.append(dbName).append("-").append(tableName).append("-").append(part).toString(),
+                        nv.getTags());
+                StructureVersion structureVersion = PluginUtil.getStructureVersion(groundReadWrite, EDGE,
+                        EntityState.ACTIVE.name());
+                groundReadWrite.getGroundReadWriteEdgeResource().createEdgeVersion(edge.getId(), nv.getTags(),
+                        structureVersion.getId(), tableNodeVersion.getReference(), tableNodeVersion.getParameters(),
+                        edge.getId(), tableNodeVersionId, nv.getId());
             }
             return true;
         } catch (InvalidObjectException | MetaException ex) {
@@ -190,16 +195,16 @@ public class GroundTable {
     Partition getPartition(String dbName, String tableName, String partName)
             throws MetaException, NoSuchObjectException {
         try {
-            List<Long> versions = groundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
             if (!versions.isEmpty() && versions.size() > 0) {
                 Long tableNodeVersionId = versions.get(0); // table version
                 List<Long> tableClosure = groundReadWrite.getTransitiveClosure(tableNodeVersionId);
-                long partitionVersionId = groundReadWrite.getLatestVersions(partName, "nodes").get(0);
+                long partitionVersionId = GroundReadWrite.getLatestVersions(partName, "nodes").get(0);
                 for (Long closureId : tableClosure) {
-                    Long version = groundReadWrite.getNodeVersion(closureId).getId();
-                    NodeVersion nv = groundReadWrite.getNodeVersion(version);
+                    Long version = groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(closureId).getId();
+                    NodeVersion nv = groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(version);
                     if (nv.getNodeId() == partitionVersionId) {
-                        return PluginUtil.fromJSON((String) nv.getTags().get(partName).getValue(), Partition.class);
+                        return PluginUtil.fromJson((String) nv.getTags().get(partName).getValue(), Partition.class);
                     }
                 }
             }
@@ -220,14 +225,15 @@ public class GroundTable {
     List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
-            List<Long> versions = groundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
             List<Partition> parts = new ArrayList<Partition>();
             if (!versions.isEmpty()) {
                 Long prevVersionId = versions.get(0);
-                List<Long> nodeIds = groundReadWrite.getAdjacentNodes(prevVersionId, "");
+                List<Long> nodeIds = groundReadWrite.getGroundReadWriteNodeResource().getAdjacentNodes(prevVersionId,
+                        "");
                 for (Long nodeId : nodeIds) {
-                    NodeVersion oldNV = groundReadWrite.getNodeVersion(nodeId);
-                    parts.add(PluginUtil.fromJSON((String) oldNV.getTags().get(oldNV.getNodeId()).getValue(),
+                    NodeVersion oldNV = groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(nodeId);
+                    parts.add(PluginUtil.fromJson((String) oldNV.getTags().get(oldNV.getNodeId()).getValue(),
                             Partition.class));
                 }
             }
@@ -239,28 +245,28 @@ public class GroundTable {
 
     }
 
-    boolean dropTable(String dbName, String tableName, String state)
-            throws GroundException {
+    boolean dropTable(String dbName, String tableName, String state) throws GroundException {
         NodeVersion databaseNodeVersion = this.groundDatabase.getDatabaseNodeVersion(dbName);
         if (databaseNodeVersion == null) {
             LOG.info("Database does not exist: {}", dbName);
-            return false;//short circuit database does not exist
+            return false;// short circuit database does not exist
         }
-        Long tableNodeVersionId = groundReadWrite.getLatestVersions(tableName, "nodes").get(0);
-        NodeVersion tableNodeVersion = groundReadWrite.getNodeVersion(tableNodeVersionId);
+        Long tableNodeVersionId = GroundReadWrite.getLatestVersions(tableName, "nodes").get(0);
+        NodeVersion tableNodeVersion = groundReadWrite.getGroundReadWriteNodeResource()
+                .getNodeVersion(tableNodeVersionId);
         Map<String, Tag> tableTagMap = tableNodeVersion.getTags();
         StructureVersion sv = PluginUtil.getStructureVersion(groundReadWrite, TABLE, state);
         Tag stateTag = new Tag(1L, TABLE_STATE, state, GroundType.STRING);
-        tableTagMap.put(TABLE_STATE, stateTag); //update state to deleted
+        tableTagMap.put(TABLE_STATE, stateTag); // update state to deleted
         List<Long> parent = new ArrayList<Long>();
-        List<Long> versions = this.groundReadWrite.getLatestVersions(dbName, "nodes");
+        List<Long> versions = GroundReadWrite.getLatestVersions(dbName, "nodes");
         if (!versions.isEmpty()) {
             LOG.debug("leaves {}", versions.get(0));
             parent.add(versions.get(0));
         }
         LOG.info("database deleted: {}, {}", dbName, databaseNodeVersion.getNodeId());
-        this.groundReadWrite.createNodeVersion(1L, tableTagMap, sv.getId(), "", new HashMap<String, String>(),
-                tableName);
+        this.groundReadWrite.getGroundReadWriteNodeResource().createNodeVersion(1L, tableTagMap, sv.getId(), "",
+                new HashMap<String, String>(), tableName);
         return true;
     }
 
