@@ -16,59 +16,57 @@ package edu.berkeley.ground.api.versions.postgres;
 
 import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
-  private PostgresVersionSuccessorFactory versionSuccessorFactory;
+  private final PostgresClient dbClient;
+  private final PostgresVersionSuccessorFactory versionSuccessorFactory;
 
-  public PostgresVersionHistoryDAGFactory(PostgresVersionSuccessorFactory versionSuccessorFactory) {
+  public PostgresVersionHistoryDAGFactory(PostgresClient dbClient,
+                                          PostgresVersionSuccessorFactory versionSuccessorFactory) {
+    this.dbClient = dbClient;
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
-  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException {
+  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundDBException {
     return construct(itemId);
   }
 
-  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connectionPointer, long itemId) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
+  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundDBException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("version_history_dag", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
+      resultSet = this.dbClient.equalitySelect("version_history_dag", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
       // do nothing' this just means that no versions have been added yet.
       return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
     do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(connection, resultSet.getLong(2)));
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet.getLong(2)));
     } while (resultSet.next());
 
     return VersionHistoryDAGFactory.construct(itemId, edges);
   }
 
-  public void addEdge(GroundDBConnection connectionPointer, VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
-    VersionSuccessor successor = this.versionSuccessorFactory.create(connection, parentId, childId);
+  public void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundDBException {
+    VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
     insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
 
-    connection.insert("version_history_dag", insertions);
+    this.dbClient.insert("version_history_dag", insertions);
 
     dag.addEdge(parentId, childId, successor.getId());
   }

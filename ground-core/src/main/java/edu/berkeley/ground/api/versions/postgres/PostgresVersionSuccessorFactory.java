@@ -19,27 +19,26 @@ import edu.berkeley.ground.api.versions.Version;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
 import edu.berkeley.ground.api.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
-  private IdGenerator idGenerator;
+  private final PostgresClient dbClient;
+  private final IdGenerator idGenerator;
 
-  public PostgresVersionSuccessorFactory(IdGenerator idGenerator) {
+  public PostgresVersionSuccessorFactory(PostgresClient dbClient, IdGenerator idGenerator) {
+    this.dbClient = dbClient;
     this.idGenerator = idGenerator;
   }
 
-  public <T extends Version> VersionSuccessor<T> create(GroundDBConnection connectionPointer, long fromId, long toId) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
+  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundDBException {
     List<DbDataContainer> insertions = new ArrayList<>();
     long dbId = idGenerator.generateSuccessorId();
 
@@ -47,23 +46,20 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
     insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
-    connection.insert("version_successor", insertions);
+    this.dbClient.insert("version_successor", insertions);
 
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
-
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(GroundDBConnection connectionPointer, long dbId) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundDBException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("version_successor", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
-      throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
+      resultSet = this.dbClient.equalitySelect("version_successor", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundDBException("No VersionSuccessor found with id " + dbId + ".");
     }
 
     long toId = resultSet.getLong(2);

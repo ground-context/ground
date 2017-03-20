@@ -18,27 +18,30 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.*;
 
 public class PostgresTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseByVersionId(GroundDBConnection connection, long id) throws GroundException {
-    return this.retrieveFromDatabaseById(connection, id, "rich_version");
+  private final PostgresClient dbClient;
+
+  public PostgresTagFactory(PostgresClient dbClient) {
+    this.dbClient = dbClient;
   }
 
-  public Map<String, Tag> retrieveFromDatabaseByItemId(GroundDBConnection connection, long id) throws GroundException {
-    return this.retrieveFromDatabaseById(connection, id, "item");
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundDBException {
+    return this.retrieveFromDatabaseById(id, "rich_version");
   }
 
-  private Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id, String keyPrefix) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundDBException {
+    return this.retrieveFromDatabaseById(id, "item");
+  }
 
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundDBException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
 
@@ -46,8 +49,8 @@ public class PostgresTagFactory extends TagFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
+      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
       return new HashMap<>();
     }
 
@@ -66,25 +69,23 @@ public class PostgresTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
-    return this.getIdsByTag(connection, tag, "rich_version");
+  public List<Long> getVersionIdsByTag(String tag) throws GroundDBException {
+    return this.getIdsByTag(tag, "rich_version");
   }
 
 
-  public List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
-    return this.getIdsByTag(connection, tag, "item");
+  public List<Long> getItemIdsByTag(String tag) throws GroundDBException {
+    return this.getIdsByTag(tag, "item");
   }
 
-  private List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag, String keyPrefix) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
+  private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundDBException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
+      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
       return new ArrayList<>();
     }
 

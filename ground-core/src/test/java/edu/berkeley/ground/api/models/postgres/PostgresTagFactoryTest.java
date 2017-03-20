@@ -10,7 +10,6 @@ import java.util.Map;
 import edu.berkeley.ground.api.PostgresTest;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
@@ -29,10 +28,9 @@ public class PostgresTagFactoryTest extends PostgresTest {
     long nodeId1 = super.factories.getNodeFactory().create("test1", tagsMap).getId();
     long nodeId2 = super.factories.getNodeFactory().create("test2", tagsMap).getId();
 
-    PostgresConnection connection = super.postgresClient.getConnection();
-    List<Long> ids = super.tagFactory.getItemIdsByTag(connection, "testtag");
+    List<Long> ids = super.tagFactory.getItemIdsByTag("testtag");
 
-    connection.commit();
+    super.postgresClient.commit();
 
     assertTrue(ids.contains(nodeId1));
     assertTrue(ids.contains(nodeId2));
@@ -50,10 +48,9 @@ public class PostgresTagFactoryTest extends PostgresTest {
     long nodeVersionId2 = super.factories.getNodeVersionFactory().create(tagsMap,
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
 
-    PostgresConnection connection = super.postgresClient.getConnection();
-    List<Long> ids = super.tagFactory.getVersionIdsByTag(connection, "testtag");
+    List<Long> ids = super.tagFactory.getVersionIdsByTag("testtag");
 
-    connection.commit();
+    super.postgresClient.commit();
 
     assertTrue(ids.contains(nodeVersionId1));
     assertTrue(ids.contains(nodeVersionId2));

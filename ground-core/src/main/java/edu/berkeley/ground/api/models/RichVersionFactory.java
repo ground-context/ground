@@ -15,20 +15,19 @@
 package edu.berkeley.ground.api.models;
 
 import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.Map;
 
 public abstract class RichVersionFactory {
-  public abstract void insertIntoDatabase(GroundDBConnection connection,
-                                          long id,
+  public abstract void insertIntoDatabase(long id,
                                           Map<String, Tag> tags,
                                           long structureVersionId,
                                           String reference,
                                           Map<String, String> referenceParameters) throws GroundException;
 
-  public abstract RichVersion retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException;
+  public abstract RichVersion retrieveFromDatabase(long id) throws GroundException;
 
   protected static RichVersion construct(long id,
                                          Map<String, Tag> tags,
@@ -48,17 +47,17 @@ public abstract class RichVersionFactory {
     Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 
     if (tags.isEmpty()) {
-      throw new GroundException("No tags were specified");
+      throw new GroundDBException("No tags were specified");
     }
 
     for (String key : structureVersionAttributes.keySet()) {
       // check if such a tag exists
       if (!tags.keySet().contains(key)) {
-        throw new GroundException("No tag with key " + key + " was specified.");
+        throw new GroundDBException("No tag with key " + key + " was specified.");
       } else if (tags.get(key).getValueType() == null) { // check that value type is specified
-        throw new GroundException("Tag with key " + key + " did not have a value.");
+        throw new GroundDBException("Tag with key " + key + " did not have a value.");
       } else if (!tags.get(key).getValueType().equals(structureVersionAttributes.get(key))) { // check that the value type is the same
-        throw new GroundException("Tag with key " + key + " did not have a value of the correct type.");
+        throw new GroundDBException("Tag with key " + key + " did not have a value of the correct type.");
       }
     }
   }

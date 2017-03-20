@@ -22,9 +22,8 @@ import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.IdGenerator;
 
 import org.neo4j.driver.internal.value.StringValue;
@@ -39,11 +38,11 @@ import java.util.stream.Collectors;
 
 public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jLineageEdgeVersionFactory.class);
-  private Neo4jClient dbClient;
-  private Neo4jLineageEdgeFactory lineageEdgeFactory;
-  private Neo4jRichVersionFactory richVersionFactory;
+  private final Neo4jClient dbClient;
+  private final Neo4jLineageEdgeFactory lineageEdgeFactory;
+  private final Neo4jRichVersionFactory richVersionFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public Neo4jLineageEdgeVersionFactory(Neo4jLineageEdgeFactory lineageEdgeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -60,9 +59,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
                                    long fromId,
                                    long toId,
                                    long lineageEdgeId,
-                                   List<Long> parentIds) throws GroundException {
-
-    Neo4jConnection connection = this.dbClient.getConnection();
+                                   List<Long> parentIds) throws GroundDBException {
 
     try {
       long id = this.idGenerator.generateVersionId();
@@ -75,51 +72,49 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
       insertions.add(new DbDataContainer("endpoint_one", GroundType.LONG, fromId));
       insertions.add(new DbDataContainer("endpoint_two", GroundType.LONG, toId));
 
-      connection.addVertex("LineageEdgeVersions", insertions);
+      this.dbClient.addVertex("LineageEdgeVersions", insertions);
 
-      this.lineageEdgeFactory.update(connection, lineageEdgeId, id, parentIds);
-      this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
+      this.lineageEdgeFactory.update(lineageEdgeId, id, parentIds);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-      connection.addEdge("LineageEdgeVersionConnection", fromId, id, new ArrayList<>());
-      connection.addEdge("LineageEdgeVersionConnection", id, toId, new ArrayList<>());
+      this.dbClient.addEdge("LineageEdgeVersionConnection", fromId, id, new ArrayList<>());
+      this.dbClient.addEdge("LineageEdgeVersionConnection", id, toId, new ArrayList<>());
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
       return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
+  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundDBException {
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       Record versionRecord;
       try {
-        versionRecord = connection.getVertex(predicates);
-      } catch (EmptyResultException eer) {
-        throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
+        versionRecord = this.dbClient.getVertex(predicates);
+      } catch (EmptyResultException e) {
+        throw new GroundDBException("No LineageEdgeVersion found with id " + id + ".");
       }
 
       long lineageEdgeId = versionRecord. get("v").asNode().get("lineageedge_id").asLong();
       long fromId = versionRecord.get("v").asNode().get("endpoint_one").asLong();
       long toId = versionRecord.get("v").asNode().get("endpoint_two").asLong();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
       return LineageEdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }

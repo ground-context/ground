@@ -14,7 +14,6 @@
 
 package edu.berkeley.ground.api.models;
 
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
@@ -25,7 +24,7 @@ public abstract class StructureFactory {
 
   public abstract Structure retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   public abstract List<Long> getLeaves(String name) throws GroundException;
 

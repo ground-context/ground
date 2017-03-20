@@ -19,15 +19,12 @@ import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.neo4j.Neo4jItemFactory;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.IdGenerator;
 
-import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +35,10 @@ import java.util.Map;
 
 public class Neo4jEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jEdgeFactory.class);
-  private Neo4jClient dbClient;
-  private Neo4jItemFactory itemFactory;
+  private final Neo4jClient dbClient;
+  private final Neo4jItemFactory itemFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public Neo4jEdgeFactory(Neo4jItemFactory itemFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -49,60 +46,56 @@ public class Neo4jEdgeFactory extends EdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Edge create(String name, Map<String, Tag> tags) throws GroundException {
-    Neo4jConnection connection = dbClient.getConnection();
-
+  public Edge create(String name, Map<String, Tag> tags) throws GroundDBException {
     try {
       long uniqueId = idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
+      this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
 
-      connection.addVertex("GroundEdge", insertions);
+      this.dbClient.addVertex("GroundEdge", insertions);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
       return EdgeFactory.construct(uniqueId, name, tags);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public Edge retrieveFromDatabase(String name) throws GroundException {
-    Neo4jConnection connection = dbClient.getConnection();
-
+  public Edge retrieveFromDatabase(String name) throws GroundDBException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
       Record record;
       try {
-        record = connection.getVertex(predicates);
-      } catch (EmptyResultException eer) {
-        throw new GroundException("No Edge found with name " + name + ".");
+        record = this.dbClient.getVertex(predicates);
+      } catch (EmptyResultException e) {
+        throw new GroundDBException("No Edge found with name " + name + ".");
       }
 
       long id = record.get("v").asNode().get("id").asLong();
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved edge " + name + ".");
 
       return EdgeFactory.construct(id, name, tags);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
 
-  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(connection, itemId, childId, parentIds);
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundDBException {
+    this.itemFactory.update(itemId, childId, parentIds);
   }
 }

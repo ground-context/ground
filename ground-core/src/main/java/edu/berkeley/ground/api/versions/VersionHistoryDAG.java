@@ -16,7 +16,7 @@ package edu.berkeley.ground.api.versions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
