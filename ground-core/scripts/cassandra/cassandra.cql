@@ -132,6 +132,23 @@ create table lineage_edge_version (
     principal_id bigint,
 );
 
+create table lineage_graph (
+    item_id bigint,
+    name varchar,
+    PRIMARY KEY (item_id, name)
+);
+
+create table lineage_graph_version (
+    id bigint PRIMARY KEY,
+    lineage_graph_id bigint
+);
+
+create table lineage_graph_version_edge (
+    lineage_graph_version_id bigint,
+    lineage_edge_version_id bigint,
+    PRIMARY KEY (lineage_graph_version_id, lineage_edge_version_id)
+);
+
 /* CREATE EMPTY VERSION */
 
 insert into version(id) values (0);

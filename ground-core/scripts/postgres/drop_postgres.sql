@@ -1,3 +1,6 @@
+drop table lineage_graph_version_edge;
+drop table lineage_graph_version;
+drop table lineage_graph;
 drop table lineage_edge_version;
 drop table lineage_edge;
 drop table principal;

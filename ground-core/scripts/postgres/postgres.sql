@@ -129,6 +129,22 @@ create table lineage_edge_version (
     principal_id bigint REFERENCES node_version(id)
 );
 
+create table lineage_graph (
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
+);
+
+create table lineage_graph_version (
+    id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
+    lineage_graph_id bigint NOT NULL REFERENCES lineage_graph(item_id)
+);
+
+create table lineage_graph_version_edge (
+    lineage_graph_version_id bigint NOT NULL REFERENCES lineage_graph_version(id),
+    lineage_edge_version_id bigint NOT NULL REFERENCES lineage_edge_version(id),
+    CONSTRAINT lineage_graph_version_edge_pkey PRIMARY KEY (lineage_graph_version_id, lineage_edge_version_id)
+);
+
 /* CREATE EMPTY VERSION */
 
 insert into version(id) values (0);

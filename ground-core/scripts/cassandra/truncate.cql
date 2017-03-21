@@ -1,3 +1,6 @@
+truncate lineage_graph_version_edge;
+truncate lineage_graph_version;
+truncate lineage_graph;
 truncate lineage_edge_version;
 truncate lineage_edge;
 truncate principal;
