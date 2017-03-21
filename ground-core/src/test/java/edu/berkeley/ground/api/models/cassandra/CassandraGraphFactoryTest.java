@@ -17,17 +17,13 @@ public class CassandraGraphFactoryTest extends CassandraTest {
   }
 
   @Test
-  public void testGraphCreation() {
-    try {
-      String testName = "test";
-      CassandraGraphFactory graphFactory = (CassandraGraphFactory) super.factories.getGraphFactory();
-      graphFactory.create(testName, new HashMap<>());
+  public void testGraphCreation() throws GroundException {
+    String testName = "test";
+    CassandraGraphFactory graphFactory = (CassandraGraphFactory) super.factories.getGraphFactory();
+    graphFactory.create(testName, new HashMap<>());
 
-      Graph graph = graphFactory.retrieveFromDatabase(testName);
+    Graph graph = graphFactory.retrieveFromDatabase(testName);
 
-      assertEquals(testName, graph.getName());
-    } catch (GroundException ge) {
-      fail(ge.getMessage());
-    }
+    assertEquals(testName, graph.getName());
   }
 }
