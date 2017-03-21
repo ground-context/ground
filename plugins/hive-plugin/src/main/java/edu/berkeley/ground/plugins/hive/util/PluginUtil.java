@@ -78,21 +78,6 @@ public class PluginUtil {
         }
     }
 
-    String checkStatus(HttpMethod method) throws GroundException {
-        try {
-            if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                String text = method.getResponseBodyAsString();
-                JsonNode jsonNode = objectMapper.readValue(text, JsonNode.class);
-                JsonNode nodeId = jsonNode.get("id");
-                return nodeId.asText();
-            }
-        } catch (IOException e) {
-            throw new GroundException(e);
-        }
-        return null;
-    }
-
     public static String execute(HttpMethod method)
             throws IOException, HttpException, JsonParseException, JsonMappingException {
         if (client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
