@@ -163,7 +163,11 @@ public class GroundStore extends GroundStoreBase {
 
     @Override
     public List<String> getDatabases(String pattern) throws MetaException {
-        return groundDatabase.getDatabases(pattern);
+        try {
+            return groundDatabase.getDatabases(pattern);
+        } catch (GroundException e) {
+            throw new MetaException(e.getMessage());
+        }
     }
 
     @Override

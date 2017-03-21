@@ -80,12 +80,13 @@ public class GroundTable {
         }
         try {
             String tableName = table.getTableName();
-            List<Long> tableNodeVersionList = GroundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> tableNodeVersionList = PluginUtil.getLatestVersions(tableName, "nodes");
             if (tableNodeVersionList != null) {
                 LOG.info("table node exists: {}", tableName);
                 return groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(tableNodeVersionList.get(0));
             }
-            StructureVersion sv = PluginUtil.getStructureVersion(groundReadWrite, TABLE, EntityState.ACTIVE.name());
+            StructureVersion sv =
+                    groundReadWrite.getGroundReadWriteStructureResource().getStructureVersion(TABLE, EntityState.ACTIVE.name());
             Tag tableTag = new Tag(1L, tableName, PluginUtil.toJson(table), GroundType.STRING);
             String reference = table.getDbName();
             HashMap<String, Tag> tags = new HashMap<>();
@@ -97,7 +98,7 @@ public class GroundTable {
             }
             Map<String, String> parameters = tableParamMap;
             List<Long> parent = new ArrayList<Long>();
-            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = PluginUtil.getLatestVersions(tableName, "nodes");
             if (!versions.isEmpty()) {
                 parent.add(versions.get(0));
             }
@@ -107,7 +108,7 @@ public class GroundTable {
             Edge edge = groundReadWrite.getGroundReadWriteEdgeResource()
                     .createEdge(table.getDbName() + "-" + table.getTableName(), tags);
             NodeVersion dbNodeVersion = groundReadWrite.getGroundReadWriteNodeResource()
-                    .getNodeVersion(GroundReadWrite.getLatestVersions(table.getDbName(), "nodes").get(0));
+                    .getNodeVersion(PluginUtil.getLatestVersions(table.getDbName(), "nodes").get(0));
             groundReadWrite.getGroundReadWriteEdgeResource().createEdgeVersion(edge.getId(), tags, sv.getId(),
                     reference, parameters, edge.getId(), dbNodeVersion.getId(), tableNodeVersion.getId());
             return tableNodeVersion;
@@ -119,13 +120,13 @@ public class GroundTable {
 
     Table getTable(String dbName, String tableName) throws MetaException {
         try {
-            List<Long> dbVersions = GroundReadWrite.getLatestVersions(dbName, "nodes");
+            List<Long> dbVersions = PluginUtil.getLatestVersions(dbName, "nodes");
             if (dbVersions.isEmpty()) {
                 throw new MetaException("Database node not found: " + dbName);
             }
             List<Long> adjacentNodeIds = groundReadWrite.getGroundReadWriteNodeResource()
                     .getAdjacentNodes(dbVersions.get(0), dbName + "-" + tableName);
-            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = PluginUtil.getLatestVersions(tableName, "nodes");
             if (versions.isEmpty()) {
                 throw new MetaException("Table node not found: " + tableName);
             }
@@ -146,7 +147,7 @@ public class GroundTable {
     List<String> getTables(String dbName, String pattern) throws MetaException {
         List<String> tables = new ArrayList<String>();
         try {
-            List<Long> versions = GroundReadWrite.getLatestVersions(dbName, "nodes");
+            List<Long> versions = PluginUtil.getLatestVersions(dbName, "nodes");
             if (!versions.isEmpty()) {
                 Long dbVersionId = versions.get(0);
                 List<Long> tableNodeIds = groundReadWrite.getGroundReadWriteNodeResource().getAdjacentNodes(dbVersionId,
@@ -176,8 +177,8 @@ public class GroundTable {
                 Edge edge = groundReadWrite.getGroundReadWriteEdgeResource().createEdge(
                         sb.append(dbName).append("-").append(tableName).append("-").append(part).toString(),
                         nv.getTags());
-                StructureVersion structureVersion = PluginUtil.getStructureVersion(groundReadWrite, EDGE,
-                        EntityState.ACTIVE.name());
+                StructureVersion structureVersion =
+                        groundReadWrite.getGroundReadWriteStructureResource().getStructureVersion(EDGE, EntityState.ACTIVE.name());
                 groundReadWrite.getGroundReadWriteEdgeResource().createEdgeVersion(edge.getId(), nv.getTags(),
                         structureVersion.getId(), tableNodeVersion.getReference(), tableNodeVersion.getParameters(),
                         edge.getId(), tableNodeVersionId, nv.getId());
@@ -195,11 +196,12 @@ public class GroundTable {
     Partition getPartition(String dbName, String tableName, String partName)
             throws MetaException, NoSuchObjectException {
         try {
-            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = PluginUtil.getLatestVersions(tableName, "nodes");
             if (!versions.isEmpty() && versions.size() > 0) {
                 Long tableNodeVersionId = versions.get(0); // table version
-                List<Long> tableClosure = groundReadWrite.getTransitiveClosure(tableNodeVersionId);
-                long partitionVersionId = GroundReadWrite.getLatestVersions(partName, "nodes").get(0);
+                List<Long> tableClosure =
+                        groundReadWrite.getGroundReadWriteNodeResource().getTransitiveClosure(tableNodeVersionId);
+                long partitionVersionId = PluginUtil.getLatestVersions(partName, "nodes").get(0);
                 for (Long closureId : tableClosure) {
                     Long version = groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(closureId).getId();
                     NodeVersion nv = groundReadWrite.getGroundReadWriteNodeResource().getNodeVersion(version);
@@ -225,7 +227,7 @@ public class GroundTable {
     List<Partition> getPartitions(String dbName, String tableName, int max)
             throws MetaException, NoSuchObjectException {
         try {
-            List<Long> versions = GroundReadWrite.getLatestVersions(tableName, "nodes");
+            List<Long> versions = PluginUtil.getLatestVersions(tableName, "nodes");
             List<Partition> parts = new ArrayList<Partition>();
             if (!versions.isEmpty()) {
                 Long prevVersionId = versions.get(0);
@@ -251,15 +253,15 @@ public class GroundTable {
             LOG.info("Database does not exist: {}", dbName);
             return false;// short circuit database does not exist
         }
-        Long tableNodeVersionId = GroundReadWrite.getLatestVersions(tableName, "nodes").get(0);
+        Long tableNodeVersionId = PluginUtil.getLatestVersions(tableName, "nodes").get(0);
         NodeVersion tableNodeVersion = groundReadWrite.getGroundReadWriteNodeResource()
                 .getNodeVersion(tableNodeVersionId);
         Map<String, Tag> tableTagMap = tableNodeVersion.getTags();
-        StructureVersion sv = PluginUtil.getStructureVersion(groundReadWrite, TABLE, state);
+        StructureVersion sv = groundReadWrite.getGroundReadWriteStructureResource().getStructureVersion(TABLE, state);
         Tag stateTag = new Tag(1L, TABLE_STATE, state, GroundType.STRING);
         tableTagMap.put(TABLE_STATE, stateTag); // update state to deleted
         List<Long> parent = new ArrayList<Long>();
-        List<Long> versions = GroundReadWrite.getLatestVersions(dbName, "nodes");
+        List<Long> versions = PluginUtil.getLatestVersions(dbName, "nodes");
         if (!versions.isEmpty()) {
             LOG.debug("leaves {}", versions.get(0));
             parent.add(versions.get(0));

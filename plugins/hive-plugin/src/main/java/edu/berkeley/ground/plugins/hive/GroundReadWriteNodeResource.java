@@ -30,10 +30,10 @@ public class GroundReadWriteNodeResource {
                     node.getId());
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(nodeVersion);
-            String uri = GroundReadWrite.groundServerAddress + "nodes/versions";
+            String uri = PluginUtil.groundServerAddress + "nodes/versions";
             PostMethod post = new PostMethod(uri);
-            post.setRequestEntity(GroundReadWrite.createRequestEntity(jsonString));
-            String response = GroundReadWrite.execute(post);
+            post.setRequestEntity(PluginUtil.createRequestEntity(jsonString));
+            String response = PluginUtil.execute(post);
             return constructNodeVersion(response);
         } catch (IOException e) {
             throw new GroundException(e);
@@ -41,9 +41,9 @@ public class GroundReadWriteNodeResource {
     }
 
     public NodeVersion getNodeVersion(long nodeVersionId) throws GroundException {
-        GetMethod get = new GetMethod(GroundReadWrite.groundServerAddress + "nodes/versions/" + nodeVersionId);
+        GetMethod get = new GetMethod(PluginUtil.groundServerAddress + "nodes/versions/" + nodeVersionId);
         try {
-            String response = GroundReadWrite.execute(get);
+            String response = PluginUtil.execute(get);
             return this.constructNodeVersion(response);
         } catch (IOException e) {
             throw new GroundException(e);
@@ -51,9 +51,9 @@ public class GroundReadWriteNodeResource {
     }
 
     Node getNode(String dbName) throws GroundException {
-        HttpMethod get = new GetMethod(GroundReadWrite.groundServerAddress + "nodes/" + dbName);
+        HttpMethod get = new GetMethod(PluginUtil.groundServerAddress + "nodes/" + dbName);
         try {
-            String response = GroundReadWrite.execute(get);
+            String response = PluginUtil.execute(get);
             if (response != null) {
                 return this.constructNode(response);
             }
@@ -63,10 +63,19 @@ public class GroundReadWriteNodeResource {
         }
     }
 
-    public List<Long> getAdjacentNodes(Long prevVersionId, String edgeName) throws GroundException {
-        GetMethod get = new GetMethod(GroundReadWrite.groundServerAddress + "adjacent/" + prevVersionId + "/" + edgeName);
+    public List<Long> getTransitiveClosure(Long nodeVersionId) throws GroundException {
+        GetMethod get = new GetMethod(PluginUtil.groundServerAddress + "nodes/closure/" + nodeVersionId);
         try {
-            return (List<Long>) GroundReadWrite.getVersionList(get);
+            return (List<Long>) PluginUtil.getVersionList(get);
+        } catch (IOException e) {
+            throw new GroundException(e);
+        }
+    }
+
+    public List<Long> getAdjacentNodes(Long prevVersionId, String edgeName) throws GroundException {
+        GetMethod get = new GetMethod(PluginUtil.groundServerAddress + "adjacent/" + prevVersionId + "/" + edgeName);
+        try {
+            return (List<Long>) PluginUtil.getVersionList(get);
         } catch (IOException e) {
             throw new GroundException(e);
         }
@@ -75,12 +84,12 @@ public class GroundReadWriteNodeResource {
     // create a node using Tag
     Node createNode(String name, Map<String, Tag> tagMap) throws GroundException {
         try {
-            String encodedUri = GroundReadWrite.groundServerAddress + "nodes/" + URLEncoder.encode(name, "UTF-8");
+            String encodedUri = PluginUtil.groundServerAddress + "nodes/" + URLEncoder.encode(name, "UTF-8");
             PostMethod post = new PostMethod(encodedUri);
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = mapper.writeValueAsString(tagMap);
-            post.setRequestEntity(GroundReadWrite.createRequestEntity(jsonString));
-            String response = GroundReadWrite.execute(post);
+            post.setRequestEntity(PluginUtil.createRequestEntity(jsonString));
+            String response = PluginUtil.execute(post);
             return this.constructNode(response);
         } catch (IOException e) {
             throw new GroundException(e);
@@ -90,12 +99,18 @@ public class GroundReadWriteNodeResource {
 
     // helper methods for Node and NodeVersion
     private Node constructNode(String response) throws GroundException {
+        if (response == null) {
+            return null;
+        }
         JsonReader reader = new JsonReader(new StringReader(response));
         return PluginUtil.fromJson(reader, Node.class);
     }
 
     private NodeVersion constructNodeVersion(String response) throws GroundException {
-            JsonReader reader = new JsonReader(new StringReader(response));
-            return PluginUtil.fromJson(reader, NodeVersion.class);
+        if (response == null) {
+            return null;
+        }
+        JsonReader reader = new JsonReader(new StringReader(response));
+        return PluginUtil.fromJson(reader, NodeVersion.class);
     }
 }
