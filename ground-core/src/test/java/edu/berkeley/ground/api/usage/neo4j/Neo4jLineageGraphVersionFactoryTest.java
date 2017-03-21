@@ -1,4 +1,4 @@
-package edu.berkeley.ground.api.models.cassandra;
+package edu.berkeley.ground.api.usage.neo4j;
 
 import org.junit.Test;
 
@@ -7,22 +7,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.api.CassandraTest;
-import edu.berkeley.ground.api.models.GraphVersion;
+import edu.berkeley.ground.api.Neo4jTest;
 import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.usage.LineageGraphVersion;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-public class CassandraGraphVersionFactoryTest extends CassandraTest {
+public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
 
-  public CassandraGraphVersionFactoryTest() throws GroundException {
+  public Neo4jLineageGraphVersionFactoryTest() throws GroundException {
     super();
   }
 
   @Test
-  public void testGraphVersionCreation() throws GroundException {
+  public void testLineageGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
     long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
     long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
@@ -33,16 +33,15 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
     long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
-    String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId, new ArrayList<>()).getId();
+    String lineageEdgeName = "testEdge";
+    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, new HashMap<>()).getId();
+    long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), lineageEdgeId, firstNodeVersionId, secondNodeVersionId, new ArrayList<>()).getId();
 
-    List<Long> edgeVersionIds = new ArrayList<>();
-    edgeVersionIds.add(edgeVersionId);
+    List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    lineageEdgeVersionIds.add(lineageEdgeVersionId);
 
-    String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName, new HashMap<>()).getId();
+    long lineageGraphId = super.factories.getLineageGraphFactory().create("testGraph", new HashMap<>()).getId();
 
     String structureName = "testStructure";
     long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
@@ -64,21 +63,22 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long graphVersionId = super.factories.getGraphVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, graphId, edgeVersionIds,
+    long lineageGraphVersionId = super.factories.getLineageGraphVersionFactory().create(tags,
+        structureVersionId, testReference, parameters, lineageGraphId, lineageEdgeVersionIds,
         new ArrayList<>()).getId();
 
-    GraphVersion retrieved = super.factories.getGraphVersionFactory().retrieveFromDatabase(graphVersionId);
+    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory()
+        .retrieveFromDatabase(lineageGraphVersionId);
 
-    assertEquals(graphId, retrieved.getGraphId());
+    assertEquals(lineageGraphId, retrieved.getLineageGraphId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
     assertEquals(testReference, retrieved.getReference());
-    assertEquals(edgeVersionIds.size(), retrieved.getEdgeVersionIds().size());
+    assertEquals(lineageEdgeVersionIds.size(), retrieved.getLineageEdgeVersionIds().size());
 
-    List<Long> retrievedEdgeVersionIds = retrieved.getEdgeVersionIds();
+    List<Long> retrievedLineageEdgeVersionIds = retrieved.getLineageEdgeVersionIds();
 
-    for (long id : edgeVersionIds) {
-      assert (retrievedEdgeVersionIds).contains(id);
+    for (long id : lineageEdgeVersionIds) {
+      assert (retrievedLineageEdgeVersionIds).contains(id);
     }
 
     assertEquals(parameters.size(), retrieved.getParameters().size());
