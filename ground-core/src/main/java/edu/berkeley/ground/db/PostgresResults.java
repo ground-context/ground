@@ -14,7 +14,7 @@
 
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PostgresResults implements QueryResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
@@ -34,60 +32,60 @@ public class PostgresResults implements QueryResults {
     this.resultSet = resultSet;
   }
 
-  public boolean next() throws GroundException {
+  public boolean next() throws GroundDBException {
     try {
       return this.resultSet.next();
     } catch (SQLException e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public String getString(int index) throws GroundException {
+  public String getString(int index) throws GroundDBException {
     try {
       return resultSet.getString(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public String getString(String field) throws GroundException {
+  public String getString(String field) {
     throw new NotImplementedException();
   }
 
 
-  public long getLong(String field) throws GroundException {
+  public long getLong(String field) {
     throw new NotImplementedException();
   }
 
-  public int getInt(int index) throws GroundException {
+  public int getInt(int index) throws GroundDBException {
     try {
       return resultSet.getInt(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public boolean getBoolean(int index) throws GroundException {
+  public boolean getBoolean(int index) throws GroundDBException {
     try {
       return resultSet.getBoolean(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public long getLong(int index) throws GroundException {
+  public long getLong(int index) throws GroundDBException {
     try {
       return resultSet.getLong(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 }

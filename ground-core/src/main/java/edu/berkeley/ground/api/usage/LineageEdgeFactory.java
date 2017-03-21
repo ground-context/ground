@@ -15,7 +15,6 @@
 package edu.berkeley.ground.api.usage;
 
 import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.List;
@@ -26,7 +25,7 @@ public abstract class LineageEdgeFactory {
 
   public abstract LineageEdge retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   public static LineageEdge construct(long id, String name, Map<String, Tag> tags) {
     return new LineageEdge(id, name, tags);

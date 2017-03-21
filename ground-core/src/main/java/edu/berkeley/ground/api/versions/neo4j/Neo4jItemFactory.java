@@ -20,9 +20,9 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.Item;
 import edu.berkeley.ground.api.versions.ItemFactory;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.db.Neo4jClient;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
@@ -30,17 +30,19 @@ import java.util.List;
 import java.util.Map;
 
 public class Neo4jItemFactory extends ItemFactory {
-  private Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
-  private Neo4jTagFactory tagFactory;
+  private final Neo4jClient dbClient;
+  private final Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private final Neo4jTagFactory tagFactory;
 
-  public Neo4jItemFactory(Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory, Neo4jTagFactory tagFactory) {
+  public Neo4jItemFactory(Neo4jClient dbClient,
+                          Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory,
+                          Neo4jTagFactory tagFactory) {
+    this.dbClient = dbClient;
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
     this.tagFactory = tagFactory;
   }
 
-  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id, Map<String, Tag> tags) throws GroundException {
-    Neo4jConnection connection = (Neo4jConnection) connectionPointer;
-
+  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDBException {
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
@@ -56,26 +58,25 @@ public class Neo4jItemFactory extends ItemFactory {
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      connection.addVertexAndEdge("ItemTag", tagInsertion, "ItemTagConnection", id, new ArrayList<>());
+      this.dbClient.addVertexAndEdge("ItemTag", tagInsertion, "ItemTagConnection", id, new ArrayList<>());
       tagInsertion.clear();
     }
   }
 
-  public Item retrieveFromDatabase(GroundDBConnection connection, long id) throws GroundException {
-    return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(connection, id));
+  public Item retrieveFromDatabase(long id) throws GroundException {
+    return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
   }
 
-  public void update(GroundDBConnection connectionPointer, long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
-
     if (parentIds.isEmpty()) {
       parentIds.add(itemId);
     }
 
     VersionHistoryDAG dag;
     try {
-      dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connectionPointer, itemId);
-    } catch (GroundException e) {
+      dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
+    } catch (GroundDBException e) {
       if (!e.getMessage().contains("No results found for query")) {
         throw e;
       }
@@ -84,22 +85,22 @@ public class Neo4jItemFactory extends ItemFactory {
     }
 
     for (long parentId : parentIds) {
-      if (!(parentId == itemId) && !dag.checkItemInDag(parentId)) {
+      if (parentId != itemId && !dag.checkItemInDag(parentId)) {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
 
-        throw new GroundException(errorString);
+        throw new GroundDBException(errorString);
       }
 
-      this.versionHistoryDAGFactory.addEdge(connectionPointer, dag, parentId, childId, itemId);
+      this.versionHistoryDAGFactory.addEdge(dag, parentId, childId, itemId);
     }
   }
 
-  public List<Long> getLeaves(GroundDBConnection connection, long itemId) throws GroundException {
+  public List<Long> getLeaves(long itemId) throws GroundException {
     try {
-      VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(connection, itemId);
+      VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
 
       return dag.getLeaves();
-    } catch (GroundException e) {
+    } catch (GroundDBException e) {
       if (!e.getMessage().contains("No results found for query")) {
         throw e;
       }

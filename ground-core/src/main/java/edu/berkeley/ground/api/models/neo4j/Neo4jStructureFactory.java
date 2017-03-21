@@ -19,11 +19,10 @@ import edu.berkeley.ground.api.models.StructureFactory;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.neo4j.Neo4jItemFactory;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
@@ -38,10 +37,10 @@ import java.util.Map;
 
 public class Neo4jStructureFactory extends StructureFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureFactory.class);
-  private Neo4jClient dbClient;
-  private Neo4jItemFactory itemFactory;
+  private final Neo4jClient dbClient;
+  private final Neo4jItemFactory itemFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public Neo4jStructureFactory(Neo4jClient dbClient, Neo4jItemFactory itemFactory, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -50,8 +49,6 @@ public class Neo4jStructureFactory extends StructureFactory {
   }
 
   public Structure create(String name, Map<String, Tag> tags) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -59,15 +56,15 @@ public class Neo4jStructureFactory extends StructureFactory {
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
 
-      connection.addVertex("Structure", insertions);
+      this.dbClient.addVertex("Structure", insertions);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created structure " + name + ".");
-      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
+      this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
       return StructureFactory.construct(uniqueId, name, tags);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
@@ -76,43 +73,40 @@ public class Neo4jStructureFactory extends StructureFactory {
   public List<Long> getLeaves(String name) throws GroundException {
     Structure structure = this.retrieveFromDatabase(name);
 
-    Neo4jConnection connection = this.dbClient.getConnection();
-    List<Long> leaves = this.itemFactory.getLeaves(connection, structure.getId());
-    connection.commit();
+    List<Long> leaves = this.itemFactory.getLeaves(structure.getId());
+    this.dbClient.commit();
 
     return leaves;
   }
 
   public Structure retrieveFromDatabase(String name) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
       Record record;
       try {
-        record = connection.getVertex("Structure", predicates);
-      } catch (EmptyResultException eer) {
-        throw new GroundException("No Structure found with name " + name + ".");
+        record = this.dbClient.getVertex("Structure", predicates);
+      } catch (EmptyResultException e) {
+        throw new GroundDBException("No Structure found with name " + name + ".");
       }
 
       long id = record.get("v").asNode().get("id").asLong();
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved structure " + name + ".");
 
       return StructureFactory.construct(id, name, tags);
-    } catch (GroundException e) {
-      connection.abort();
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(connection, itemId, childId, parentIds);
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+    this.itemFactory.update(itemId, childId, parentIds);
   }
 
 }

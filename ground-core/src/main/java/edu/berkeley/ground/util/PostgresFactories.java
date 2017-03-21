@@ -42,15 +42,15 @@ public class PostgresFactories {
   public PostgresFactories(PostgresClient postgresClient, int machineId, int numMachines) {
     IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
 
-    PostgresVersionFactory versionFactory = new PostgresVersionFactory();
-    PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory(idGenerator);
-    PostgresVersionHistoryDAGFactory versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
-    PostgresTagFactory tagFactory = new PostgresTagFactory();
-    PostgresItemFactory itemFactory = new PostgresItemFactory(versionHistoryDAGFactory, tagFactory);
+    PostgresVersionFactory versionFactory = new PostgresVersionFactory(postgresClient);
+    PostgresVersionSuccessorFactory versionSuccessorFactory = new PostgresVersionSuccessorFactory(postgresClient, idGenerator);
+    PostgresVersionHistoryDAGFactory versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(postgresClient, versionSuccessorFactory);
+    PostgresTagFactory tagFactory = new PostgresTagFactory(postgresClient);
+    PostgresItemFactory itemFactory = new PostgresItemFactory(postgresClient, versionHistoryDAGFactory, tagFactory);
 
     this.structureFactory = new PostgresStructureFactory(itemFactory, postgresClient, idGenerator);
     this.structureVersionFactory = new PostgresStructureVersionFactory(this.structureFactory, versionFactory, postgresClient, idGenerator);
-    PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
+    PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory(postgresClient, versionFactory, structureVersionFactory, tagFactory);
     this.edgeFactory = new PostgresEdgeFactory(itemFactory, postgresClient, idGenerator);
     this.edgeVersionFactory = new PostgresEdgeVersionFactory(this.edgeFactory, richVersionFactory, postgresClient, idGenerator);
     this.graphFactory = new PostgresGraphFactory(itemFactory, postgresClient, idGenerator);

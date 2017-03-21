@@ -19,8 +19,8 @@ import edu.berkeley.ground.api.models.StructureVersionFactory;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
@@ -33,10 +33,10 @@ import java.util.*;
 
 public class Neo4jStructureVersionFactory extends StructureVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureVersionFactory.class);
-  private Neo4jClient dbClient;
-  private Neo4jStructureFactory structureFactory;
+  private final Neo4jClient dbClient;
+  private final Neo4jStructureFactory structureFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public Neo4jStructureVersionFactory(Neo4jClient dbClient, Neo4jStructureFactory structureFactory, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -45,8 +45,6 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
   }
 
   public StructureVersion create(long structureId, Map<String, GroundType> attributes, List<Long> parentIds) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
     try {
       long id = this.idGenerator.generateVersionId();
 
@@ -54,7 +52,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
 
-      connection.addVertex("StructureVersion", insertions);
+      this.dbClient.addVertex("StructureVersion", insertions);
 
       for (String key : attributes.keySet()) {
         List<DbDataContainer> itemInsertions = new ArrayList<>();
@@ -62,24 +60,22 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
         itemInsertions.add(new DbDataContainer("skey", GroundType.STRING, key));
         itemInsertions.add(new DbDataContainer("stype", GroundType.STRING, attributes.get(key).toString()));
 
-        connection.addVertexAndEdge("StructureVersionItem", itemInsertions, "StructureVersionItemConnection", id, new ArrayList<>());
+        this.dbClient.addVertexAndEdge("StructureVersionItem", itemInsertions, "StructureVersionItemConnection", id, new ArrayList<>());
       }
 
-      this.structureFactory.update(connection, structureId, id, parentIds);
+      this.structureFactory.update(structureId, id, parentIds);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundException ge) {
-      connection.abort();
+    } catch (GroundDBException ge) {
+      this.dbClient.abort();
       throw ge;
     }
   }
 
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -87,16 +83,16 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
       long structureId;
 
       try {
-        structureId = connection .getVertex(predicates).get("v").asNode().get("structure_id").asLong();
-      } catch (EmptyResultException eer) {
-        throw new GroundException("No StructureVersion found with id " + id + ".");
+        structureId = this.dbClient.getVertex(predicates).get("v").asNode().get("structure_id").asLong();
+      } catch (EmptyResultException e) {
+        throw new GroundDBException("No StructureVersion found with id " + id + ".");
       }
       List<String> returnFields = new ArrayList<>();
       returnFields.add("svid");
       returnFields.add("skey");
       returnFields.add("stype");
 
-      List<Record> edges = connection.getAdjacentVerticesByEdgeLabel("StructureVersionItemConnection", id, returnFields);
+      List<Record> edges = this.dbClient.getAdjacentVerticesByEdgeLabel("StructureVersionItemConnection", id, returnFields);
       Map<String, GroundType> attributes = new HashMap<>();
 
 
@@ -104,15 +100,14 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
         attributes.put(Neo4jClient.getStringFromValue((StringValue) record.get("skey")), GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("stype"))));
       }
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundException ge) {
-      connection.abort();
+    } catch (GroundDBException ge) {
+      this.dbClient.abort();
 
       throw ge;
     }
   }
-
 }

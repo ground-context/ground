@@ -19,7 +19,6 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -35,11 +34,11 @@ import java.util.stream.Collectors;
 
 public class PostgresNodeVersionFactory extends NodeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresNodeVersionFactory.class);
-  private PostgresClient dbClient;
-  private PostgresNodeFactory nodeFactory;
-  private PostgresRichVersionFactory richVersionFactory;
+  private final PostgresClient dbClient;
+  private final PostgresNodeFactory nodeFactory;
+  private final PostgresRichVersionFactory richVersionFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public PostgresNodeVersionFactory(PostgresNodeFactory nodeFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -56,77 +55,71 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
                             long nodeId,
                             List<Long> parentIds) throws GroundException {
 
-    PostgresConnection connection = this.dbClient.getConnection();
-
     try {
       long id = this.idGenerator.generateVersionId();
 
       // add the id of the version to the tag
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-      this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
-      connection.insert("node_version", insertions);
+      this.dbClient.insert("node_version", insertions);
 
-      this.nodeFactory.update(connection, nodeId, id, parentIds);
+      this.nodeFactory.update(nodeId, id, parentIds);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
 
       return NodeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, nodeId);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
-    PostgresConnection connection = this.dbClient.getConnection();
-
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("node_version", DBClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException eer) {
+        resultSet = this.dbClient.equalitySelect("node_version", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException e) {
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
       long nodeId = resultSet.getLong(2);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
 
       return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), nodeId);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
   public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
-    PostgresConnection connection = this.dbClient.getConnection();
-    List<Long> result = connection.transitiveClosure(nodeVersionId);
+    List<Long> result = this.dbClient.transitiveClosure(nodeVersionId);
 
-    connection.commit();
+    this.dbClient.commit();
     return result;
   }
 
   public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
-    PostgresConnection connection = this.dbClient.getConnection();
-    List<Long> result = connection.adjacentNodes(nodeVersionId, edgeNameRegex);
+    List<Long> result = this.dbClient.adjacentNodes(nodeVersionId, edgeNameRegex);
 
-    connection.commit();
+    this.dbClient.commit();
     return result;
   }
 }

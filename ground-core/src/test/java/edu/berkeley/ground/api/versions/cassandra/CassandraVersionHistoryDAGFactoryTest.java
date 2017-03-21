@@ -5,7 +5,6 @@ import org.junit.Test;
 import edu.berkeley.ground.api.CassandraTest;
 import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.api.versions.VersionSuccessor;
-import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -20,54 +19,46 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
 
   @Test
   public void testVersionHistoryDAGCreation() throws GroundException {
-    CassandraConnection connection = null;
     try {
-      connection = super.cassandraClient.getConnection();
       long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-          testId);
+      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
     } finally {
-      connection.abort();
+      super.cassandraClient.abort();
     }
   }
 
   @Test
   public void testAddEdge() throws GroundException {
-    CassandraConnection connection = null;
-
     try {
-      connection = super.cassandraClient.getConnection();
       long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-          testId);
+      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       long fromId = 123;
       long toId = 456;
 
-      super.versionFactory.insertIntoDatabase(connection, fromId);
-      super.versionFactory.insertIntoDatabase(connection, toId);
+      super.versionFactory.insertIntoDatabase(fromId);
+      super.versionFactory.insertIntoDatabase(toId);
 
-      super.versionHistoryDAGFactory.addEdge(connection, dag, fromId, toId, testId);
+      super.versionHistoryDAGFactory.addEdge(dag, fromId, toId, testId);
 
-      VersionHistoryDAG<?> retrieved = super.versionHistoryDAGFactory.retrieveFromDatabase(connection,
-          testId);
+      VersionHistoryDAG<?> retrieved = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, retrieved.getEdgeIds().size());
       assertEquals(toId, (long) retrieved.getLeaves().get(0));
 
       VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
-          connection, retrieved.getEdgeIds().get(0));
+          retrieved.getEdgeIds().get(0));
 
       assertEquals(fromId, successor.getFromId());
       assertEquals(toId, successor.getToId());
     } finally {
-      connection.abort();
+      super.cassandraClient.abort();
     }
   }
 }

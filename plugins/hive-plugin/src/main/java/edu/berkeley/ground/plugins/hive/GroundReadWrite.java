@@ -70,12 +70,11 @@ public class GroundReadWrite {
         this.groundReadWriteStructureResource = groundReadWriteStructureResource;
     }
 
-    public GroundReadWriteEdgeResource getGroundReadWriteEdgeResource() {
-        return this.groundReadWriteEdgeResource;
-    }
-
     public void setGroundReadWriteEdgeResource(GroundReadWriteEdgeResource groundReadWriteEdgeResource) {
         this.groundReadWriteEdgeResource = groundReadWriteEdgeResource;
     }
 
+    public GroundReadWriteEdgeResource getGroundReadWriteEdgeResource() {
+        return this.groundReadWriteEdgeResource;
+    }
 }

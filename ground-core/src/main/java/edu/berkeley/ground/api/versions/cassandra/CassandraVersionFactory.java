@@ -16,8 +16,7 @@ package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.VersionFactory;
-import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
+import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -25,12 +24,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CassandraVersionFactory extends VersionFactory {
-  public void insertIntoDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
-    CassandraConnection connection = (CassandraConnection) connectionPointer;
+  private final CassandraClient dbClient;
 
+  public CassandraVersionFactory(CassandraClient dbClient) {
+    this.dbClient = dbClient;
+  }
+
+  public void insertIntoDatabase(long id) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    connection.insert("version", insertions);
+    this.dbClient.insert("version", insertions);
   }
 }

@@ -20,10 +20,8 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -38,10 +36,10 @@ import java.util.Map;
 
 public class PostgresEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeFactory.class);
-  private PostgresClient dbClient;
-  private PostgresItemFactory itemFactory;
+  private final PostgresClient dbClient;
+  private final PostgresItemFactory itemFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public PostgresEdgeFactory(PostgresItemFactory itemFactory, PostgresClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -50,32 +48,28 @@ public class PostgresEdgeFactory extends EdgeFactory {
   }
 
   public Edge create(String name, Map<String, Tag> tags) throws GroundException {
-    PostgresConnection connection = dbClient.getConnection();
-
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId, tags);
+      this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
-      connection.insert("edge", insertions);
+      this.dbClient.insert("edge", insertions);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
       return EdgeFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
   public Edge retrieveFromDatabase(String name) throws GroundException {
-    PostgresConnection connection = dbClient.getConnection();
-
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
 
@@ -83,26 +77,26 @@ public class PostgresEdgeFactory extends EdgeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException eer) {
+        resultSet = this.dbClient.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException e) {
         throw new GroundException("No Edge found with name " + name + ".");
       }
 
       long id = resultSet.getLong(1);
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(connection, id).getTags();
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved edge " + name + ".");
 
       return EdgeFactory.construct(id, name, tags);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(connection, itemId, childId, parentIds);
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+    this.itemFactory.update(itemId, childId, parentIds);
   }
 }

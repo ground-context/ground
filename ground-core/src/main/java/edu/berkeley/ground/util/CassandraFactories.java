@@ -42,15 +42,15 @@ public class CassandraFactories {
   public CassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
     IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
 
-    CassandraVersionFactory versionFactory = new CassandraVersionFactory();
-    CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory(idGenerator);
-    CassandraVersionHistoryDAGFactory versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(versionSuccessorFactory);
-    CassandraTagFactory tagFactory = new CassandraTagFactory();
-    CassandraItemFactory itemFactory = new CassandraItemFactory(versionHistoryDAGFactory, tagFactory);
+    CassandraVersionFactory versionFactory = new CassandraVersionFactory(cassandraClient);
+    CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory(cassandraClient, idGenerator);
+    CassandraVersionHistoryDAGFactory versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(cassandraClient, versionSuccessorFactory);
+    CassandraTagFactory tagFactory = new CassandraTagFactory(cassandraClient);
+    CassandraItemFactory itemFactory = new CassandraItemFactory(cassandraClient, versionHistoryDAGFactory, tagFactory);
 
     this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient, idGenerator);
     this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient, idGenerator);
-    CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(versionFactory, structureVersionFactory, tagFactory);
+    CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(cassandraClient, versionFactory, structureVersionFactory, tagFactory);
     this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient, idGenerator);
     this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient, idGenerator);
     this.graphFactory = new CassandraGraphFactory(itemFactory, cassandraClient, idGenerator);
