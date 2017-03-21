@@ -1,7 +1,6 @@
 drop table lineage_edge_version;
 drop table lineage_edge;
 drop table principal;
-drop table workflow;
 drop table graph_version_edge;
 drop table graph_version;
 drop table edge_version;

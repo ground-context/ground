@@ -1,7 +1,6 @@
 truncate lineage_edge_version;
 truncate lineage_edge;
 truncate principal;
-truncate workflow;
 truncate graph_version_edge;
 truncate graph_version;
 truncate edge_version;

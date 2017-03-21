@@ -110,10 +110,6 @@ create table graph_version_edge (
 
 /* USAGE */
 
-create table workflow (
-    graph_id bigint NOT NULL PRIMARY KEY REFERENCES graph(item_id),
-    name varchar NOT NULL UNIQUE REFERENCES graph(name)
-);
 
 create table principal (
     node_id bigint NOT NULL PRIMARY KEY REFERENCES node(item_id),
@@ -130,7 +126,6 @@ create table lineage_edge_version (
     lineage_edge_id bigint NOT NULL REFERENCES lineage_edge(item_id),
     from_rich_version_id bigint NOT NULL REFERENCES rich_version(id),
     to_rich_version_id bigint NOT NULL REFERENCES rich_version(id),
-    workflow_id bigint REFERENCES graph_version(id),
     principal_id bigint REFERENCES node_version(id)
 );
 

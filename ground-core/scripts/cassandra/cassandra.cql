@@ -112,12 +112,6 @@ create table graph_version_edge (
 
 /* USAGE */
 
-create table workflow (
-    graph_id bigint,
-    name varchar,
-    PRIMARY KEY (graph_id, name)
-);
-
 create table principal (
     node_id bigint,
     name varchar,
@@ -135,7 +129,6 @@ create table lineage_edge_version (
     lineage_edge_id bigint,
     from_rich_version_id bigint,
     to_rich_version_id bigint,
-    workflow_id bigint,
     principal_id bigint,
 );
 
