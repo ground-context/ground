@@ -25,12 +25,17 @@ public abstract class EdgeVersionFactory {
                                      String reference,
                                      Map<String, String> referenceParameters,
                                      long edgeId,
-                                     long fromId,
-                                     long toId,
+                                     long fromNodeVersionStartId,
+                                     long fromNodeVersionEndId,
+                                     long toNodeVersionStartId,
+                                     long toNodeVersionEndId,
                                      List<Long> parentIds) throws GroundException;
 
 
   public abstract EdgeVersion retrieveFromDatabase(long id) throws GroundException;
+
+  protected abstract void updatePreviousVersion(long id, long fromEndId, long toEndId)
+      throws GroundException;
 
   protected static EdgeVersion construct(long id,
                                          Map<String, Tag> tags,
@@ -38,9 +43,12 @@ public abstract class EdgeVersionFactory {
                                          String reference,
                                          Map<String, String> referenceParameters,
                                          long edgeId,
-                                         long fromId,
-                                         long toId) throws GroundException {
+                                         long fromNodeVersionStartId,
+                                         long fromNodeVersionEndId,
+                                         long toNodeVersionStartId,
+                                         long toNodeVersionEndId) throws GroundException {
 
-    return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
+    return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters, edgeId,
+        fromNodeVersionStartId, fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
   }
 }

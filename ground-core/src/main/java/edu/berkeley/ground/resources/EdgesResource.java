@@ -85,8 +85,8 @@ public class EdgesResource {
         edgeVersion.getReference(),
         edgeVersion.getParameters(),
         edgeVersion.getEdgeId(),
-        edgeVersion.getFromId(),
-        edgeVersion.getToId(),
+        edgeVersion.getFromNodeId(),
+        edgeVersion.getToNodeId(),
         parentIds);
   }
 }

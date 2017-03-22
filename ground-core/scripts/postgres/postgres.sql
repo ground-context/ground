@@ -72,6 +72,8 @@ create table rich_version_tag (
 
 create table edge (
     item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
+    from_node_id bigint NOT NULL REFERENCES node(item_id),
+    to_node_id bigint NOT NULL REFERENCES node(item_id),
     name varchar NOT NULL UNIQUE
 );
 
@@ -93,8 +95,10 @@ create table node_version (
 create table edge_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
     edge_id bigint NOT NULL REFERENCES edge(item_id),
-    from_node_version_id bigint NOT NULL REFERENCES node_version(id),
-    to_node_version_id bigint NOT NULL REFERENCES node_version(id)
+    from_node_start_id bigint NOT NULL REFERENCES node_version(id),
+    from_node_end_id bigint REFERENCES node_version(id),
+    to_node_start_id bigint NOT NULL REFERENCES node_version(id),
+    to_node_end_id bigint REFERENCES node_version(id)
 );
 
 create table graph_version (
