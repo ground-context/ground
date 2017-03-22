@@ -64,8 +64,8 @@ public class CassandraEdgeVersionFactoryTest extends CassandraTest {
     assertEquals(edgeId, retrieved.getEdgeId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
     assertEquals(testReference, retrieved.getReference());
-    assertEquals(retrieved.getFromId(), firstNodeVersionId);
-    assertEquals(retrieved.getToId(), secondNodeVersionId);
+    assertEquals(retrieved.getFromNodeId(), firstNodeVersionId);
+    assertEquals(retrieved.getToNodeId(), secondNodeVersionId);
 
     assertEquals(parameters.size(), retrieved.getParameters().size());
     assertEquals(tags.size(), retrieved.getTags().size());
