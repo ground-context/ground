@@ -26,7 +26,9 @@
         <dependency>
             <groupId>edu.berkeley</groupId>
             <artifactId>ground-core</artifactId>
-            <version>${project.version}</version>
+            <version>${ground.version}</version>
+            <scope>system</scope>
+            <systemPath>/Users/krishnar/.m2/repository/edu/berkeley/ground-core/0.1-SNAPSHOT/ground-core-0.1-SNAPSHOT.jar</systemPath>
         </dependency>
         <!-- http://mvnrepository.com/artifact/org.apache.hive/hive-metastore -->
         <dependency>

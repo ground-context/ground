@@ -18,254 +18,63 @@
 package edu.berkeley.ground.plugins.hive;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.util.Properties;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.postgres.*;
-import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
-import edu.berkeley.ground.util.Neo4jFactories;
-import edu.berkeley.ground.util.PostgresFactories;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.util.HttpURLConnection;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.plugins.hive.util.PluginUtil;
 
 public class GroundReadWrite {
 
-  private static final String GROUNDCONF = "ground.properties";
+    public static final String NO_CACHE_CONF = "no_cache_conf";
+    private GroundReadWriteNodeResource groundReadWriteNodeResource;
+    private GroundReadWriteStructureResource groundReadWriteStructureResource;
+    private GroundReadWriteEdgeResource groundReadWriteEdgeResource;
 
-  static final private Logger LOG = LoggerFactory.getLogger(GroundReadWrite.class.getName());
-
-  static final String GRAPHFACTORY_CLASS = "ground.graph.factory";
-
-  static final String NODEFACTORY_CLASS = "ground.node.factory";
-
-  static final String EDGEFACTORY_CLASS = "ground.edge.factory";
-
-  static final String NO_CACHE_CONF = "no.use.cache";
-  private DBClient dbClient;
-  private GraphFactory graphFactory;
-  private GraphVersionFactory graphVersionFactory;
-  private NodeVersionFactory nodeVersionFactory;
-  private EdgeVersionFactory edgeVersionFactory;
-  private String factoryType;
-
-  @VisibleForTesting
-  final static String TEST_CONN = "test_connection";
-
-  protected static final String DEFAULT_FACTORY = "neo4j";
-
-  private static Configuration staticConf = null;
-
-  private NodeFactory nodeFactory;
-
-  private EdgeFactory edgeFactory;
-
-  private StructureVersionFactory structureVersionFactory;
-
-  private StructureFactory structureFactory;
-
-  private String dbName;
-
-  private String userName;
-
-  private String password;
-
-  private String host;
-
-  public StructureVersionFactory getStructureVersionFactory() {
-    return structureVersionFactory;
-  }
-
-  public void setStructureVersionFactory(StructureVersionFactory svf) {
-    this.structureVersionFactory = svf;
-  }
-
-  /**
-   * @return the sf
-   */
-  public StructureFactory getStructureFactory() {
-    return structureFactory;
-  }
-
-  /**
-   * @param sf the sf to set
-   */
-  public void setStructureFactory(StructureFactory sf) {
-    this.structureFactory = sf;
-  }
-
-  private static ThreadLocal<GroundReadWrite> self = new ThreadLocal<GroundReadWrite>() {
-    @Override
-    protected GroundReadWrite initialValue() {
-      if (staticConf == null) {
-        throw new RuntimeException("Must set conf object before getting an instance");
-      }
-      try {
-        return new GroundReadWrite(staticConf);
-      } catch (GroundDBException e) {
-        LOG.error("create groundreadwrite failed {}", e.getMessage());
-      }
-      return null;
+    public GroundReadWrite() throws GroundException {
+        // initialize all ground related resources
+        setGroundReadWriteNodeResource(new GroundReadWriteNodeResource());
+        setGroundReadWriteEdgeResource(new GroundReadWriteEdgeResource());
+        setGroundReadWriteStructureResource(new GroundReadWriteStructureResource());
     }
-  };
 
-  /**
-   * Set the configuration for all GroundReadWrite instances.
-   *
-   * @param conf the configuration object
-   */
-  public static synchronized void setConf(Configuration conf) {
-    /** TODO(krishna) Need to change - temporarily using test connection
-     * for hive command line as well as test.
-     */
-    if (staticConf == null) {
-      staticConf = conf;
-      //conf.setVar(HiveConf.ConfVars.METASTORE_EXPRESSION_PROXY_CLASS, MockPartitionExpressionProxy.class.getName());
-      HiveConf.setVar(conf, HiveConf.ConfVars.METASTORE_CONNECTION_DRIVER, "test_connection");
-      conf.set(GRAPHFACTORY_CLASS, PostgresGraphVersionFactory.class.getName());
-      conf.set(NODEFACTORY_CLASS, PostgresNodeVersionFactory.class.getName());
-      conf.set(EDGEFACTORY_CLASS, PostgresEdgeVersionFactory.class.getName());
-    } else {
-      LOG.info("Attempt to set conf when it has already been set.");
-    }
-  }
-
-  /**
-   * Get the instance of GroundReadWrite for the current thread.
-   */
-  static GroundReadWrite getInstance() {
-    if (staticConf == null) {
-      throw new RuntimeException("Must set conf object before getting an instance");
-    }
-    return self.get();
-  }
-
-  private GroundReadWrite(Configuration conf) throws GroundDBException {
-    Properties props = new Properties();
-    try {
-      String groundPropertyResource = GROUNDCONF; //ground properties from resources
-      ClassLoader loader = Thread.currentThread().getContextClassLoader();
-      try (InputStream resourceStream = loader.getResourceAsStream(groundPropertyResource)) {
-        props.load(resourceStream);
-        resourceStream.close();
-      }
-      //
-      String clientClass = props.getProperty("edu.berkeley.ground.model.config.dbClient");
-      host = props.getProperty("edu.berkeley.ground.model.config.host");
-      int port = new Integer(props.getProperty("edu.berkeley.ground.model.config.port"));
-      dbName = props.getProperty("edu.berkeley.ground.model.config.dbName");
-      userName = props.getProperty("edu.berkeley.ground.model.config.user");
-      password = props.getProperty("edu.berkeley.ground.model.config.password");
-      LOG.info("client cass is " + clientClass);
-      if (TEST_CONN.equals(clientClass)) {
-        factoryType = props.getProperty("edu.berkeley.ground.model.config.factoryType");
-        LOG.info("Using test connection."); // for unit and integration test
-        if (factoryType.contains("neo4j")) {
-          dbClient = new Neo4jClient(host, userName, password);
-          createNeo4jInstance();
-        } else {
-          dbClient = new PostgresClient("127.0.0.1", 5432, "test", "test", "test");
-          createPostgresInstance();
+    String checkStatus(HttpMethod method) throws GroundException {
+        try {
+            if (PluginUtil.client.executeMethod(method) == HttpURLConnection.HTTP_OK) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                String text = method.getResponseBodyAsString();
+                JsonNode jsonNode = objectMapper.readValue(text, JsonNode.class);
+                JsonNode nodeId = jsonNode.get("id");
+                return nodeId.asText();
+            }
+        } catch (IOException e) {
+            throw new GroundException(e);
         }
-      } else {
-        conf.set("edu.berkeley.ground.model.config.clientClass", clientClass);
-        conf.set("edu.berkeley.ground.model.config.host", host);
-        conf.set("edu.berkeley.ground.model.config.dbName", dbName);
-        conf.set("edu.berkeley.ground.model.config.userName", userName);
-        conf.set("edu.berkeley.ground.model.config.password", password);
-        conf.setInt("edu.berkeley.ground.model.config.port", port);
-        Class<?> clazz = Class.forName(clientClass);
-        Constructor<?> constructor = clazz.getConstructor(String.class, Integer.class,
-            String.class, String.class, String.class);
-        dbClient = (DBClient) constructor.newInstance(host, port, dbName, userName, password);
-        // dbClient = new PostgresClient(host, port, dbName, userName, password);
-        LOG.debug("Instantiating connection class " + clientClass);
-        if (staticConf.get("factoryType", DEFAULT_FACTORY).equals("postgres")) {
-          createPostgresInstance();
-        } else {
-          createNeo4jInstance();
-        }
-      }
-    } catch (Exception e) {
-      throw new GroundDBException(e);
+        return null;
     }
-  }
 
-  private void createNeo4jInstance() {
-    Neo4jFactories neo4JFactories = new Neo4jFactories((Neo4jClient) dbClient, 0, 1);
-    this.nodeFactory = neo4JFactories.getNodeFactory();
-    this.nodeVersionFactory = neo4JFactories.getNodeVersionFactory();
-    this.edgeFactory = neo4JFactories.getEdgeFactory();
-    this.edgeVersionFactory = neo4JFactories.getEdgeVersionFactory();
-    this.graphFactory = neo4JFactories.getGraphFactory();
-    this.structureFactory = neo4JFactories.getStructureFactory();
-    this.structureVersionFactory = neo4JFactories.getStructureVersionFactory();
-  }
-
-  private void createPostgresInstance() throws GroundDBException {
-    PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient, 0, 1);
-    this.nodeFactory = postgresFactories.getNodeFactory();
-    this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
-    this.edgeFactory = postgresFactories.getEdgeFactory();
-    this.edgeVersionFactory = postgresFactories.getEdgeVersionFactory();
-    this.graphFactory = postgresFactories.getGraphFactory();
-    this.structureFactory = postgresFactories.getStructureFactory();
-    this.structureVersionFactory = postgresFactories.getStructureVersionFactory();
-  }
-
-  public void close() throws IOException {
-  }
-
-  public void begin() {
-  }
-
-  public void commit() {
-    try {
-      dbClient.commit();
-    } catch (GroundDBException e) {
-      throw new RuntimeException(e);
+    public GroundReadWriteNodeResource getGroundReadWriteNodeResource() {
+        return this.groundReadWriteNodeResource;
     }
-  }
 
-  public GraphFactory getGraphFactory() {
-    return graphFactory;
-  }
+    public void setGroundReadWriteNodeResource(GroundReadWriteNodeResource groundReadWriteNodeResource) {
+        this.groundReadWriteNodeResource = groundReadWriteNodeResource;
+    }
 
-  public NodeVersionFactory getNodeVersionFactory() {
-    return nodeVersionFactory;
-  }
+    public GroundReadWriteStructureResource getGroundReadWriteStructureResource() {
+        return this.groundReadWriteStructureResource;
+    }
 
-  public EdgeVersionFactory getEdgeVersionFactory() {
-    return edgeVersionFactory;
-  }
+    public void setGroundReadWriteStructureResource(GroundReadWriteStructureResource groundReadWriteStructureResource) {
+        this.groundReadWriteStructureResource = groundReadWriteStructureResource;
+    }
 
-  public String getFactoryType() {
-    return factoryType;
-  }
+    public void setGroundReadWriteEdgeResource(GroundReadWriteEdgeResource groundReadWriteEdgeResource) {
+        this.groundReadWriteEdgeResource = groundReadWriteEdgeResource;
+    }
 
-  public DBClient getDbClient() {
-    return dbClient;
-  }
-
-  public NodeFactory getNodeFactory() {
-    return nodeFactory;
-  }
-
-  public EdgeFactory getEdgeFactory() {
-    return edgeFactory;
-  }
-
-  public GraphVersionFactory getGraphVersionFactory() {
-    return graphVersionFactory;
-  }
-
+    public GroundReadWriteEdgeResource getGroundReadWriteEdgeResource() {
+        return this.groundReadWriteEdgeResource;
+    }
 }
