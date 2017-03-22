@@ -124,6 +124,48 @@ public class PostgresClient extends DBClient {
     }
   }
 
+  public void update(List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates,
+                     String table) throws GroundDBException {
+
+    String updateString = "update " + table + " set ";
+
+    if (setPredicates.size() > 0) {
+      String setPredicateString = setPredicates.stream()
+          .map(predicate -> predicate.getField() + " = ?")
+          .collect(Collectors.joining(" and "));
+
+      updateString += setPredicateString;
+    }
+
+    if (wherePredicates.size() > 0) {
+      String wherePredicateString = wherePredicates.stream()
+          .map(predicate -> predicate.getField() + " = ?")
+          .collect(Collectors.joining(" and "));
+
+      updateString += " where " + wherePredicateString;
+    }
+
+    PreparedStatement statement = this.prepareStatement(updateString);
+
+    try {
+      int index = 0;
+      for (DbDataContainer predicate : setPredicates) {
+        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
+      }
+
+
+      for (DbDataContainer predicate : wherePredicates) {
+        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
+      }
+
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
+    }
+  }
+
   @Override
   public List<Long> transitiveClosure(long nodeVersionId) throws GroundDBException {
     try {
