@@ -25,19 +25,41 @@ public class Edge extends Item<EdgeVersion> {
   // the name of this Edge
   private String name;
 
+  // the id of the Node that this EdgeVersion originates from
+  private long fromNodeId;
+
+  // the id of the Node that this EdgeVersion points to
+  private long toNodeId;
+
+
   @JsonCreator
   public Edge(@JsonProperty("id") long id,
               @JsonProperty("name") String name,
+              @JsonProperty("fromNodeId") long fromNodeId,
+              @JsonProperty("toNodeId") long toNodeId,
               @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
+    this.fromNodeId = fromNodeId;
+    this.toNodeId = toNodeId;
   }
 
   @JsonProperty
   public String getName() {
     return this.name;
   }
+
+  @JsonProperty
+  public long getFromNodeId() {
+    return this.fromNodeId;
+  }
+
+  @JsonProperty
+  public long getToNodeId() {
+    return this.toNodeId;
+  }
+
 
   @Override
   public boolean equals(Object other) {
@@ -47,6 +69,9 @@ public class Edge extends Item<EdgeVersion> {
 
     Edge otherEdge = (Edge) other;
 
-    return this.name.equals(otherEdge.name) && this.getId() == otherEdge.getId();
+    return this.name.equals(otherEdge.name) &&
+        this.getId() == otherEdge.getId() &&
+        this.fromNodeId == otherEdge.fromNodeId &&
+        this.toNodeId == otherEdge.toNodeId;
   }
 }

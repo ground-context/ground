@@ -20,13 +20,21 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class EdgeFactory {
-  public abstract Edge create(String name, Map<String, Tag> tags) throws GroundException;
+  public abstract Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
+      throws GroundException;
 
   public abstract Edge retrieveFromDatabase(String name) throws GroundException;
 
+  public abstract Edge retrieveFromDatabase(long id) throws GroundException;
+
   public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  protected static Edge construct(long id, String name, Map<String, Tag> tags) {
-    return new Edge(id, name, tags);
+  protected static Edge construct(long id,
+                                  String name,
+                                  long fromNodeId,
+                                  long toNodeId,
+                                  Map<String, Tag> tags) {
+
+    return new Edge(id, name, fromNodeId, toNodeId, tags);
   }
 }

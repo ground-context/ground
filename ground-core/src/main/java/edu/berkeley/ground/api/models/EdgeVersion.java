@@ -23,11 +23,17 @@ public class EdgeVersion extends RichVersion {
   // the id of the Edge containing this Version
   private long edgeId;
 
-  // the id of the NodeVersion that this EdgeVersion originates from
-  private long fromId;
+  // the first NodeVersion in fromNode that this EdgeVersion applies to
+  private long fromNodeVersionStartId;
 
-  // the id of the NodeVersion that this EdgeVersion points to
-  private long toId;
+  // the last NodeVersion in fromNode that this EdgeVersion applies to
+  private long fromNodeVersionEndId;
+
+  // the first NodeVersion in toNode that this EdgeVersion applies to
+  private long toNodeVersionStartId;
+
+  // the last NodeVersion in toNode that this EdgeVersion applies to
+  private long toNodeVersionEndId;
 
   @JsonCreator
   public EdgeVersion(
@@ -37,29 +43,43 @@ public class EdgeVersion extends RichVersion {
       @JsonProperty("reference") String reference,
       @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
       @JsonProperty("edgeId") long edgeId,
-      @JsonProperty("fromId") long fromId,
-      @JsonProperty("toId") long toId) {
+      @JsonProperty("fromNodeVersionStartId") long fromNodeVersionStartId,
+      @JsonProperty("fromNodeVersionEndId") long fromNodeVersionEndId,
+      @JsonProperty("toNodeVersionStartId") long toNodeVersionStartId,
+      @JsonProperty("toNodeVersionEndId") long toNodeVersionEndId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.edgeId = edgeId;
-    this.fromId = fromId;
-    this.toId = toId;
+
+    this.fromNodeVersionStartId = fromNodeVersionStartId;
+    this.fromNodeVersionEndId = fromNodeVersionEndId;
+    this.toNodeVersionStartId = toNodeVersionStartId;
+    this.toNodeVersionEndId = toNodeVersionEndId;
   }
 
   @JsonProperty
   public long getEdgeId() {
     return this.edgeId;
   }
-
   @JsonProperty
-  public long getFromId() {
-    return this.fromId;
+  public long getFromNodeVersionStartId() {
+    return this.fromNodeVersionStartId;
   }
 
   @JsonProperty
-  public long getToId() {
-    return this.toId;
+  public long getFromNodeVersionEndId() {
+    return this.fromNodeVersionEndId;
+  }
+
+  @JsonProperty
+  public long getToNodeVersionStartId() {
+    return this.toNodeVersionStartId;
+  }
+
+  @JsonProperty
+  public long getToNodeVersionEndId() {
+    return this.toNodeVersionEndId;
   }
 
   @Override
@@ -71,8 +91,10 @@ public class EdgeVersion extends RichVersion {
     EdgeVersion otherEdgeVersion = (EdgeVersion) other;
 
     return this.edgeId == otherEdgeVersion.edgeId &&
-        this.fromId == otherEdgeVersion.fromId &&
-        this.toId == otherEdgeVersion.toId &&
+        this.fromNodeVersionStartId == otherEdgeVersion.fromNodeVersionStartId &&
+        this.fromNodeVersionEndId  == otherEdgeVersion.fromNodeVersionEndId &&
+        this.toNodeVersionStartId == otherEdgeVersion.toNodeVersionStartId &&
+        this.toNodeVersionEndId == otherEdgeVersion.toNodeVersionEndId &&
         this.getId() == otherEdgeVersion.getId() &&
         super.equals(other);
   }
