@@ -14,6 +14,7 @@ package edu.berkeley.ground.db;
 import com.datastax.driver.core.*;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.util.JGraphTUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class CassandraClient extends DBClient {
@@ -150,6 +152,44 @@ public class CassandraClient extends DBClient {
     }
 
     return new CassandraResults(resultSet);
+  }
+
+  public void update(List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates,
+                     String table) throws GroundDBException {
+
+    String updateString = "update " + table + " set ";
+
+    if (setPredicates.size() > 0) {
+      String setPredicateString = setPredicates.stream()
+          .map(predicate -> predicate.getField() + " = ?")
+          .collect(Collectors.joining(" and "));
+
+      updateString += setPredicateString;
+    }
+
+    if (wherePredicates.size() > 0) {
+      String wherePredicateString = wherePredicates.stream()
+          .map(predicate -> predicate.getField() + " = ?")
+          .collect(Collectors.joining(" and "));
+
+      updateString += " where " + wherePredicateString;
+    }
+
+    BoundStatement statement = this.prepareStatement(updateString);
+
+    int index = 0;
+    for (DbDataContainer predicate : setPredicates) {
+      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+      index++;
+    }
+
+
+    for (DbDataContainer predicate : wherePredicates) {
+      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+      index++;
+    }
+
+    this.session.execute(statement);
   }
 
   @Override
