@@ -52,8 +52,10 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
                             String reference,
                             Map<String, String> referenceParameters,
                             long edgeId,
-                            long fromId,
-                            long toId,
+                            long fromNodeVersionStartId,
+                            long fromNodeVersionEndId,
+                            long toNodeVersionStartId,
+                            long toNodeVersionEndId,
                             List<Long> parentIds) throws GroundException {
 
     try {
@@ -66,8 +68,13 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-      insertions.add(new DbDataContainer("from_node_version_id", GroundType.LONG, fromId));
-      insertions.add(new DbDataContainer("to_node_version_id", GroundType.LONG, toId));
+      insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+          fromNodeVersionStartId));
+      insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+          fromNodeVersionEndId));
+      insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+          toNodeVersionStartId));
+      insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
       this.dbClient.insert("edge_version", insertions);
 
@@ -76,7 +83,9 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
       this.dbClient.commit();
       LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
+      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
+          referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
+          toNodeVersionStartId, toNodeVersionEndId);
     } catch (GroundException e) {
       this.dbClient.abort();
       throw e;
@@ -97,17 +106,40 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
       long edgeId = resultSet.getLong(2);
-      long fromId = resultSet.getLong(3);
-      long toId = resultSet.getLong(4);
+
+      long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
+      long fromNodeVersionEndId = resultSet.getLong("from_node_end_id");
+      long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
+      long toNodeVersionEndId = resultSet.getLong("to_node_end_id");
 
       this.dbClient.commit();
       LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);
+      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+          version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
+          fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
     } catch (GroundException e) {
       this.dbClient.abort();
 
       throw e;
     }
+  }
+
+  protected void updatePreviousVersion(long id, long fromEndId, long toEndId)
+      throws GroundException {
+
+    List<DbDataContainer> setPredicates = new ArrayList<>();
+    List<DbDataContainer> wherePredicates = new ArrayList<>();
+
+    if (fromEndId != -1) {
+      setPredicates.add(new DbDataContainer("from_node_end_id", GroundType.LONG, fromEndId));
+    }
+
+    if (toEndId != -1) {
+      setPredicates.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toEndId));
+    }
+
+    wherePredicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    this.dbClient.update(setPredicates, wherePredicates, "edge_version");
   }
 }

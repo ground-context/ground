@@ -16,9 +16,12 @@ package edu.berkeley.ground.api.models.cassandra;
 
 import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.EdgeFactory;
+import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.api.versions.VersionHistoryDAG;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
+import edu.berkeley.ground.api.versions.cassandra.CassandraVersionHistoryDAGFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -37,17 +40,26 @@ import java.util.Map;
 public class CassandraEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
   private final CassandraClient dbClient;
+  private final CassandraVersionHistoryDAGFactory versionHistoryDAGFactory;
   private final CassandraItemFactory itemFactory;
+  private final CassandraEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
 
-  public CassandraEdgeFactory(CassandraItemFactory itemFactory, CassandraClient dbClient, IdGenerator idGenerator) {
+  public CassandraEdgeFactory(CassandraItemFactory itemFactory,
+                              CassandraClient dbClient,
+                              IdGenerator idGenerator,
+                              CassandraEdgeVersionFactory edgeVersionFactory,
+                              CassandraVersionHistoryDAGFactory versionHistoryDAGFactory) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
+    this.edgeVersionFactory = edgeVersionFactory;
+    this.versionHistoryDAGFactory = versionHistoryDAGFactory;
   }
 
-  public Edge create(String name, Map<String, Tag> tags) throws GroundException {
+  public Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
+      throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -56,12 +68,14 @@ public class CassandraEdgeFactory extends EdgeFactory {
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+      insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
+      insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
 
       this.dbClient.insert("edge", insertions);
 
       this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
-      return EdgeFactory.construct(uniqueId, name, tags);
+      return EdgeFactory.construct(uniqueId, name, fromNodeId, toNodeId, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 
@@ -70,33 +84,45 @@ public class CassandraEdgeFactory extends EdgeFactory {
   }
 
   public Edge retrieveFromDatabase(String name) throws GroundException {
+    return this.retrieveByPredicate("name", name, GroundType.STRING);
+  }
+
+  public Edge retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.LONG);
+  }
+
+  private Edge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException{
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, valueType));
+
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
       QueryResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
-        throw new GroundException("No Edge found with name " + name + ".");
+        throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
       }
 
       if (!resultSet.next()) {
         this.dbClient.abort();
 
-        throw new GroundException("No Edge found with name " + name + ".");
+        throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
       }
 
       long id = resultSet.getLong(0);
+      String name = resultSet.getString("name");
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+      long fromNodeId = resultSet.getLong("from_node_id");
+      long toNodeId = resultSet.getLong("to_node_id");
 
       this.dbClient.commit();
-      LOGGER.info("Retrieved edge " + name + ".");
+      LOGGER.info("Retrieved edge " + value + ".");
 
-      return EdgeFactory.construct(id, name, tags);
+      return EdgeFactory.construct(id, name, fromNodeId, toNodeId, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 
@@ -106,5 +132,33 @@ public class CassandraEdgeFactory extends EdgeFactory {
 
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
+
+    for (long parentId : parentIds) {
+      EdgeVersion currentVersion = this.edgeVersionFactory.retrieveFromDatabase(childId);
+      EdgeVersion parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
+      Edge edge = this.retrieveFromDatabase(itemId);
+
+      long fromNodeId = edge.getFromNodeId();
+      long toNodeId = edge.getToNodeId();
+
+      long fromEndId = -1;
+      long toEndId = -1;
+
+      if (parentVersion.getFromNodeVersionEndId() != -1) {
+        // update from end id
+        VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(fromNodeId);
+        fromEndId = (long) dag.getParent(currentVersion.getFromNodeVersionStartId()).get(0);
+      }
+
+      if (parentVersion.getToNodeVersionEndId() != -1) {
+        // update to end id
+        VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(toNodeId);
+        toEndId = (long) dag.getParent(currentVersion.getToNodeVersionStartId()).get(0);
+      }
+
+      if (fromEndId != -1 || toEndId != -1) {
+        this.edgeVersionFactory.updatePreviousVersion(parentId, fromEndId, toEndId);
+      }
+    }
   }
 }
