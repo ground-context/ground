@@ -132,7 +132,7 @@ public class PostgresClient extends DBClient {
     if (setPredicates.size() > 0) {
       String setPredicateString = setPredicates.stream()
           .map(predicate -> predicate.getField() + " = ?")
-          .collect(Collectors.joining(" and "));
+          .collect(Collectors.joining(", "));
 
       updateString += setPredicateString;
     }
@@ -148,7 +148,7 @@ public class PostgresClient extends DBClient {
     PreparedStatement statement = this.prepareStatement(updateString);
 
     try {
-      int index = 0;
+      int index = 1;
       for (DbDataContainer predicate : setPredicates) {
         PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
         index++;

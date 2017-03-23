@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.api.PostgresTest;
@@ -85,5 +86,85 @@ public class PostgresEdgeVersionFactoryTest extends PostgresTest {
       assert (retrievedTags).containsKey(key);
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
+  }
+
+
+  @Test
+  public void testCorrectEndVersion() throws GroundException {
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
+    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, new HashMap<>()).getId();
+    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+
+    String edgeName = "testEdge";
+    long edgeId = super.factories.getEdgeFactory().create(edgeName, firstTestNodeId,
+        secondTestNodeId, new HashMap<>()).getId();
+
+
+    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
+        new ArrayList<>()).getId();
+
+    EdgeVersion retrieved = super.factories.getEdgeVersionFactory()
+        .retrieveFromDatabase(edgeVersionId);
+
+    assertEquals(edgeId, retrieved.getEdgeId());
+    assertEquals(-1, retrieved.getStructureVersionId());
+    assertEquals(null, retrieved.getReference());
+    assertEquals(firstNodeVersionId, retrieved.getFromNodeVersionStartId());
+    assertEquals(secondNodeVersionId, retrieved.getToNodeVersionStartId());
+    assertEquals(-1, retrieved.getFromNodeVersionEndId());
+    assertEquals(-1, retrieved.getToNodeVersionEndId());
+
+    // create two new node versions in each of the nodes
+    List<Long> parents = new ArrayList<>();
+    parents.add(firstNodeVersionId);
+    long fromEndId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
+        null, new HashMap<>(), firstTestNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(fromEndId);
+    long newFirstNodeVersionId = super.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), firstTestNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(secondNodeVersionId);
+    long toEndId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1, null,
+        new HashMap<>(), secondTestNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(toEndId);
+    long newSecondNodeVersionId = super.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), secondTestNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(edgeVersionId);
+    long newEdgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), edgeId, newFirstNodeVersionId, -1, newSecondNodeVersionId, -1,
+        parents).getId();
+
+    EdgeVersion parent = super.factories.getEdgeVersionFactory()
+        .retrieveFromDatabase(edgeVersionId);
+    EdgeVersion child = super.factories.getEdgeVersionFactory()
+        .retrieveFromDatabase(newEdgeVersionId);
+
+    assertEquals(edgeId, child.getEdgeId());
+    assertEquals(-1, child.getStructureVersionId());
+    assertEquals(null, child.getReference());
+    assertEquals(newFirstNodeVersionId, child.getFromNodeVersionStartId());
+    assertEquals(newSecondNodeVersionId, child.getToNodeVersionStartId());
+    assertEquals(-1, child.getFromNodeVersionEndId());
+    assertEquals(-1, child.getToNodeVersionEndId());
+
+    // Make sure that the end versions were set correctly
+    assertEquals(firstNodeVersionId, parent.getFromNodeVersionStartId());
+    assertEquals(secondNodeVersionId, parent.getToNodeVersionStartId());
+    assertEquals(fromEndId, parent.getFromNodeVersionEndId());
+    assertEquals(toEndId, parent.getToNodeVersionEndId());
   }
 }

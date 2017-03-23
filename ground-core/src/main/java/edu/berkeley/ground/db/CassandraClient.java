@@ -115,7 +115,7 @@ public class CassandraClient extends DBClient {
     if (setPredicates.size() > 0) {
       String setPredicateString = setPredicates.stream()
           .map(predicate -> predicate.getField() + " = ?")
-          .collect(Collectors.joining(" and "));
+          .collect(Collectors.joining(", "));
 
       updateString += setPredicateString;
     }
