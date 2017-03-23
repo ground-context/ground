@@ -80,49 +80,4 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(1 == leaves.size());
   }
-
-  @Test
-  public void testTransitiveClosure() throws GroundException {
-    String nodeName = "testNode1";
-    long nodeId = CassandraTest.factories.getNodeFactory()
-        .create(nodeName, new HashMap<>()).getId();
-
-    long nodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-
-    nodeName = "testNode2";
-    long secondNodeId = CassandraTest.factories.getNodeFactory().create(nodeName, new HashMap<>())
-        .getId();
-
-    long secondNVId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
-        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-
-    String edgeName = "testEdge1";
-    long edgeId = CassandraTest.factories.getEdgeFactory()
-        .create(edgeName, nodeId, secondNodeId, new HashMap<>()).getId();
-
-    CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
-        HashMap<>(), edgeId, secondNVId, nodeVersionId, -1, -1, new ArrayList<>()).getId();
-
-    nodeName = "testNode3";
-    nodeId = CassandraTest.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
-
-    long thirdNVId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
-        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-
-
-    edgeName = "testEdge3";
-    edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, secondNodeId, nodeId,
-        new HashMap<>()).getId();
-
-    CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
-        HashMap<>(), edgeId, thirdNVId, secondNVId, -1, -1, new ArrayList<>()).getId();
-
-
-    List<Long> reachable = CassandraTest.factories.getNodeVersionFactory().getTransitiveClosure
-        (thirdNVId);
-
-    assertTrue(reachable.contains(nodeVersionId));
-    assertTrue(reachable.contains(secondNVId));
-  }
 }

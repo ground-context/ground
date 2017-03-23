@@ -111,13 +111,6 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public List<Long> getTransitiveClosure(long nodeVersionId) {
-    List<Long> result = this.dbClient.transitiveClosure(nodeVersionId);
-
-    this.dbClient.commit();
-    return result;
-  }
-
   public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) {
     List<Long> result = this.dbClient.adjacentNodes(nodeVersionId, edgeNameRegex);
 

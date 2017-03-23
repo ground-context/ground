@@ -97,15 +97,6 @@ public class NodesResource {
 
   @GET
   @Timed
-  @Path("/closure/{id}")
-  public List<Long> transitiveClosure(@PathParam("id") long nodeVersionId) throws GroundException {
-    LOGGER.info("Running transitive closure on node version  " + nodeVersionId + ".");
-
-    return this.nodeVersionFactory.getTransitiveClosure(nodeVersionId);
-  }
-
-  @GET
-  @Timed
   @Path("/adjacent/{id}/{edgeName}")
   public List<Long> adjacentNodes(@PathParam("id") long nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
     LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");

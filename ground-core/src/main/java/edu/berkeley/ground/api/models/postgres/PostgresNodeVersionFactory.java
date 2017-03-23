@@ -109,13 +109,6 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
     }
   }
 
-  public List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException {
-    List<Long> result = this.dbClient.transitiveClosure(nodeVersionId);
-
-    this.dbClient.commit();
-    return result;
-  }
-
   public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
     List<Long> result = this.dbClient.adjacentNodes(nodeVersionId, edgeNameRegex);
 

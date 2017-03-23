@@ -166,36 +166,6 @@ public class PostgresClient extends DBClient {
     }
   }
 
-  @Override
-  public List<Long> transitiveClosure(long nodeVersionId) throws GroundDBException {
-    try {
-      // recursive query implementation
-      PreparedStatement statement =
-          this.prepareStatement(
-              "with recursive paths(vfrom, vto) as (\n"
-                  + "    (select from_node_version_id, to_node_version_id from edge_version where "
-                  + "     from_node_version_id = ?) "
-                  + "union\n"
-                  + "    (select p.vfrom, ev.to_node_version_id\n"
-                  + "    from paths p, edge_version ev\n"
-                  + "    where p.vto = ev.from_node_version_id)\n"
-                  + ") select vto from paths;");
-
-      statement.setLong(1, nodeVersionId);
-
-      ResultSet resultSet = statement.executeQuery();
-
-      List<Long> result = new ArrayList<>();
-      while (resultSet.next()) {
-        result.add(resultSet.getLong(1));
-      }
-
-      return result;
-    } catch (SQLException e) {
-      throw new GroundDBException(e);
-    }
-  }
-
   public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex)
       throws GroundDBException {
     String query =
