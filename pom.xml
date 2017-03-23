@@ -48,7 +48,7 @@
         <jgrapht.version>0.9.2</jgrapht.version>
 
         <!-- Neo4j version -->
-        <neo4j.version>1.0.3</neo4j.version>
+        <neo4j.version>1.2.0</neo4j.version>
 
         <!-- Kafka version -->
         <kafka.version>0.10.0.1</kafka.version>
