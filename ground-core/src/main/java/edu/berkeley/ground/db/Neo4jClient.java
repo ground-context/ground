@@ -295,21 +295,6 @@ public class Neo4jClient extends DBClient {
     return result.list();
   }
 
-  @Override
-  public List<Long> transitiveClosure(long nodeVersionId) {
-    String query =
-        "MATCH (a: NodeVersion {id: "
-            + nodeVersionId
-            + "})-"
-            + "[:EdgeVersionConnection*]->(b: NodeVersion) RETURN b.id";
-
-    List<Record> records = this.transaction.run(query).list();
-    List<Long> result =
-        records.stream().map(record -> record.get("b.id").asLong()).collect(Collectors.toList());
-
-    return result;
-  }
-
   /**
    * For a particular object, set a given attribute.
    *

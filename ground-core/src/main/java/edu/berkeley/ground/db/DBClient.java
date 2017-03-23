@@ -22,12 +22,4 @@ public abstract class DBClient implements AutoCloseable {
   public abstract void commit() throws GroundDBException;
 
   public abstract void abort() throws GroundDBException;
-
-  /**
-   * Run transitive closure from nodeVersionId.
-   *
-   * @param nodeVersionId the start id
-   * @return the list of reachable ids
-   */
-  public abstract List<Long> transitiveClosure(long nodeVersionId) throws GroundDBException;
 }

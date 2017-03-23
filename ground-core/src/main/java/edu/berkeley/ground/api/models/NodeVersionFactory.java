@@ -29,8 +29,6 @@ public abstract class NodeVersionFactory {
 
   public abstract NodeVersion retrieveFromDatabase(long id) throws GroundException;
 
-  public abstract List<Long> getTransitiveClosure(long nodeVersionId) throws GroundException;
-
   public abstract List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameLike) throws GroundException;
 
   public static NodeVersion construct(long id,
