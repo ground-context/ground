@@ -36,7 +36,7 @@ public class EdgeTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    final Edge edge = new Edge(1, "test", tagsMap);
+    final Edge edge = new Edge(1, "test", 2, 3, tagsMap);
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/edge.json"), Edge.class));
 
     assertThat(MAPPER.writeValueAsString(edge)).isEqualTo(expected);
@@ -47,7 +47,7 @@ public class EdgeTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    final Edge edge = new Edge(1, "test", tagsMap);
+    final Edge edge = new Edge(1, "test", 2, 3, tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/edge.json"), Edge.class), edge);
   }
 }

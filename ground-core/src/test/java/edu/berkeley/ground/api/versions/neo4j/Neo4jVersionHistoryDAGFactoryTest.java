@@ -23,6 +23,8 @@ public class Neo4jVersionHistoryDAGFactoryTest extends Neo4jTest {
       VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
+
+      super.neo4jClient.commit();
     } finally {
       super.neo4jClient.abort();
     }

@@ -30,6 +30,8 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
 
       assertEquals(fromId, retrieved.getFromId());
       assertEquals(toId, retrieved.getToId());
+
+      super.neo4jClient.commit();
     } catch (Exception e) {
       fail(e.getMessage());
     } finally {
@@ -52,6 +54,8 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
 
       // this statement should be fail because the fromId does not exist
       super.versionSuccessorFactory.create(9, toId).getId();
+
+      super.neo4jClient.commit();
     } finally {
       super.neo4jClient.abort();
     }

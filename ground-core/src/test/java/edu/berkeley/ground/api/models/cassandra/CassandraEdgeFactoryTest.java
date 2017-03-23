@@ -19,11 +19,17 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
   @Test
   public void testEdgeCreation() throws GroundException {
     String testName = "test";
+
+    long fromNodeId = 1;
+    long toNodeId = 2;
+
     CassandraEdgeFactory edgeFactory = (CassandraEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName, new HashMap<>());
+    edgeFactory.create(testName, fromNodeId, toNodeId, new HashMap<>());
 
     Edge edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
+    assertEquals(fromNodeId, edge.getFromNodeId());
+    assertEquals(toNodeId, edge.getToNodeId());
   }
 }

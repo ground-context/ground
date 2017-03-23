@@ -70,6 +70,11 @@ create table rich_version_tag (
     CONSTRAINT rich_version_tag_pkey PRIMARY KEY (rich_version_id, key)
 );
 
+create table node (
+    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
+    name varchar NOT NULL UNIQUE
+);
+
 create table edge (
     item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
     from_node_id bigint NOT NULL REFERENCES node(item_id),
@@ -77,10 +82,6 @@ create table edge (
     name varchar NOT NULL UNIQUE
 );
 
-create table node (
-    item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),
-    name varchar NOT NULL UNIQUE
-);
 
 create table graph (
     item_id bigint NOT NULL PRIMARY KEY REFERENCES item(id),

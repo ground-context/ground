@@ -36,12 +36,13 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PostgresEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeFactory.class);
   private final PostgresClient dbClient;
   private final PostgresItemFactory itemFactory;
-  private final PostgresEdgeVersionFactory edgeVersionFactory;
+  private PostgresEdgeVersionFactory edgeVersionFactory;
   private final PostgresVersionHistoryDAGFactory versionHistoryDAGFactory;
 
   private final IdGenerator idGenerator;
@@ -49,13 +50,16 @@ public class PostgresEdgeFactory extends EdgeFactory {
   public PostgresEdgeFactory(PostgresItemFactory itemFactory,
                              PostgresClient dbClient,
                              IdGenerator idGenerator,
-                             PostgresEdgeVersionFactory edgeVersionFactory,
                              PostgresVersionHistoryDAGFactory versionHistoryDAGFactory) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
-    this.edgeVersionFactory = edgeVersionFactory;
+    this.edgeVersionFactory = null;
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+  }
+
+  public void setEdgeVersionFactory(PostgresEdgeVersionFactory edgeVersionFactory) {
+    this.edgeVersionFactory = edgeVersionFactory;
   }
 
   public Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
@@ -106,10 +110,10 @@ public class PostgresEdgeFactory extends EdgeFactory {
       }
 
       long id = resultSet.getLong(1);
-      String name = resultSet.getString("name");
+      String name = resultSet.getString(4);
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-      long fromNodeId = resultSet.getLong("from_node_id");
-      long toNodeId = resultSet.getLong("to_node_id");
+      long fromNodeId = resultSet.getLong(2);
+      long toNodeId = resultSet.getLong(3);
 
       this.dbClient.commit();
       LOGGER.info("Retrieved edge " + value + ".");
@@ -124,7 +128,7 @@ public class PostgresEdgeFactory extends EdgeFactory {
 
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
-
+    parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());
 
     for (long parentId : parentIds) {
       EdgeVersion currentVersion = this.edgeVersionFactory.retrieveFromDatabase(childId);

@@ -34,9 +34,10 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
+    long edgeId = super.factories.getEdgeFactory().create(edgeName, firstTestNodeId,
+        secondTestNodeId, new HashMap<>()).getId();
     long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId,
+        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
         new ArrayList<>()).getId();
 
     List<Long> edgeVersionIds = new ArrayList<>();

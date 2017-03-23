@@ -88,4 +88,19 @@ public class PostgresResults implements QueryResults {
       throw new GroundDBException(e);
     }
   }
+
+  public boolean isNull(int index) throws GroundDBException {
+    try {
+      resultSet.getBlob(index);
+      return resultSet.wasNull();
+    } catch (SQLException e) {
+      LOGGER.error(e.getMessage());
+
+      throw new GroundDBException(e);
+    }
+  }
+
+  public boolean isNull(String field) {
+    throw new NotImplementedException();
+  }
 }

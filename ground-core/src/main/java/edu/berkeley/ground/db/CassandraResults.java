@@ -81,4 +81,12 @@ public class CassandraResults implements QueryResults {
 
     return this.currentRow != null;
   }
+
+  public boolean isNull(int index) {
+    return this.currentRow.isNull(index);
+  }
+
+  public boolean isNull(String field) {
+    return this.currentRow.isNull(field);
+  }
 }

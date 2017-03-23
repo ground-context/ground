@@ -20,6 +20,8 @@ import edu.berkeley.ground.api.models.Edge;
 import edu.berkeley.ground.api.models.EdgeFactory;
 import edu.berkeley.ground.api.models.EdgeVersion;
 import edu.berkeley.ground.api.models.EdgeVersionFactory;
+import edu.berkeley.ground.api.models.Node;
+import edu.berkeley.ground.api.models.NodeFactory;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
@@ -44,9 +46,14 @@ public class EdgesResource {
   private EdgeFactory edgeFactory;
   private EdgeVersionFactory edgeVersionFactory;
 
-  public EdgesResource(EdgeFactory edgeFactory, EdgeVersionFactory edgeVersionFactory) {
+  private NodeFactory nodeFactory;
+
+  public EdgesResource(EdgeFactory edgeFactory,
+                       EdgeVersionFactory edgeVersionFactory,
+                       NodeFactory nodeFactory) {
     this.edgeFactory = edgeFactory;
     this.edgeVersionFactory = edgeVersionFactory;
+    this.nodeFactory = nodeFactory;
   }
 
   @GET
@@ -69,10 +76,17 @@ public class EdgesResource {
   @POST
   @Timed
   @Path("/{name}")
-  public Edge createEdge(@PathParam("name") String name, @Valid Map<String, Tag>
-      tags) throws GroundException {
+  public Edge createEdge(@PathParam("name") String name,
+                         @PathParam("fromNodeName") String fromNodeName,
+                         @PathParam("toNodeName") String toNodeName,
+                         @Valid Map<String, Tag> tags)
+      throws GroundException {
     LOGGER.info("Creating edge " + name + ".");
-    return this.edgeFactory.create(name, tags);
+
+    Node fromNode = this.nodeFactory.retrieveFromDatabase(fromNodeName);
+    Node toNode = this.nodeFactory.retrieveFromDatabase(toNodeName);
+
+    return this.edgeFactory.create(name, fromNode.getId(), toNode.getId(), tags);
   }
 
   @POST
@@ -85,8 +99,10 @@ public class EdgesResource {
         edgeVersion.getReference(),
         edgeVersion.getParameters(),
         edgeVersion.getEdgeId(),
-        edgeVersion.getFromNodeId(),
-        edgeVersion.getToNodeId(),
+        edgeVersion.getFromNodeVersionStartId(),
+        edgeVersion.getFromNodeVersionEndId(),
+        edgeVersion.getToNodeVersionStartId(),
+        edgeVersion.getToNodeVersionEndId(),
         parentIds);
   }
 }

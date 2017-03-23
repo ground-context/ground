@@ -107,10 +107,10 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
       }
       long edgeId = resultSet.getLong(2);
 
-      long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
-      long fromNodeVersionEndId = resultSet.getLong("from_node_end_id");
-      long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
-      long toNodeVersionEndId = resultSet.getLong("to_node_end_id");
+      long fromNodeVersionStartId = resultSet.getLong(3);
+      long fromNodeVersionEndId = resultSet.isNull(4) ? -1 :resultSet.getLong(4);
+      long toNodeVersionStartId = resultSet.getLong(5);
+      long toNodeVersionEndId = resultSet.isNull(6) ? -1 : resultSet.getLong(6);
 
       this.dbClient.commit();
       LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");

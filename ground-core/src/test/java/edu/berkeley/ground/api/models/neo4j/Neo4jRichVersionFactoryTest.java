@@ -43,6 +43,8 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
         assert (retrievedParams).containsKey(key);
         assertEquals(parameters.get(key), retrievedParams.get(key));
       }
+
+      super.neo4jClient.commit();
     } finally {
       super.neo4jClient.abort();
     }
@@ -74,6 +76,8 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
         assertEquals(tags.get(key), retrievedTags.get(key));
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
+
+      super.neo4jClient.commit();
     } finally {
       super.neo4jClient.abort();
     }
@@ -107,6 +111,8 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
 
       RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
+
+      super.neo4jClient.commit();
     } finally {
       super.neo4jClient.abort();
     }
@@ -145,6 +151,8 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       // this should fail
       super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
+
+      super.neo4jClient.commit();
     } finally {
       super.neo4jClient.abort();
     }

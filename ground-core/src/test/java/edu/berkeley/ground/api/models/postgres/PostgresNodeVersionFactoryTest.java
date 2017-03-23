@@ -86,17 +86,17 @@ public class PostgresNodeVersionFactoryTest extends PostgresTest {
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
 
     nodeName = "testNode2";
-    nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+    long secondNodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
 
     long secondNVId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
         null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge1";
     long edgeId = super.factories.getEdgeFactory()
-        .create(edgeName, new HashMap<>()).getId();
+        .create(edgeName, nodeId, secondNodeId, new HashMap<>()).getId();
 
     super.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
-        HashMap<>(), edgeId, secondNVId, nodeVersionId, new ArrayList<>()).getId();
+        HashMap<>(), edgeId, secondNVId, nodeVersionId, -1, -1, new ArrayList<>()).getId();
 
     nodeName = "testNode3";
     nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
@@ -106,10 +106,11 @@ public class PostgresNodeVersionFactoryTest extends PostgresTest {
 
 
     edgeName = "testEdge3";
-    edgeId = super.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
+    edgeId = super.factories.getEdgeFactory().create(edgeName, secondNodeId, nodeId,
+        new HashMap<>()).getId();
 
     super.factories.getEdgeVersionFactory().create(new HashMap<>(), -1, null, new
-        HashMap<>(), edgeId, thirdNVId, secondNVId, new ArrayList<>()).getId();
+        HashMap<>(), edgeId, thirdNVId, secondNVId, -1, -1, new ArrayList<>()).getId();
 
 
     List<Long> reachable = super.factories.getNodeVersionFactory()

@@ -41,21 +41,24 @@ public class Neo4jEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jEdgeFactory.class);
   private final Neo4jClient dbClient;
   private final Neo4jItemFactory itemFactory;
-  private final Neo4jEdgeVersionFactory edgeVersionFactory;
   private final Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private  Neo4jEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
 
   public Neo4jEdgeFactory(Neo4jItemFactory itemFactory,
                           Neo4jClient dbClient,
                           IdGenerator idGenerator,
-                          Neo4jEdgeVersionFactory edgeVersionFactory,
                           Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
-    this.edgeVersionFactory = edgeVersionFactory;
+    this.edgeVersionFactory = null;
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+  }
+
+  public void setEdgeVersionFactory(Neo4jEdgeVersionFactory edgeVersionFactory) {
+    this.edgeVersionFactory = edgeVersionFactory;
   }
 
   public Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
@@ -126,10 +129,21 @@ public class Neo4jEdgeFactory extends EdgeFactory {
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
 
-
     for (long parentId : parentIds) {
       EdgeVersion currentVersion = this.edgeVersionFactory.retrieveFromDatabase(childId);
-      EdgeVersion parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
+      EdgeVersion parentVersion = null;
+      try {
+        parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
+      } catch (GroundDBException dbe) {
+        if (dbe.getMessage().contains("No EdgeVersion found")) {
+          // this means that the parent is an Edge (i.e., this version has no parent), so we can
+          // safely ignore this and return
+          return;
+        } else {
+          throw dbe;
+        }
+      }
+
       Edge edge = this.retrieveFromDatabase(itemId);
 
       long fromNodeId = edge.getFromNodeId();

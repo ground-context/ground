@@ -30,4 +30,8 @@ public interface QueryResults {
   long getLong(String field) throws GroundDBException;
 
   boolean next() throws GroundDBException;
+
+  boolean isNull(int index) throws GroundDBException;
+
+  boolean isNull(String name) throws GroundDBException;
 }

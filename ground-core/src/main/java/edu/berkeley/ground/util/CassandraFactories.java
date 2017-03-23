@@ -56,9 +56,13 @@ public class CassandraFactories implements FactoryGenerator {
 
     this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient, idGenerator);
     this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient, idGenerator);
-    CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(cassandraClient, versionFactory, structureVersionFactory, tagFactory);
-    this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient, idGenerator);
+    CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory
+        (cassandraClient, versionFactory, structureVersionFactory, tagFactory);
+    this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient, idGenerator,
+        versionHistoryDAGFactory);
     this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.edgeFactory.setEdgeVersionFactory(this.edgeVersionFactory);
+
     this.graphFactory = new CassandraGraphFactory(itemFactory, cassandraClient, idGenerator);
     this.graphVersionFactory = new CassandraGraphVersionFactory(this.graphFactory, richVersionFactory, cassandraClient, idGenerator);
     this.nodeFactory = new CassandraNodeFactory(itemFactory, cassandraClient, idGenerator);
