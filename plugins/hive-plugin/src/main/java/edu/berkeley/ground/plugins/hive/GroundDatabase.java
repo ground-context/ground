@@ -90,7 +90,8 @@ public class GroundDatabase {
       return groundReadWrite.getEdgeFactory().retrieveFromDatabase(edgeId);
     } catch (GroundException e) {
       LOG.debug("Not found - Creating database table edge: " + edgeId);
-      Edge edge = groundReadWrite.getEdgeFactory().create(edgeId, new HashMap<>());
+      Edge edge = groundReadWrite.getEdgeFactory().create(edgeId, getNode(DATABASE_NODE).getId(),
+          nodeVersion.getNodeId(), new HashMap<>());
       Structure edgeStruct = groundReadWrite.getStructureFactory().create(edge.getName(), new HashMap<>());
       return edge;
     }
@@ -182,8 +183,8 @@ public class GroundDatabase {
           structVersionAttribs, new ArrayList<>());
 
       groundReadWrite.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
-          tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
-          tableNodeVersion.getId(), new ArrayList<Long>());
+          tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(),
+          dbNodeVersionId, -1, tableNodeVersion.getId(), -1, new ArrayList<Long>());
 
       if (!versions.isEmpty() && versions.size() != 0) {
         long prevVersionId = versions.get(0);
@@ -201,7 +202,7 @@ public class GroundDatabase {
           sv = groundReadWrite.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
               new ArrayList<>());
           groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-              oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
+              oldNV.getParameters(), edge.getId(), dbNodeVersionId, -1, oldNV.getId(), -1,
               new ArrayList<>());
         }
       }
@@ -255,8 +256,8 @@ public class GroundDatabase {
             StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(structure.getId(),
                 structVersionAttribs, new ArrayList<>());
             groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(),
-                oldNV.getReference(), oldNV.getParameters(), edge.getId(), dbVersionId, oldNV.getId(),
-                new ArrayList<>());
+                oldNV.getReference(), oldNV.getParameters(), edge.getId(), dbVersionId, -1,
+                oldNV .getId(), -1, new ArrayList<>());
           }
         }
         return dbNodeVersion;
@@ -296,8 +297,8 @@ public class GroundDatabase {
           structVersionAttribs, new ArrayList<>());
 
       groundReadWrite.getEdgeVersionFactory().create(tableNodeVersion.getTags(), sv.getId(),
-          tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(), dbNodeVersionId,
-          tableNodeVersion.getId(), new ArrayList<Long>());
+          tableNodeVersion.getReference(), tableNodeVersion.getParameters(), edge.getId(),
+          dbNodeVersionId, -1, tableNodeVersion.getId(), -1, new ArrayList<Long>());
 
       if (!versions.isEmpty() && versions.size() > 0) {
         long prevVersionId = versions.get(0);
@@ -315,7 +316,7 @@ public class GroundDatabase {
           sv = groundReadWrite.getStructureVersionFactory().create(structure.getId(), structVersionAttribs,
               new ArrayList<>());
           groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-              oldNV.getParameters(), edge.getId(), dbNodeVersionId, oldNV.getId(),
+              oldNV.getParameters(), edge.getId(), dbNodeVersionId, -1, oldNV.getId(), -1,
               new ArrayList<>());
         }
       }

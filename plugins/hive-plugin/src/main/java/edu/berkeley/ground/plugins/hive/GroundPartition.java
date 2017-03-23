@@ -84,7 +84,7 @@ public class GroundPartition {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating table partition edge: {}", partitionName);
 
-      Edge edge = groundReadWrite.getEdgeFactory().create(partitionName, new HashMap<>());
+      Edge edge = groundReadWrite.getEdgeFactory().create(partitionName, 1, 2, new HashMap<>());
       Structure edgeStruct = groundReadWrite.getStructureFactory().create(partitionName, new HashMap<>());
       return edge;
     }
