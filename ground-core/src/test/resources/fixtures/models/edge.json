@@ -1,6 +1,8 @@
 {
   "id": 1,
   "name": "test",
+  "fromNodeId": 2,
+  "toNodeId": 3,
   "tags": {
     "testtag": {
       "id": 1,

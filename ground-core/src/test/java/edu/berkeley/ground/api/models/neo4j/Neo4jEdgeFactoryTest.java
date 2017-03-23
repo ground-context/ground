@@ -19,11 +19,17 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
   @Test
   public void testEdgeCreation() throws GroundException {
     String testName = "test";
+
+    long firstNodeId = 1;
+    long secondNodeId = 2;
+
     Neo4jEdgeFactory edgeFactory = (Neo4jEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName, new HashMap<>());
+    edgeFactory.create(testName, firstNodeId, secondNodeId, new HashMap<>());
 
     Edge edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
+    assertEquals(firstNodeId, edge.getFromNodeId());
+    assertEquals(secondNodeId, edge.getToNodeId());
   }
 }

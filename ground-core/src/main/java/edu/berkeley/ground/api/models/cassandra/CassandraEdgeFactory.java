@@ -36,26 +36,30 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CassandraEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
   private final CassandraClient dbClient;
   private final CassandraVersionHistoryDAGFactory versionHistoryDAGFactory;
   private final CassandraItemFactory itemFactory;
-  private final CassandraEdgeVersionFactory edgeVersionFactory;
+  private CassandraEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
 
   public CassandraEdgeFactory(CassandraItemFactory itemFactory,
                               CassandraClient dbClient,
                               IdGenerator idGenerator,
-                              CassandraEdgeVersionFactory edgeVersionFactory,
                               CassandraVersionHistoryDAGFactory versionHistoryDAGFactory) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
-    this.edgeVersionFactory = edgeVersionFactory;
+    this.edgeVersionFactory = null;
     this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+  }
+
+  public void setEdgeVersionFactory(CassandraEdgeVersionFactory edgeVersionFactory) {
+    this.edgeVersionFactory = edgeVersionFactory;
   }
 
   public Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
@@ -95,7 +99,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
       throws GroundException{
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(fieldName, valueType, valueType));
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
 
     try {
       QueryResults resultSet;
@@ -132,6 +136,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
 
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
+    parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());
 
     for (long parentId : parentIds) {
       EdgeVersion currentVersion = this.edgeVersionFactory.retrieveFromDatabase(childId);

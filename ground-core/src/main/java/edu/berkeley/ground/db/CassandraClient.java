@@ -44,8 +44,9 @@ public class CassandraClient extends DBClient {
     this.preparedStatements = new HashMap<>();
 
     // at startup, load all nodes & edges into JGraphT for later in-memory processing
-    ResultSet resultSet = this.session.execute("select id from node_version;");
     this.graph = JGraphTUtils.createGraph();
+    /*
+    ResultSet resultSet = this.session.execute("select id from node_version;");
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addVertex(graph, r.getLong(0));
@@ -56,7 +57,7 @@ public class CassandraClient extends DBClient {
 
     for (Row r : resultSet.all()) {
       JGraphTUtils.addEdge(graph, r.getLong(0), r.getLong(1));
-    }
+    } */
   }
 
   /**
@@ -67,6 +68,7 @@ public class CassandraClient extends DBClient {
    */
   public void insert(String table, List<DbDataContainer> insertValues) {
     // hack to keep JGraphT up to date
+    /*
     if (table.equals("node_version")) {
       long id = -1;
       for (DbDataContainer container : insertValues) {
@@ -93,6 +95,7 @@ public class CassandraClient extends DBClient {
 
       JGraphTUtils.addEdge(this.graph, nvFromId, nvToId);
     }
+    */
 
     String fields =
         insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));

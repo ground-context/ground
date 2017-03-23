@@ -34,7 +34,7 @@ public class Neo4jClient extends DBClient {
 
   private final Driver driver;
   private final Session session;
-  private final Transaction transaction;
+  private Transaction transaction;
 
   public Neo4jClient(String host, String username, String password) {
     this.driver = GraphDatabase.driver("bolt://" + host, AuthTokens.basic(username, password));
@@ -351,6 +351,8 @@ public class Neo4jClient extends DBClient {
   @Override
   public void commit() {
     this.transaction.success();
+    this.transaction.close();
+    this.transaction = this.session.beginTransaction();
   }
 
   @Override

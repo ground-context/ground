@@ -59,9 +59,12 @@ public class PostgresFactories implements FactoryGenerator {
         versionFactory, postgresClient, idGenerator);
     PostgresRichVersionFactory richVersionFactory = new PostgresRichVersionFactory
         (postgresClient, versionFactory, structureVersionFactory, tagFactory);
-    this.edgeFactory = new PostgresEdgeFactory(itemFactory, postgresClient, idGenerator);
+    this.edgeFactory = new PostgresEdgeFactory(itemFactory, postgresClient, idGenerator,
+        versionHistoryDAGFactory);
     this.edgeVersionFactory = new PostgresEdgeVersionFactory(this.edgeFactory,
         richVersionFactory, postgresClient, idGenerator);
+    this.edgeFactory.setEdgeVersionFactory(this.edgeVersionFactory);
+
     this.graphFactory = new PostgresGraphFactory(itemFactory, postgresClient, idGenerator);
     this.graphVersionFactory = new PostgresGraphVersionFactory(this.graphFactory,
         richVersionFactory, postgresClient, idGenerator);

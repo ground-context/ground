@@ -13,6 +13,8 @@
     "http": "GET"
   },
   "edgeId": 1,
-  "fromId": 123,
-  "toId": 456
+  "fromNodeVersionStartId": 123,
+  "fromNodeVersionEndId": -1,
+  "toNodeVersionStartId": 456,
+  "toNodeVersionEndId": -1
 }

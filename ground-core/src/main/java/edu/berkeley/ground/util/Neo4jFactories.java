@@ -61,9 +61,12 @@ public class Neo4jFactories implements FactoryGenerator {
         .structureFactory, idGenerator);
     Neo4jRichVersionFactory richVersionFactory = new Neo4jRichVersionFactory(neo4jClient,
         structureVersionFactory, tagFactory);
-    this.edgeFactory = new Neo4jEdgeFactory(itemFactory, neo4jClient, idGenerator);
+    this.edgeFactory = new Neo4jEdgeFactory(itemFactory, neo4jClient, idGenerator,
+        versionHistoryDAGFactory);
     this.edgeVersionFactory = new Neo4jEdgeVersionFactory(this.edgeFactory, richVersionFactory,
         neo4jClient, idGenerator);
+    this.edgeFactory.setEdgeVersionFactory(this.edgeVersionFactory);
+
     this.graphFactory = new Neo4jGraphFactory(neo4jClient, itemFactory, idGenerator);
     this.graphVersionFactory = new Neo4jGraphVersionFactory(neo4jClient, this.graphFactory,
         richVersionFactory, idGenerator);

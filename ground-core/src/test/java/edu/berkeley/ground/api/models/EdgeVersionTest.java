@@ -39,7 +39,8 @@ public class EdgeVersionTest {
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
+    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com",
+        parametersMap, 1, 123, -1, 456, -1);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class));
     assertThat(MAPPER.writeValueAsString(edgeVersion)).isEqualTo(expected);
@@ -53,7 +54,8 @@ public class EdgeVersionTest {
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
+    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com",
+        parametersMap, 1, 123, -1, 456, -1);
 
     assertEquals(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class), edgeVersion);
   }

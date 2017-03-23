@@ -91,17 +91,23 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
     }
 
-    final EdgesResource edgesResource = new EdgesResource(edgeFactory, edgeVersionFactory);
-    final GraphsResource graphsResource = new GraphsResource(graphFactory, graphVersionFactory);
-    final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource
-        (lineageEdgeFactory, lineageEdgeVersionFactory);
-    final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
-    final StructuresResource structuresResource = new StructuresResource(structureFactory,
-        structureVersionFactory);
+    final EdgesResource edgesResource = new EdgesResource(this.edgeFactory,
+        this.edgeVersionFactory,
+        this.nodeFactory);
+    final GraphsResource graphsResource = new GraphsResource(this.graphFactory,
+        this.graphVersionFactory);
+    final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(
+        this.lineageEdgeFactory,
+        this.lineageEdgeVersionFactory);
+    final NodesResource nodesResource = new NodesResource(this.nodeFactory,
+        this.nodeVersionFactory);
+    final StructuresResource structuresResource = new StructuresResource(this.structureFactory,
+        this.structureVersionFactory);
     final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(),
         configuration.getKafkaPort());
-    final LineageGraphsResource lineageGraphsResource = new LineageGraphsResource
-        (lineageGraphFactory, lineageGraphVersionFactory);
+    final LineageGraphsResource lineageGraphsResource = new LineageGraphsResource(
+        this.lineageGraphFactory,
+        this.lineageGraphVersionFactory);
 
     environment.jersey().register(edgesResource);
     environment.jersey().register(graphsResource);

@@ -113,7 +113,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
 
       Record versionRecord;
       try {
-        versionRecord = this.dbClient.getVertex(predicates);
+        versionRecord = this.dbClient.getVertex("EdgeVersion", predicates);
       } catch (EmptyResultException e) {
         throw new GroundDBException("No EdgeVersion found with id " + id + ".");
       }

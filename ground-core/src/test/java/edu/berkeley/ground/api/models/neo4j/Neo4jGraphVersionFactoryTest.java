@@ -34,9 +34,11 @@ public class Neo4jGraphVersionFactoryTest extends Neo4jTest {
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, new HashMap<>()).getId();
+    long edgeId = super.factories.getEdgeFactory().create(edgeName, firstTestNodeId,
+        secondTestNodeId, new HashMap<>()).getId();
     long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId, new ArrayList<>()).getId();
+        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId, -1, -1,
+        new ArrayList<>()).getId();
 
     List<Long> edgeVersionIds = new ArrayList<>();
     edgeVersionIds.add(edgeVersionId);
