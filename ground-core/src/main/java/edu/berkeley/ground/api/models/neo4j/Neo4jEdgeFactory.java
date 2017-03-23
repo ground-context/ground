@@ -152,13 +152,13 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       long fromEndId = -1;
       long toEndId = -1;
 
-      if (parentVersion.getFromNodeVersionEndId() != -1) {
+      if (parentVersion.getFromNodeVersionEndId() == -1) {
         // update from end id
         VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(fromNodeId);
         fromEndId = (long) dag.getParent(currentVersion.getFromNodeVersionStartId()).get(0);
       }
 
-      if (parentVersion.getToNodeVersionEndId() != -1) {
+      if (parentVersion.getToNodeVersionEndId() == -1) {
         // update to end id
         VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(toNodeId);
         toEndId = (long) dag.getParent(currentVersion.getToNodeVersionStartId()).get(0);

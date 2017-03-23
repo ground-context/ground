@@ -92,7 +92,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
   }
 
   public Edge retrieveFromDatabase(long id) throws GroundException {
-    return this.retrieveByPredicate("id", id, GroundType.LONG);
+    return this.retrieveByPredicate("item_id", id, GroundType.LONG);
   }
 
   private Edge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
@@ -149,13 +149,13 @@ public class CassandraEdgeFactory extends EdgeFactory {
       long fromEndId = -1;
       long toEndId = -1;
 
-      if (parentVersion.getFromNodeVersionEndId() != -1) {
+      if (parentVersion.getFromNodeVersionEndId() == -1) {
         // update from end id
         VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(fromNodeId);
         fromEndId = (long) dag.getParent(currentVersion.getFromNodeVersionStartId()).get(0);
       }
 
-      if (parentVersion.getToNodeVersionEndId() != -1) {
+      if (parentVersion.getToNodeVersionEndId() == -1) {
         // update to end id
         VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(toNodeId);
         toEndId = (long) dag.getParent(currentVersion.getToNodeVersionStartId()).get(0);
