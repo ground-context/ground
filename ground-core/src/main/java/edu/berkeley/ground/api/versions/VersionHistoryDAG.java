@@ -16,7 +16,7 @@ package edu.berkeley.ground.api.versions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,6 +76,18 @@ public class VersionHistoryDAG<T extends Version> {
   public void addEdge(long parentId, long childId, long successorId) {
     edgeIds.add(successorId);
     this.addToParentChildMap(parentId, childId);
+  }
+
+  public List<Long> getParent(long childId) {
+    List<Long> result = new ArrayList<>();
+
+    for (long parentId : parentChildMap.keySet()) {
+      if (parentChildMap.get(parentId).contains(childId)) {
+        result.add(parentId);
+      }
+    }
+
+    return result;
   }
 
   /**

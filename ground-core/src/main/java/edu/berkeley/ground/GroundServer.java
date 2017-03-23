@@ -17,12 +17,15 @@ package edu.berkeley.ground;
 import edu.berkeley.ground.api.models.*;
 import edu.berkeley.ground.api.usage.LineageEdgeFactory;
 import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.api.usage.LineageGraphFactory;
+import edu.berkeley.ground.api.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
+import edu.berkeley.ground.util.FactoryGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
 import edu.berkeley.ground.util.PostgresFactories;
 import io.dropwizard.Application;
@@ -42,6 +45,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
   private NodeVersionFactory nodeVersionFactory;
   private StructureFactory structureFactory;
   private StructureVersionFactory structureVersionFactory;
+  private LineageGraphFactory lineageGraphFactory;
+  private LineageGraphVersionFactory lineageGraphVersionFactory;
 
   public static void main(String[] args) throws Exception {
     new GroundServer().run(args);
@@ -86,12 +91,23 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
     }
 
-    final EdgesResource edgesResource = new EdgesResource(edgeFactory, edgeVersionFactory);
-    final GraphsResource graphsResource = new GraphsResource(graphFactory, graphVersionFactory);
-    final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(lineageEdgeFactory, lineageEdgeVersionFactory);
-    final NodesResource nodesResource = new NodesResource(nodeFactory, nodeVersionFactory);
-    final StructuresResource structuresResource = new StructuresResource(structureFactory, structureVersionFactory);
-    final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(), configuration.getKafkaPort());
+    final EdgesResource edgesResource = new EdgesResource(this.edgeFactory,
+        this.edgeVersionFactory,
+        this.nodeFactory);
+    final GraphsResource graphsResource = new GraphsResource(this.graphFactory,
+        this.graphVersionFactory);
+    final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(
+        this.lineageEdgeFactory,
+        this.lineageEdgeVersionFactory);
+    final NodesResource nodesResource = new NodesResource(this.nodeFactory,
+        this.nodeVersionFactory);
+    final StructuresResource structuresResource = new StructuresResource(this.structureFactory,
+        this.structureVersionFactory);
+    final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(),
+        configuration.getKafkaPort());
+    final LineageGraphsResource lineageGraphsResource = new LineageGraphsResource(
+        this.lineageGraphFactory,
+        this.lineageGraphVersionFactory);
 
     environment.jersey().register(edgesResource);
     environment.jersey().register(graphsResource);
@@ -99,41 +115,22 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     environment.jersey().register(nodesResource);
     environment.jersey().register(structuresResource);
     environment.jersey().register(kafkaResource);
+    environment.jersey().register(lineageGraphsResource);
   }
 
   private void setPostgresFactories(PostgresClient postgresClient, int machineId, int numMachines) {
-    PostgresFactories factoryGenerator = new PostgresFactories(postgresClient, machineId, numMachines);
-
-    edgeFactory = factoryGenerator.getEdgeFactory();
-    edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
-    graphFactory = factoryGenerator.getGraphFactory();
-    graphVersionFactory = factoryGenerator.getGraphVersionFactory();
-    lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
-    lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
-    nodeFactory = factoryGenerator.getNodeFactory();
-    nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
-    structureFactory = factoryGenerator.getStructureFactory();
-    structureVersionFactory = factoryGenerator.getStructureVersionFactory();
+    this.setFactories(new PostgresFactories(postgresClient, machineId, numMachines));
   }
 
   private void setCassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
-    CassandraFactories factoryGenerator = new CassandraFactories(cassandraClient, machineId, numMachines);
-
-    edgeFactory = factoryGenerator.getEdgeFactory();
-    edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
-    graphFactory = factoryGenerator.getGraphFactory();
-    graphVersionFactory = factoryGenerator.getGraphVersionFactory();
-    lineageEdgeFactory = factoryGenerator.getLineageEdgeFactory();
-    lineageEdgeVersionFactory = factoryGenerator.getLineageEdgeVersionFactory();
-    nodeFactory = factoryGenerator.getNodeFactory();
-    nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
-    structureFactory = factoryGenerator.getStructureFactory();
-    structureVersionFactory = factoryGenerator.getStructureVersionFactory();
+    this.setFactories(new CassandraFactories(cassandraClient, machineId, numMachines));
   }
 
   private void setNeo4jFactories(Neo4jClient neo4jClient, int machineId, int numMachines) {
-    Neo4jFactories factoryGenerator = new Neo4jFactories(neo4jClient, machineId, numMachines);
+    this.setFactories(new Neo4jFactories(neo4jClient, machineId, numMachines));
+  }
 
+  private void setFactories(FactoryGenerator factoryGenerator) {
     edgeFactory = factoryGenerator.getEdgeFactory();
     edgeVersionFactory = factoryGenerator.getEdgeVersionFactory();
     graphFactory = factoryGenerator.getGraphFactory();
@@ -144,5 +141,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     nodeVersionFactory = factoryGenerator.getNodeVersionFactory();
     structureFactory = factoryGenerator.getStructureFactory();
     structureVersionFactory = factoryGenerator.getStructureVersionFactory();
+    lineageGraphFactory = factoryGenerator.getLineageGraphFactory();
+    lineageGraphVersionFactory = factoryGenerator.getLineageGraphVersionFactory();
   }
 }

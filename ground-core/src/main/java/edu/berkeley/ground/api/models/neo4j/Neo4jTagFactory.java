@@ -17,10 +17,9 @@ package edu.berkeley.ground.api.models.neo4j;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import org.neo4j.driver.internal.value.NullValue;
@@ -30,15 +29,27 @@ import org.neo4j.driver.v1.Record;
 import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id) throws GroundException {
-    Neo4jConnection connection = (Neo4jConnection) connectionPointer;
+  private final Neo4jClient dbClient;
 
+  public Neo4jTagFactory(Neo4jClient dbClient) {
+    this.dbClient = dbClient;
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "RichVersion");
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "Item");
+  }
+
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundException {
     List<String> returnFields = new ArrayList<>();
     returnFields.add("tkey");
     returnFields.add("value");
     returnFields.add("type");
 
-    List<Record> tagsRecords = connection.getAdjacentVerticesByEdgeLabel("TagConnection", id, returnFields);
+    List<Record> tagsRecords = this.dbClient.getAdjacentVerticesByEdgeLabel(keyPrefix + "TagConnection", id, returnFields);
 
     Map<String, Tag> tags = new HashMap<>();
 
@@ -66,12 +77,19 @@ public class Neo4jTagFactory extends TagFactory {
     return tags;
   }
 
-  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
-    Neo4jConnection connection = (Neo4jConnection) connectionPointer;
+  public List<Long> getVersionIdsByTag(String tag) throws GroundDBException {
+    return this.getIdsByTag(tag, "rich_version_id");
+  }
 
+  public List<Long> getItemIdsByTag(String tag) throws GroundDBException {
+    return this.getIdsByTag(tag, "item_id");
+  }
+
+
+  public List<Long> getIdsByTag(String tag, String idAttribute) throws GroundDBException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
 
-    return connection.getVerticesByAttributes(predicates);
+    return this.dbClient.getVerticesByAttributes(predicates, idAttribute);
   }
 }

@@ -14,7 +14,6 @@
 
 package edu.berkeley.ground.api.versions;
 
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.List;
 public abstract class VersionHistoryDAGFactory {
   public abstract <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException;
 
-  public abstract <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(GroundDBConnection connection, long itemId) throws GroundException;
+  public abstract <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundException;
 
   /**
    * Add a new edge between parentId and childId in DAG
@@ -33,7 +32,7 @@ public abstract class VersionHistoryDAGFactory {
    * @param childId  the child's id
    * @param itemId   the id of the Item whose DAG we're updating
    */
-  public abstract void addEdge(GroundDBConnection connection, VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException;
+  public abstract void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException;
 
   protected static <T extends Version> VersionHistoryDAG<T> construct(long itemId) {
     return new VersionHistoryDAG<>(itemId, new ArrayList<>());

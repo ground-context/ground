@@ -17,10 +17,13 @@ package edu.berkeley.ground.api.usage;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.Item;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class LineageEdge extends Item<LineageEdgeVersion> {
   private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdge.class);
@@ -30,8 +33,9 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
 
   @JsonCreator
   protected LineageEdge(@JsonProperty("id") long id,
-                        @JsonProperty("name") String name) {
-    super(id);
+                        @JsonProperty("name") String name,
+                        @JsonProperty("tags")Map<String, Tag> tags) {
+    super(id, tags);
 
     this.name = name;
   }

@@ -19,7 +19,6 @@ import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -35,11 +34,11 @@ import java.util.stream.Collectors;
 
 public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeVersionFactory.class);
-  private PostgresClient dbClient;
-  private PostgresEdgeFactory edgeFactory;
-  private PostgresRichVersionFactory richVersionFactory;
+  private final PostgresClient dbClient;
+  private final PostgresEdgeFactory edgeFactory;
+  private final PostgresRichVersionFactory richVersionFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public PostgresEdgeVersionFactory(PostgresEdgeFactory edgeFactory, PostgresRichVersionFactory richVersionFactory, PostgresClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -53,66 +52,94 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
                             String reference,
                             Map<String, String> referenceParameters,
                             long edgeId,
-                            long fromId,
-                            long toId,
+                            long fromNodeVersionStartId,
+                            long fromNodeVersionEndId,
+                            long toNodeVersionStartId,
+                            long toNodeVersionEndId,
                             List<Long> parentIds) throws GroundException {
-
-    PostgresConnection connection = this.dbClient.getConnection();
 
     try {
       long id = this.idGenerator.generateVersionId();
 
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
 
-      this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-      insertions.add(new DbDataContainer("from_node_version_id", GroundType.LONG, fromId));
-      insertions.add(new DbDataContainer("to_node_version_id", GroundType.LONG, toId));
+      insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+          fromNodeVersionStartId));
+      insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+          fromNodeVersionEndId));
+      insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+          toNodeVersionStartId));
+      insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
-      connection.insert("edge_version", insertions);
+      this.dbClient.insert("edge_version", insertions);
 
-      this.edgeFactory.update(connection, edgeId, id, parentIds);
+      this.edgeFactory.update(edgeId, id, parentIds);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
+      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
+          referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
+          toNodeVersionStartId, toNodeVersionEndId);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
       throw e;
     }
   }
 
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    PostgresConnection connection = this.dbClient.getConnection();
-
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("edge_version", DBClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException eer) {
+        resultSet = this.dbClient.equalitySelect("edge_version", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException e) {
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
       long edgeId = resultSet.getLong(2);
-      long fromId = resultSet.getLong(3);
-      long toId = resultSet.getLong(4);
 
-      connection.commit();
+      long fromNodeVersionStartId = resultSet.getLong(3);
+      long fromNodeVersionEndId = resultSet.isNull(4) ? -1 :resultSet.getLong(4);
+      long toNodeVersionStartId = resultSet.getLong(5);
+      long toNodeVersionEndId = resultSet.isNull(6) ? -1 : resultSet.getLong(6);
+
+      this.dbClient.commit();
       LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);
+      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+          version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
+          fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
+  }
+
+  protected void updatePreviousVersion(long id, long fromEndId, long toEndId)
+      throws GroundException {
+
+    List<DbDataContainer> setPredicates = new ArrayList<>();
+    List<DbDataContainer> wherePredicates = new ArrayList<>();
+
+    if (fromEndId != -1) {
+      setPredicates.add(new DbDataContainer("from_node_end_id", GroundType.LONG, fromEndId));
+    }
+
+    if (toEndId != -1) {
+      setPredicates.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toEndId));
+    }
+
+    wherePredicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    this.dbClient.update(setPredicates, wherePredicates, "edge_version");
   }
 }

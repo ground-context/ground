@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class EdgeVersionTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -38,7 +39,8 @@ public class EdgeVersionTest {
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
+    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com",
+        parametersMap, 1, 123, -1, 456, -1);
 
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class));
     assertThat(MAPPER.writeValueAsString(edgeVersion)).isEqualTo(expected);
@@ -52,8 +54,9 @@ public class EdgeVersionTest {
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
 
-    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 1, 123, 456);
+    EdgeVersion edgeVersion = new EdgeVersion(1, tagsMap, -1, "http://www.google.com",
+        parametersMap, 1, 123, -1, 456, -1);
 
-    assertThat(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class)).isEqualToComparingFieldByField(edgeVersion);
+    assertEquals(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class), edgeVersion);
   }
 }

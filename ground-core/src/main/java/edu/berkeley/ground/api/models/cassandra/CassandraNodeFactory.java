@@ -16,12 +16,11 @@ package edu.berkeley.ground.api.models.cassandra;
 
 import edu.berkeley.ground.api.models.Node;
 import edu.berkeley.ground.api.models.NodeFactory;
+import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
@@ -33,13 +32,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CassandraNodeFactory extends NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeFactory.class);
-  private CassandraClient dbClient;
-  private CassandraItemFactory itemFactory;
+  private final CassandraClient dbClient;
+  private final CassandraItemFactory itemFactory;
 
-  private IdGenerator idGenerator;
+  private final IdGenerator idGenerator;
 
   public CassandraNodeFactory(CassandraItemFactory itemFactory, CassandraClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -47,26 +47,24 @@ public class CassandraNodeFactory extends NodeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Node create(String name) throws GroundException {
-    CassandraConnection connection = this.dbClient.getConnection();
-
+  public Node create(String name, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(connection, uniqueId);
+      this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
 
-      connection.insert("node", insertions);
+      this.dbClient.insert("node", insertions);
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Created node " + name + ".");
 
-      return NodeFactory.construct(uniqueId, name);
+      return NodeFactory.construct(uniqueId, name, tags);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
@@ -75,45 +73,53 @@ public class CassandraNodeFactory extends NodeFactory {
   public List<Long> getLeaves(String name) throws GroundException {
     Node node = this.retrieveFromDatabase(name);
 
-    CassandraConnection connection = this.dbClient.getConnection();
-    List<Long> leaves = this.itemFactory.getLeaves(connection, node.getId());
-    connection.commit();
+    try {
+      List<Long> leaves = this.itemFactory.getLeaves(node.getId());
+      this.dbClient.commit();
 
-    return leaves;
+      return leaves;
+    } catch (GroundException e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   public Node retrieveFromDatabase(String name) throws GroundException {
-    CassandraConnection connection = this.dbClient.getConnection();
-
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
       QueryResults resultSet;
       try {
-        resultSet = connection.equalitySelect("node", DBClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException eer) {
+        resultSet = this.dbClient.equalitySelect("node", DBClient.SELECT_STAR, predicates);
+      } catch (EmptyResultException e) {
+        this.dbClient.abort();
+
         throw new GroundException("No Node found with name " + name + ".");
       }
 
       if (!resultSet.next()) {
+        this.dbClient.abort();
+
         throw new GroundException("No Node found with name " + name + ".");
       }
 
       long id = resultSet.getLong(0);
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved node " + name + ".");
 
-      return NodeFactory.construct(id, name);
+      return NodeFactory.construct(id, name, tags);
     } catch (GroundException e) {
-      connection.abort();
+      this.dbClient.abort();
 
       throw e;
     }
   }
 
-  public void update(GroundDBConnection connection, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(connection, itemId, childId, parentIds);
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+    this.itemFactory.update(itemId, childId, parentIds);
   }
 }

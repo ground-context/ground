@@ -14,6 +14,14 @@ create table item (
     id bigint PRIMARY KEY
 );
 
+create table item_tag (
+    item_id bigint,
+    key varchar,
+    value varchar,
+    type varchar,
+    PRIMARY KEY (item_id, key)
+);
+
 create table version_history_dag (
     item_id bigint,
     version_successor_id bigint,
@@ -53,7 +61,7 @@ create table rich_version_external_parameter (
     PRIMARY KEY (rich_version_id, key)
 );
 
-create table tag (
+create table rich_version_tag (
     rich_version_id bigint,
     key varchar,
     value varchar,
@@ -63,6 +71,8 @@ create table tag (
 
 create table edge (
     item_id bigint,
+    from_node_id bigint,
+    to_node_id bigint,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
@@ -87,8 +97,10 @@ create table node_version (
 create table edge_version (
     id bigint PRIMARY KEY,
     edge_id bigint,
-    from_node_version_id bigint,
-    to_node_version_id bigint
+    from_node_start_id bigint,
+    from_node_end_id bigint,
+    to_node_start_id bigint,
+    to_node_end_id bigint
 );
 
 create table graph_version (
@@ -103,12 +115,6 @@ create table graph_version_edge (
 );
 
 /* USAGE */
-
-create table workflow (
-    graph_id bigint,
-    name varchar,
-    PRIMARY KEY (graph_id, name)
-);
 
 create table principal (
     node_id bigint,
@@ -127,8 +133,24 @@ create table lineage_edge_version (
     lineage_edge_id bigint,
     from_rich_version_id bigint,
     to_rich_version_id bigint,
-    workflow_id bigint,
     principal_id bigint,
+);
+
+create table lineage_graph (
+    item_id bigint,
+    name varchar,
+    PRIMARY KEY (item_id, name)
+);
+
+create table lineage_graph_version (
+    id bigint PRIMARY KEY,
+    lineage_graph_id bigint
+);
+
+create table lineage_graph_version_edge (
+    lineage_graph_version_id bigint,
+    lineage_edge_version_id bigint,
+    PRIMARY KEY (lineage_graph_version_id, lineage_edge_version_id)
 );
 
 /* CREATE EMPTY VERSION */

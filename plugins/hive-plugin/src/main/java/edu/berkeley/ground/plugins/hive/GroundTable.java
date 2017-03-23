@@ -61,8 +61,8 @@ public class GroundTable {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating table node: " + tableName);
 
-      Node node = groundReadWrite.getNodeFactory().create(tableName);
-      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName());
+      Node node = groundReadWrite.getNodeFactory().create(tableName, new HashMap<>());
+      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName(), new HashMap<>());
 
       return node;
     }
@@ -85,8 +85,9 @@ public class GroundTable {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating table partition edge: " + nodeVersion.getNodeId());
 
-      Edge edge = groundReadWrite.getEdgeFactory().create("" + nodeVersion.getNodeId());
-      Structure edgeStruct = groundReadWrite.getStructureFactory().create("" + nodeVersion.getNodeId());
+      Edge edge = groundReadWrite.getEdgeFactory().create("" + nodeVersion.getNodeId(), 1, 2, new
+          HashMap<>());
+      Structure edgeStruct = groundReadWrite.getStructureFactory().create("" + nodeVersion.getNodeId(), new HashMap<>());
       return edge;
     }
   }
@@ -211,7 +212,7 @@ public class GroundTable {
           StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(structure.getId(),
               structVersionAttribs, new ArrayList<>());
           groundReadWrite.getEdgeVersionFactory().create(oldNV.getTags(), sv.getId(), oldNV.getReference(),
-              oldNV.getParameters(), edge.getId(), tableNodeVersionId, oldNV.getId(),
+              oldNV.getParameters(), edge.getId(), tableNodeVersionId, -1, oldNV.getId(), -1,
               new ArrayList<Long>());
         }
       }
@@ -229,7 +230,7 @@ public class GroundTable {
             structVersionAttribs, new ArrayList<>());
 
         groundReadWrite.getEdgeVersionFactory().create(nv.getTags(), sv.getId(), tableNodeVersion.getReference(),
-            tableNodeVersion.getParameters(), edge.getId(), tableNodeVersionId, nv.getId(),
+            tableNodeVersion.getParameters(), edge.getId(), tableNodeVersionId, -1, nv.getId(), -1,
             new ArrayList<Long>());
       }
 
@@ -249,8 +250,7 @@ public class GroundTable {
       List<Long> versions = groundReadWrite.getNodeFactory().getLeaves(tableName);
       if (!versions.isEmpty() && versions.size() > 0) {
         long tableNodeVersionId = versions.get(0);
-        List<Long> partNodeVersionIds = groundReadWrite.getNodeVersionFactory()
-            .getTransitiveClosure(tableNodeVersionId);
+        List<Long> partNodeVersionIds = new ArrayList<>();
 
         String partNodeName = "Nodes." + partName;
         for (long partNodeVersionId : partNodeVersionIds) {

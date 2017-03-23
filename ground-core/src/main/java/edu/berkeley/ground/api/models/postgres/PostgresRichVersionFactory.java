@@ -21,9 +21,8 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -31,28 +30,28 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class PostgresRichVersionFactory extends RichVersionFactory {
-  private PostgresVersionFactory versionFactory;
-  private PostgresStructureVersionFactory structureVersionFactory;
-  private PostgresTagFactory tagFactory;
+  private final PostgresClient dbClient;
+  private final PostgresVersionFactory versionFactory;
+  private final PostgresStructureVersionFactory structureVersionFactory;
+  private final PostgresTagFactory tagFactory;
 
-  public PostgresRichVersionFactory(PostgresVersionFactory versionFactory,
+  public PostgresRichVersionFactory(PostgresClient dbClient,
+                                    PostgresVersionFactory versionFactory,
                                     PostgresStructureVersionFactory structureVersionFactory,
                                     PostgresTagFactory tagFactory) {
 
+    this.dbClient = dbClient;
     this.versionFactory = versionFactory;
     this.structureVersionFactory = structureVersionFactory;
     this.tagFactory = tagFactory;
   }
 
-  public void insertIntoDatabase(GroundDBConnection connectionPointer,
-                                 long id,
+  public void insertIntoDatabase(long id,
                                  Map<String, Tag> tags,
                                  long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
-    this.versionFactory.insertIntoDatabase(connection, id);
+    this.versionFactory.insertIntoDatabase(id);
 
     if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
@@ -64,7 +63,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, structureVersionId));
     insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
 
-    connection.insert("rich_version", insertions);
+    this.dbClient.insert("rich_version", insertions);
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
@@ -81,7 +80,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      connection.insert("tag", tagInsertion);
+      this.dbClient.insert("rich_version_tag", tagInsertion);
     }
 
     for (String key : referenceParameters.keySet()) {
@@ -91,20 +90,18 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
       parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
       parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
 
-      connection.insert("rich_version_external_parameter", parameterInsertion);
+      this.dbClient.insert("rich_version_external_parameter", parameterInsertion);
     }
   }
 
-  public RichVersion retrieveFromDatabase(GroundDBConnection connectionPointer, long id) throws GroundException {
-    PostgresConnection connection = (PostgresConnection) connectionPointer;
-
+  public RichVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("rich_version", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
+      resultSet = this.dbClient.equalitySelect("rich_version", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
       throw new GroundException("No RichVersion found with id " + id + ".");
     }
 
@@ -113,16 +110,16 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     Map<String, String> referenceParameters = new HashMap<>();
 
     try {
-      QueryResults parameterSet = connection.equalitySelect("rich_version_external_parameter", DBClient.SELECT_STAR, parameterPredicates);
+      QueryResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter", DBClient.SELECT_STAR, parameterPredicates);
 
       do {
         referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
       } while (parameterSet.next());
-    } catch (EmptyResultException eer) {
+    } catch (EmptyResultException e) {
       // do nothing; there are no referenceParameters
     }
 
-    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseById(connection, id);
+    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(id);
 
     String reference = resultSet.getString(3);
     long structureVersionId = resultSet.getLong(2);

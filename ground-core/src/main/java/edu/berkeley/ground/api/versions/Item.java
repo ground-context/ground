@@ -16,12 +16,19 @@ package edu.berkeley.ground.api.versions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
+import edu.berkeley.ground.api.models.Tag;
+
 public class Item<T extends Version> {
 
   private long id;
 
-  protected Item(long id) {
+  private Map<String, Tag> tags;
+
+  protected Item(long id, Map<String, Tag> tags) {
     this.id = id;
+    this.tags = tags;
   }
 
   @JsonProperty
@@ -29,4 +36,8 @@ public class Item<T extends Version> {
     return this.id;
   }
 
+  @JsonProperty
+  public Map<String, Tag> getTags() {
+    return this.tags;
+  }
 }

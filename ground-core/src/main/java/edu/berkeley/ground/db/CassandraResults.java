@@ -17,11 +17,7 @@ package edu.berkeley.ground.db;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 
-import edu.berkeley.ground.exceptions.GroundException;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import edu.berkeley.ground.exceptions.GroundDBException;
 
 public class CassandraResults implements QueryResults {
   private ResultSet resultSet;
@@ -32,72 +28,65 @@ public class CassandraResults implements QueryResults {
     this.currentRow = null;
   }
 
-  public String getString(int index) throws GroundException {
+  public String getString(int index) throws GroundDBException {
     try {
       return this.currentRow.getString(index);
     } catch (Exception e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public String getString(String field) throws GroundException {
+  public String getString(String field) throws GroundDBException {
     try {
       return this.currentRow.getString(field);
     } catch (Exception e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public int getInt(int index) throws GroundException {
+  public int getInt(int index) throws GroundDBException {
     try {
       return this.currentRow.getInt(index);
     } catch (Exception e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public boolean getBoolean(int index) throws GroundException {
+  public boolean getBoolean(int index) throws GroundDBException {
     try {
       return this.currentRow.getBool(index);
     } catch (Exception e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public long getLong(int index) throws GroundException {
+  public long getLong(int index) throws GroundDBException {
     try {
       return this.currentRow.getLong(index);
     } catch (Exception e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public long getLong(String field) throws GroundException {
+  public long getLong(String field) throws GroundDBException {
     try {
       return this.currentRow.getLong(field);
     } catch (Exception e) {
-      throw new GroundException(e);
+      throw new GroundDBException(e);
     }
   }
 
-  public List<String> getStringList(int index) throws GroundException {
-    try {
-      Iterator<Row> rowIterator = this.resultSet.iterator();
-      List<String> result = new ArrayList<>();
-
-      while (rowIterator.hasNext()) {
-        result.add(rowIterator.next().getString(index));
-      }
-
-      return result;
-    } catch (Exception e) {
-      throw new GroundException(e);
-    }
-  }
-
-  public boolean next() throws GroundException {
+  public boolean next() {
     this.currentRow = this.resultSet.one();
 
     return this.currentRow != null;
+  }
+
+  public boolean isNull(int index) {
+    return this.currentRow.isNull(index);
+  }
+
+  public boolean isNull(String field) {
+    return this.currentRow.isNull(field);
   }
 }

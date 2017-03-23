@@ -20,7 +20,7 @@ import edu.berkeley.ground.util.PostgresFactories;
 public class PostgresTest {
   private static String TEST_DB_NAME = "test";
 
-  protected PostgresClient cassandraClient;
+  protected PostgresClient postgresClient;
   protected PostgresFactories factories;
   protected PostgresVersionFactory versionFactory;
   protected PostgresVersionSuccessorFactory versionSuccessorFactory;
@@ -30,16 +30,16 @@ public class PostgresTest {
   protected PostgresTagFactory tagFactory;
 
   public PostgresTest() throws GroundDBException {
-    this.cassandraClient = new PostgresClient("localhost", 5432, "test", "test", "");
-    this.factories = new PostgresFactories(cassandraClient, 0, 1);
+    this.postgresClient = new PostgresClient("localhost", 5432, "test", "test", "");
+    this.factories = new PostgresFactories(this.postgresClient, 0, 1);
 
-    this.versionFactory = new PostgresVersionFactory();
-    this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(new IdGenerator(0, 1, false));
-    this.versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(versionSuccessorFactory);
-    this.itemFactory = new PostgresItemFactory(versionHistoryDAGFactory);
-    this.tagFactory = new PostgresTagFactory();
+    this.versionFactory = new PostgresVersionFactory(this.postgresClient);
+    this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(this.postgresClient, new IdGenerator(0, 1, false));
+    this.versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(this.postgresClient, versionSuccessorFactory);
+    this.tagFactory = new PostgresTagFactory(this.postgresClient);
+    this.itemFactory = new PostgresItemFactory(this.postgresClient, versionHistoryDAGFactory, tagFactory);
 
-    this.richVersionFactory = new PostgresRichVersionFactory(versionFactory,
+    this.richVersionFactory = new PostgresRichVersionFactory(this.postgresClient, versionFactory,
         (PostgresStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);
   }
 

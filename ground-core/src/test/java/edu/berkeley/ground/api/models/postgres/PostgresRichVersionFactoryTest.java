@@ -10,7 +10,6 @@ import edu.berkeley.ground.api.PostgresTest;
 import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
@@ -23,19 +22,16 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
 
   @Test
   public void testReference() throws GroundException {
-    PostgresConnection connection = null;
-
     try {
-      connection = super.cassandraClient.getConnection();
       long id = 1;
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
       parameters.put("http", "GET");
 
-      super.richVersionFactory.insertIntoDatabase(connection, id, new HashMap<>(), -1,
+      super.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1,
           testReference, parameters);
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -46,16 +42,13 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
         assertEquals(parameters.get(key), retrievedParams.get(key));
       }
     } finally {
-      connection.abort();
+      super.postgresClient.abort();
     }
   }
 
   @Test
   public void testTags() throws GroundException {
-    PostgresConnection connection = null;
-
     try {
-      connection = super.cassandraClient.getConnection();
       long id = 1;
 
       Map<String, Tag> tags = new HashMap<>();
@@ -64,10 +57,10 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      super.richVersionFactory.insertIntoDatabase(connection, id, tags, -1,
+      super.richVersionFactory.insertIntoDatabase(id, tags, -1,
           null, new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -76,22 +69,20 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       for (String key : tags.keySet()) {
         assert (retrievedTags).containsKey(key);
         assertEquals(tags.get(key), retrievedTags.get(key));
-        assertEquals(retrieved.getId(), retrievedTags.get(key).getVersionId());
+        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      connection.abort();
+      super.postgresClient.abort();
     }
   }
 
   @Test
   public void testStructureVersionConformation() throws GroundException {
-    PostgresConnection connection = null;
     try {
-      connection = super.cassandraClient.getConnection();
       long id = 2;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -106,30 +97,26 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
       tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
-      super.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, null,
+      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
     } finally {
-      connection.abort();
+      super.postgresClient.abort();
     }
   }
 
   @Test(expected = GroundException.class)
   public void testStructureVersionFails() throws GroundException {
-    PostgresConnection connection = null;
-
     try {
       long structureVersionId = -1;
       long id = 1;
 
       // none of these operations should fail
       try {
-        connection = super.cassandraClient.getConnection();
-
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -148,10 +135,10 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      super.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, null,
+      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
     } finally {
-      connection.abort();
+      super.postgresClient.abort();
     }
   }
 }

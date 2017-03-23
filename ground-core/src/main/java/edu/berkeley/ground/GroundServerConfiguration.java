@@ -52,11 +52,11 @@ public class GroundServerConfiguration extends Configuration {
   @NotEmpty
   private String kafkaPort;
 
-  @NotEmpty
-  private int numMachines;
+  @NotNull
+  private Integer numMachines;
 
-  @NotEmpty
-  private int machineId;
+  @NotNull
+  private Integer machineId;
 
   @JsonProperty
   public String getDbType() {
@@ -139,22 +139,22 @@ public class GroundServerConfiguration extends Configuration {
   }
 
   @JsonProperty
-  public int getNumMachines() {
+  public Integer getNumMachines() {
     return this.numMachines;
   }
 
   @JsonProperty
-  public void setNumMachines(int numMachines) {
+  public void setNumMachines(Integer numMachines) {
     this.numMachines = numMachines;
   }
 
   @JsonProperty
-  public int getMachineId() {
+  public Integer getMachineId() {
     return this.machineId;
   }
 
   @JsonProperty
-  public void setMachineId(int machineId) {
+  public void setMachineId(Integer machineId) {
     this.machineId = machineId;
   }
 }

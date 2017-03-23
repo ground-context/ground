@@ -17,6 +17,8 @@ package edu.berkeley.ground.api.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 import edu.berkeley.ground.api.versions.Item;
 
 public class Graph extends Item<GraphVersion> {
@@ -25,8 +27,9 @@ public class Graph extends Item<GraphVersion> {
 
   @JsonCreator
   public Graph(@JsonProperty("id") long id,
-               @JsonProperty("name") String name) {
-    super(id);
+               @JsonProperty("name") String name,
+               @JsonProperty("tags") Map<String, Tag> tags) {
+    super(id, tags);
 
     this.name = name;
   }

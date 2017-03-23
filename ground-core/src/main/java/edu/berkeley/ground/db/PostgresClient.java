@@ -1,228 +1,249 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
-import edu.berkeley.ground.exceptions.GroundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class PostgresClient implements DBClient {
+public class PostgresClient extends DBClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
-
   private static final String JDBCString = "jdbc:postgresql://%s:%d/%s?stringtype=unspecified";
-  private String connectionString;
-  private String username;
-  private String password;
 
-  public PostgresClient(String host, int port, String dbName, String username, String password) {
-    connectionString = String.format(PostgresClient.JDBCString, host, port, dbName);
-    this.username = username;
-    this.password = password;
+  private final Connection connection;
+  private final Map<String, PreparedStatement> preparedStatements;
+
+  public PostgresClient(String host, int port, String dbName, String username, String password)
+      throws GroundDBException {
+    String url = String.format(PostgresClient.JDBCString, host, port, dbName);
+    try {
+      this.connection = DriverManager.getConnection(url, username, password);
+      this.connection.setAutoCommit(false);
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
+    }
+
+    this.preparedStatements = new HashMap<>();
   }
 
-  public PostgresConnection getConnection() throws GroundDBException {
+  /**
+   * Insert a new row into table with insertValues.
+   *
+   * @param table the table to update
+   * @param insertValues the values to put into table
+   */
+  public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
+    String fields =
+        insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
+    String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
+
+    String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
     try {
-      return new PostgresConnection(DriverManager.getConnection(connectionString, username, password));
+      PreparedStatement preparedStatement = this.prepareStatement(insert);
+      int index = 1;
+      for (DbDataContainer container : insertValues) {
+        PostgresClient.setValue(
+            preparedStatement, container.getValue(), container.getGroundType(), index);
+
+        index++;
+      }
+
+      LOGGER.info("Executing update: " + preparedStatement.toString() + ".");
+
+      preparedStatement.executeUpdate();
+    } catch (SQLException e) {
+      LOGGER.error("Unexpected error in database insertion: " + e.getMessage());
+
+      throw new GroundDBException(e);
+    }
+  }
+
+  /**
+   * Retrieve rows based on a set of predicates.
+   *
+   * @param table the table to query
+   * @param projection the set of columns to retrieve
+   * @param predicatesAndValues the predicates
+   */
+  public QueryResults equalitySelect(
+      String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
+      throws GroundDBException, EmptyResultException {
+    String items = String.join(", ", projection);
+    String select = "select " + items + " from " + table;
+
+    if (predicatesAndValues.size() > 0) {
+      String predicatesString =
+          predicatesAndValues
+              .stream()
+              .map(predicate -> predicate.getField() + " = ?")
+              .collect(Collectors.joining(" and "));
+      select += " where " + predicatesString;
+    }
+
+    select += ";";
+    try {
+      PreparedStatement preparedStatement = this.prepareStatement(select);
+      int index = 1;
+      for (DbDataContainer container : predicatesAndValues) {
+        PostgresClient.setValue(
+            preparedStatement, container.getValue(), container.getGroundType(), index);
+
+        index++;
+      }
+
+      LOGGER.info("Executing query: " + preparedStatement.toString() + ".");
+
+      ResultSet resultSet = preparedStatement.executeQuery();
+      if (!resultSet.isBeforeFirst()) {
+        throw new EmptyResultException(
+            "No results found for query: " + preparedStatement.toString());
+      }
+
+      // Moves the cursor to the first element so that data can be accessed directly.
+      resultSet.next();
+      return new PostgresResults(resultSet);
+    } catch (SQLException e) {
+      LOGGER.error("Unexpected error in database query: " + e.getMessage());
+
+      throw new GroundDBException(e);
+    }
+  }
+
+  public void update(List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates,
+                     String table) throws GroundDBException {
+
+    String updateString = "update " + table + " set ";
+
+    if (setPredicates.size() > 0) {
+      String setPredicateString = setPredicates.stream()
+          .map(predicate -> predicate.getField() + " = ?")
+          .collect(Collectors.joining(", "));
+
+      updateString += setPredicateString;
+    }
+
+    if (wherePredicates.size() > 0) {
+      String wherePredicateString = wherePredicates.stream()
+          .map(predicate -> predicate.getField() + " = ?")
+          .collect(Collectors.joining(" and "));
+
+      updateString += " where " + wherePredicateString;
+    }
+
+    PreparedStatement statement = this.prepareStatement(updateString);
+
+    try {
+      int index = 1;
+      for (DbDataContainer predicate : setPredicates) {
+        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
+      }
+
+
+      for (DbDataContainer predicate : wherePredicates) {
+        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
+      }
+
+      statement.executeUpdate();
     } catch (SQLException e) {
       throw new GroundDBException(e);
     }
   }
 
-  public class PostgresConnection extends GroundDBConnection {
-    private Connection connection;
+  public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex)
+      throws GroundDBException {
+    String query =
+        "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?"
+            + " and ev.edge_id like ?;";
 
-    public PostgresConnection(Connection connection) throws SQLException {
-      this.connection = connection;
-      this.connection.setAutoCommit(false);
-    }
+    edgeNameRegex = '%' + edgeNameRegex + '%';
 
+    try {
+      PreparedStatement statement = this.prepareStatement(query);
+      statement.setLong(1, nodeVersionId);
+      statement.setString(2, edgeNameRegex);
 
-    /**
-     * Insert a new row into table with insertValues.
-     *
-     * @param table        the table to update
-     * @param insertValues the values to put into table
-     */
-    public void insert(String table, List<DbDataContainer> insertValues) throws GroundDBException {
-      String insertString = "insert into " + table + "(";
-      String valuesString = "values (";
+      ResultSet resultSet = statement.executeQuery();
+      List<Long> result = new ArrayList<>();
 
-      for (DbDataContainer container : insertValues) {
-        insertString += container.getField() + ", ";
-        valuesString += "?, ";
+      while (resultSet.next()) {
+        result.add(resultSet.getLong(1));
       }
 
-      insertString = insertString.substring(0, insertString.length() - 2) + ")";
-      valuesString = valuesString.substring(0, valuesString.length() - 2) + ")";
-
-      try {
-        PreparedStatement preparedStatement = this.connection.prepareStatement(insertString + valuesString + ";");
-
-        int index = 1;
-        for (DbDataContainer container : insertValues) {
-          PostgresClient.setValue(preparedStatement, container.getValue(), container.getGroundType(), index);
-
-          index++;
-        }
-
-        LOGGER.info("Executing update: " + preparedStatement.toString() + ".");
-
-        preparedStatement.executeUpdate();
-      } catch (SQLException e) {
-        LOGGER.error("Unexpected error in database insertion: " + e.getMessage());
-
-        throw new GroundDBException(e.getClass().toString() + ": " + e.getMessage());
-      }
-
-    }
-
-    /**
-     * Retrieve rows based on a set of predicates.
-     *
-     * @param table               the table to query
-     * @param projection          the set of columns to retrieve
-     * @param predicatesAndValues the predicates
-     */
-    public QueryResults equalitySelect(String table, List<String> projection,
-                                       List<DbDataContainer> predicatesAndValues)
-        throws GroundDBException, EmptyResultException {
-      String select = "select ";
-
-      for (String item : projection) {
-        select += item + ", ";
-      }
-
-      select = select.substring(0, select.length() - 2) + " from " + table;
-
-      if (predicatesAndValues.size() > 0) {
-        select += " where ";
-
-        for (DbDataContainer container : predicatesAndValues) {
-          select += container.getField() + " = ? and ";
-        }
-
-        select = select.substring(0, select.length() - 4);
-      }
-
-      try {
-        PreparedStatement preparedStatement = this.connection.prepareStatement(select + ";");
-
-        int index = 1;
-        for (DbDataContainer container : predicatesAndValues) {
-          PostgresClient.setValue(preparedStatement, container.getValue(), container.getGroundType(), index);
-
-          index++;
-        }
-
-        LOGGER.info("Executing query: " + preparedStatement.toString() + ".");
-
-        ResultSet resultSet = preparedStatement.executeQuery();
-        if (!resultSet.isBeforeFirst()) {
-          throw new EmptyResultException("No results found for query: " + preparedStatement.toString());
-        }
-
-        // Moves the cursor to the first element so that data can be accessed directly.
-        resultSet.next();
-        return new PostgresResults(resultSet);
-      } catch (SQLException e) {
-        LOGGER.error("Unexpected error in database query: " + e.getMessage());
-
-        throw new GroundDBException(e.getMessage());
-      }
-    }
-
-    public List<Long> transitiveClosure(long nodeVersionId) throws GroundException {
-      try {
-        // recursive query implementation
-                /*
-                PreparedStatement statement = this.connection.prepareStatement("with recursive paths(vfrom, vto) as (\n" +
-                                                    "    (select endpoint_one, endpoint_two from edgeversions where endpoint_one = ?)\n" +
-                                                    "    union\n" +
-                                                    "    (select p.vfrom, ev.endpoint_two\n" +
-                                                    "    from paths p, edgeversions ev\n" +
-                                                    "    where p.vto = ev.endpoint_one)\n" +
-                                                    ") select vto from paths;"); */
-
-        PreparedStatement statement = this.connection.prepareStatement("select reachable(?);");
-        statement.setLong(1, nodeVersionId);
-
-        ResultSet resultSet = statement.executeQuery();
-
-        List<Long> result = new ArrayList<>();
-        while (resultSet.next()) {
-          result.add(resultSet.getLong(1));
-        }
-
-        return result;
-      } catch (SQLException e) {
-        throw new GroundException(e);
-      }
-    }
-
-    public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) throws GroundException {
-      String query = "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?";
-      query += " and ev.edge_id like ?;";
-
-      edgeNameRegex = '%' + edgeNameRegex + '%';
-
-      try {
-        PreparedStatement statement = this.connection.prepareStatement(query);
-        statement.setLong(1, nodeVersionId);
-        statement.setString(2, edgeNameRegex);
-
-        ResultSet resultSet = statement.executeQuery();
-        List<Long> result = new ArrayList<>();
-
-        while (resultSet.next()) {
-          result.add(resultSet.getLong(1));
-        }
-
-        return result;
-      } catch (SQLException e) {
-        throw new GroundException(e);
-      }
-    }
-
-    public void commit() throws GroundDBException {
-      try {
-        this.connection.commit();
-        this.connection.close();
-      } catch (SQLException e) {
-        throw new GroundDBException(e);
-      }
-    }
-
-    public void abort() throws GroundDBException {
-      try {
-        this.connection.rollback();
-        this.connection.close();
-      } catch (SQLException e) {
-        throw new GroundDBException(e);
-      }
+      return result;
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
     }
   }
 
-  private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index) throws SQLException {
+  @Override
+  public void commit() throws GroundDBException {
+    try {
+      this.connection.commit();
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
+    }
+  }
+
+  @Override
+  public void abort() throws GroundDBException {
+    try {
+      this.connection.rollback();
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
+    }
+  }
+
+  @Override
+  public void close() throws GroundDBException {
+    try {
+      for (PreparedStatement statement : this.preparedStatements.values()) {
+        statement.close();
+      }
+
+      this.connection.close();
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
+    }
+  }
+
+  private PreparedStatement prepareStatement(String sql) throws GroundDBException {
+    // We cannot use computeIfAbsent, as prepareStatement throws an exception.
+    // Check if the statement is already in the cache; if so, use it.
+    PreparedStatement existingStatement = this.preparedStatements.get(sql);
+    if (existingStatement != null) {
+      return existingStatement;
+    }
+
+    try {
+      // Otherwise, prepare the statement, then cache it.
+      PreparedStatement newStatement = this.connection.prepareStatement(sql);
+      this.preparedStatements.put(sql, newStatement);
+      return newStatement;
+    } catch (SQLException e) {
+      throw new GroundDBException(e);
+    }
+  }
+
+  private static void setValue(
+      PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
+      throws SQLException {
     switch (groundType) {
       case STRING:
         if (value == null) {

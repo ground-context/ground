@@ -17,9 +17,8 @@ package edu.berkeley.ground.api.models.cassandra;
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
 import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
+import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DBClient;
-import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
@@ -28,18 +27,30 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.util.*;
 
 public class CassandraTagFactory extends TagFactory {
-  public Map<String, Tag> retrieveFromDatabaseById(GroundDBConnection connectionPointer, long id) throws GroundException {
-    CassandraConnection connection = (CassandraConnection) connectionPointer;
+  private final CassandraClient dbClient;
 
+  public CassandraTagFactory(CassandraClient dbClient) {
+    this.dbClient = dbClient;
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "rich_version");
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "item");
+  }
+
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+    predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
 
     Map<String, Tag> result = new HashMap<>();
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("tag", DBClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException eer) {
+      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
       // this means that there are no tags
       return result;
     }
@@ -59,20 +70,27 @@ public class CassandraTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag) throws GroundException {
-    CassandraConnection connection = (CassandraConnection) connectionPointer;
+  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
+    return this.getIdsByTag(tag, "rich_version");
+  }
+
+  public List<Long> getItemIdsByTag(String tag) throws GroundException {
+    return this.getIdsByTag(tag, "item");
+  }
+
+  private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
     List<Long> result = new ArrayList<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
     List<String> projections = new ArrayList<>();
-    projections.add("rich_version_id");
+    projections.add(keyPrefix + "_id");
 
     QueryResults resultSet;
     try {
-      resultSet = connection.equalitySelect("tag", projections, predicates);
-    } catch (EmptyResultException eer) {
+      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", projections, predicates);
+    } catch (EmptyResultException e) {
       // this means that there are no tags
       return result;
     }

@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class LineageEdgeVersionTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
@@ -55,6 +56,6 @@ public class LineageEdgeVersionTest {
 
     LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(1, tagsMap, -1, "http://www.google.com", parametersMap, 123, 456, 1);
 
-    assertThat(MAPPER.readValue(fixture("fixtures/usage/lineage_edge_version.json"), LineageEdgeVersion.class)).isEqualToComparingFieldByField(lineageEdgeVersion);
+    assertEquals(MAPPER.readValue(fixture("fixtures/usage/lineage_edge_version.json"), LineageEdgeVersion.class), lineageEdgeVersion);
   }
 }

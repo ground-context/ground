@@ -21,12 +21,11 @@ import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.db.Neo4jClient.Neo4jConnection;
 import edu.berkeley.ground.exceptions.EmptyResultException;
+import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.IdGenerator;
 
-import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +37,11 @@ import java.util.stream.Collectors;
 
 public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jEdgeVersionFactory.class);
-  private Neo4jClient dbClient;
-  private IdGenerator idGenerator;
+  private final Neo4jClient dbClient;
+  private final IdGenerator idGenerator;
 
-  private Neo4jEdgeFactory edgeFactory;
-  private Neo4jRichVersionFactory richVersionFactory;
+  private final Neo4jEdgeFactory edgeFactory;
+  private final Neo4jRichVersionFactory richVersionFactory;
 
   public Neo4jEdgeVersionFactory(Neo4jEdgeFactory edgeFactory, Neo4jRichVersionFactory richVersionFactory, Neo4jClient dbClient, IdGenerator idGenerator) {
     this.dbClient = dbClient;
@@ -56,12 +55,11 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
                             String reference,
                             Map<String, String> referenceParameters,
                             long edgeId,
-                            long fromId,
-                            long toId,
+                            long fromNodeVersionStartId,
+                            long fromNodeVersionEndId,
+                            long toNodeVersionStartId,
+                            long toNodeVersionEndId,
                             List<Long> parentIds) throws GroundException {
-
-    Neo4jConnection connection = this.dbClient.getConnection();
-
     try {
       long id = idGenerator.generateVersionId();
 
@@ -70,55 +68,88 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
       insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-      insertions.add(new DbDataContainer("endpoint_one", GroundType.LONG, fromId));
-      insertions.add(new DbDataContainer("endpoint_two", GroundType.LONG, toId));
+      insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+          fromNodeVersionStartId));
+      insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+          fromNodeVersionEndId));
+      insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+          toNodeVersionStartId));
+      insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
-      connection.addVertex("EdgeVersion", insertions);
-      this.richVersionFactory.insertIntoDatabase(connection, id, tags, structureVersionId, reference, referenceParameters);
+      this.dbClient.addVertex("EdgeVersion", insertions);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-      connection.addEdge("EdgeVersionConnection", fromId, id, new ArrayList<>());
-      connection.addEdge("EdgeVersionConnection", id, toId, new ArrayList<>());
+      this.dbClient.addEdge("EdgeVersionConnection", fromNodeVersionStartId, id, new ArrayList<>());
+      this.dbClient.addEdge("EdgeVersionConnection", id, toNodeVersionStartId, new ArrayList<>());
 
-      this.edgeFactory.update(connection, edgeId, id, parentIds);
+      if (fromNodeVersionEndId != -1) {
+        this.dbClient.addEdge("EdgeVersionConnection", fromNodeVersionEndId, id, new ArrayList<>());
+      }
 
-      connection.commit();
+      if (toNodeVersionEndId != -1) {
+        this.dbClient.addEdge("EdgeVersionConnection", toNodeVersionEndId, id, new ArrayList<>());
+      }
+
+      this.edgeFactory.update(edgeId, id, parentIds);
+
+      this.dbClient.commit();
       LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters, edgeId, fromId, toId);
-    } catch (GroundException e) {
-      connection.abort();
+      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
+          referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
+          toNodeVersionStartId, toNodeVersionEndId);
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
       throw e;
     }
   }
 
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    Neo4jConnection connection = this.dbClient.getConnection();
-
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(connection, id);
+      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       Record versionRecord;
       try {
-        versionRecord = connection.getVertex(predicates);
-      } catch (EmptyResultException eer) {
-        throw new GroundException("No EdgeVersion found with id " + id + ".");
+        versionRecord = this.dbClient.getVertex("EdgeVersion", predicates);
+      } catch (EmptyResultException e) {
+        throw new GroundDBException("No EdgeVersion found with id " + id + ".");
       }
 
       long edgeId = versionRecord.get("v").asNode() .get("edge_id").asLong();
-      long fromId = versionRecord.get("v").asNode().get("endpoint_one").asLong();
-      long toId = versionRecord.get("v").asNode().get("endpoint_two").asLong();
+      long fromNodeVersionStartId = versionRecord.get("v").asNode().get("from_node_start_id")
+          .asLong();
+      long fromNodeVersionEndId = versionRecord.get("v").asNode().get("from_node_end_id")
+          .asLong();
+      long toNodeVersionStartId = versionRecord.get("v").asNode().get("to_node_start_id")
+          .asLong();
+      long toNodeVersionEndId = versionRecord.get("v").asNode().get("to_node_end_id")
+          .asLong();
 
-      connection.commit();
+      this.dbClient.commit();
       LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(), version.getReference(), version.getParameters(), edgeId, fromId, toId);
-    } catch (GroundException e) {
-      connection.abort();
+      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+          version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
+          fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
+    } catch (GroundDBException e) {
+      this.dbClient.abort();
 
       throw e;
+    }
+  }
+
+  public void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException {
+    if (fromEndId != -1) {
+      this.dbClient.setProperty(id, "from_node_end_id", fromEndId, false);
+      this.dbClient.addEdge("EdgeVersionConnection", fromEndId, id, new ArrayList<>());
+    }
+
+    if (toEndId != -1) {
+      this.dbClient.setProperty(id, "to_node_end_id", toEndId, false);
+      this.dbClient.addEdge("EdgeVersionConnection", id, toEndId, new ArrayList<>());
     }
   }
 }

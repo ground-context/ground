@@ -2,7 +2,7 @@
   "id": 1,
   "tags": {
     "testtag": {
-      "versionId": 1,
+      "id": 1,
       "key": "testtag",
       "value": "tag",
       "type": "string"

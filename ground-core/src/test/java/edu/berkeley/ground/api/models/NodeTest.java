@@ -16,19 +16,27 @@ package edu.berkeley.ground.api.models;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.berkeley.ground.api.versions.GroundType;
 import io.dropwizard.jackson.Jackson;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.dropwizard.testing.FixtureHelpers.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class NodeTest {
   private static final ObjectMapper MAPPER = Jackson.newObjectMapper();
 
   @Test
   public void serializesToJSON() throws Exception {
-    final Node node = new Node(1, "test");
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+
+    final Node node = new Node(1, "test", tagsMap);
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/node.json"), Node.class));
 
     assertThat(MAPPER.writeValueAsString(node)).isEqualTo(expected);
@@ -36,7 +44,10 @@ public class NodeTest {
 
   @Test
   public void deserializesFromJSON() throws Exception {
-    final Node node = new Node(1, "test");
-    assertThat(MAPPER.readValue(fixture("fixtures/models/node.json"), Node.class)).isEqualToComparingFieldByField(node);
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+
+    final Node node = new Node(1, "test", tagsMap);
+    assertEquals(MAPPER.readValue(fixture("fixtures/models/node.json"), Node.class), node);
   }
 }
