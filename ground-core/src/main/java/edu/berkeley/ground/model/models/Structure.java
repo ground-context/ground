@@ -25,18 +25,28 @@ public class Structure extends Item<StructureVersion> {
   // the name of this Structure
   private String name;
 
+  // the source key for this Node
+  private String sourceKey;
+
   @JsonCreator
   public Structure(@JsonProperty("id") long id,
                    @JsonProperty("name") String name,
+                   @JsonProperty("source_key") String sourceKey,
                    @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
+    this.sourceKey = sourceKey;
   }
 
   @JsonProperty
   public String getName() {
     return this.name;
+  }
+
+  @JsonProperty
+  public String getSourceKey() {
+    return this.sourceKey;
   }
 
   @Override

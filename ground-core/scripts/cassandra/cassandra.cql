@@ -32,6 +32,7 @@ create table version_history_dag (
 
 create table structure (
     item_id bigint,
+    source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
@@ -71,6 +72,7 @@ create table rich_version_tag (
 
 create table edge (
     item_id bigint,
+    source_key varchar,
     from_node_id bigint,
     to_node_id bigint,
     name varchar,
@@ -79,12 +81,14 @@ create table edge (
 
 create table node (
     item_id bigint,
+    source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
 
 create table graph (
     item_id bigint,
+    source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
@@ -118,12 +122,14 @@ create table graph_version_edge (
 
 create table principal (
     node_id bigint,
+    source_key varchar,
     name varchar,
     PRIMARY KEY (node_id, name)
 );
 
 create table lineage_edge (
     item_id bigint,
+    source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, name)
 );
@@ -138,6 +144,7 @@ create table lineage_edge_version (
 
 create table lineage_graph (
     item_id bigint,
+    source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, name)
 );

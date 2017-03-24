@@ -26,23 +26,31 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 public class LineageEdge extends Item<LineageEdgeVersion> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdge.class);
-
   // the name of this LineageEdge
   private String name;
 
+  // the source key for this Node
+  private String sourceKey;
+
   @JsonCreator
   public LineageEdge(@JsonProperty("id") long id,
-                        @JsonProperty("name") String name,
-                        @JsonProperty("tags")Map<String, Tag> tags) {
+                     @JsonProperty("name") String name,
+                     @JsonProperty("source_key") String sourceKey,
+                     @JsonProperty("tags")Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
+    this.sourceKey = sourceKey;
   }
 
   @JsonProperty
   public String getName() {
     return this.name;
+  }
+
+  @JsonProperty
+  public String getSourceKey() {
+    return this.sourceKey;
   }
 
   @Override

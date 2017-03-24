@@ -31,10 +31,14 @@ public class Edge extends Item<EdgeVersion> {
   // the id of the Node that this EdgeVersion points to
   private long toNodeId;
 
+  // the source key for this Edge
+  private String sourceKey;
+
 
   @JsonCreator
   public Edge(@JsonProperty("id") long id,
               @JsonProperty("name") String name,
+              @JsonProperty("source_key") String sourceKey,
               @JsonProperty("fromNodeId") long fromNodeId,
               @JsonProperty("toNodeId") long toNodeId,
               @JsonProperty("tags") Map<String, Tag> tags) {
@@ -43,6 +47,7 @@ public class Edge extends Item<EdgeVersion> {
     this.name = name;
     this.fromNodeId = fromNodeId;
     this.toNodeId = toNodeId;
+    this.sourceKey = sourceKey;
   }
 
   @JsonProperty
@@ -60,6 +65,10 @@ public class Edge extends Item<EdgeVersion> {
     return this.toNodeId;
   }
 
+  @JsonProperty
+  public String getSourceKey() {
+    return this.sourceKey;
+  }
 
   @Override
   public boolean equals(Object other) {
