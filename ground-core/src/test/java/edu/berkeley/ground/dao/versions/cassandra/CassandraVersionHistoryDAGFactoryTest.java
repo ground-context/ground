@@ -1,3 +1,17 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.berkeley.ground.dao.versions.cassandra;
 
 import org.junit.Test;
@@ -10,7 +24,6 @@ import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
 
-// TODO: Close connections to avoid littering.
 public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
 
   public CassandraVersionHistoryDAGFactoryTest() throws GroundDBException {
@@ -21,13 +34,13 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
   public void testVersionHistoryDAGCreation() throws GroundException {
     try {
       long testId = 1;
-      super.versionHistoryDAGFactory.create(testId);
+      CassandraTest.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -35,30 +48,30 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
   public void testAddEdge() throws GroundException {
     try {
       long testId = 1;
-      super.versionHistoryDAGFactory.create(testId);
+      CassandraTest.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       long fromId = 123;
       long toId = 456;
 
-      super.versionFactory.insertIntoDatabase(fromId);
-      super.versionFactory.insertIntoDatabase(toId);
+      CassandraTest.versionFactory.insertIntoDatabase(fromId);
+      CassandraTest.versionFactory.insertIntoDatabase(toId);
 
-      super.versionHistoryDAGFactory.addEdge(dag, fromId, toId, testId);
+      CassandraTest.versionHistoryDAGFactory.addEdge(dag, fromId, toId, testId);
 
-      VersionHistoryDAG<?> retrieved = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> retrieved = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, retrieved.getEdgeIds().size());
       assertEquals(toId, (long) retrieved.getLeaves().get(0));
 
-      VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
           retrieved.getEdgeIds().get(0));
 
       assertEquals(fromId, successor.getFromId());
       assertEquals(toId, successor.getToId());
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 }

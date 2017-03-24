@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,13 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.resources.*;
+import edu.berkeley.ground.resources.EdgesResource;
+import edu.berkeley.ground.resources.GraphsResource;
+import edu.berkeley.ground.resources.KafkaResource;
+import edu.berkeley.ground.resources.LineageEdgesResource;
+import edu.berkeley.ground.resources.LineageGraphsResource;
+import edu.berkeley.ground.resources.NodesResource;
+import edu.berkeley.ground.resources.StructuresResource;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.FactoryGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
@@ -69,7 +75,8 @@ public class GroundServer extends Application<GroundServerConfiguration> {
   public void initialize(Bootstrap<GroundServerConfiguration> bootstrap) {
     bootstrap.addBundle(new SwaggerBundle<GroundServerConfiguration>() {
       @Override
-      protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(GroundServerConfiguration configuration) {
+      protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(
+          GroundServerConfiguration configuration) {
         return configuration.swaggerBundleConfiguration;
       }
     });
@@ -77,25 +84,36 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
 
   @Override
-  public void run(GroundServerConfiguration configuration, Environment environment) throws GroundException {
+  public void run(GroundServerConfiguration configuration, Environment environment)
+      throws GroundException {
+
     switch (configuration.getDbType()) {
       case "postgres":
-        PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-        setPostgresFactories(postgresClient, configuration.getMachineId(), configuration.getNumMachines());
+        PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(),
+            configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(),
+            configuration.getDbPassword());
+        setPostgresFactories(postgresClient, configuration.getMachineId(),
+            configuration.getNumMachines());
         break;
 
       case "cassandra":
-        CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(), configuration.getDbPassword());
-        setCassandraFactories(cassandraClient, configuration.getMachineId(), configuration.getNumMachines());
+        CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(),
+            configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(),
+            configuration.getDbPassword());
+        setCassandraFactories(cassandraClient, configuration.getMachineId(),
+            configuration.getNumMachines());
         break;
 
       case "neo4j":
-        Neo4jClient neo4jClient = new Neo4jClient(configuration.getDbHost(), configuration.getDbUser(), configuration.getDbPassword());
-        setNeo4jFactories(neo4jClient, configuration.getMachineId(), configuration.getNumMachines());
+        Neo4jClient neo4jClient = new Neo4jClient(configuration.getDbHost(),
+            configuration.getDbUser(), configuration.getDbPassword());
+        setNeo4jFactories(neo4jClient, configuration.getMachineId(),
+            configuration.getNumMachines());
         break;
 
       default:
-        throw new RuntimeException("FATAL: Unrecognized database type (" + configuration.getDbType() + ").");
+        throw new RuntimeException("FATAL: Unrecognized database type ("
+            + configuration.getDbType() + ").");
     }
 
     final EdgesResource edgesResource = new EdgesResource(this.edgeFactory,
@@ -129,7 +147,9 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     this.setFactories(new PostgresFactories(postgresClient, machineId, numMachines));
   }
 
-  private void setCassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
+  private void setCassandraFactories(CassandraClient cassandraClient,
+                                     int machineId,
+                                     int numMachines) {
     this.setFactories(new CassandraFactories(cassandraClient, machineId, numMachines));
   }
 

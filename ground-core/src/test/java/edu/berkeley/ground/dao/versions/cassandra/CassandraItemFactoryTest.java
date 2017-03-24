@@ -1,3 +1,17 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.berkeley.ground.dao.versions.cassandra;
 
 import org.junit.Test;
@@ -30,30 +44,30 @@ public class CassandraItemFactoryTest extends CassandraTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      CassandraTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long fromId = 123;
       long toId = 456;
 
-      super.versionFactory.insertIntoDatabase(fromId);
-      super.versionFactory.insertIntoDatabase(toId);
+      CassandraTest.versionFactory.insertIntoDatabase(fromId);
+      CassandraTest.versionFactory.insertIntoDatabase(toId);
 
       List<Long> parentIds = new ArrayList<>();
       parentIds.add(0L);
-      super.itemFactory.update(testId, fromId, new ArrayList<>());
+      CassandraTest.itemFactory.update(testId, fromId, new ArrayList<>());
 
       parentIds.clear();
       parentIds.add(fromId);
-      super.itemFactory.update(testId, toId, parentIds);
+      CassandraTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
       VersionSuccessor<?> successor = null;
       for (long id : dag.getEdgeIds()) {
-        successor = super.versionSuccessorFactory.retrieveFromDatabase(id);
+        successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(id);
 
         if (successor.getFromId() != 0) {
           break;
@@ -67,7 +81,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       assertEquals(fromId, successor.getFromId());
       assertEquals(toId, successor.getToId());
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -76,28 +90,28 @@ public class CassandraItemFactoryTest extends CassandraTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      CassandraTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
       long toId = 123;
-      super.versionFactory.insertIntoDatabase(toId);
+      CassandraTest.versionFactory.insertIntoDatabase(toId);
 
       List<Long> parentIds = new ArrayList<>();
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      super.itemFactory.update(testId, toId, parentIds);
+      CassandraTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
       assertEquals(0, successor.getFromId());
       assertEquals(toId, successor.getToId());
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -106,32 +120,32 @@ public class CassandraItemFactoryTest extends CassandraTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      CassandraTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long fromId = 123;
       long toId = 456;
 
-      super.versionFactory.insertIntoDatabase(fromId);
-      super.versionFactory.insertIntoDatabase(toId);
+      CassandraTest.versionFactory.insertIntoDatabase(fromId);
+      CassandraTest.versionFactory.insertIntoDatabase(toId);
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      super.itemFactory.update(testId, fromId, parentIds);
+      CassandraTest.itemFactory.update(testId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds = new ArrayList<>();
       parentIds.add(fromId);
-      super.itemFactory.update(testId, toId, parentIds);
+      CassandraTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> toSuccessor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
-      VersionSuccessor<?> fromSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> fromSuccessor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(1));
 
       if (fromSuccessor.getFromId() != 0) {
@@ -146,7 +160,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       assertEquals(fromId, toSuccessor.getFromId());
       assertEquals(toId, toSuccessor.getToId());
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -158,9 +172,9 @@ public class CassandraItemFactoryTest extends CassandraTest {
       long toId = 456;
 
       try {
-        super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+        CassandraTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
-        super.versionFactory.insertIntoDatabase(toId);
+        CassandraTest.versionFactory.insertIntoDatabase(toId);
 
       } catch (GroundException ge) {
         fail(ge.getMessage());
@@ -170,9 +184,9 @@ public class CassandraItemFactoryTest extends CassandraTest {
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      super.itemFactory.update(testId, toId, parentIds);
+      CassandraTest.itemFactory.update(testId, toId, parentIds);
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -181,28 +195,28 @@ public class CassandraItemFactoryTest extends CassandraTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      CassandraTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long parentOne = 123;
       long parentTwo = 456;
       long child = 789;
 
-      super.versionFactory.insertIntoDatabase(parentOne);
-      super.versionFactory.insertIntoDatabase(parentTwo);
-      super.versionFactory.insertIntoDatabase(child);
+      CassandraTest.versionFactory.insertIntoDatabase(parentOne);
+      CassandraTest.versionFactory.insertIntoDatabase(parentTwo);
+      CassandraTest.versionFactory.insertIntoDatabase(child);
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      super.itemFactory.update(testId, parentOne, parentIds);
-      super.itemFactory.update(testId, parentTwo, parentIds);
+      CassandraTest.itemFactory.update(testId, parentOne, parentIds);
+      CassandraTest.itemFactory.update(testId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds = new ArrayList<>();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      super.itemFactory.update(testId, child, parentIds);
+      CassandraTest.itemFactory.update(testId, child, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(4, dag.getEdgeIds().size());
       assertEquals(1, dag.getLeaves().size());
@@ -210,7 +224,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
 
       // No need to check the version successors because we have tests for those.
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -224,9 +238,9 @@ public class CassandraItemFactoryTest extends CassandraTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      super.itemFactory.insertIntoDatabase(testId, tags);
+      CassandraTest.itemFactory.insertIntoDatabase(testId, tags);
 
-      Item retrieved = super.itemFactory.retrieveFromDatabase(testId);
+      Item retrieved = CassandraTest.itemFactory.retrieveFromDatabase(testId);
 
       assertEquals(testId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -238,7 +252,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 }
