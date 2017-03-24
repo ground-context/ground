@@ -25,18 +25,28 @@ public class Structure extends Item<StructureVersion> {
   // the name of this Structure
   private String name;
 
+  // the source key for this Node
+  private String sourceKey;
+
   @JsonCreator
   public Structure(@JsonProperty("id") long id,
                    @JsonProperty("name") String name,
+                   @JsonProperty("sourceKey") String sourceKey,
                    @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
+    this.sourceKey = sourceKey;
   }
 
   @JsonProperty
   public String getName() {
     return this.name;
+  }
+
+  @JsonProperty
+  public String getSourceKey() {
+    return this.sourceKey;
   }
 
   @Override
@@ -47,6 +57,8 @@ public class Structure extends Item<StructureVersion> {
 
     Structure otherStructure = (Structure) other;
 
-    return this.name.equals(otherStructure.name) && this.getId() == otherStructure.getId();
+    return this.name.equals(otherStructure.name) &&
+        this.getId() == otherStructure.getId() &&
+        this.sourceKey.equals(otherStructure.sourceKey);
   }
 }

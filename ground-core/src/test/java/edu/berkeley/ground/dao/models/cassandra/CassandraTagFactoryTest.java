@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -25,8 +25,8 @@ public class CassandraTagFactoryTest extends CassandraTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    long nodeId1 = CassandraTest.factories.getNodeFactory().create("test1", tagsMap).getId();
-    long nodeId2 = CassandraTest.factories.getNodeFactory().create("test2", tagsMap).getId();
+    long nodeId1 = CassandraTest.factories.getNodeFactory().create("test1", null, tagsMap).getId();
+    long nodeId2 = CassandraTest.factories.getNodeFactory().create("test2", null, tagsMap).getId();
 
     List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag("testtag");
 
@@ -41,7 +41,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    long nodeId = CassandraTest.factories.getNodeFactory().create("test1", tagsMap).getId();
+    long nodeId = CassandraTest.factories.getNodeFactory().create("test1", null, tagsMap).getId();
 
     long nodeVersionId1 = CassandraTest.factories.getNodeVersionFactory().create(tagsMap,
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();

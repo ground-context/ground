@@ -61,9 +61,11 @@ public class PostgresEdgeFactory extends EdgeFactory {
   public void setEdgeVersionFactory(PostgresEdgeVersionFactory edgeVersionFactory) {
     this.edgeVersionFactory = edgeVersionFactory;
   }
-
-  public Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
-      throws GroundException {
+  public Edge create(String name,
+                     String sourceKey,
+                     long fromNodeId,
+                     long toNodeId,
+                     Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -74,12 +76,13 @@ public class PostgresEdgeFactory extends EdgeFactory {
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
       insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
       insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
+      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
       this.dbClient.insert("edge", insertions);
 
       this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
-      return EdgeFactory.construct(uniqueId, name, fromNodeId, toNodeId, tags);
+      return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 
@@ -110,15 +113,18 @@ public class PostgresEdgeFactory extends EdgeFactory {
       }
 
       long id = resultSet.getLong(1);
-      String name = resultSet.getString(4);
+      long fromNodeId = resultSet.getLong(3);
+      long toNodeId = resultSet.getLong(4);
+
+      String name = resultSet.getString(5);
+      String sourceKey = resultSet.getString(2);
+
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-      long fromNodeId = resultSet.getLong(2);
-      long toNodeId = resultSet.getLong(3);
 
       this.dbClient.commit();
       LOGGER.info("Retrieved edge " + value + ".");
 
-      return EdgeFactory.construct(id, name, fromNodeId, toNodeId, tags);
+      return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 

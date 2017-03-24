@@ -67,17 +67,20 @@ public class NodesResource {
 
   @POST
   @Timed
-  @Path("/{name}")
-  public Node createNode(@PathParam("name") String name, @Valid Map<String, Tag> tags) throws
-      GroundException {
+  @Path("/{name}/{key}")
+  public Node createNode(@PathParam("name") String name,
+                         @PathParam("key") String sourceKey,
+                         @Valid Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating node " + name + ".");
-    return this.nodeFactory.create(name, tags);
+    return this.nodeFactory.create(name, sourceKey, tags);
   }
 
   @POST
   @Timed
   @Path("/versions")
-  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion, @QueryParam("parents") List<Long> parentIds) throws GroundException {
+  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion,
+                                       @QueryParam("parents") List<Long> parentIds)
+      throws GroundException {
     LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
     return this.nodeVersionFactory.create(nodeVersion.getTags(),
         nodeVersion.getStructureVersionId(),
@@ -98,7 +101,9 @@ public class NodesResource {
   @GET
   @Timed
   @Path("/adjacent/{id}/{edgeName}")
-  public List<Long> adjacentNodes(@PathParam("id") long nodeVersionId, @PathParam("edgeName") String edgeNameRegex) throws GroundException {
+  public List<Long> adjacentNodes(@PathParam("id") long nodeVersionId,
+                                  @PathParam("edgeName") String edgeNameRegex)
+      throws GroundException {
     LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");
 
     return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);

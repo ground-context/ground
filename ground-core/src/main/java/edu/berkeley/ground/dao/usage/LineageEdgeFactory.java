@@ -22,13 +22,19 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class LineageEdgeFactory {
-  public abstract LineageEdge create(String name, Map<String, Tag> tags) throws GroundException;
+  public abstract LineageEdge create(String name,
+                                     String sourceKey,
+                                     Map<String, Tag> tags)
+      throws GroundException;
 
   public abstract LineageEdge retrieveFromDatabase(String name) throws GroundException;
 
   public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  public static LineageEdge construct(long id, String name, Map<String, Tag> tags) {
-    return new LineageEdge(id, name, tags);
+  public static LineageEdge construct(long id,
+                                      String name,
+                                      String sourceKey,
+                                      Map<String, Tag> tags) {
+    return new LineageEdge(id, name, sourceKey, tags);
   }
 }

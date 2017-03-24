@@ -34,13 +34,15 @@ public class Neo4jLineageGraphFactory extends LineageGraphFactory {
     this.idGenerator = idGenerator;
   }
 
-  public LineageGraph create(String name, Map<String, Tag> tags) throws GroundException {
+  public LineageGraph create(String name, String sourceKey, Map<String, Tag> tags)
+      throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
+      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
       this.dbClient.addVertex("LineageGraph", insertions);
       this.itemFactory.insertIntoDatabase(uniqueId, tags);
@@ -48,7 +50,7 @@ public class Neo4jLineageGraphFactory extends LineageGraphFactory {
       this.dbClient.commit();
       LOGGER.info("Created lineage graph " + name + ".");
 
-      return LineageGraphFactory.construct(uniqueId, name, tags);
+      return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
     } catch (GroundDBException e) {
       this.dbClient.abort();
 
@@ -69,12 +71,14 @@ public class Neo4jLineageGraphFactory extends LineageGraphFactory {
       }
 
       long id = record.get("v").asNode().get("id").asLong();
+      String sourceKey = record.get("v").asNode().get("source_key").asString();
+
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
       this.dbClient.commit();
       LOGGER.info("Retrieved lineage graph " + name + ".");
 
-      return LineageGraphFactory.construct(id, name, tags);
+      return LineageGraphFactory.construct(id, name, sourceKey, tags);
     } catch (GroundDBException e) {
       this.dbClient.abort();
 

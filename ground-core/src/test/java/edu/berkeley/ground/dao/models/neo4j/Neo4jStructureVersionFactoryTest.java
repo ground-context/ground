@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -22,7 +22,8 @@ public class Neo4jStructureVersionFactoryTest extends Neo4jTest {
   @Test
   public void testStructureVersionCreation() throws GroundException {
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

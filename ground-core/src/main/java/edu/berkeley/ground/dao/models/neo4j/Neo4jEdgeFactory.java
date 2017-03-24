@@ -61,8 +61,11 @@ public class Neo4jEdgeFactory extends EdgeFactory {
     this.edgeVersionFactory = edgeVersionFactory;
   }
 
-  public Edge create(String name, long fromNodeId, long toNodeId, Map<String, Tag> tags)
-      throws GroundException {
+  public Edge create(String name,
+                     String sourceKey,
+                     long fromNodeId,
+                     long toNodeId,
+                     Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = idGenerator.generateItemId();
 
@@ -73,12 +76,13 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
       insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
       insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
+      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
       this.dbClient.addVertex("GroundEdge", insertions);
 
       this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
-      return EdgeFactory.construct(uniqueId, name, fromNodeId, toNodeId, tags);
+      return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
     } catch (GroundDBException e) {
       this.dbClient.abort();
 
@@ -108,16 +112,19 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       }
 
       long id = record.get("v").asNode().get("id").asLong();
-      String name = record.get("v").asNode().get("name").asString();
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
       long fromNodeId = record.get("v").asNode().get("from_node_id").asLong();
       long toNodeId = record.get("v").asNode().get("to_node_id").asLong();
+
+      String name = record.get("v").asNode().get("name").asString();
+      String sourceKey = record.get("v").asNode().get("source_key").asString();
+
+      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
 
       this.dbClient.commit();
       LOGGER.info("Retrieved edge " + name + ".");
 
-      return EdgeFactory.construct(id, name, fromNodeId, toNodeId, tags);
+      return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
     } catch (GroundDBException e) {
       this.dbClient.abort();
 

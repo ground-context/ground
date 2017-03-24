@@ -5,7 +5,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -21,19 +21,22 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
   @Test
   public void testEdgeCreation() throws GroundException {
     String testName = "test";
+    String sourceKey = "testKey";
+
     Map<String, Tag> tagsMap = new HashMap<>();
 
     PostgresNodeFactory nodeFactory = (PostgresNodeFactory) super.factories.getNodeFactory();
-    long fromNodeId = nodeFactory.create("testNode1", tagsMap).getId();
-    long toNodeId = nodeFactory.create("testNode2", tagsMap).getId();
+    long fromNodeId = nodeFactory.create("testNode1", null, tagsMap).getId();
+    long toNodeId = nodeFactory.create("testNode2", null, tagsMap).getId();
 
     PostgresEdgeFactory edgeFactory = (PostgresEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName, fromNodeId, toNodeId, new HashMap<>());
+    edgeFactory.create(testName, sourceKey, fromNodeId, toNodeId, new HashMap<>());
 
     Edge edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
     assertEquals(fromNodeId, edge.getFromNodeId());
     assertEquals(toNodeId, edge.getToNodeId());
+    assertEquals(sourceKey, edge.getSourceKey());
   }
 }

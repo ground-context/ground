@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -21,18 +21,23 @@ public class PostgresStructureFactoryTest extends PostgresTest {
   @Test
   public void testStructureCreation() throws GroundException {
     String testName = "test";
-    PostgresStructureFactory edgeFactory = (PostgresStructureFactory) super.factories.getStructureFactory();
-    edgeFactory.create(testName, new HashMap<>());
+    String sourceKey = "testKey";
 
-    Structure edge = edgeFactory.retrieveFromDatabase(testName);
+    PostgresStructureFactory structureFactory = (PostgresStructureFactory) super.factories
+        .getStructureFactory();
+    structureFactory.create(testName, sourceKey, new HashMap<>());
 
-    assertEquals(testName, edge.getName());
+    Structure structure = structureFactory.retrieveFromDatabase(testName);
+
+    assertEquals(testName, structure.getName());
+    assertEquals(sourceKey, structure.getSourceKey());
   }
 
   @Test
   public void testLeafRetrieval() throws GroundException {
     String structureName = "testStructure1";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     long structureVersionId = super.factories.getStructureVersionFactory().create(structureId,
         new HashMap<>(), new ArrayList<>()).getId();

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -27,19 +27,22 @@ public class PostgresNodeFactoryTest extends PostgresTest {
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
     String testName = "test";
+    String sourceKey = "testKey";
+
     PostgresNodeFactory nodeFactory = (PostgresNodeFactory) super.factories.getNodeFactory();
-    nodeFactory.create(testName, tagsMap);
+    nodeFactory.create(testName, sourceKey, tagsMap);
 
     Node node = nodeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
+    assertEquals(sourceKey, node.getSourceKey());
   }
 
   @Test
   public void testLeafRetrieval() throws GroundException {
     String nodeName = "testNode1";
-    long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+    long nodeId = super.factories.getNodeFactory().create(nodeName, null, new HashMap<>()).getId();
 
     long nodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();

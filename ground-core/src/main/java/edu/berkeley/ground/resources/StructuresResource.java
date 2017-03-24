@@ -66,17 +66,20 @@ public class StructuresResource {
 
   @POST
   @Timed
-  @Path("/{name}")
-  public Structure createStructure(@PathParam("name") String name, @Valid Map<String, Tag> tags)
-      throws GroundException {
+  @Path("/{name}/{key}")
+  public Structure createStructure(@PathParam("name") String name,
+                                   @PathParam("key") String sourceKey,
+                                   @Valid Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating structure " + name + ".");
-    return this.structureFactory.create(name, tags);
+    return this.structureFactory.create(name, sourceKey, tags);
   }
 
   @POST
   @Timed
   @Path("/versions")
-  public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
+  public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion,
+                                                 @QueryParam("parent") List<Long> parentIds)
+      throws GroundException {
     LOGGER.info("Creating structure version in structure " + structureVersion.getStructureId() + ".");
     return this.structureVersionFactory.create(structureVersion.getStructureId(),
         structureVersion.getAttributes(),

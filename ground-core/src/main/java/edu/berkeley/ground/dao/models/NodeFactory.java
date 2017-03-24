@@ -22,7 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class NodeFactory {
-  public abstract Node create(String name, Map<String, Tag> tags) throws GroundException;
+  public abstract Node create(String name,
+                              String sourceKey,
+                              Map<String, Tag> tags)
+      throws GroundException;
 
   public abstract Node retrieveFromDatabase(String name) throws GroundException;
 
@@ -30,7 +33,7 @@ public abstract class NodeFactory {
 
   public abstract List<Long> getLeaves(String name) throws GroundException;
 
-  protected static Node construct(long id, String name, Map<String, Tag> tags) {
-    return new Node(id, name, tags);
+  protected static Node construct(long id, String name, String sourceKey, Map<String, Tag> tags) {
+    return new Node(id, name, sourceKey, tags);
   }
 }

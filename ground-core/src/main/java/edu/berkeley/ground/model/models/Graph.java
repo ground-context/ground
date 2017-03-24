@@ -25,18 +25,28 @@ public class Graph extends Item<GraphVersion> {
   // the name of this Graph
   private String name;
 
+  // the source key for this Graph
+  private String sourceKey;
+
   @JsonCreator
   public Graph(@JsonProperty("id") long id,
                @JsonProperty("name") String name,
+               @JsonProperty("sourceKey") String sourceKey,
                @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
+    this.sourceKey = sourceKey;
   }
 
   @JsonProperty
   public String getName() {
     return this.name;
+  }
+
+  @JsonProperty
+  public String getSourceKey() {
+    return this.sourceKey;
   }
 
   @Override
@@ -47,6 +57,8 @@ public class Graph extends Item<GraphVersion> {
 
     Graph otherGraph = (Graph) other;
 
-    return this.name.equals(otherGraph.name) && this.getId() == otherGraph.getId();
+    return this.name.equals(otherGraph.name) &&
+        this.getId() == otherGraph.getId() &&
+        this.sourceKey.equals(otherGraph.sourceKey);
   }
 }

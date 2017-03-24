@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.usage.LineageGraph;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,12 +19,15 @@ public class Neo4jLineageGraphFactoryTest extends Neo4jTest {
   @Test
   public void testLineageGraphCreation() throws GroundException {
     String testName = "test";
+    String sourceKey = "testKey";
+
     Neo4jLineageGraphFactory lineageGraphFactory = (Neo4jLineageGraphFactory) super.factories
         .getLineageGraphFactory();
-    lineageGraphFactory.create(testName, new HashMap<>());
+    lineageGraphFactory.create(testName, sourceKey, new HashMap<>());
 
     LineageGraph lineageGraph = lineageGraphFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, lineageGraph.getName());
+    assertEquals(sourceKey, lineageGraph.getSourceKey());
   }
 }

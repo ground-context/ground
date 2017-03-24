@@ -47,7 +47,7 @@ public class CassandraNodeFactory extends NodeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Node create(String name, Map<String, Tag> tags) throws GroundException {
+  public Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -56,13 +56,14 @@ public class CassandraNodeFactory extends NodeFactory {
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
       this.dbClient.insert("node", insertions);
 
       this.dbClient.commit();
       LOGGER.info("Created node " + name + ".");
 
-      return NodeFactory.construct(uniqueId, name, tags);
+      return NodeFactory.construct(uniqueId, name, sourceKey, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 
@@ -106,12 +107,14 @@ public class CassandraNodeFactory extends NodeFactory {
       }
 
       long id = resultSet.getLong(0);
+      String sourceKey = resultSet.getString("source_key");
+
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
       this.dbClient.commit();
       LOGGER.info("Retrieved node " + name + ".");
 
-      return NodeFactory.construct(id, name, tags);
+      return NodeFactory.construct(id, name, sourceKey, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 

@@ -47,7 +47,8 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     this.idGenerator = idGenerator;
   }
 
-  public LineageEdge create(String name, Map<String, Tag> tags) throws GroundException {
+  public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
+      throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
@@ -56,13 +57,14 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
       this.dbClient.insert("lineage_edge", insertions);
 
       this.dbClient.commit();
       LOGGER.info("Created lineage edge " + name + ".");
 
-      return LineageEdgeFactory.construct(uniqueId, name, tags);
+      return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 
@@ -91,12 +93,14 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
       }
 
       long id = resultSet.getLong("item_id");
+      String sourceKey = resultSet.getString("source_key");
+
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
       this.dbClient.commit();
       LOGGER.info("Retrieved lineage edge " + name + ".");
 
-      return LineageEdgeFactory.construct(id, name, tags);
+      return LineageEdgeFactory.construct(id, name, sourceKey, tags);
     } catch (GroundException e) {
       this.dbClient.abort();
 

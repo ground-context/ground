@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,8 +19,10 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
   @Test
   public void testVersionSuccessorCreation() throws GroundException {
     try {
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", new HashMap<>()).getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode", new HashMap<>()).getId();
+      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", null,
+          new HashMap<>()).getId();
+      long toNodeId = super.factories.getNodeFactory().create("testToNode", null, new HashMap<>())
+          .getId();
       long fromId = super.createNodeVersion(fromNodeId);
       long toId = super.createNodeVersion(toNodeId);
 
@@ -46,7 +48,8 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
 
       try {
         String nodeName = "testNode";
-        long nodeId = super.factories.getNodeFactory().create(nodeName, new HashMap<>()).getId();
+        long nodeId = super.factories.getNodeFactory().create(nodeName, null, new HashMap<>())
+            .getId();
         toId = super.createNodeVersion(nodeId);
       } catch (GroundException ge) {
         fail(ge.getMessage());

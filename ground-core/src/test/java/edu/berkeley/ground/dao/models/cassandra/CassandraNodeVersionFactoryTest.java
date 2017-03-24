@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.NodeVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -25,11 +25,11 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
   public void testNodeVersionCreation() throws GroundException {
     String nodeName = "testNode";
     long nodeId = CassandraTest.factories.getNodeFactory()
-        .create(nodeName, new HashMap<>()).getId();
+        .create(nodeName, null, new HashMap<>()).getId();
 
     String structureName = "testStructure";
     long structureId = CassandraTest.factories.getStructureFactory()
-        .create(structureName, new HashMap<>()).getId();
+        .create(structureName, null, new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

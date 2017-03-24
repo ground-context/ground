@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,17 +19,19 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
   @Test
   public void testEdgeCreation() throws GroundException {
     String testName = "test";
+    String sourceKey = "testKey";
 
     long firstNodeId = 1;
     long secondNodeId = 2;
 
     Neo4jEdgeFactory edgeFactory = (Neo4jEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName, firstNodeId, secondNodeId, new HashMap<>());
+    edgeFactory.create(testName, sourceKey, firstNodeId, secondNodeId, new HashMap<>());
 
     Edge edge = edgeFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, edge.getName());
     assertEquals(firstNodeId, edge.getFromNodeId());
     assertEquals(secondNodeId, edge.getToNodeId());
+    assertEquals(sourceKey, edge.getSourceKey());
   }
 }

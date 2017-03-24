@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;

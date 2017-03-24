@@ -25,19 +25,29 @@ public class Node extends Item<NodeVersion> {
   // the name of this Node
   private String name;
 
+  // the source key for this Node
+  private String sourceKey;
+
   @JsonCreator
   public Node(
       @JsonProperty("id") long id,
       @JsonProperty("name") String name,
+      @JsonProperty("sourceKey") String sourceKey,
       @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
+    this.sourceKey = sourceKey;
   }
 
   @JsonProperty
   public String getName() {
     return this.name;
+  }
+
+  @JsonProperty
+  public String getSourceKey() {
+    return this.sourceKey;
   }
 
   @Override
@@ -48,6 +58,8 @@ public class Node extends Item<NodeVersion> {
 
     Node otherNode = (Node) other;
 
-    return this.name.equals(otherNode.name) && this.getId() == otherNode.getId();
+    return this.name.equals(otherNode.name) &&
+        this.getId() == otherNode.getId() &&
+        this.sourceKey.equals(otherNode.sourceKey);
   }
 }

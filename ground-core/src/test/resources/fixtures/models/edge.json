@@ -1,6 +1,7 @@
 {
   "id": 1,
   "name": "test",
+  "sourceKey": "testKey",
   "fromNodeId": 2,
   "toNodeId": 3,
   "tags": {
