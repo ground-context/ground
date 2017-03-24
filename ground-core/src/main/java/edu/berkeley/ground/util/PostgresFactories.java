@@ -14,20 +14,27 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.postgres.*;
-import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
-import edu.berkeley.ground.api.usage.LineageGraphFactory;
-import edu.berkeley.ground.api.usage.LineageGraphVersionFactory;
-import edu.berkeley.ground.api.usage.postgres.PostgresLineageEdgeFactory;
-import edu.berkeley.ground.api.usage.postgres.PostgresLineageEdgeVersionFactory;
-import edu.berkeley.ground.api.usage.postgres.PostgresLineageGraphFactory;
-import edu.berkeley.ground.api.usage.postgres.PostgresLineageGraphVersionFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionHistoryDAGFactory;
-import edu.berkeley.ground.api.versions.postgres.PostgresVersionSuccessorFactory;
+import edu.berkeley.ground.dao.models.EdgeFactory;
+import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.dao.models.GraphFactory;
+import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.StructureFactory;
+import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.*;
+import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
+import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.dao.usage.postgres.PostgresLineageEdgeFactory;
+import edu.berkeley.ground.dao.usage.postgres.PostgresLineageEdgeVersionFactory;
+import edu.berkeley.ground.dao.usage.postgres.PostgresLineageGraphFactory;
+import edu.berkeley.ground.dao.usage.postgres.PostgresLineageGraphVersionFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresVersionFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresVersionSuccessorFactory;
 import edu.berkeley.ground.db.PostgresClient;
 
 public class PostgresFactories implements FactoryGenerator {

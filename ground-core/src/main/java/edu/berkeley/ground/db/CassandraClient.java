@@ -12,7 +12,7 @@
 package edu.berkeley.ground.db;
 
 import com.datastax.driver.core.*;
-import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDBException;
 

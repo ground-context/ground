@@ -15,7 +15,7 @@
 package edu.berkeley.ground.db;
 
 import com.google.common.annotations.VisibleForTesting;
-import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.*;

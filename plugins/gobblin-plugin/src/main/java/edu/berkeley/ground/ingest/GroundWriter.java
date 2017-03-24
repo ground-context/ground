@@ -10,10 +10,10 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.NodeVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import gobblin.util.ConfigUtils;
 import gobblin.writer.DataWriter;
 

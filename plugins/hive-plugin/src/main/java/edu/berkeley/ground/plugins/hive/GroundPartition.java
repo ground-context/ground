@@ -30,13 +30,13 @@ import org.apache.hive.common.util.HiveStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.berkeley.ground.api.models.Edge;
-import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeVersion;
-import edu.berkeley.ground.api.models.Structure;
-import edu.berkeley.ground.api.models.StructureVersion;
-import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.NodeVersion;
+import edu.berkeley.ground.model.models.Structure;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.plugins.hive.util.JsonUtil;
 

@@ -45,12 +45,11 @@ import org.junit.After;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
-import org.junit.Test;
 
 
-import edu.berkeley.ground.api.models.postgres.PostgresEdgeVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresGraphVersionFactory;
-import edu.berkeley.ground.api.models.postgres.PostgresNodeVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresEdgeVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresGraphVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresNodeVersionFactory;
 
 public class GroundMetastoreTest {
   private GroundStore groundStore = null;

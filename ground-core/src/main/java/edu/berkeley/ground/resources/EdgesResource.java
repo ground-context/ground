@@ -16,13 +16,13 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.api.models.Edge;
-import edu.berkeley.ground.api.models.EdgeFactory;
-import edu.berkeley.ground.api.models.EdgeVersion;
-import edu.berkeley.ground.api.models.EdgeVersionFactory;
-import edu.berkeley.ground.api.models.Node;
-import edu.berkeley.ground.api.models.NodeFactory;
-import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.dao.models.EdgeFactory;
+import edu.berkeley.ground.model.models.EdgeVersion;
+import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

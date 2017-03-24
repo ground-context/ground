@@ -14,7 +14,7 @@
 
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.api.versions.GroundType;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundDBException;
 
 public class DbDataContainer {

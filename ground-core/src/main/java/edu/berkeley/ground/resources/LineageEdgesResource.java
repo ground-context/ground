@@ -16,11 +16,11 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.usage.LineageEdge;
-import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeVersion;
-import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageEdge;
+import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
+import edu.berkeley.ground.model.usage.LineageEdgeVersion;
+import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 

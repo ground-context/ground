@@ -14,11 +14,18 @@
 
 package edu.berkeley.ground;
 
-import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
-import edu.berkeley.ground.api.usage.LineageGraphFactory;
-import edu.berkeley.ground.api.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.dao.models.EdgeFactory;
+import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.dao.models.GraphFactory;
+import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.StructureFactory;
+import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
+import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;

@@ -1,17 +1,17 @@
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.api.models.EdgeFactory;
-import edu.berkeley.ground.api.models.EdgeVersionFactory;
-import edu.berkeley.ground.api.models.GraphFactory;
-import edu.berkeley.ground.api.models.GraphVersionFactory;
-import edu.berkeley.ground.api.models.NodeFactory;
-import edu.berkeley.ground.api.models.NodeVersionFactory;
-import edu.berkeley.ground.api.models.StructureFactory;
-import edu.berkeley.ground.api.models.StructureVersionFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
-import edu.berkeley.ground.api.usage.LineageGraphFactory;
-import edu.berkeley.ground.api.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.dao.models.EdgeFactory;
+import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.dao.models.GraphFactory;
+import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.StructureFactory;
+import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
+import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 
 public interface FactoryGenerator {
   EdgeFactory getEdgeFactory();

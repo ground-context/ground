@@ -16,11 +16,11 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.api.models.Structure;
-import edu.berkeley.ground.api.models.StructureFactory;
-import edu.berkeley.ground.api.models.StructureVersion;
-import edu.berkeley.ground.api.models.StructureVersionFactory;
-import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.model.models.Structure;
+import edu.berkeley.ground.dao.models.StructureFactory;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 

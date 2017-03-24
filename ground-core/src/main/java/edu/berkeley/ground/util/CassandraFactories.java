@@ -14,20 +14,27 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.api.models.*;
-import edu.berkeley.ground.api.models.cassandra.*;
-import edu.berkeley.ground.api.usage.LineageEdgeFactory;
-import edu.berkeley.ground.api.usage.LineageEdgeVersionFactory;
-import edu.berkeley.ground.api.usage.LineageGraphFactory;
-import edu.berkeley.ground.api.usage.LineageGraphVersionFactory;
-import edu.berkeley.ground.api.usage.cassandra.CassandraLineageEdgeFactory;
-import edu.berkeley.ground.api.usage.cassandra.CassandraLineageEdgeVersionFactory;
-import edu.berkeley.ground.api.usage.cassandra.CassandraLineageGraphFactory;
-import edu.berkeley.ground.api.usage.cassandra.CassandraLineageGraphVersionFactory;
-import edu.berkeley.ground.api.versions.cassandra.CassandraItemFactory;
-import edu.berkeley.ground.api.versions.cassandra.CassandraVersionFactory;
-import edu.berkeley.ground.api.versions.cassandra.CassandraVersionHistoryDAGFactory;
-import edu.berkeley.ground.api.versions.cassandra.CassandraVersionSuccessorFactory;
+import edu.berkeley.ground.dao.models.EdgeFactory;
+import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.dao.models.GraphFactory;
+import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.StructureFactory;
+import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.cassandra.*;
+import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
+import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.dao.usage.cassandra.CassandraLineageEdgeFactory;
+import edu.berkeley.ground.dao.usage.cassandra.CassandraLineageEdgeVersionFactory;
+import edu.berkeley.ground.dao.usage.cassandra.CassandraLineageGraphFactory;
+import edu.berkeley.ground.dao.usage.cassandra.CassandraLineageGraphVersionFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionSuccessorFactory;
 import edu.berkeley.ground.db.CassandraClient;
 
 public class CassandraFactories implements FactoryGenerator {

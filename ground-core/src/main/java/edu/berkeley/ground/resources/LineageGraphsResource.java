@@ -11,11 +11,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import edu.berkeley.ground.api.models.Tag;
-import edu.berkeley.ground.api.usage.LineageGraph;
-import edu.berkeley.ground.api.usage.LineageGraphFactory;
-import edu.berkeley.ground.api.usage.LineageGraphVersion;
-import edu.berkeley.ground.api.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageGraph;
+import edu.berkeley.ground.dao.usage.LineageGraphFactory;
+import edu.berkeley.ground.model.usage.LineageGraphVersion;
+import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import io.swagger.annotations.Api;
 
