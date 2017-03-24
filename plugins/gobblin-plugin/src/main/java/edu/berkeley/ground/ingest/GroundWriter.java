@@ -57,7 +57,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
   //method to create a Node given the name
   public void node(String name, Map<String, Tag> tags) throws IOException {
 
-    Node node = new Node(-1, name, new HashMap<>());
+    Node node = new Node(-1, name, null, new HashMap<>());
     ObjectMapper mapper = new ObjectMapper();
     String jsonString = mapper.writeValueAsString(node);
     String uri = groundServerAddress + name;

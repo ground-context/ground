@@ -60,8 +60,9 @@ public class GroundPartition {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating partition node: {}", partitionName);
 
-      Node node = groundReadWrite.getNodeFactory().create(partitionName, new HashMap<>());
-      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName(), new HashMap<>());
+      Node node = groundReadWrite.getNodeFactory().create(partitionName, null, new HashMap<>());
+      Structure nodeStruct = groundReadWrite.getStructureFactory().create(node.getName(), null,
+          new HashMap<>());
 
       return node;
     }
@@ -84,8 +85,10 @@ public class GroundPartition {
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating table partition edge: {}", partitionName);
 
-      Edge edge = groundReadWrite.getEdgeFactory().create(partitionName, 1, 2, new HashMap<>());
-      Structure edgeStruct = groundReadWrite.getStructureFactory().create(partitionName, new HashMap<>());
+      Edge edge = groundReadWrite.getEdgeFactory().create(partitionName, null, 1, 2,
+          new HashMap<>());
+      Structure edgeStruct = groundReadWrite.getStructureFactory().create(partitionName, null,
+          new HashMap<>());
       return edge;
     }
   }

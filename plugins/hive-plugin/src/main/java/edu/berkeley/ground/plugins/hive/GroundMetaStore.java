@@ -70,8 +70,9 @@ public class GroundMetaStore {
       return ground.getNodeFactory().retrieveFromDatabase(METASTORE_NODE);
     } catch (GroundException ge1) {
       LOG.debug("Not found - Creating metastore node: {}", METASTORE_NODE);
-      Node node = ground.getNodeFactory().create(METASTORE_NODE, new HashMap<>());
-      Structure nodeStruct = ground.getStructureFactory().create(node.getName(), new HashMap<>());
+      Node node = ground.getNodeFactory().create(METASTORE_NODE, null, new HashMap<>());
+      Structure nodeStruct = ground.getStructureFactory().create(node.getName(), null,
+          new HashMap<>());
       LOG.debug("node struct created {}", nodeStruct.getName());
       return node;
     }
@@ -95,9 +96,10 @@ public class GroundMetaStore {
       return ground.getEdgeFactory().retrieveFromDatabase(edgeId);
     } catch (GroundException e) {
       LOG.debug("Not found - Creating metastore table edge: {}", edgeId);
-      Edge edge = ground.getEdgeFactory().create(edgeId, getNode().getId(),
+      Edge edge = ground.getEdgeFactory().create(edgeId, null, getNode().getId(),
           nodeVersion.getNodeId(), new HashMap<>());
-      Structure edgeStruct = ground.getStructureFactory().create(edge.getName(), new HashMap<>());
+      Structure edgeStruct = ground.getStructureFactory().create(edge.getName(), null,
+          new HashMap<>());
       return edge;
     }
   }
