@@ -2,7 +2,7 @@ package edu.berkeley.ground.dao.versions.cassandra;
 
 import org.junit.Test;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundDBException;
 import edu.berkeley.ground.exceptions.GroundException;

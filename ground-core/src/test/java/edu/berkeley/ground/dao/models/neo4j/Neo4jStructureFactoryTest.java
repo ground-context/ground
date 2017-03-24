@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -21,18 +21,22 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
   @Test
   public void testStructureCreation() throws GroundException {
     String testName = "test";
+    String sourceKey = "testKey";
+
     Neo4jStructureFactory edgeFactory = (Neo4jStructureFactory) super.factories.getStructureFactory();
-    edgeFactory.create(testName, new HashMap<>());
+    edgeFactory.create(testName, sourceKey, new HashMap<>());
 
-    Structure edge = edgeFactory.retrieveFromDatabase(testName);
+    Structure structure = edgeFactory.retrieveFromDatabase(testName);
 
-    assertEquals(testName, edge.getName());
+    assertEquals(testName, structure.getName());
+    assertEquals(sourceKey, structure.getSourceKey());
   }
 
   @Test
   public void testLeafRetrieval() throws GroundException {
     String structureName = "testStructure1";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     long structureVersionId = super.factories.getStructureVersionFactory().create(structureId,
         new HashMap<>(), new ArrayList<>()).getId();

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -24,17 +24,20 @@ public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
   @Test
   public void testLineageGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
+        new HashMap<>()).getId();
     long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, new HashMap<>()).getId();
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
+        new HashMap<>()).getId();
     long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String lineageEdgeName = "testLineageEdge";
-    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, new HashMap<>()).getId();
+    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
+        new HashMap<>()).getId();
     long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstNodeVersionId, secondNodeVersionId, lineageEdgeId,
         new ArrayList<>()).getId();
@@ -43,10 +46,12 @@ public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
     lineageEdgeVersionIds.add(lineageEdgeVersionId);
 
     String graphName = "testLineageGraph";
-    long graphId = super.factories.getLineageGraphFactory().create(graphName, new HashMap<>()).getId();
+    long graphId = super.factories.getLineageGraphFactory().create(graphName, null,
+        new HashMap<>()).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

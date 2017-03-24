@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -22,7 +22,8 @@ public class PostgresStructureVersionFactoryTest extends PostgresTest {
   @Test
   public void testStructureVersionCreation() throws GroundException {
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

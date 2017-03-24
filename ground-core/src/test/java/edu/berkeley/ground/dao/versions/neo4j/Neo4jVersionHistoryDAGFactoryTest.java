@@ -2,7 +2,7 @@ package edu.berkeley.ground.dao.versions.neo4j;
 
 import org.junit.Test;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.versions.VersionHistoryDAG;
 import edu.berkeley.ground.exceptions.GroundException;
 

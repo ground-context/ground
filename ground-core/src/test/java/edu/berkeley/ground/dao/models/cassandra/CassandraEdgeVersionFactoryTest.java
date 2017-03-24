@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -24,21 +24,24 @@ public class CassandraEdgeVersionFactoryTest extends CassandraTest {
   @Test
   public void testEdgeVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
+    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, null,
+        new HashMap<>()).getId();
     long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, new HashMap<>()).getId();
+    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, null,
+        new HashMap<>()).getId();
     long secondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    long edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, firstTestNodeId,
+    long edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
         secondTestNodeId, new HashMap<>()).getId();
 
     String structureName = "testStructure";
-    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -91,17 +94,19 @@ public class CassandraEdgeVersionFactoryTest extends CassandraTest {
   @Test
   public void testCorrectEndVersion() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
+    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, null,
+        new HashMap<>()).getId();
     long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, new HashMap<>()).getId();
+    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, null,
+        new HashMap<>()).getId();
     long secondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    long edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, firstTestNodeId,
+    long edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
         secondTestNodeId, new HashMap<>()).getId();
 
 

@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,11 +19,14 @@ public class PostgresGraphFactoryTest extends PostgresTest {
   @Test
   public void testGraphCreation() throws GroundException {
     String testName = "test";
-    PostgresGraphFactory edgeFactory = (PostgresGraphFactory) super.factories.getGraphFactory();
-    edgeFactory.create(testName, new HashMap<>());
+    String sourceKey = "testKey";
 
-    Graph edge = edgeFactory.retrieveFromDatabase(testName);
+    PostgresGraphFactory graphFactory = (PostgresGraphFactory) super.factories.getGraphFactory();
+    graphFactory.create(testName, sourceKey, new HashMap<>());
 
-    assertEquals(testName, edge.getName());
+    Graph graph = graphFactory.retrieveFromDatabase(testName);
+
+    assertEquals(testName, graph.getName());
+    assertEquals(sourceKey, graph.getSourceKey());
   }
 }

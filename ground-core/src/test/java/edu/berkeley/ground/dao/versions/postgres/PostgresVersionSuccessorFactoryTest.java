@@ -2,7 +2,7 @@ package edu.berkeley.ground.dao.versions.postgres;
 
 import org.junit.Test;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundException;
 

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -25,8 +25,8 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    long nodeId1 = super.factories.getNodeFactory().create("test1", tagsMap).getId();
-    long nodeId2 = super.factories.getNodeFactory().create("test2", tagsMap).getId();
+    long nodeId1 = super.factories.getNodeFactory().create("test1", null, tagsMap).getId();
+    long nodeId2 = super.factories.getNodeFactory().create("test2", null, tagsMap).getId();
 
     List<Long> ids = super.tagFactory.getItemIdsByTag("testtag");
 
@@ -41,7 +41,7 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    long nodeId = super.factories.getNodeFactory().create("test1", new HashMap<>()).getId();
+    long nodeId = super.factories.getNodeFactory().create("test1", null, new HashMap<>()).getId();
 
     long nodeVersionId1 = super.factories.getNodeVersionFactory().create(tagsMap,
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();

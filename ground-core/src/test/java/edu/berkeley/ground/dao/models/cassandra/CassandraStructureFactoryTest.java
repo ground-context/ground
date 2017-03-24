@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,24 +19,26 @@ public class CassandraStructureFactoryTest extends CassandraTest {
   }
 
   @Test
-  public void testStructureCreation() {
-    try {
-      String testName = "test";
-      CassandraStructureFactory edgeFactory = (CassandraStructureFactory) CassandraTest.factories.getStructureFactory();
-      edgeFactory.create(testName, new HashMap<>());
+  public void testStructureCreation() throws GroundException {
+    String testName = "test";
+    String sourceKey = "testKey";
 
-      Structure edge = edgeFactory.retrieveFromDatabase(testName);
+    CassandraStructureFactory edgeFactory = (CassandraStructureFactory) CassandraTest.factories.getStructureFactory();
+    edgeFactory.create(testName, sourceKey, new HashMap<>());
 
-      assertEquals(testName, edge.getName());
-    } catch (GroundException ge) {
-      fail(ge.getMessage());
-    }
+    Structure structure = edgeFactory.retrieveFromDatabase(testName);
+
+    assertEquals(testName, structure.getName());
+    assertEquals(sourceKey, structure.getSourceKey());
   }
 
   @Test
   public void testLeafRetrieval() throws GroundException {
     String structureName = "testStructure1";
-    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    String sourceKey = "testKey";
+
+    long structureId = CassandraTest.factories.getStructureFactory().create(structureName,
+        sourceKey, new HashMap<>()).getId();
 
     long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(structureId,
         new HashMap<>(), new ArrayList<>()).getId();

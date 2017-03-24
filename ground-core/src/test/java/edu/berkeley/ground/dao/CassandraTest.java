@@ -1,4 +1,4 @@
-package edu.berkeley.ground.model;
+package edu.berkeley.ground.dao;
 
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.usage.LineageEdge;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,11 +19,15 @@ public class PostgresLineageEdgeFactoryTest extends PostgresTest {
   @Test
   public void testLineageEdgeCreation() throws GroundException {
     String testName = "test";
-    PostgresLineageEdgeFactory edgeFactory = (PostgresLineageEdgeFactory) super.factories.getLineageEdgeFactory();
-    edgeFactory.create(testName, new HashMap<>());
+    String sourceKey = "testKey";
 
-    LineageEdge edge = edgeFactory.retrieveFromDatabase(testName);
+    PostgresLineageEdgeFactory lineageEdgeFactory = (PostgresLineageEdgeFactory)
+        super.factories.getLineageEdgeFactory();
+    lineageEdgeFactory.create(testName, sourceKey, new HashMap<>());
 
-    assertEquals(testName, edge.getName());
+    LineageEdge lineageEdge = lineageEdgeFactory.retrieveFromDatabase(testName);
+
+    assertEquals(testName, lineageEdge.getName());
+    assertEquals(sourceKey, lineageEdge.getSourceKey());
   }
 }

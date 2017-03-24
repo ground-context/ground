@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.GraphVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -24,17 +24,19 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
   @Test
   public void testGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, new HashMap<>()).getId();
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
+        new HashMap<>()).getId();
     long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, new HashMap<>()).getId();
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
+        new HashMap<>()).getId();
     long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, firstTestNodeId,
+    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
         secondTestNodeId, new HashMap<>()).getId();
 
     long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
@@ -45,10 +47,12 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName, new HashMap<>()).getId();
+    long graphId = super.factories.getGraphFactory().create(graphName, null, new HashMap<>())
+        .getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);

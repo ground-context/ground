@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.usage.LineageGraph;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -19,12 +19,15 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
   @Test
   public void testLineageGraphCreation() throws GroundException {
     String testName = "test";
-    CassandraLineageGraphFactory graphFactory = (CassandraLineageGraphFactory) super.factories
-        .getLineageGraphFactory();
-    graphFactory.create(testName, new HashMap<>());
+    String sourceKey = "testKey";
+
+    CassandraLineageGraphFactory graphFactory = (CassandraLineageGraphFactory)
+        CassandraTest.factories.getLineageGraphFactory();
+    graphFactory.create(testName, sourceKey, new HashMap<>());
 
     LineageGraph graph = graphFactory.retrieveFromDatabase(testName);
 
     assertEquals(testName, graph.getName());
+    assertEquals(sourceKey, graph.getSourceKey());
   }
 }

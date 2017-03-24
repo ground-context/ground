@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.berkeley.ground.model.Neo4jTest;
+import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -24,7 +24,8 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
   public void testReference() throws GroundException {
     try {
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
+          .getId();
       long id = super.createNodeVersion(testNodeId);
 
       String testReference = "http://www.google.com";
@@ -54,7 +55,8 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
   public void testTags() throws GroundException {
     try {
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
+      .getId();
       long id = super.createNodeVersion(testNodeId);
 
       Map<String, Tag> tags = new HashMap<>();
@@ -87,11 +89,13 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
   public void testStructureVersionConformation() throws GroundException {
     try {
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing * version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
+          .getId();
       long id = super.createNodeVersion(testNodeId);
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, null,
+          new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -124,13 +128,15 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
 
     try {
       /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", new HashMap<>()).getId();
+      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
+          .getId();
       long id = super.createNodeVersion(testNodeId);
 
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, null,
+            new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.berkeley.ground.model.PostgresTest;
+import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -82,7 +82,8 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       long id = 2;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName,  null,
+          new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -116,7 +117,8 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, null,
+            new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);

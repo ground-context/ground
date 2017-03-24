@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.berkeley.ground.model.CassandraTest;
+import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -80,7 +80,8 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       long id = 1;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+      long structureId = super.factories.getStructureFactory().create(structureName, null,
+          new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
       structureVersionAttributes.put("intfield", GroundType.INTEGER);
@@ -114,7 +115,8 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName, new HashMap<>()).getId();
+        long structureId = super.factories.getStructureFactory().create(structureName, null,
+            new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
         structureVersionAttributes.put("intfield", GroundType.INTEGER);
