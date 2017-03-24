@@ -59,7 +59,7 @@ public class EdgesResource {
   @GET
   @Timed
   @ApiOperation(value = "Get an edge")
-  @Path("/{name}")
+  @Path("/{name}/{key}")
   public Edge getEdge(@PathParam("name") String name) throws GroundException {
     LOGGER.info("Retrieving edge " + name + ".");
     return this.edgeFactory.retrieveFromDatabase(name);
@@ -79,6 +79,7 @@ public class EdgesResource {
   public Edge createEdge(@PathParam("name") String name,
                          @PathParam("fromNodeName") String fromNodeName,
                          @PathParam("toNodeName") String toNodeName,
+                         @PathParam("key") String sourceKey,
                          @Valid Map<String, Tag> tags)
       throws GroundException {
     LOGGER.info("Creating edge " + name + ".");
@@ -86,7 +87,7 @@ public class EdgesResource {
     Node fromNode = this.nodeFactory.retrieveFromDatabase(fromNodeName);
     Node toNode = this.nodeFactory.retrieveFromDatabase(toNodeName);
 
-    return this.edgeFactory.create(name, fromNode.getId(), toNode.getId(), tags);
+    return this.edgeFactory.create(name, sourceKey, fromNode.getId(), toNode.getId(), tags);
   }
 
   @POST

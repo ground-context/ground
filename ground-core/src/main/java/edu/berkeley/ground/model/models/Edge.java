@@ -38,7 +38,7 @@ public class Edge extends Item<EdgeVersion> {
   @JsonCreator
   public Edge(@JsonProperty("id") long id,
               @JsonProperty("name") String name,
-              @JsonProperty("source_key") String sourceKey,
+              @JsonProperty("sourceKey") String sourceKey,
               @JsonProperty("fromNodeId") long fromNodeId,
               @JsonProperty("toNodeId") long toNodeId,
               @JsonProperty("tags") Map<String, Tag> tags) {

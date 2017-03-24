@@ -36,7 +36,7 @@ public class StructureTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    Structure structure = new Structure(1, "test", tagsMap);
+    Structure structure = new Structure(1, "test", "testKey", tagsMap);
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/structure.json"), Structure.class));
 
     assertThat(MAPPER.writeValueAsString(structure)).isEqualTo(expected);
@@ -47,7 +47,7 @@ public class StructureTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    Structure structure = new Structure(1, "test", tagsMap);
+    Structure structure = new Structure(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/structure.json"), Structure.class), structure);
   }
 }

@@ -1,6 +1,7 @@
 {
   "id": 1,
   "name": "test",
+  "sourceKey": "testKey",
   "tags": {
     "testtag": {
       "id": 1,

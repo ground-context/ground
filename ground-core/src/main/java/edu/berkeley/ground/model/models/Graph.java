@@ -31,7 +31,7 @@ public class Graph extends Item<GraphVersion> {
   @JsonCreator
   public Graph(@JsonProperty("id") long id,
                @JsonProperty("name") String name,
-               @JsonProperty("source_key") String sourceKey,
+               @JsonProperty("sourceKey") String sourceKey,
                @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 

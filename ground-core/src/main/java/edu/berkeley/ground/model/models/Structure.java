@@ -31,7 +31,7 @@ public class Structure extends Item<StructureVersion> {
   @JsonCreator
   public Structure(@JsonProperty("id") long id,
                    @JsonProperty("name") String name,
-                   @JsonProperty("source_key") String sourceKey,
+                   @JsonProperty("sourceKey") String sourceKey,
                    @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 

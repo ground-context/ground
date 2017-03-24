@@ -60,11 +60,12 @@ public class LineageGraphsResource {
 
   @POST
   @Timed
-  @Path("/{name}")
-  public LineageGraph createGraph(@PathParam("name") String name, @Valid Map<String, Tag> tags)
-      throws GroundException {
+  @Path("/{name}/{key}")
+  public LineageGraph createGraph(@PathParam("name") String name,
+                                  @PathParam("key") String sourceKey,
+                                  @Valid Map<String, Tag> tags) throws GroundException {
     LOGGER.info("Creating graph " + name + ".");
-    return this.lineageGraphFactory.create(name, tags);
+    return this.lineageGraphFactory.create(name, sourceKey, tags);
   }
 
   @POST

@@ -36,7 +36,7 @@ public class GraphTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    Graph graph = new Graph(1, "test", tagsMap);
+    Graph graph = new Graph(1, "test", "testKey", tagsMap);
     String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class));
 
     assertThat(MAPPER.writeValueAsString(graph)).isEqualTo(expected);
@@ -47,7 +47,7 @@ public class GraphTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    Graph graph = new Graph(1, "test", tagsMap);
+    Graph graph = new Graph(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class), graph);
   }
 }

@@ -19,7 +19,7 @@ public class LineageGraph extends Item<LineageGraphVersion> {
   @JsonCreator
   public LineageGraph(@JsonProperty("id") long id,
                       @JsonProperty("name") String name,
-                      @JsonProperty("source_key") String sourceKey,
+                      @JsonProperty("sourceKey") String sourceKey,
                       @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 

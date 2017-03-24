@@ -36,7 +36,7 @@ public class NodeTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    final Node node = new Node(1, "test", tagsMap);
+    final Node node = new Node(1, "test", "testKey", tagsMap);
     final String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/models/node.json"), Node.class));
 
     assertThat(MAPPER.writeValueAsString(node)).isEqualTo(expected);
@@ -47,7 +47,7 @@ public class NodeTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    final Node node = new Node(1, "test", tagsMap);
+    final Node node = new Node(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/node.json"), Node.class), node);
   }
 }

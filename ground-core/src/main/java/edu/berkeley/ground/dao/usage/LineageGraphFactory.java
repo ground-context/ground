@@ -18,8 +18,8 @@ public abstract class LineageGraphFactory {
   public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   protected static LineageGraph construct(long id,
-                                          String sourceKey,
                                           String name,
+                                          String sourceKey,
                                           Map<String, Tag> tags) {
     return new LineageGraph(id, name, sourceKey, tags);
   }

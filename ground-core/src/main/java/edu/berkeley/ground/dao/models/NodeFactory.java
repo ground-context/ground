@@ -34,6 +34,6 @@ public abstract class NodeFactory {
   public abstract List<Long> getLeaves(String name) throws GroundException;
 
   protected static Node construct(long id, String name, String sourceKey, Map<String, Tag> tags) {
-    return new Node(id, sourceKey, name, tags);
+    return new Node(id, name, sourceKey, tags);
   }
 }

@@ -37,7 +37,7 @@ public class LineageEdgeTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    LineageEdge lineageEdge = new LineageEdge(1, "test", tagsMap);
+    LineageEdge lineageEdge = new LineageEdge(1, "test", "testKey", tagsMap);
     String expected = MAPPER.writeValueAsString(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class));
 
     assertThat(MAPPER.writeValueAsString(lineageEdge)).isEqualTo(expected);
@@ -48,7 +48,7 @@ public class LineageEdgeTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    LineageEdge lineageEdge = new LineageEdge(1, "test", tagsMap);
+    LineageEdge lineageEdge = new LineageEdge(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class), lineageEdge);
   }
 }
