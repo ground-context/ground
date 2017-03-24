@@ -43,7 +43,9 @@ public class LineageGraph extends Item<LineageGraphVersion> {
       return false;
     }
 
-    LineageGraph otherGraph = (LineageGraph) other;
-    return this.name.equals(otherGraph.name) && this.getId() == otherGraph.getId();
+    LineageGraph otherLineageGraph = (LineageGraph) other;
+    return this.name.equals(otherLineageGraph.name) &&
+        this.getId() == otherLineageGraph.getId() &&
+        this.sourceKey.equals(otherLineageGraph.sourceKey);
   }
 }

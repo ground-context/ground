@@ -57,6 +57,8 @@ public class Structure extends Item<StructureVersion> {
 
     Structure otherStructure = (Structure) other;
 
-    return this.name.equals(otherStructure.name) && this.getId() == otherStructure.getId();
+    return this.name.equals(otherStructure.name) &&
+        this.getId() == otherStructure.getId() &&
+        this.sourceKey.equals(otherStructure.sourceKey);
   }
 }

@@ -57,6 +57,8 @@ public class Graph extends Item<GraphVersion> {
 
     Graph otherGraph = (Graph) other;
 
-    return this.name.equals(otherGraph.name) && this.getId() == otherGraph.getId();
+    return this.name.equals(otherGraph.name) &&
+        this.getId() == otherGraph.getId() &&
+        this.sourceKey.equals(otherGraph.sourceKey);
   }
 }

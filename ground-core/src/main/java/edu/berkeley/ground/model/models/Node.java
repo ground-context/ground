@@ -58,6 +58,8 @@ public class Node extends Item<NodeVersion> {
 
     Node otherNode = (Node) other;
 
-    return this.name.equals(otherNode.name) && this.getId() == otherNode.getId();
+    return this.name.equals(otherNode.name) &&
+        this.getId() == otherNode.getId() &&
+        this.sourceKey.equals(otherNode.sourceKey);
   }
 }
