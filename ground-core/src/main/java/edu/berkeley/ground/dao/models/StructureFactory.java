@@ -22,7 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class StructureFactory {
-  public abstract Structure create(String name, Map<String, Tag> tags) throws GroundException;
+  public abstract Structure create(String name,
+                                   String sourceKey,
+                                   Map<String, Tag> tags)
+      throws GroundException;
 
   public abstract Structure retrieveFromDatabase(String name) throws GroundException;
 
@@ -30,7 +33,10 @@ public abstract class StructureFactory {
 
   public abstract List<Long> getLeaves(String name) throws GroundException;
 
-  protected static Structure construct(long id, String name, Map<String, Tag> tags) {
-    return new Structure(id, name, tags);
+  protected static Structure construct(long id,
+                                       String name,
+                                       String sourceKey,
+                                       Map<String, Tag> tags) {
+    return new Structure(id, name, sourceKey, tags);
   }
 }

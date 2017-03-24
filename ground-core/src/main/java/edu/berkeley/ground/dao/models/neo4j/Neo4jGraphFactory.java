@@ -48,13 +48,14 @@ public class Neo4jGraphFactory extends GraphFactory {
     this.idGenerator = idGenerator;
   }
 
-  public Graph create(String name, Map<String, Tag> tags) throws GroundException {
+  public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("name", GroundType.STRING, name));
       insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
+      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
       this.dbClient.addVertex("Graph", insertions);
       this.itemFactory.insertIntoDatabase(uniqueId, tags);
@@ -62,7 +63,7 @@ public class Neo4jGraphFactory extends GraphFactory {
       this.dbClient.commit();
       LOGGER.info("Created graph " + name + ".");
 
-      return GraphFactory.construct(uniqueId, name, tags);
+      return GraphFactory.construct(uniqueId, name, sourceKey, tags);
     } catch (GroundDBException e) {
       this.dbClient.abort();
 
@@ -83,12 +84,14 @@ public class Neo4jGraphFactory extends GraphFactory {
       }
 
       long id = record.get("v").asNode().get("id").asLong();
+      String sourceKey = record.get("v").asNode().get("source_key").asString();
+
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
       this.dbClient.commit();
       LOGGER.info("Retrieved graph " + name + ".");
 
-      return GraphFactory.construct(id, name, tags);
+      return GraphFactory.construct(id, name, sourceKey, tags);
     } catch (GroundDBException e) {
       this.dbClient.abort();
 
