@@ -14,25 +14,25 @@
 
 package edu.berkeley.ground.dao.models.postgres;
 
-import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Graph;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostgresGraphFactory extends GraphFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphFactory.class);
@@ -41,12 +41,30 @@ public class PostgresGraphFactory extends GraphFactory {
 
   private final IdGenerator idGenerator;
 
-  public PostgresGraphFactory(PostgresItemFactory itemFactory, PostgresClient dbClient, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Postgres graph factory.
+   *
+   * @param itemFactory the PostgresItemFactory singleton
+   * @param dbClient the Postgres client
+   * @param idGenerator a unique ID generator
+   */
+  public PostgresGraphFactory(PostgresItemFactory itemFactory,
+                              PostgresClient dbClient,
+                              IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Creates and persists a graph.
+   *
+   * @param name the name of the graph
+   * @param sourceKey the user generated unique key for the graph
+   * @param tags tags associated with this graph
+   * @return the created graph
+   * @throws GroundException an error while persisting the graph
+   */
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
@@ -71,6 +89,13 @@ public class PostgresGraphFactory extends GraphFactory {
     }
   }
 
+  /**
+   * Retrieves an edge from the database.
+   *
+   * @param name the name of the graph to retrieve
+   * @return the retrieved graph
+   * @throws GroundException either the graph doesn't exist or couldn't be retrieved
+   */
   public Graph retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -78,7 +103,7 @@ public class PostgresGraphFactory extends GraphFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("graph", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("graph", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         throw new GroundException("No Graph found with name " + name + ".");
       }

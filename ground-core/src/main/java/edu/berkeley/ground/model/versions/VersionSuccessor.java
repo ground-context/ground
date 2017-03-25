@@ -28,6 +28,13 @@ public class VersionSuccessor<T extends Version> {
   // the id of the Version that this success points to
   private long toId;
 
+  /**
+   * Create a version successor.
+   *
+   * @param id the id of the successor
+   * @param fromId the source id
+   * @param toId the destination id
+   */
   public VersionSuccessor(long id, long fromId, long toId) {
     this.id = id;
     this.fromId = fromId;

@@ -14,38 +14,48 @@
 
 package edu.berkeley.ground.dao.versions.neo4j;
 
-import edu.berkeley.ground.model.versions.Version;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
-import edu.berkeley.ground.dao.versions.VersionHistoryDAGFactory;
-import edu.berkeley.ground.model.versions.VersionSuccessor;
+import edu.berkeley.ground.dao.versions.VersionHistoryDagFactory;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
-
-import org.neo4j.driver.v1.types.Relationship;
+import edu.berkeley.ground.model.versions.Version;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
+import org.neo4j.driver.v1.types.Relationship;
+
+public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
   private final Neo4jClient dbClient;
   private final Neo4jVersionSuccessorFactory versionSuccessorFactory;
 
-  public Neo4jVersionHistoryDAGFactory(Neo4jClient dbClient,
+  public Neo4jVersionHistoryDagFactory(Neo4jClient dbClient,
                                        Neo4jVersionSuccessorFactory versionSuccessorFactory) {
     this.dbClient = dbClient;
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
-  public <T extends Version> VersionHistoryDAG<T> create(long itemId) throws GroundException {
+  public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
     return construct(itemId);
   }
 
-  public <T extends Version> VersionHistoryDAG<T> retrieveFromDatabase(long itemId) throws GroundException {
+  /**
+   * Retrieve a DAG from the database.
+   *
+   * @param itemId the id of the item whose dag we are retrieving
+   * @param <T> the type of the versions in this dag
+   * @return the retrieved DAG
+   * @throws GroundException an error retrieving the DAG
+   */
+  public <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
+      throws GroundException {
+
     List<Relationship> result = this.dbClient.getDescendantEdgesByLabel(itemId, "VersionSuccessor");
 
     if (result.isEmpty()) {
       // do nothing' this just means that no versions have been added yet.
-      return VersionHistoryDAGFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+      return VersionHistoryDagFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
@@ -57,7 +67,18 @@ public class Neo4jVersionHistoryDAGFactory extends VersionHistoryDAGFactory {
     return construct(itemId, edges);
   }
 
-  public void addEdge(VersionHistoryDAG dag, long parentId, long childId, long itemId) throws GroundException {
+  /**
+   * Add an edge to the DAG.
+   *
+   * @param dag the DAG to update
+   * @param parentId the parent's id
+   * @param childId the child's id
+   * @param itemId the id of the Item whose DAG we're updating
+   * @throws GroundException an error adding the edge
+   */
+  public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
+      throws GroundException {
+
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
     dag.addEdge(parentId, childId, successor.getId());

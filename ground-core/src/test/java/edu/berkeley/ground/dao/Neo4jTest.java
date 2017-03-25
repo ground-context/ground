@@ -24,7 +24,7 @@ import edu.berkeley.ground.dao.models.neo4j.Neo4jRichVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jStructureVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
-import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionSuccessorFactory;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -39,7 +39,7 @@ public class Neo4jTest {
   protected Neo4jClient neo4jClient;
   protected Neo4jFactories factories;
   protected Neo4jVersionSuccessorFactory versionSuccessorFactory;
-  protected Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
+  protected Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
   protected Neo4jItemFactory itemFactory;
   protected Neo4jTagFactory tagFactory;
   protected Neo4jRichVersionFactory richVersionFactory;
@@ -48,7 +48,7 @@ public class Neo4jTest {
     this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
     this.factories = new Neo4jFactories(this.neo4jClient, 0, 1);
     this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory(this.neo4jClient, new IdGenerator(0, 1, true));
-    this.versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(this.neo4jClient, this.versionSuccessorFactory);
+    this.versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(this.neo4jClient, this.versionSuccessorFactory);
     this.tagFactory = new Neo4jTagFactory(this.neo4jClient);
     this.itemFactory = new Neo4jItemFactory(this.neo4jClient, this.versionHistoryDAGFactory, tagFactory);
     this.richVersionFactory = new Neo4jRichVersionFactory(this.neo4jClient, (Neo4jStructureVersionFactory)

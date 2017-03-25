@@ -18,14 +18,14 @@ import org.junit.Test;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
 
 public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
 
-  public CassandraVersionSuccessorFactoryTest() throws GroundDBException {
+  public CassandraVersionSuccessorFactoryTest() throws GroundDbException {
     super();
   }
 

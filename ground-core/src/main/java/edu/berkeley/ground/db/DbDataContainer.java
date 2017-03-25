@@ -14,8 +14,8 @@
 
 package edu.berkeley.ground.db;
 
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.exceptions.GroundDBException;
 
 public class DbDataContainer {
   // the name of the field
@@ -27,9 +27,20 @@ public class DbDataContainer {
   // the value of the field;
   private Object value;
 
-  public DbDataContainer(String field, GroundType groundType, Object value) throws GroundDBException {
+  /**
+   * Create a new data container.
+   *
+   * @param field the name of the field
+   * @param groundType the type of value
+   * @param value the value of the field
+   * @throws GroundDbException mismatch between groundType and value's type
+   */
+  public DbDataContainer(String field, GroundType groundType, Object value)
+      throws GroundDbException {
+
     if (value != null && !(value.getClass().equals(groundType.getTypeClass()))) {
-      throw new GroundDBException("Value of type " + value.getClass().toString() + " does not correspond to type of " + groundType.getTypeClass().toString() + ".");
+      throw new GroundDbException("Value of type " + value.getClass().toString()
+          + " does not correspond to type of " + groundType.getTypeClass().toString() + ".");
     }
 
     this.field = field;

@@ -14,19 +14,22 @@
 
 package edu.berkeley.ground.dao.models.neo4j;
 
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.dao.models.TagFactory;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
-
-import java.util.*;
 
 public class Neo4jTagFactory extends TagFactory {
   private final Neo4jClient dbClient;
@@ -43,13 +46,16 @@ public class Neo4jTagFactory extends TagFactory {
     return this.retrieveFromDatabaseById(id, "Item");
   }
 
-  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundException {
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix)
+      throws GroundException {
+
     List<String> returnFields = new ArrayList<>();
     returnFields.add("tkey");
     returnFields.add("value");
     returnFields.add("type");
 
-    List<Record> tagsRecords = this.dbClient.getAdjacentVerticesByEdgeLabel(keyPrefix + "TagConnection", id, returnFields);
+    List<Record> tagsRecords = this.dbClient.getAdjacentVerticesByEdgeLabel(keyPrefix
+        + "TagConnection", id, returnFields);
 
     Map<String, Tag> tags = new HashMap<>();
 
@@ -65,7 +71,8 @@ public class Neo4jTagFactory extends TagFactory {
 
       GroundType type;
       if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
-        type = GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+        type = GroundType.fromString(
+            Neo4jClient.getStringFromValue((StringValue) record.get("type")));
         value = GroundType.stringToType((String) value, type);
       } else {
         type = null;
@@ -77,16 +84,15 @@ public class Neo4jTagFactory extends TagFactory {
     return tags;
   }
 
-  public List<Long> getVersionIdsByTag(String tag) throws GroundDBException {
+  public List<Long> getVersionIdsByTag(String tag) throws GroundDbException {
     return this.getIdsByTag(tag, "rich_version_id");
   }
 
-  public List<Long> getItemIdsByTag(String tag) throws GroundDBException {
+  public List<Long> getItemIdsByTag(String tag) throws GroundDbException {
     return this.getIdsByTag(tag, "item_id");
   }
 
-
-  public List<Long> getIdsByTag(String tag, String idAttribute) throws GroundDBException {
+  private List<Long> getIdsByTag(String tag, String idAttribute) throws GroundDbException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
 

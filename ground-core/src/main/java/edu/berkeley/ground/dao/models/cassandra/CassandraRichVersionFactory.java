@@ -14,20 +14,23 @@
 
 package edu.berkeley.ground.dao.models.cassandra;
 
-import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.dao.models.RichVersionFactory;
-import edu.berkeley.ground.model.models.StructureVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.RichVersion;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CassandraRichVersionFactory extends RichVersionFactory {
   private final CassandraClient dbClient;
@@ -35,6 +38,14 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
   private final CassandraStructureVersionFactory structureVersionFactory;
   private final CassandraTagFactory tagFactory;
 
+  /**
+   * Constructor for the Cassandra rich version factory.
+   *
+   * @param dbClient the Cassandra client
+   * @param versionFactory the singleton CassandraVersionFactory
+   * @param structureVersionFactory the singleton CassandraStructureVerisonFactory
+   * @param tagFactory the singleton CassandraTagFactory
+   */
   public CassandraRichVersionFactory(CassandraClient dbClient,
                                      CassandraVersionFactory versionFactory,
                                      CassandraStructureVersionFactory structureVersionFactory,
@@ -45,6 +56,16 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     this.tagFactory = tagFactory;
   }
 
+  /**
+   * Persist rich version data in the database.
+   *
+   * @param id the id of the rich version
+   * @param tags tags associated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters access parameters for the reference
+   * @throws GroundException an error while persisting data
+   */
   public void insertIntoDatabase(long id,
                                  Map<String, Tag> tags,
                                  long structureVersionId,
@@ -53,14 +74,16 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     this.versionFactory.insertIntoDatabase(id);
 
     if (structureVersionId != -1) {
-      StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
+      StructureVersion structureVersion = this.structureVersionFactory
+          .retrieveFromDatabase(structureVersionId);
 
       RichVersionFactory.checkStructureTags(structureVersion, tags);
     }
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, structureVersionId));
+    insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG,
+        structureVersionId));
     insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
 
     this.dbClient.insert("rich_version", insertions);
@@ -73,8 +96,10 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+            tag.getValue().toString()));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+            tag.getValueType().toString()));
       } else {
         tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
@@ -87,19 +112,27 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       List<DbDataContainer> parameterInsertion = new ArrayList<>();
       parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
-      parameterInsertion.add(new DbDataContainer("value", GroundType.STRING, referenceParameters.get(key)));
+      parameterInsertion.add(new DbDataContainer("value", GroundType.STRING,
+          referenceParameters.get(key)));
 
       this.dbClient.insert("rich_version_external_parameter", parameterInsertion);
     }
   }
 
+  /**
+   * Retrieve rich version data from the database.
+   *
+   * @param id the id of the rich version
+   * @return the retrieved rich version
+   * @throws GroundException either the rich version didn't exist or couldn't be retrieved
+   */
   public RichVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
     QueryResults resultSet;
     try {
-      resultSet = this.dbClient.equalitySelect("rich_version", DBClient.SELECT_STAR, predicates);
+      resultSet = this.dbClient.equalitySelect("rich_version", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
       throw new GroundException("No RichVersion found with id " + id + ".");
     }
@@ -112,7 +145,8 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
     try {
-      QueryResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter", DBClient.SELECT_STAR, parameterPredicates);
+      QueryResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
+          DbClient.SELECT_STAR, parameterPredicates);
 
       while (parameterSet.next()) {
         referenceParameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
@@ -126,6 +160,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     String reference = resultSet.getString("reference");
     long structureVersionId = resultSet.getLong("structure_version_id");
 
-    return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
+    return RichVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters);
   }
 }

@@ -14,53 +14,73 @@
 
 package edu.berkeley.ground.dao.models.neo4j;
 
-import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.model.models.EdgeVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
-import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.model.models.EdgeVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.neo4j.driver.v1.Record;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.neo4j.driver.v1.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class Neo4jEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jEdgeFactory.class);
   private final Neo4jClient dbClient;
   private final Neo4jItemFactory itemFactory;
-  private final Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private final Neo4jVersionHistoryDagFactory versionHistoryDagFactory;
   private  Neo4jEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
-
+  
+  /**
+   * Constructor for Neo4j edge factory.
+   *
+   * @param itemFactory a Neo4jItemFactory singleton
+   * @param dbClient the Neo4j client
+   * @param idGenerator a unique ID generator
+   * @param versionHistoryDagFactory a Neo4jVersionHistoryDAGFactory singleton
+   */
   public Neo4jEdgeFactory(Neo4jItemFactory itemFactory,
                           Neo4jClient dbClient,
                           IdGenerator idGenerator,
-                          Neo4jVersionHistoryDAGFactory versionHistoryDAGFactory) {
+                          Neo4jVersionHistoryDagFactory versionHistoryDagFactory) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
     this.edgeVersionFactory = null;
-    this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+    this.versionHistoryDagFactory = versionHistoryDagFactory;
   }
 
   public void setEdgeVersionFactory(Neo4jEdgeVersionFactory edgeVersionFactory) {
     this.edgeVersionFactory = edgeVersionFactory;
   }
 
+  /**
+   * Creates and persists a new edge.
+   *
+   * @param name the name of the edge
+   * @param sourceKey the user generated unique key for the edge
+   * @param fromNodeId the id of the originating node for this edg
+   * @param toNodeId the id of the destination node for this edg
+   * @param tags tags on this edge
+   * @return the created edge
+   * @throws GroundException an error while creating or persisting the edge
+   */
   public Edge create(String name,
                      String sourceKey,
                      long fromNodeId,
@@ -83,7 +103,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       this.dbClient.commit();
       LOGGER.info("Created edge " + name + ".");
       return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       this.dbClient.abort();
 
       throw e;
@@ -108,7 +128,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       try {
         record = this.dbClient.getVertex(predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No Edge found with " + fieldName + " " + value + ".");
+        throw new GroundDbException("No Edge found with " + fieldName + " " + value + ".");
       }
 
       long id = record.get("v").asNode().get("id").asLong();
@@ -125,7 +145,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       LOGGER.info("Retrieved edge " + name + ".");
 
       return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       this.dbClient.abort();
 
       throw e;
@@ -133,6 +153,14 @@ public class Neo4jEdgeFactory extends EdgeFactory {
   }
 
 
+  /**
+   * Update this edge with a new version.
+   *
+   * @param itemId the item id of the edge
+   * @param childId the id of the new child
+   * @param parentIds the ids of any parents of the child
+   * @throws GroundException an unexpected error during the update
+   */
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
 
@@ -141,7 +169,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       EdgeVersion parentVersion = null;
       try {
         parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
-      } catch (GroundDBException dbe) {
+      } catch (GroundDbException dbe) {
         if (dbe.getMessage().contains("No EdgeVersion found")) {
           // this means that the parent is an Edge (i.e., this version has no parent), so we can
           // safely ignore this and return
@@ -161,13 +189,13 @@ public class Neo4jEdgeFactory extends EdgeFactory {
 
       if (parentVersion.getFromNodeVersionEndId() == -1) {
         // update from end id
-        VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(fromNodeId);
+        VersionHistoryDag dag = this.versionHistoryDagFactory.retrieveFromDatabase(fromNodeId);
         fromEndId = (long) dag.getParent(currentVersion.getFromNodeVersionStartId()).get(0);
       }
 
       if (parentVersion.getToNodeVersionEndId() == -1) {
         // update to end id
-        VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(toNodeId);
+        VersionHistoryDag dag = this.versionHistoryDagFactory.retrieveFromDatabase(toNodeId);
         toEndId = (long) dag.getParent(currentVersion.getToNodeVersionStartId()).get(0);
       }
 

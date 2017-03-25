@@ -16,6 +16,18 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
+import edu.berkeley.ground.dao.usage.LineageGraphFactory;
+import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageGraph;
+import edu.berkeley.ground.model.usage.LineageGraphVersion;
+
+import io.swagger.annotations.Api;
+
+import java.util.List;
+import java.util.Map;
+
 import javax.validation.Valid;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -25,19 +37,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.usage.LineageGraph;
-import edu.berkeley.ground.dao.usage.LineageGraphFactory;
-import edu.berkeley.ground.model.usage.LineageGraphVersion;
-import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
-import edu.berkeley.ground.exceptions.GroundException;
-import io.swagger.annotations.Api;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
 
 @Path("/lineage_graph")
 @Api(value = "/lineage_graph", description = "Interact with lineage edges")
@@ -82,6 +83,14 @@ public class LineageGraphsResource {
     return this.lineageGraphFactory.create(name, sourceKey, tags);
   }
 
+  /**
+   * Create a new linea graph version.
+   *
+   * @param lineageGraphVersion the data to create the version with
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the newly created version along with an id
+   * @throws GroundException an error while creating the version
+   */
   @POST
   @Timed
   @Path("/versions")

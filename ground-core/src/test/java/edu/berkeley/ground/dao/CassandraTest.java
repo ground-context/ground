@@ -26,10 +26,10 @@ import edu.berkeley.ground.dao.models.cassandra.CassandraStructureVersionFactory
 import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
-import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionSuccessorFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.IdGenerator;
 
@@ -40,19 +40,19 @@ public class CassandraTest {
   protected static CassandraFactories factories;
   protected static CassandraVersionFactory versionFactory;
   protected static CassandraVersionSuccessorFactory versionSuccessorFactory;
-  protected static CassandraVersionHistoryDAGFactory versionHistoryDAGFactory;
+  protected static CassandraVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static CassandraItemFactory itemFactory;
   protected static CassandraRichVersionFactory richVersionFactory;
   protected static CassandraTagFactory tagFactory;
 
   @BeforeClass
-  public static void setup() throws GroundDBException {
+  public static void setup() throws GroundDbException {
     cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
     factories = new CassandraFactories(cassandraClient, 0, 1);
 
     versionFactory = new CassandraVersionFactory(cassandraClient);
     versionSuccessorFactory = new CassandraVersionSuccessorFactory(cassandraClient, new IdGenerator(0, 1, false));
-    versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(cassandraClient, versionSuccessorFactory);
+    versionHistoryDAGFactory = new CassandraVersionHistoryDagFactory(cassandraClient, versionSuccessorFactory);
     tagFactory = new CassandraTagFactory(cassandraClient);
     itemFactory = new CassandraItemFactory(cassandraClient, versionHistoryDAGFactory, tagFactory);
 

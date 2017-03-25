@@ -14,36 +14,45 @@
 
 package edu.berkeley.ground.dao.usage.cassandra;
 
-import edu.berkeley.ground.model.models.RichVersion;
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.dao.models.cassandra.CassandraRichVersionFactory;
-import edu.berkeley.ground.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.RichVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageGraphVersion;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFactory {
-  private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLineageGraphVersionFactory.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      CassandraLineageGraphVersionFactory.class);
   private final CassandraClient dbClient;
   private final CassandraLineageGraphFactory lineageGraphFactory;
   private final CassandraRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
+  /**
+   * Constructor for the Cassandra lineage graph factory.
+   *
+   * @param lineageGraphFactory the singleton CassandraLineageGraphFactory
+   * @param richVersionFactory the singleton CassandraRichVersionFactory
+   * @param dbClient the Cassandra client
+   * @param idGenerator a unique id generator
+   */
   public CassandraLineageGraphVersionFactory(CassandraLineageGraphFactory lineageGraphFactory,
                                              CassandraRichVersionFactory richVersionFactory,
                                              CassandraClient dbClient,
@@ -54,6 +63,19 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Create and persist a lineage graph version.
+   *
+   * @param tags the tags asscoiated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters access parameters for the reference
+   * @param lineageGraphId the id of the lineage graph containing this version
+   * @param lineageEdgeVersionIds the ids of the lineage edge versions in this lineage graph version
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the created lineage graph version
+   * @throws GroundException an error while creating or persisting this version
+   */
   public LineageGraphVersion create(Map<String, Tag> tags,
                                     long structureVersionId,
                                     String reference,
@@ -68,7 +90,8 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
       tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag
           .getKey(), tag.getValue(), tag.getValueType())));
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+          referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -78,7 +101,8 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
 
       for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
         List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
-        lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG, id));
+        lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+            id));
         lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
             lineageEdgeVersionId));
 
@@ -88,7 +112,8 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
       this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
 
       this.dbClient.commit();
-      LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId + ".");
+      LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
+          + ".");
 
       return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
           referenceParameters, lineageGraphId, lineageEdgeVersionIds);
@@ -99,19 +124,28 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
     }
   }
 
+  /**
+   * Retrieve a lineage graph version from the database.
+   *
+   * @param id the id of the version
+   * @return the retrieved version
+   * @throws GroundException either the version doesn't exist or couldn't be retrieved
+   */
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
-      lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG, id));
+      lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+          id));
 
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("lineage_graph_version", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
+            predicates);
       } catch (EmptyResultException e) {
         throw new GroundException("No LineageGraphVersion found with id " + id + ".");
       }
@@ -125,7 +159,7 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
       List<Long> lineageEdgeVersionIds = new ArrayList<>();
       try {
         QueryResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
-            DBClient.SELECT_STAR, lineageEdgePredicate);
+            DbClient.SELECT_STAR, lineageEdgePredicate);
 
         while (lineageEdgeSet.next()) {
           lineageEdgeVersionIds.add(lineageEdgeSet.getLong(1));
@@ -136,7 +170,8 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
 
 
       this.dbClient.commit();
-      LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId + ".");
+      LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId
+          + ".");
 
       return LineageGraphVersionFactory.construct(id, version.getTags(), version
           .getStructureVersionId(), version.getReference(), version.getParameters(),

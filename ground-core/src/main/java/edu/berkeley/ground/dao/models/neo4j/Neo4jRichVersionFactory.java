@@ -14,28 +14,38 @@
 
 package edu.berkeley.ground.dao.models.neo4j;
 
-import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.dao.models.RichVersionFactory;
-import edu.berkeley.ground.model.models.StructureVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.RichVersion;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
-
-import java.util.*;
 
 public class Neo4jRichVersionFactory extends RichVersionFactory {
   private final Neo4jClient dbClient;
   private final Neo4jStructureVersionFactory structureVersionFactory;
   private final Neo4jTagFactory tagFactory;
 
+  /**
+   * Constructor for the Neo4j rich version factory.
+   *
+   * @param dbClient the Neo4j client
+   * @param structureVersionFactory the singleton Neo4jStructureVerisonFactory
+   * @param tagFactory the singleton Neo4jTagFactory
+   */
   public Neo4jRichVersionFactory(Neo4jClient dbClient,
                                  Neo4jStructureVersionFactory structureVersionFactory,
                                  Neo4jTagFactory tagFactory) {
@@ -44,6 +54,16 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
     this.tagFactory = tagFactory;
   }
 
+  /**
+   * Persist rich version data in the database.
+   *
+   * @param id the id of the rich version
+   * @param tags tags associated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters access parameters for the reference
+   * @throws GroundException an error while persisting data
+   */
   public void insertIntoDatabase(long id,
                                  Map<String, Tag> tags,
                                  long structureVersionId,
@@ -51,7 +71,8 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
                                  Map<String, String> referenceParameters
   ) throws GroundException {
     if (structureVersionId != -1) {
-      StructureVersion structureVersion = this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
+      StructureVersion structureVersion =
+          this.structureVersionFactory.retrieveFromDatabase(structureVersionId);
       RichVersionFactory.checkStructureTags(structureVersion, tags);
     }
 
@@ -63,7 +84,8 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
       insertions.add(new DbDataContainer("value", GroundType.STRING, value));
 
-      this.dbClient.addVertexAndEdge("RichVersionExternalParameter", insertions, "RichVersionExternalParameterConnection", id, new ArrayList<>());
+      this.dbClient.addVertexAndEdge("RichVersionExternalParameter", insertions,
+          "RichVersionExternalParameterConnection", id, new ArrayList<>());
 
       insertions.clear();
     }
@@ -84,18 +106,28 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+            tag.getValue().toString()));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+            tag.getValueType().toString()));
       } else {
         tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      this.dbClient.addVertexAndEdge("RichVersionTag", tagInsertion, "RichVersionTagConnection", id, new ArrayList<>());
+      this.dbClient.addVertexAndEdge("RichVersionTag", tagInsertion, "RichVersionTagConnection",
+          id, new ArrayList<>());
       tagInsertion.clear();
     }
   }
 
+  /**
+   * Retrieve rich version data from the database.
+   *
+   * @param id the id of the rich version
+   * @return the retrieved rich version
+   * @throws GroundException either the rich version didn't exist or couldn't be retrieved
+   */
   public RichVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -104,19 +136,21 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
     try {
       record = this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("No RichVersion found with id " + id + ".");
+      throw new GroundDbException("No RichVersion found with id " + id + ".");
     }
 
     List<String> returnFields = new ArrayList<>();
     returnFields.add("pkey");
     returnFields.add("value");
 
-    List<Record> parameterVertices = this.dbClient.getAdjacentVerticesByEdgeLabel("RichVersionExternalParameterConnection", id, returnFields);
+    List<Record> parameterVertices = this.dbClient.getAdjacentVerticesByEdgeLabel(
+        "RichVersionExternalParameterConnection", id, returnFields);
     Map<String, String> referenceParameters = new HashMap<>();
 
     if (!parameterVertices.isEmpty()) {
       for (Record parameter : parameterVertices) {
-        referenceParameters.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")), Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
+        referenceParameters.put(Neo4jClient.getStringFromValue((StringValue) parameter.get("pkey")),
+            Neo4jClient.getStringFromValue((StringValue) parameter.get("value")));
       }
     }
 
@@ -137,6 +171,7 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       structureVersionId = record.get("v").asNode().get("structure_id").asLong();
     }
 
-    return RichVersionFactory.construct(id, tags, structureVersionId, reference, referenceParameters);
+    return RichVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters);
   }
 }

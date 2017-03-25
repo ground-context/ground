@@ -17,14 +17,14 @@ package edu.berkeley.ground.dao.versions.neo4j;
 import org.junit.Test;
 
 import edu.berkeley.ground.dao.Neo4jTest;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
 
-public class Neo4jVersionHistoryDAGFactoryTest extends Neo4jTest {
+public class Neo4JVersionHistoryDagFactoryTest extends Neo4jTest {
 
-  public Neo4jVersionHistoryDAGFactoryTest() throws GroundException {
+  public Neo4JVersionHistoryDagFactoryTest() throws GroundException {
     super();
   }
 
@@ -34,7 +34,7 @@ public class Neo4jVersionHistoryDAGFactoryTest extends Neo4jTest {
       long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
 

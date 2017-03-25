@@ -25,7 +25,7 @@ import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -57,7 +57,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       parentIds.add(fromId);
       super.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
@@ -99,7 +99,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       // automatically make this a child of EMPTY
       super.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
@@ -136,7 +136,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       parentIds.add(fromId);
       super.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
@@ -214,7 +214,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       parentIds.add(parentTwo);
       super.itemFactory.update(testId, child, parentIds);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(4, dag.getEdgeIds().size());
       assertEquals(child, (long) dag.getLeaves().get(0));

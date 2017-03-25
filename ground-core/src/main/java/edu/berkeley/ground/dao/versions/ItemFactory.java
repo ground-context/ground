@@ -14,8 +14,8 @@
 
 package edu.berkeley.ground.dao.versions;
 
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.Item;
 
 import java.util.List;
@@ -31,11 +31,12 @@ public abstract class ItemFactory {
    * version. What's provided in the default case varies based on which database we are writing
    * into.
    *
-   * @param itemId    the id of the Item we're updating
-   * @param childId   the new version's id
+   * @param itemId the id of the Item we're updating
+   * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds)
+      throws GroundException;
 
   public static Item construct(long id, Map<String, Tag> tags) {
     return new Item(id, tags);

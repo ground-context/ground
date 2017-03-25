@@ -16,12 +16,12 @@ package edu.berkeley.ground.model.usage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.codehaus.jackson.annotate.JsonCreator;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.Item;
 
 import java.util.Map;
 
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.Item;
+import org.codehaus.jackson.annotate.JsonCreator;
 
 public class LineageGraph extends Item<LineageGraphVersion> {
   // the name of this graph
@@ -30,6 +30,14 @@ public class LineageGraph extends Item<LineageGraphVersion> {
   // the source key for this Node
   private String sourceKey;
 
+  /**
+   * Create a new lineage graph.
+   *
+   * @param id the id of lineage graph
+   * @param name the name of the lineage graph
+   * @param sourceKey the user-generated unique key for the graph
+   * @param tags the tags associated with the graph
+   */
   @JsonCreator
   public LineageGraph(@JsonProperty("id") long id,
                       @JsonProperty("name") String name,
@@ -58,8 +66,9 @@ public class LineageGraph extends Item<LineageGraphVersion> {
     }
 
     LineageGraph otherLineageGraph = (LineageGraph) other;
-    return this.name.equals(otherLineageGraph.name) &&
-        this.getId() == otherLineageGraph.getId() &&
-        this.sourceKey.equals(otherLineageGraph.sourceKey);
+
+    return this.name.equals(otherLineageGraph.name)
+        && this.getId() == otherLineageGraph.getId()
+        && this.sourceKey.equals(otherLineageGraph.sourceKey);
   }
 }

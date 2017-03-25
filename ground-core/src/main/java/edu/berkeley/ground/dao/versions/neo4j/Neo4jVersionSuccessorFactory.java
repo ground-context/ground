@@ -14,22 +14,22 @@
 
 package edu.berkeley.ground.dao.versions.neo4j;
 
-import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.model.versions.Version;
-import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.dao.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.Version;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.types.Relationship;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.types.Relationship;
 
 public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
   private final Neo4jClient dbClient;
@@ -40,7 +40,18 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     this.idGenerator = idGenerator;
   }
 
-  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException {
+  /**
+   * Create and persist a version successor.
+   *
+   * @param fromId the id of the parent version
+   * @param toId the id of the child version
+   * @param <T> the types of the connected versions
+   * @return the created version successor
+   * @throws GroundException an error creating the successor
+   */
+  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
+      throws GroundException {
+
     // check if both IDs exist
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
@@ -49,11 +60,11 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     try {
       record = this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("Id " + fromId + " is not valid.");
+      throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     if (record == null) {
-      throw new GroundDBException("Id " + fromId + " is not valid.");
+      throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     predicates.clear();
@@ -61,11 +72,11 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     try {
       record = this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("Id " + toId + " is not valid.");
+      throw new GroundDbException("Id " + toId + " is not valid.");
     }
 
     if (record == null) {
-      throw new GroundDBException("Id " + fromId + " is not valid.");
+      throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     long dbId = idGenerator.generateSuccessorId();
@@ -80,7 +91,17 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     return VersionSuccessorFactory.construct(dbId, fromId, toId);
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException {
+  /**
+   * Retrieve a version successor from the database.
+   *
+   * @param dbId the id of the successor to retrieve
+   * @param <T> the types of the connected versions
+   * @return the retrieved version successor
+   * @throws GroundException either the successor didn't exist or couldn't be retrieved
+   */
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
+      throws GroundException {
+
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
@@ -88,7 +109,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     try {
       result = this.dbClient.getEdge("VersionSuccessor", predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDBException("No VersionSuccessor found with id " + dbId + ".");
+      throw new GroundDbException("No VersionSuccessor found with id " + dbId + ".");
     }
 
     return this.constructFromRelationship(result);

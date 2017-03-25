@@ -12,17 +12,14 @@
  * limitations under the License.
  */
 
-package edu.berkeley.ground.db;
+package edu.berkeley.ground.exceptions;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+public class GroundDbException extends GroundException {
+  public GroundDbException(String message) {
+    super(message);
+  }
 
-import java.util.Collections;
-import java.util.List;
-
-public abstract class DBClient implements AutoCloseable {
-  public static final List<String> SELECT_STAR = Collections.singletonList("*");
-
-  public abstract void commit() throws GroundDBException;
-
-  public abstract void abort() throws GroundDBException;
+  public GroundDbException(Exception e) {
+    super(e);
+  }
 }

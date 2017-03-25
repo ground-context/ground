@@ -22,7 +22,16 @@ import edu.berkeley.ground.dao.models.NodeFactory;
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
 import edu.berkeley.ground.dao.models.StructureFactory;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
-import edu.berkeley.ground.dao.models.cassandra.*;
+import edu.berkeley.ground.dao.models.cassandra.CassandraEdgeFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraEdgeVersionFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraGraphFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraGraphVersionFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraNodeFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraNodeVersionFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraRichVersionFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraStructureFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraStructureVersionFactory;
+import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
@@ -33,7 +42,7 @@ import edu.berkeley.ground.dao.usage.cassandra.CassandraLineageGraphFactory;
 import edu.berkeley.ground.dao.usage.cassandra.CassandraLineageGraphVersionFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
-import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionSuccessorFactory;
 import edu.berkeley.ground.db.CassandraClient;
 
@@ -52,31 +61,48 @@ public class CassandraFactories implements FactoryGenerator {
   private CassandraLineageGraphFactory lineageGraphFactory;
   private CassandraLineageGraphVersionFactory lineageGraphVersionFactory;
 
+  /**
+   * Create all the Cassandra factories.
+   *
+   * @param cassandraClient the database client
+   * @param machineId the id of this machine
+   * @param numMachines the total number of machines
+   */
   public CassandraFactories(CassandraClient cassandraClient, int machineId, int numMachines) {
     IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
 
     CassandraVersionFactory versionFactory = new CassandraVersionFactory(cassandraClient);
-    CassandraVersionSuccessorFactory versionSuccessorFactory = new CassandraVersionSuccessorFactory(cassandraClient, idGenerator);
-    CassandraVersionHistoryDAGFactory versionHistoryDAGFactory = new CassandraVersionHistoryDAGFactory(cassandraClient, versionSuccessorFactory);
+    CassandraVersionSuccessorFactory versionSuccessorFactory =
+        new CassandraVersionSuccessorFactory(cassandraClient, idGenerator);
+    CassandraVersionHistoryDagFactory versionHistoryDagFactory =
+        new CassandraVersionHistoryDagFactory(cassandraClient, versionSuccessorFactory);
     CassandraTagFactory tagFactory = new CassandraTagFactory(cassandraClient);
-    CassandraItemFactory itemFactory = new CassandraItemFactory(cassandraClient, versionHistoryDAGFactory, tagFactory);
+    CassandraItemFactory itemFactory =
+        new CassandraItemFactory(cassandraClient, versionHistoryDagFactory, tagFactory);
 
-    this.structureFactory = new CassandraStructureFactory(itemFactory, cassandraClient, idGenerator);
-    this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory, versionFactory, cassandraClient, idGenerator);
-    CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory
-        (cassandraClient, versionFactory, structureVersionFactory, tagFactory);
+    this.structureFactory =
+        new CassandraStructureFactory(itemFactory, cassandraClient, idGenerator);
+    this.structureVersionFactory = new CassandraStructureVersionFactory(this.structureFactory,
+        versionFactory, cassandraClient, idGenerator);
+    CassandraRichVersionFactory richVersionFactory = new CassandraRichVersionFactory(
+        cassandraClient, versionFactory, structureVersionFactory, tagFactory);
     this.edgeFactory = new CassandraEdgeFactory(itemFactory, cassandraClient, idGenerator,
-        versionHistoryDAGFactory);
-    this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory, cassandraClient, idGenerator);
+        versionHistoryDagFactory);
+    this.edgeVersionFactory = new CassandraEdgeVersionFactory(this.edgeFactory, richVersionFactory,
+        cassandraClient, idGenerator);
     this.edgeFactory.setEdgeVersionFactory(this.edgeVersionFactory);
 
     this.graphFactory = new CassandraGraphFactory(itemFactory, cassandraClient, idGenerator);
-    this.graphVersionFactory = new CassandraGraphVersionFactory(this.graphFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.graphVersionFactory = new CassandraGraphVersionFactory(this.graphFactory,
+        richVersionFactory, cassandraClient, idGenerator);
     this.nodeFactory = new CassandraNodeFactory(itemFactory, cassandraClient, idGenerator);
-    this.nodeVersionFactory = new CassandraNodeVersionFactory(this.nodeFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.nodeVersionFactory = new CassandraNodeVersionFactory(this.nodeFactory, richVersionFactory,
+        cassandraClient, idGenerator);
 
-    this.lineageEdgeFactory = new CassandraLineageEdgeFactory(itemFactory, cassandraClient, idGenerator);
-    this.lineageEdgeVersionFactory = new CassandraLineageEdgeVersionFactory(this.lineageEdgeFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.lineageEdgeFactory =
+        new CassandraLineageEdgeFactory(itemFactory, cassandraClient, idGenerator);
+    this.lineageEdgeVersionFactory = new CassandraLineageEdgeVersionFactory(this.lineageEdgeFactory,
+        richVersionFactory, cassandraClient, idGenerator);
     this.lineageGraphFactory = new CassandraLineageGraphFactory(itemFactory, cassandraClient,
         idGenerator);
     this.lineageGraphVersionFactory = new CassandraLineageGraphVersionFactory(

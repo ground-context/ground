@@ -14,26 +14,26 @@
 
 package edu.berkeley.ground.dao.models.cassandra;
 
-import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.dao.models.EdgeVersionFactory;
-import edu.berkeley.ground.model.models.RichVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.EdgeVersion;
+import edu.berkeley.ground.model.models.RichVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeVersionFactory.class);
@@ -43,13 +43,40 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
   private final CassandraRichVersionFactory richVersionFactory;
   private final IdGenerator idGenerator;
 
-  public CassandraEdgeVersionFactory(CassandraEdgeFactory edgeFactory, CassandraRichVersionFactory richVersionFactory, CassandraClient dbClient, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Cassandra edge version factory.
+   *
+   * @param edgeFactory the CassandraEdgeFactory singleton
+   * @param richVersionFactory the CassandraRichVersionFactory singleton
+   * @param dbClient the Cassandra client
+   * @param idGenerator a unique ID generator
+   */
+  public CassandraEdgeVersionFactory(CassandraEdgeFactory edgeFactory,
+                                     CassandraRichVersionFactory richVersionFactory,
+                                     CassandraClient dbClient,
+                                     IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.edgeFactory = edgeFactory;
     this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Creates and persists a new edge version.
+   *
+   * @param tags any tags on the edge version
+   * @param structureVersionId the id of the StructureVersion for this version
+   * @param reference an optional external reference
+   * @param referenceParameters parameters to access this reference
+   * @param edgeId the id of the Edge containing this version
+   * @param fromNodeVersionStartId the start id in the Edge's from node
+   * @param fromNodeVersionEndId the end id in the Edge's from node
+   * @param toNodeVersionStartId the start id in the Edge's to node
+   * @param toNodeVersionEndId the end id in the Edge's to node
+   * @param parentIds the ids of any parents of this version
+   * @return the created version
+   * @throws GroundException an error while creating or persisting the version
+   */
   public EdgeVersion create(Map<String, Tag> tags,
                             long structureVersionId,
                             String reference,
@@ -63,9 +90,12 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
     try {
       long id = this.idGenerator.generateVersionId();
 
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
+      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+          new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+      );
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+          referenceParameters);
 
       List<DbDataContainer> insertions = new ArrayList<>();
       insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -94,16 +124,23 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
     }
   }
 
+  /**
+   * Retrieves an edge version from the database.
+   *
+   * @param id the id of the version to retrieve
+   * @return the retrieved edge version
+   * @throws GroundException either the version doesn't exist or wasn't able to be retrieved
+   */
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
-      RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
 
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("edge_version", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("edge_version", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
@@ -119,11 +156,11 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
       long edgeId = resultSet.getLong("edge_id");
 
       long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
-      long fromNodeVersionEndId = resultSet.isNull("from_node_end_id") ? -1 : resultSet.getLong
-          ("from_node_end_id");
+      long fromNodeVersionEndId = resultSet.isNull("from_node_end_id") ? -1 : resultSet.getLong(
+          "from_node_end_id");
       long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
-      long toNodeVersionEndId = resultSet.isNull("to_node_end_id") ? -1 : resultSet.getLong
-          ("to_node_end_id");
+      long toNodeVersionEndId = resultSet.isNull("to_node_end_id") ? -1 : resultSet.getLong(
+          "to_node_end_id");
 
       this.dbClient.commit();
       LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");

@@ -14,24 +14,44 @@
 
 package edu.berkeley.ground.db;
 
-import com.datastax.driver.core.*;
-import edu.berkeley.ground.model.versions.GroundType;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PlainTextAuthProvider;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
+import edu.berkeley.ground.model.versions.GroundType;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-public class CassandraClient extends DBClient {
+public class CassandraClient extends DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
   private final Cluster cluster;
   private final Session session;
   private final Map<String, PreparedStatement> preparedStatements;
 
+  /**
+   * Constructor for the Cassandra client.
+   *
+   * @param host the host address for Cassandra
+   * @param port the Cassandra port
+   * @param keyspace the name of the keyspace we're using
+   * @param username the login username
+   * @param password the login password
+   */
   public CassandraClient(String host, int port, String keyspace, String username, String password) {
     this.cluster =
         Cluster.builder()
@@ -110,8 +130,17 @@ public class CassandraClient extends DBClient {
     return new CassandraResults(resultSet);
   }
 
-  public void update(List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates,
-                     String table) throws GroundDBException {
+  /**
+   * Execute an update statement in Cassandra.
+   *
+   * @param setPredicates the set portion of the update statement
+   * @param wherePredicates the where portion of the update statement
+   * @param table the table to update
+   * @throws GroundDbException an error while executing the update
+   */
+  public void update(List<DbDataContainer> setPredicates,
+                     List<DbDataContainer> wherePredicates,
+                     String table) throws GroundDbException {
 
     String updateString = "update " + table + " set ";
 
@@ -148,6 +177,13 @@ public class CassandraClient extends DBClient {
     this.session.execute(statement);
   }
 
+  /**
+   * Return the nodes adjacent to this one, optionally filtering based on the edge name.
+   *
+   * @param nodeVersionId the start node version
+   * @param edgeNameRegex the edge name to filter by
+   * @return the list of adjacent nodes
+   */
   public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) {
     BoundStatement statement =
         this.prepareStatement(
@@ -186,8 +222,10 @@ public class CassandraClient extends DBClient {
     return new BoundStatement(statement);
   }
 
-  private static void setValue(
-      BoundStatement statement, Object value, GroundType groundType, int index) {
+  private static void setValue(BoundStatement statement,
+                               Object value,
+                               GroundType groundType,
+                               int index) {
     switch (groundType) {
       case STRING:
         if (value != null) {
@@ -217,6 +255,9 @@ public class CassandraClient extends DBClient {
         } else {
           statement.setToNull(index);
         }
+        break;
+      default:
+        // impossible because we've listed all the enum types
         break;
     }
   }

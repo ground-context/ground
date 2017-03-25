@@ -28,6 +28,14 @@ public class Node extends Item<NodeVersion> {
   // the source key for this Node
   private String sourceKey;
 
+  /**
+   * Create a new node.
+   *
+   * @param id the id of the node
+   * @param name the name of the node
+   * @param sourceKey the user-generated source key of the node
+   * @param tags the tags associated with the node
+   */
   @JsonCreator
   public Node(
       @JsonProperty("id") long id,
@@ -58,8 +66,8 @@ public class Node extends Item<NodeVersion> {
 
     Node otherNode = (Node) other;
 
-    return this.name.equals(otherNode.name) &&
-        this.getId() == otherNode.getId() &&
-        this.sourceKey.equals(otherNode.sourceKey);
+    return this.name.equals(otherNode.name)
+        && this.getId() == otherNode.getId()
+        && this.sourceKey.equals(otherNode.sourceKey);
   }
 }

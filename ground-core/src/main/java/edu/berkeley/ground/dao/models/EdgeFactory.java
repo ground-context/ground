@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class EdgeFactory {
+
   public abstract Edge create(String name,
                               String sourceKey,
                               long fromNodeId,
@@ -32,7 +33,8 @@ public abstract class EdgeFactory {
 
   public abstract Edge retrieveFromDatabase(long id) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds)
+      throws GroundException;
 
   protected static Edge construct(long id,
                                   String name,

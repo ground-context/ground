@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class VersionHistoryDAG<T extends Version> {
+public class VersionHistoryDag<T extends Version> {
   // the id of the Version that's at the rootId of this DAG
   private long itemId;
 
@@ -33,7 +33,13 @@ public class VersionHistoryDAG<T extends Version> {
   // map of parents to children
   private Map<Long, List<Long>> parentChildMap;
 
-  public VersionHistoryDAG(long itemId, List<VersionSuccessor<T>> edges) {
+  /**
+   * Create a new version history DAG.
+   *
+   * @param itemId the id of the item of this DAG
+   * @param edges the version successors in this DAG
+   */
+  public VersionHistoryDag(long itemId, List<VersionSuccessor<T>> edges) {
     this.itemId = itemId;
     this.edgeIds = new ArrayList<>();
     this.parentChildMap = new HashMap<>();
@@ -69,13 +75,19 @@ public class VersionHistoryDAG<T extends Version> {
    * Adds an edge to this DAG.
    *
    * @param parentId the id of the "from" of the edge
-   * @param childId  the id of the "to" of the edge
+   * @param childId the id of the "to" of the edge
    */
   public void addEdge(long parentId, long childId, long successorId) {
     edgeIds.add(successorId);
     this.addToParentChildMap(parentId, childId);
   }
 
+  /**
+   * Return the parent(s) of a particular version.
+   *
+   * @param childId the query id
+   * @return the list of parent version(s)
+   */
   public List<Long> getParent(long childId) {
     List<Long> result = new ArrayList<>();
 

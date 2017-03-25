@@ -17,14 +17,14 @@ package edu.berkeley.ground.dao.versions.postgres;
 import org.junit.Test;
 
 import edu.berkeley.ground.dao.PostgresTest;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
 
-public class PostgresVersionHistoryDAGFactoryTest extends PostgresTest {
+public class PostgresVersionHistoryDagFactoryTest extends PostgresTest {
 
-  public PostgresVersionHistoryDAGFactoryTest() throws GroundException {
+  public PostgresVersionHistoryDagFactoryTest() throws GroundException {
     super();
   }
 
@@ -34,7 +34,7 @@ public class PostgresVersionHistoryDAGFactoryTest extends PostgresTest {
       long testId = 1;
       super.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
     } finally {

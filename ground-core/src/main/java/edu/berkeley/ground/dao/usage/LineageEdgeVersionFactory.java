@@ -14,8 +14,8 @@
 
 package edu.berkeley.ground.dao.usage;
 
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageEdgeVersion;
 
 import java.util.List;
@@ -41,6 +41,7 @@ public abstract class LineageEdgeVersionFactory {
                                                 long fromId,
                                                 long toId,
                                                 long lineageEdgeId) {
-    return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters, fromId, toId, lineageEdgeId);
+    return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
+        fromId, toId, lineageEdgeId);
   }
 }

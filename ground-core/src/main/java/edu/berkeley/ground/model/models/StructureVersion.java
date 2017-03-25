@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Version;
 
-import java.util.*;
+import java.util.Map;
 
 public class StructureVersion extends Version {
   // the id of the Structure containing this Version
@@ -29,6 +29,13 @@ public class StructureVersion extends Version {
   // the map of attribute names to types
   private Map<String, GroundType> attributes;
 
+  /**
+   * Create a new structure version.
+   *
+   * @param id the id of the structure version
+   * @param structureId the id of the structure containing this version
+   * @param attributes the attributes required by this structure version
+   */
   @JsonCreator
   public StructureVersion(@JsonProperty("id") long id,
                           @JsonProperty("structureId") long structureId,
@@ -57,8 +64,8 @@ public class StructureVersion extends Version {
 
     StructureVersion otherStructureVersion = (StructureVersion) other;
 
-    return this.structureId == otherStructureVersion.structureId &&
-        this.attributes.equals(otherStructureVersion.attributes) &&
-        this.getId() == otherStructureVersion.getId();
+    return this.structureId == otherStructureVersion.structureId
+        && this.attributes.equals(otherStructureVersion.attributes)
+        && this.getId() == otherStructureVersion.getId();
   }
 }

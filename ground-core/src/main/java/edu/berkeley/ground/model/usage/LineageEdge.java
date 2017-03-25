@@ -20,9 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.Item;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 
 public class LineageEdge extends Item<LineageEdgeVersion> {
@@ -32,6 +29,14 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
   // the source key for this Node
   private String sourceKey;
 
+  /**
+   * Create a new lineage edge.
+   *
+   * @param id the id of the lineage edge
+   * @param name the name of the lineage edge
+   * @param sourceKey the user-generated unique key for the lineage edge
+   * @param tags the tags associated with this lineage edge
+   */
   @JsonCreator
   public LineageEdge(@JsonProperty("id") long id,
                      @JsonProperty("name") String name,
@@ -61,8 +66,8 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
 
     LineageEdge otherLineageEdge = (LineageEdge) other;
 
-    return this.name.equals(otherLineageEdge.name) &&
-        this.getId() == otherLineageEdge.getId() &&
-        this.sourceKey.equals(otherLineageEdge.sourceKey);
+    return this.name.equals(otherLineageEdge.name)
+        && this.getId() == otherLineageEdge.getId()
+        && this.sourceKey.equals(otherLineageEdge.sourceKey);
   }
 }

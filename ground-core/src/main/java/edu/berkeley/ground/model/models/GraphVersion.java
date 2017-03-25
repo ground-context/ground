@@ -27,6 +27,17 @@ public class GraphVersion extends RichVersion {
   // the list of ids of EdgeVersions in this GraphVersion
   private List<Long> edgeVersionIds;
 
+  /**
+   * Create a new graph version.
+   *
+   * @param id the id of this graph version
+   * @param tags the tags associated with this graph version
+   * @param structureVersionId the id of the StructureVersion associated with this graph version
+   * @param reference an optional external reference
+   * @param referenceParameters the access parameters of the reference
+   * @param graphId the id of the graph containing this version
+   * @param edgeVersionIds the list of edge versions in this graph version
+   */
   @JsonCreator
   public GraphVersion(@JsonProperty("id") long id,
                       @JsonProperty("tags") Map<String, Tag> tags,
@@ -60,8 +71,8 @@ public class GraphVersion extends RichVersion {
 
     GraphVersion otherGraphVersion = (GraphVersion) other;
 
-    return this.graphId == otherGraphVersion.graphId &&
-        this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds) &&
-        super.equals(other);
+    return this.graphId == otherGraphVersion.graphId
+        && this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds)
+        && super.equals(other);
   }
 }

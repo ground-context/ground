@@ -30,10 +30,10 @@ import edu.berkeley.ground.dao.models.NodeVersionFactory;
 import edu.berkeley.ground.dao.models.StructureFactory;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.*;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.util.Neo4jFactories;
 import edu.berkeley.ground.util.PostgresFactories;
 
@@ -55,7 +55,7 @@ public class GroundReadWrite {
   static final String EDGEFACTORY_CLASS = "ground.edge.factory";
 
   static final String NO_CACHE_CONF = "no.use.cache";
-  private DBClient dbClient;
+  private DbClient dbClient;
   private GraphFactory graphFactory;
   private GraphVersionFactory graphVersionFactory;
   private NodeVersionFactory nodeVersionFactory;
@@ -115,7 +115,7 @@ public class GroundReadWrite {
       }
       try {
         return new GroundReadWrite(staticConf);
-      } catch (GroundDBException e) {
+      } catch (GroundDbException e) {
         LOG.error("create groundreadwrite failed {}", e.getMessage());
       }
       return null;
@@ -153,7 +153,7 @@ public class GroundReadWrite {
     return self.get();
   }
 
-  private GroundReadWrite(Configuration conf) throws GroundDBException {
+  private GroundReadWrite(Configuration conf) throws GroundDbException {
     Properties props = new Properties();
     try {
       String groundPropertyResource = GROUNDCONF; //ground properties from resources
@@ -190,7 +190,7 @@ public class GroundReadWrite {
         Class<?> clazz = Class.forName(clientClass);
         Constructor<?> constructor = clazz.getConstructor(String.class, Integer.class,
             String.class, String.class, String.class);
-        dbClient = (DBClient) constructor.newInstance(host, port, dbName, userName, password);
+        dbClient = (DbClient) constructor.newInstance(host, port, dbName, userName, password);
         // dbClient = new PostgresClient(host, port, dbName, userName, password);
         LOG.debug("Instantiating connection class " + clientClass);
         if (staticConf.get("factoryType", DEFAULT_FACTORY).equals("postgres")) {
@@ -200,7 +200,7 @@ public class GroundReadWrite {
         }
       }
     } catch (Exception e) {
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
@@ -215,7 +215,7 @@ public class GroundReadWrite {
     this.structureVersionFactory = neo4JFactories.getStructureVersionFactory();
   }
 
-  private void createPostgresInstance() throws GroundDBException {
+  private void createPostgresInstance() throws GroundDbException {
     PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient, 0, 1);
     this.nodeFactory = postgresFactories.getNodeFactory();
     this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
@@ -235,7 +235,7 @@ public class GroundReadWrite {
   public void commit() {
     try {
       dbClient.commit();
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       throw new RuntimeException(e);
     }
   }
@@ -256,7 +256,7 @@ public class GroundReadWrite {
     return factoryType;
   }
 
-  public DBClient getDbClient() {
+  public DbClient getDbClient() {
     return dbClient;
   }
 

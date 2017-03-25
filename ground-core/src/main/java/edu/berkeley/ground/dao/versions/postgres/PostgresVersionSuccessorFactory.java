@@ -14,16 +14,16 @@
 
 package edu.berkeley.ground.dao.versions.postgres;
 
-import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.model.versions.Version;
-import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.dao.versions.VersionSuccessorFactory;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.Version;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.util.IdGenerator;
 
 import java.util.ArrayList;
@@ -38,7 +38,18 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     this.idGenerator = idGenerator;
   }
 
-  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException {
+  /**
+   * Create and persist a version successor.
+   *
+   * @param fromId the id of the parent version
+   * @param toId the id of the child version
+   * @param <T> the types of the connected versions
+   * @return the created version successor
+   * @throws GroundException an error creating the successor
+   */
+  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
+      throws GroundException {
+
     List<DbDataContainer> insertions = new ArrayList<>();
     long dbId = idGenerator.generateSuccessorId();
 
@@ -51,13 +62,24 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
   }
 
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException {
+  /**
+   * Retrieve a version successor from the database.
+   *
+   * @param dbId the id of the successor to retrieve
+   * @param <T> the types of the connected versions
+   * @return the retrieved version successor
+   * @throws GroundException either the successor didn't exist or couldn't be retrieved
+   */
+  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
+      throws GroundException {
+
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
     QueryResults resultSet;
     try {
-      resultSet = this.dbClient.equalitySelect("version_successor", DBClient.SELECT_STAR, predicates);
+      resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
+          predicates);
     } catch (EmptyResultException e) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }

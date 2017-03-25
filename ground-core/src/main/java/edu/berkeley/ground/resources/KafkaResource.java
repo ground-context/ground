@@ -16,22 +16,24 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.KafkaProduce;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
+import javax.validation.Valid;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import javax.validation.Valid;
-import javax.ws.rs.Produces;
-
-
-import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.util.KafkaProduce;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/kafka")
 @Api(value = "/kafka", description = "Interact with ground's kafka cluster")
@@ -47,14 +49,26 @@ public class KafkaResource {
     this.kafkaPort = kafkaPort;
   }
 
+  /**
+   * Send a message to kafka.
+   *
+   * @param value the value of the message
+   * @param topic the topic to send the message to
+   * @param key the message key
+   * @return the sent value
+   * @throws GroundException an exception while sending the message
+   */
   @POST
   @Timed
   @ApiOperation(value = "Send kafka message")
   @ApiResponses(value = {@ApiResponse(code = 405, message = "Invalid input")})
   @Path("/")
-  public String sendKafkaMessage(@Valid String value, @ApiParam(value = "Topic to push to",
-      required = true) @QueryParam("topic") String topic, @ApiParam(value = "Key of message",
-      required = true) @QueryParam("key") String key) throws GroundException {
+  public String sendKafkaMessage(
+      @Valid String value,
+      @ApiParam(value = "Topic to push to", required = true) @QueryParam("topic") String topic,
+      @ApiParam(value = "Key of message", required = true) @QueryParam("key") String key)
+      throws GroundException {
+
     LOGGER.info("Receiving kafka publish");
     KafkaProduce.push(kafkaHost, kafkaPort, topic, key, value);
     return value;

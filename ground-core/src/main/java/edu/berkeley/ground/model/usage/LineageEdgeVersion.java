@@ -32,15 +32,28 @@ public class LineageEdgeVersion extends RichVersion {
   // the id of the RichVersion that this LineageEdgeVersion points to
   private long toId;
 
+  /**
+   * Create a lineage edge version.
+   *
+   * @param id the id of this version
+   * @param tags the tags associated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters the access parameters for the reference
+   * @param fromId the source rich version id
+   * @param toId the destination rich version id
+   * @param lineageEdgeId the id of the lineage edge containing this version
+   */
   @JsonCreator
-  public LineageEdgeVersion(@JsonProperty("id") long id,
-                            @JsonProperty("tags") Map<String, Tag> tags,
-                            @JsonProperty("structureVersionId") long structureVersionId,
-                            @JsonProperty("reference") String reference,
-                            @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-                            @JsonProperty("fromId") long fromId,
-                            @JsonProperty("toId") long toId,
-                            @JsonProperty("lineageEdgeId") long lineageEdgeId) {
+  public LineageEdgeVersion(
+      @JsonProperty("id") long id,
+      @JsonProperty("tags") Map<String, Tag> tags,
+      @JsonProperty("structureVersionId") long structureVersionId,
+      @JsonProperty("reference") String reference,
+      @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+      @JsonProperty("fromId") long fromId,
+      @JsonProperty("toId") long toId,
+      @JsonProperty("lineageEdgeId") long lineageEdgeId) {
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.lineageEdgeId = lineageEdgeId;
@@ -71,10 +84,10 @@ public class LineageEdgeVersion extends RichVersion {
 
     LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
 
-    return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId &&
-        this.fromId == otherLineageEdgeVersion.fromId &&
-        this.toId == otherLineageEdgeVersion.toId &&
-        this.getId() == otherLineageEdgeVersion.getId() &&
-        super.equals(other);
+    return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
+        && this.fromId == otherLineageEdgeVersion.fromId
+        && this.toId == otherLineageEdgeVersion.toId
+        && this.getId() == otherLineageEdgeVersion.getId()
+        && super.equals(other);
   }
 }

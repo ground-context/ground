@@ -16,23 +16,28 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.usage.LineageEdge;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
-import edu.berkeley.ground.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageEdge;
+import edu.berkeley.ground.model.usage.LineageEdgeVersion;
+
 import io.swagger.annotations.Api;
+import java.util.List;
+import java.util.Map;
+
+import javax.validation.Valid;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-
-import java.util.List;
-import java.util.Map;
 
 @Path("/lineage")
 @Api(value = "/lineage", description = "Interact with lineage edges")
@@ -43,7 +48,8 @@ public class LineageEdgesResource {
   private LineageEdgeFactory lineageEdgeFactory;
   private LineageEdgeVersionFactory lineageEdgeVersionFactory;
 
-  public LineageEdgesResource(LineageEdgeFactory lineageEdgeFactory, LineageEdgeVersionFactory lineageEdgeVersionFactory) {
+  public LineageEdgesResource(LineageEdgeFactory lineageEdgeFactory,
+                              LineageEdgeVersionFactory lineageEdgeVersionFactory) {
     this.lineageEdgeFactory = lineageEdgeFactory;
     this.lineageEdgeVersionFactory = lineageEdgeVersionFactory;
   }
@@ -74,11 +80,24 @@ public class LineageEdgesResource {
     return this.lineageEdgeFactory.create(name, sourceKey, tags);
   }
 
+  /**
+   * Create a lineage edge version.
+   *
+   * @param lineageEdgeVersion the data to create the version with
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the newly created version along with an id
+   * @throws GroundException an error while creating the version
+   */
   @POST
   @Timed
   @Path("/versions")
-  public LineageEdgeVersion createLineageEdgeVersion(@Valid LineageEdgeVersion lineageEdgeVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
-    LOGGER.info("Creating lineage edge version in lineage edge " + lineageEdgeVersion.getLineageEdgeId() + ".");
+  public LineageEdgeVersion createLineageEdgeVersion(
+      @Valid LineageEdgeVersion lineageEdgeVersion,
+      @QueryParam("parent") List<Long> parentIds) throws GroundException {
+
+    LOGGER.info("Creating lineage edge version in lineage edge "
+        + lineageEdgeVersion.getLineageEdgeId() + ".");
+
     return this.lineageEdgeVersionFactory.create(lineageEdgeVersion.getTags(),
         lineageEdgeVersion.getStructureVersionId(),
         lineageEdgeVersion.getReference(),

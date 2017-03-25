@@ -14,12 +14,12 @@
 
 package edu.berkeley.ground.dao.usage;
 
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageGraphVersion;
+
 import java.util.List;
 import java.util.Map;
-
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.model.usage.LineageGraphVersion;
 
 public abstract class LineageGraphVersionFactory {
   public abstract LineageGraphVersion create(Map<String, Tag> tags,

@@ -15,13 +15,9 @@
 package edu.berkeley.ground.db;
 
 import com.google.common.annotations.VisibleForTesting;
-import edu.berkeley.ground.model.versions.GroundType;
+
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import org.neo4j.driver.internal.value.StringValue;
-import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.types.Relationship;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.berkeley.ground.model.versions.GroundType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,13 +25,28 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Neo4jClient extends DBClient {
-  private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jClient.class);
+import org.neo4j.driver.internal.value.StringValue;
+import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.types.Relationship;
 
+public class Neo4jClient extends DbClient {
   private final Driver driver;
   private final Session session;
   private Transaction transaction;
 
+  /**
+   * Constructor for Neo4j client.
+   *
+   * @param host the Neo4j host
+   * @param username the login username
+   * @param password the login password
+   */
   public Neo4jClient(String host, String username, String password) {
     this.driver = GraphDatabase.driver("bolt://" + host, AuthTokens.basic(username, password));
     this.session = this.driver.session();
@@ -60,6 +71,9 @@ public class Neo4jClient extends DBClient {
             break;
           case LONG:
             statement += (long) container.getValue();
+            break;
+          default:
+            // impossible because we've listed all enum values
             break;
         }
 
@@ -138,7 +152,7 @@ public class Neo4jClient extends DBClient {
   }
 
   /**
-   * Add a new vertex and an edge connecting it to another vertex
+   * Add a new vertex and an edge connecting it to another vertex.
    *
    * @param label the vertex label
    * @param attributes the vertex's attributes
@@ -166,16 +180,6 @@ public class Neo4jClient extends DBClient {
   }
 
   /**
-   * Retrieve a vertex.
-   *
-   * @param attributes the set of attributes to filter
-   * @return the Record of the vertex
-   */
-  public Record getVertex(List<DbDataContainer> attributes) throws EmptyResultException {
-    return this.getVertex(null, attributes);
-  }
-
-  /**
    * Get all vertices with a certain set of attributes.
    *
    * @param attributes the attributes to filter by
@@ -198,6 +202,16 @@ public class Neo4jClient extends DBClient {
     }
 
     return result;
+  }
+
+  /**
+   * Retrieve a vertex.
+   *
+   * @param attributes the set of attributes to filter
+   * @return the Record of the vertex
+   */
+  public Record getVertex(List<DbDataContainer> attributes) throws EmptyResultException {
+    return this.getVertex(null, attributes);
   }
 
   /**
@@ -315,6 +329,13 @@ public class Neo4jClient extends DBClient {
     this.transaction.run(insert);
   }
 
+  /**
+   * Return the nodes adjacent to this one, optionally filtering based on the edge name.
+   *
+   * @param nodeVersionId the start node version
+   * @param edgeNameRegex the edge name to filter by
+   * @return the list of adjacent nodes
+   */
   public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) {
     String query =
         "MATCH (n: NodeVersion {id: '"
@@ -352,11 +373,20 @@ public class Neo4jClient extends DBClient {
     this.driver.close();
   }
 
+  /**
+   * Extract a Java String for a Neo4j StringValue.
+   *
+   * @param value the input StringValue
+   * @return the extracted Java String
+   */
   public static String getStringFromValue(StringValue value) {
     String stringWithQuotes = value.toString();
     return stringWithQuotes.substring(1, stringWithQuotes.length() - 1);
   }
 
+  /**
+   * Drop all the data in the Neo4j instance. Only should be used for test purposes.
+   */
   @VisibleForTesting
   public void dropData() {
     Session session = this.driver.session();

@@ -14,7 +14,17 @@
 
 package edu.berkeley.ground.ingest;
 
+import com.typesafe.config.Config;
+
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.NodeVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+import gobblin.util.ConfigUtils;
+import gobblin.writer.DataWriter;
+
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,31 +34,31 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import edu.berkeley.ground.model.models.Node;
-import edu.berkeley.ground.model.models.NodeVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
-import gobblin.util.ConfigUtils;
-import gobblin.writer.DataWriter;
-
-import java.net.URLEncoder;
-
-import com.typesafe.config.Config;
-
 
 public class GroundWriter<D> implements DataWriter<GenericRecord> {
 
   HttpClient client = new HttpClient();
   private final String groundServerAddress;
 
+  /**
+   * Constructor for the Ground writer.
+   *
+   * @param config Gobblin configuration information
+   */
   public GroundWriter(Config config) {
-
-    this.groundServerAddress = ConfigUtils.getString(config, GroundWriterConfigurationKeys.GROUND_SERVER_ADDRESS, GroundWriterConfigurationKeys.DEFAULT_GROUND_SERVER_ADDRESS);
+    this.groundServerAddress = ConfigUtils.getString(config,
+        GroundWriterConfigurationKeys.GROUND_SERVER_ADDRESS,
+        GroundWriterConfigurationKeys.DEFAULT_GROUND_SERVER_ADDRESS);
 
   }
 
+  /**
+   * Write a record into Ground.
+   *
+   * @param record the input record
+   * @throws IOException an exception while extracting data from the record
+   */
   public void write(GenericRecord record) throws IOException {
-
     //extracting the metadata from the GenericRecord and storing it in the field tags
     Map<String, Tag> tags = new HashMap<String, Tag>();
     GroundType typeString = GroundType.STRING;
@@ -69,6 +79,14 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
   }
 
   //method to create a Node given the name
+
+  /**
+   * Create a new Ground node.
+   *
+   * @param name the name of the node
+   * @param tags the tags associated with this node
+   * @throws IOException an error with the ObjectMapper
+   */
   public void node(String name, Map<String, Tag> tags) throws IOException {
 
     Node node = new Node(-1, name, null, new HashMap<>());
@@ -95,17 +113,33 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
   }
 
   //method to create the NodeVersion given the nodeId and the tags
-  public void nodeVersion(long id, Map<String, Tag> tags, long structureVersionId, String reference, Map<String, String> referenceParameters, long nodeId) throws IOException {
 
-    NodeVersion nodeVersion = new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
+  /**
+   * Create a new Ground node version.
+   *
+   * @param id the id node version
+   * @param tags the tags associated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters the access parameters of the references
+   * @param nodeId the id of the node containing this version
+   * @throws IOException an error with the ObjectMapper
+   */
+  public void nodeVersion(long id,
+                          Map<String, Tag> tags,
+                          long structureVersionId,
+                          String reference,
+                          Map<String, String> referenceParameters,
+                          long nodeId) throws IOException {
+
+    NodeVersion nodeVersion = new NodeVersion(id, tags, structureVersionId, reference,
+        referenceParameters, nodeId);
     ObjectMapper mapper = new ObjectMapper();
     String jsonString = mapper.writeValueAsString(nodeVersion);
     String uri = groundServerAddress + "nodes/versions";
     PostMethod post = new PostMethod(uri);
     post.setRequestHeader("Content-type", "application/json");
     post.setRequestBody(jsonString);
-    int statusCode = client.executeMethod(post);
-
   }
 
   @Override
@@ -114,9 +148,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
 
   @Override
   public long bytesWritten() throws IOException {
-
     return 0;
-
   }
 
   @Override
@@ -129,9 +161,7 @@ public class GroundWriter<D> implements DataWriter<GenericRecord> {
 
   @Override
   public long recordsWritten() {
-
     return 0;
-
   }
 
 }
