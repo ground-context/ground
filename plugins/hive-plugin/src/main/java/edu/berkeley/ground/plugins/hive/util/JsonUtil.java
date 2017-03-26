@@ -21,12 +21,12 @@ public class JsonUtil {
   private JsonUtil() {
   }
 
-  public static <T> T fromJSON(String json, Class<T> clazz) {
+  public static <T> T fromJson(String json, Class<T> clazz) {
     Gson gson = new Gson();
     return gson.fromJson(json.replace("\\", ""), clazz);
   }
 
-  public static String toJSON(Object object) {
+  public static String toJson(Object object) {
     Gson gson = new Gson();
     return gson.toJson(object);
   }

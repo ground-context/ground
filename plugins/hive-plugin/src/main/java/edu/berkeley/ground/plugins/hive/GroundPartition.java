@@ -14,6 +14,16 @@
 
 package edu.berkeley.ground.plugins.hive;
 
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.NodeVersion;
+import edu.berkeley.ground.model.models.Structure;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.plugins.hive.util.JsonUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,22 +37,9 @@ import org.apache.hive.common.util.HiveStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.berkeley.ground.model.models.Edge;
-import edu.berkeley.ground.model.models.Node;
-import edu.berkeley.ground.model.models.NodeVersion;
-import edu.berkeley.ground.model.models.Structure;
-import edu.berkeley.ground.model.models.StructureVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.plugins.hive.util.JsonUtil;
-
 public class GroundPartition {
 
-  static final private Logger LOG = LoggerFactory.getLogger(GroundTable.class.getName());
-
-  private static final String DUMMY_NOT_USED = "DUMMY_NOT_USED";
-  private static final List<String> EMPTY_PARENT_LIST = new ArrayList<String>();
+  private static final Logger LOG = LoggerFactory.getLogger(GroundTable.class.getName());
 
   private GroundReadWrite groundReadWrite = null;
 
@@ -50,6 +47,13 @@ public class GroundPartition {
     groundReadWrite = ground;
   }
 
+  /**
+   * Retrieve the partition node.
+   *
+   * @param partitionName the name of the partition
+   * @return the partition node
+   * @throws GroundException an error while retrieving the node
+   */
   public Node getNode(String partitionName) throws GroundException {
     try {
       LOG.debug("Fetching partition node: " + partitionName);
@@ -65,16 +69,30 @@ public class GroundPartition {
     }
   }
 
+  /**
+   * Retrieve the structure for partitions.
+   *
+   * @param partitionName the name of the partition
+   * @return the structure for partitions
+   * @throws GroundException an error while retrieving the structure
+   */
   public Structure getNodeStructure(String partitionName) throws GroundException {
     try {
       Node node = this.getNode(partitionName);
       return groundReadWrite.getStructureFactory().retrieveFromDatabase(partitionName);
     } catch (GroundException e) {
-      LOG.error("Unable to fetch parition node structure");
+      LOG.error("Unable to fetch partition node structure");
       throw e;
     }
   }
 
+  /**
+   * Retrieve a partition's edge.
+   *
+   * @param partitionName the name of the partition
+   * @return the partition's edge
+   * @throws GroundException an error retrieving the edge
+   */
   public Edge getEdge(String partitionName) throws GroundException {
     try {
       LOG.debug("Fetching table partition edge: " + partitionName);
@@ -90,35 +108,35 @@ public class GroundPartition {
     }
   }
 
-  public Structure getEdgeStructure(String partitionName) throws GroundException {
-    try {
-      Edge edge = getEdge(partitionName);
-      return groundReadWrite.getStructureFactory().retrieveFromDatabase(partitionName);
-    } catch (GroundException e) {
-      LOG.error("Unable to fetch table partition edge structure");
-      throw e;
-    }
-  }
-
+  /**
+   * Create a new partition.
+   *
+   * @param dbName the name of the database
+   * @param tableName the name of the table
+   * @param part the partition's data
+   * @return the node version corresponding the partition
+   * @throws InvalidObjectException an invalid partition
+   * @throws MetaException an exception while creating the partition
+   */
   public NodeVersion createPartition(String dbName, String tableName, Partition part)
       throws InvalidObjectException, MetaException {
     try {
-      ObjectPair<String, String> objectPair = new ObjectPair<>(HiveStringUtils.normalizeIdentifier(dbName),
-          HiveStringUtils.normalizeIdentifier(tableName));
+      ObjectPair<String, String> objectPair = new ObjectPair<>(HiveStringUtils
+          .normalizeIdentifier(dbName), HiveStringUtils.normalizeIdentifier(tableName));
       String partId = objectPair.toString();
       for (String value : part.getValues()) {
         partId += ":" + value;
       }
 
-      Tag partTag = new Tag(0, partId, JsonUtil.toJSON(part), GroundType.STRING);
+      Tag partTag = new Tag(0, partId, JsonUtil.toJson(part), GroundType.STRING);
 
       Node node = this.getNode(partId);
       long nodeId = node.getId();
       Structure partStruct = this.getNodeStructure(partId);
       Map<String, GroundType> structVersionAttribs = new HashMap<>();
       structVersionAttribs.put(partId, GroundType.STRING);
-      StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(partStruct.getId(), structVersionAttribs,
-          new ArrayList<Long>());
+      StructureVersion sv = groundReadWrite.getStructureVersionFactory().create(partStruct.getId(),
+          structVersionAttribs, new ArrayList<>());
 
       String reference = part.getSd().getLocation();
       HashMap<String, Tag> tags = new HashMap<>();
