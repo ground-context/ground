@@ -17,16 +17,16 @@ package edu.berkeley.ground.dao.versions.cassandra;
 import org.junit.Test;
 
 import edu.berkeley.ground.dao.CassandraTest;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
 
-public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
+public class CassandraVersionHistoryDagFactoryTest extends CassandraTest {
 
-  public CassandraVersionHistoryDAGFactoryTest() throws GroundDBException {
+  public CassandraVersionHistoryDagFactoryTest() throws GroundDbException {
     super();
   }
 
@@ -36,7 +36,7 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
       long testId = 1;
       CassandraTest.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
     } finally {
@@ -50,7 +50,7 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
       long testId = 1;
       CassandraTest.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       long fromId = 123;
       long toId = 456;
@@ -60,7 +60,7 @@ public class CassandraVersionHistoryDAGFactoryTest extends CassandraTest {
 
       CassandraTest.versionHistoryDAGFactory.addEdge(dag, fromId, toId, testId);
 
-      VersionHistoryDAG<?> retrieved = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> retrieved = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, retrieved.getEdgeIds().size());
       assertEquals(toId, (long) retrieved.getLeaves().get(0));

@@ -17,12 +17,22 @@ package edu.berkeley.ground.model.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.*;
+import java.util.Map;
 
 public class NodeVersion extends RichVersion {
   // the id of the Node containing this Version
   private long nodeId;
 
+  /**
+   * Create a new node version.
+   *
+   * @param id the id of the version
+   * @param tags the tags associated with the version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters the parameters associated with the reference
+   * @param nodeId the id of the node containing this version
+   */
   @JsonCreator
   public NodeVersion(
       @JsonProperty("id") long id,

@@ -14,13 +14,20 @@
 
 package edu.berkeley.ground.ingest;
 
+import com.google.common.collect.ImmutableList;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+import gobblin.configuration.ConfigurationKeys;
+import gobblin.configuration.WorkUnitState;
+import gobblin.source.extractor.filebased.FileBasedExtractor;
+import gobblin.source.extractor.hadoop.AvroFsHelper;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.Properties;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -29,13 +36,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-
-import com.google.common.collect.ImmutableList;
-
-import gobblin.configuration.WorkUnitState;
-import gobblin.source.extractor.filebased.FileBasedExtractor;
-import gobblin.source.extractor.hadoop.AvroFsHelper;
-import gobblin.configuration.ConfigurationKeys;
 
 /**
  * An extractor that pulls out file metadata.
@@ -61,8 +61,13 @@ public class FileMetadataExtractor extends FileBasedExtractor<Schema, GenericRec
   private static Schema OUTPUT_SCHEMA = new Schema.Parser().parse(SCHEMA_STRING);
   private final FileSystem fs;
 
-  public FileMetadataExtractor(WorkUnitState workUnitState)
-      throws IOException {
+  /**
+   * Extract the metadata for each file.
+   *
+   * @param workUnitState the unit to extract metadata for
+   * @throws IOException error with extracting file metadata
+   */
+  public FileMetadataExtractor(WorkUnitState workUnitState) throws IOException {
     super(workUnitState, new AvroFsHelper(workUnitState));
     Properties props = workUnitState.getProperties();
     Config config = ConfigFactory.parseProperties(props);

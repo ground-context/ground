@@ -14,11 +14,11 @@
 
 package edu.berkeley.ground.dao.versions.cassandra;
 
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.VersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +30,12 @@ public class CassandraVersionFactory extends VersionFactory {
     this.dbClient = dbClient;
   }
 
+  /**
+   * Insert version information into the database.
+   *
+   * @param id the id to insert
+   * @throws GroundException the id already exists in the database
+   */
   public void insertIntoDatabase(long id) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));

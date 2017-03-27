@@ -14,24 +14,24 @@
 
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 
 public interface QueryResults {
-  String getString(int index) throws GroundDBException;
+  String getString(int index) throws GroundDbException;
 
-  String getString(String field) throws GroundDBException;
+  String getString(String field) throws GroundDbException;
 
-  int getInt(int index) throws GroundDBException;
+  int getInt(int index) throws GroundDbException;
 
-  boolean getBoolean(int index) throws GroundDBException;
+  boolean getBoolean(int index) throws GroundDbException;
 
-  long getLong(int index) throws GroundDBException;
+  long getLong(int index) throws GroundDbException;
 
-  long getLong(String field) throws GroundDBException;
+  long getLong(String field) throws GroundDbException;
 
-  boolean next() throws GroundDBException;
+  boolean next() throws GroundDbException;
 
-  boolean isNull(int index) throws GroundDBException;
+  boolean isNull(int index) throws GroundDbException;
 
-  boolean isNull(String name) throws GroundDBException;
+  boolean isNull(String name) throws GroundDbException;
 }

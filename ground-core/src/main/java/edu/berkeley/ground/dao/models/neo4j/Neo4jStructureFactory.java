@@ -14,25 +14,25 @@
 
 package edu.berkeley.ground.dao.models.neo4j;
 
-import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Structure;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.neo4j.driver.v1.Record;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.neo4j.driver.v1.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Neo4jStructureFactory extends StructureFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureFactory.class);
@@ -41,12 +41,30 @@ public class Neo4jStructureFactory extends StructureFactory {
 
   private final IdGenerator idGenerator;
 
-  public Neo4jStructureFactory(Neo4jClient dbClient, Neo4jItemFactory itemFactory, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Neo4j structure factory.
+   *
+   * @param itemFactory the singleton Neo4jItemFactory
+   * @param dbClient the Neo4j client
+   * @param idGenerator a unique id generator
+   */
+  public Neo4jStructureFactory(Neo4jClient dbClient,
+                               Neo4jItemFactory itemFactory,
+                               IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Create and persist a structure.
+   *
+   * @param name the name of the structure
+   * @param sourceKey the user generated unique key for this structure
+   * @param tags the tags associated with this structurej
+   * @return the created structure
+   * @throws GroundException an error while creating or persisting the structure
+   */
   public Structure create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
     try {
@@ -64,13 +82,20 @@ public class Neo4jStructureFactory extends StructureFactory {
       this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
       return StructureFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
+  /**
+   * Retrieve the leaves of this structure's DAG.
+   *
+   * @param name the name of the structure
+   * @return the list of leaves in this structure's DAG
+   * @throws GroundException an error while retrieving the structure
+   */
   public List<Long> getLeaves(String name) throws GroundException {
     Structure structure = this.retrieveFromDatabase(name);
 
@@ -80,6 +105,13 @@ public class Neo4jStructureFactory extends StructureFactory {
     return leaves;
   }
 
+  /**
+   * Retrieve a structure from the database.
+   *
+   * @param name the name of the structure
+   * @return the retrieved structure
+   * @throws GroundException either the structure doesn't exist or couldn't be retrieved
+   */
   public Structure retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -89,7 +121,7 @@ public class Neo4jStructureFactory extends StructureFactory {
       try {
         record = this.dbClient.getVertex("Structure", predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No Structure found with name " + name + ".");
+        throw new GroundDbException("No Structure found with name " + name + ".");
       }
 
       long id = record.get("v").asNode().get("id").asLong();
@@ -101,7 +133,7 @@ public class Neo4jStructureFactory extends StructureFactory {
       LOGGER.info("Retrieved structure " + name + ".");
 
       return StructureFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       this.dbClient.abort();
 
       throw e;

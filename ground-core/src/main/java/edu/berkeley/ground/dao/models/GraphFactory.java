@@ -28,7 +28,8 @@ public abstract class GraphFactory {
 
   public abstract Graph retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds)
+      throws GroundException;
 
   protected static Graph construct(long id, String name, String sourceKey, Map<String, Tag> tags) {
     return new Graph(id, name, sourceKey, tags);

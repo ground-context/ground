@@ -14,17 +14,20 @@
 
 package edu.berkeley.ground.dao.models.cassandra;
 
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.dao.models.TagFactory;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CassandraTagFactory extends TagFactory {
   private final CassandraClient dbClient;
@@ -41,7 +44,9 @@ public class CassandraTagFactory extends TagFactory {
     return this.retrieveFromDatabaseById(id, "item");
   }
 
-  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix) throws GroundException {
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix)
+      throws GroundException {
+
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
 
@@ -49,7 +54,8 @@ public class CassandraTagFactory extends TagFactory {
 
     QueryResults resultSet;
     try {
-      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DBClient.SELECT_STAR, predicates);
+      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
+          predicates);
     } catch (EmptyResultException e) {
       // this means that there are no tags
       return result;

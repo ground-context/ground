@@ -14,54 +14,74 @@
 
 package edu.berkeley.ground.dao.models.cassandra;
 
-import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.model.models.EdgeVersion;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
-import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.model.models.EdgeVersion;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class CassandraEdgeFactory extends EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
   private final CassandraClient dbClient;
-  private final CassandraVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private final CassandraVersionHistoryDagFactory versionHistoryDagFactory;
   private final CassandraItemFactory itemFactory;
   private CassandraEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
 
+  /**
+   * Constructor for Cassandra edge factory.
+   *
+   * @param itemFactory a CassandraItemFactory singleton
+   * @param dbClient the Cassandra client
+   * @param idGenerator a unique ID generator
+   * @param versionHistoryDagFactory a CassandraVersionHistoryDAGFactory singleton
+   */
   public CassandraEdgeFactory(CassandraItemFactory itemFactory,
                               CassandraClient dbClient,
                               IdGenerator idGenerator,
-                              CassandraVersionHistoryDAGFactory versionHistoryDAGFactory) {
+                              CassandraVersionHistoryDagFactory versionHistoryDagFactory) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
     this.edgeVersionFactory = null;
-    this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+    this.versionHistoryDagFactory = versionHistoryDagFactory;
   }
 
   public void setEdgeVersionFactory(CassandraEdgeVersionFactory edgeVersionFactory) {
     this.edgeVersionFactory = edgeVersionFactory;
   }
 
+  /**
+   * Creates and persists a new edge.
+   *
+   * @param name the name of the edge
+   * @param sourceKey the user generated unique key for the edge
+   * @param fromNodeId the id of the originating node for this edg
+   * @param toNodeId the id of the destination node for this edg
+   * @param tags tags on this edge
+   * @return the created edge
+   * @throws GroundException an error while creating or persisting the edge
+   */
   public Edge create(String name,
                      String sourceKey,
                      long fromNodeId,
@@ -100,7 +120,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
   }
 
   private Edge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
-      throws GroundException{
+      throws GroundException {
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
@@ -108,7 +128,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
     try {
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("edge", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 
@@ -141,6 +161,14 @@ public class CassandraEdgeFactory extends EdgeFactory {
     }
   }
 
+  /**
+   * Update this edge with a new version.
+   *
+   * @param itemId the item id of the edge
+   * @param childId the id of the new child
+   * @param parentIds the ids of any parents of the child
+   * @throws GroundException an unexpected error during the update
+   */
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
     parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());
@@ -158,13 +186,13 @@ public class CassandraEdgeFactory extends EdgeFactory {
 
       if (parentVersion.getFromNodeVersionEndId() == -1) {
         // update from end id
-        VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(fromNodeId);
+        VersionHistoryDag dag = this.versionHistoryDagFactory.retrieveFromDatabase(fromNodeId);
         fromEndId = (long) dag.getParent(currentVersion.getFromNodeVersionStartId()).get(0);
       }
 
       if (parentVersion.getToNodeVersionEndId() == -1) {
         // update to end id
-        VersionHistoryDAG dag = this.versionHistoryDAGFactory.retrieveFromDatabase(toNodeId);
+        VersionHistoryDag dag = this.versionHistoryDagFactory.retrieveFromDatabase(toNodeId);
         toEndId = (long) dag.getParent(currentVersion.getToNodeVersionStartId()).get(0);
       }
 

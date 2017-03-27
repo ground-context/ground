@@ -24,10 +24,10 @@ import edu.berkeley.ground.dao.models.postgres.PostgresStructureVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresVersionFactory;
-import edu.berkeley.ground.dao.versions.postgres.PostgresVersionHistoryDAGFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresVersionSuccessorFactory;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.PostgresFactories;
 
@@ -38,18 +38,18 @@ public class PostgresTest {
   protected PostgresFactories factories;
   protected PostgresVersionFactory versionFactory;
   protected PostgresVersionSuccessorFactory versionSuccessorFactory;
-  protected PostgresVersionHistoryDAGFactory versionHistoryDAGFactory;
+  protected PostgresVersionHistoryDagFactory versionHistoryDAGFactory;
   protected PostgresItemFactory itemFactory;
   protected PostgresRichVersionFactory richVersionFactory;
   protected PostgresTagFactory tagFactory;
 
-  public PostgresTest() throws GroundDBException {
+  public PostgresTest() throws GroundDbException {
     this.postgresClient = new PostgresClient("localhost", 5432, "test", "test", "");
     this.factories = new PostgresFactories(this.postgresClient, 0, 1);
 
     this.versionFactory = new PostgresVersionFactory(this.postgresClient);
     this.versionSuccessorFactory = new PostgresVersionSuccessorFactory(this.postgresClient, new IdGenerator(0, 1, false));
-    this.versionHistoryDAGFactory = new PostgresVersionHistoryDAGFactory(this.postgresClient, versionSuccessorFactory);
+    this.versionHistoryDAGFactory = new PostgresVersionHistoryDagFactory(this.postgresClient, versionSuccessorFactory);
     this.tagFactory = new PostgresTagFactory(this.postgresClient);
     this.itemFactory = new PostgresItemFactory(this.postgresClient, versionHistoryDAGFactory, tagFactory);
 

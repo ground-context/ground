@@ -14,25 +14,25 @@
 
 package edu.berkeley.ground.dao.models.neo4j;
 
-import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Graph;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.neo4j.driver.v1.Record;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.neo4j.driver.v1.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Neo4jGraphFactory extends GraphFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jGraphFactory.class);
@@ -42,12 +42,30 @@ public class Neo4jGraphFactory extends GraphFactory {
 
   private final IdGenerator idGenerator;
 
-  public Neo4jGraphFactory(Neo4jClient dbClient, Neo4jItemFactory itemFactory, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Neo4j graph factory.
+   *
+   * @param itemFactory the Neo4jItemFactory singleton
+   * @param dbClient the Neo4j client
+   * @param idGenerator a unique ID generator
+   */
+  public Neo4jGraphFactory(Neo4jClient dbClient,
+                           Neo4jItemFactory itemFactory,
+                           IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Creates and persists a graph.
+   *
+   * @param name the name of the graph
+   * @param sourceKey the user generated unique key for the graph
+   * @param tags tags associated with this graph
+   * @return the created graph
+   * @throws GroundException an error while persisting the graph
+   */
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
@@ -64,13 +82,20 @@ public class Neo4jGraphFactory extends GraphFactory {
       LOGGER.info("Created graph " + name + ".");
 
       return GraphFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       this.dbClient.abort();
 
       throw e;
     }
   }
 
+  /**
+   * Retrieves an edge from the database.
+   *
+   * @param name the name of the graph to retrieve
+   * @return the retrieved graph
+   * @throws GroundException either the graph doesn't exist or couldn't be retrieved
+   */
   public Graph retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -80,7 +105,7 @@ public class Neo4jGraphFactory extends GraphFactory {
       try {
         record = this.dbClient.getVertex(predicates);
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No Graph found with name " + name + ".");
+        throw new GroundDbException("No Graph found with name " + name + ".");
       }
 
       long id = record.get("v").asNode().get("id").asLong();
@@ -92,7 +117,7 @@ public class Neo4jGraphFactory extends GraphFactory {
       LOGGER.info("Retrieved graph " + name + ".");
 
       return GraphFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundDBException e) {
+    } catch (GroundDbException e) {
       this.dbClient.abort();
 
       throw e;

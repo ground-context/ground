@@ -16,23 +16,29 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.model.models.GraphVersion;
 import edu.berkeley.ground.dao.models.GraphVersionFactory;
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Graph;
+import edu.berkeley.ground.model.models.GraphVersion;
+import edu.berkeley.ground.model.models.Tag;
+
 import io.swagger.annotations.Api;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.Valid;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/graphs")
 @Api(value = "/graphs", description = "Interact with the graphs in ground")
@@ -75,10 +81,21 @@ public class GraphsResource {
     return this.graphFactory.create(name, sourceKey, tags);
   }
 
+  /**
+   * Create a new graph version.
+   *
+   * @param graphVersion the data to create the graph version with
+   * @param parentIds the ids of the parents of this version
+   * @return the created version along with an id
+   * @throws GroundException an error while creating the graph version
+   */
   @POST
   @Timed
   @Path("/versions")
-  public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
+  public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion,
+                                         @QueryParam("parent") List<Long> parentIds)
+      throws GroundException {
+
     LOGGER.info("Creating graph version in graph " + graphVersion.getGraphId() + ".");
     return this.graphVersionFactory.create(graphVersion.getTags(),
         graphVersion.getStructureVersionId(),

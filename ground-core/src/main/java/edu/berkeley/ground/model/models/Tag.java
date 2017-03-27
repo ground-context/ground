@@ -37,6 +37,14 @@ public class Tag {
   // the Type of the Value if it exists
   private GroundType valueType;
 
+  /**
+   * Create a new tag.
+   *
+   * @param id the id of the version containing this tag
+   * @param key the key of the tag
+   * @param value the value of the tag
+   * @param valueType the type of the value
+   */
   @JsonCreator
   public Tag(@JsonProperty("id") long id,
              @JsonProperty("key") String key,

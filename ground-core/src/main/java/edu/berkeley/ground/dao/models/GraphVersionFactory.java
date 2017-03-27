@@ -40,6 +40,7 @@ public abstract class GraphVersionFactory {
                                           long graphId,
                                           List<Long> edgeVersionIds) {
 
-    return new GraphVersion(id, tags, structureVersionId, reference, parameters, graphId, edgeVersionIds);
+    return new GraphVersion(id, tags, structureVersionId, reference, parameters, graphId,
+        edgeVersionIds);
   }
 }

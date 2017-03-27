@@ -14,36 +14,52 @@
 
 package edu.berkeley.ground.dao.versions.postgres;
 
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
-import edu.berkeley.ground.model.versions.Item;
 import edu.berkeley.ground.dao.versions.ItemFactory;
-import edu.berkeley.ground.model.versions.GroundType;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.Item;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PostgresItemFactory extends ItemFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresItemFactory.class);
 
   private final PostgresClient dbClient;
-  private final PostgresVersionHistoryDAGFactory versionHistoryDAGFactory;
+  private final PostgresVersionHistoryDagFactory versionHistoryDagFactory;
   private final PostgresTagFactory tagFactory;
 
-  public PostgresItemFactory(PostgresClient dbClient, PostgresVersionHistoryDAGFactory versionHistoryDAGFactory, PostgresTagFactory tagFactory) {
+  /**
+   * Constructor for the Postgres item factory.
+   *
+   * @param dbClient the Postgres client
+   * @param versionHistoryDagFactory the singleton PostgresVersionHistoryDagFactory
+   * @param tagFactory the singleton PostgresTagFactory
+   */
+  public PostgresItemFactory(PostgresClient dbClient,
+                             PostgresVersionHistoryDagFactory versionHistoryDagFactory,
+                             PostgresTagFactory tagFactory) {
     this.dbClient = dbClient;
-    this.versionHistoryDAGFactory = versionHistoryDAGFactory;
+    this.versionHistoryDagFactory = versionHistoryDagFactory;
     this.tagFactory = tagFactory;
   }
 
+  /**
+   * Insert item information into the database.
+   *
+   * @param id the id of the item
+   * @param tags the tags associated with the item
+   * @throws GroundException an error inserting data into the database
+   */
   public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -58,8 +74,10 @@ public class PostgresItemFactory extends ItemFactory {
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
+        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+            tag.getValue().toString()));
+        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+            tag.getValueType().toString()));
       } else {
         tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
@@ -69,26 +87,40 @@ public class PostgresItemFactory extends ItemFactory {
     }
   }
 
+  /**
+   * Retrieve Item information from the database.
+   *
+   * @param id the id of the item
+   * @return the retrieved item
+   * @throws GroundException either the item doesn't exist or couldn't be retrieved
+   */
   public Item retrieveFromDatabase(long id) throws GroundException {
     return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
   }
 
-
+  /**
+   * Update this Item with a new version.
+   *
+   * @param itemId the id of the Item we're updating
+   * @param childId the new version's id
+   * @param parentIds the ids of the parents of the child
+   * @throws GroundException an error
+   */
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
     }
 
-    VersionHistoryDAG dag;
+    VersionHistoryDag dag;
     try {
-      dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
+      dag = this.versionHistoryDagFactory.retrieveFromDatabase(itemId);
     } catch (GroundException e) {
       if (!e.getMessage().contains("No results found for query:")) {
         throw e;
       }
 
-      dag = this.versionHistoryDAGFactory.create(itemId);
+      dag = this.versionHistoryDagFactory.create(itemId);
     }
 
     for (long parentId : parentIds) {
@@ -99,13 +131,20 @@ public class PostgresItemFactory extends ItemFactory {
         throw new GroundException(errorString);
       }
 
-      this.versionHistoryDAGFactory.addEdge(dag, parentId, childId, itemId);
+      this.versionHistoryDagFactory.addEdge(dag, parentId, childId, itemId);
     }
   }
 
+  /**
+   * Return the list of leaves of this item's DAG.
+   *
+   * @param itemId the id of the item
+   * @return the list of leaves contained within the item
+   * @throws GroundException an error retrieving the item
+   */
   public List<Long> getLeaves(long itemId) throws GroundException {
     try {
-      VersionHistoryDAG<?> dag = this.versionHistoryDAGFactory.retrieveFromDatabase(itemId);
+      VersionHistoryDag<?> dag = this.versionHistoryDagFactory.retrieveFromDatabase(itemId);
 
       return dag.getLeaves();
     } catch (GroundException e) {

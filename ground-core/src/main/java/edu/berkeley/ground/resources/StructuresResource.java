@@ -15,24 +15,29 @@
 package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
-
-import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Structure;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.models.Tag;
+
 import io.swagger.annotations.Api;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.Valid;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/structures")
 @Api(value = "/structures", description = "Interact with the structures in the graph")
@@ -43,7 +48,8 @@ public class StructuresResource {
   private StructureFactory structureFactory;
   private StructureVersionFactory structureVersionFactory;
 
-  public StructuresResource(StructureFactory structureFactory, StructureVersionFactory structureVersionFactory) {
+  public StructuresResource(StructureFactory structureFactory,
+                            StructureVersionFactory structureVersionFactory) {
     this.structureFactory = structureFactory;
     this.structureVersionFactory = structureVersionFactory;
   }
@@ -74,13 +80,25 @@ public class StructuresResource {
     return this.structureFactory.create(name, sourceKey, tags);
   }
 
+  /**
+   * Create a structure version.
+   *
+   * @param structureVersion the data to create the version with
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the newly created version along with an id
+   * @throws GroundException an error while creating the version
+   */
   @POST
   @Timed
   @Path("/versions")
   public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion,
                                                  @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
-    LOGGER.info("Creating structure version in structure " + structureVersion.getStructureId() + ".");
+
+    LOGGER.info("Creating structure version in structure "
+        + structureVersion.getStructureId()
+        + ".");
+
     return this.structureVersionFactory.create(structureVersion.getStructureId(),
         structureVersion.getAttributes(),
         parentIds);

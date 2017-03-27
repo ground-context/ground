@@ -17,9 +17,9 @@ package edu.berkeley.ground.model.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
-
 import edu.berkeley.ground.model.versions.Item;
+
+import java.util.Map;
 
 public class Graph extends Item<GraphVersion> {
   // the name of this Graph
@@ -28,6 +28,14 @@ public class Graph extends Item<GraphVersion> {
   // the source key for this Graph
   private String sourceKey;
 
+  /**
+   * Create a new Graph.
+   *
+   * @param id the id of the graph
+   * @param name the name of the graph
+   * @param sourceKey the user-generated unique key for the graph
+   * @param tags the tags associated with the graph
+   */
   @JsonCreator
   public Graph(@JsonProperty("id") long id,
                @JsonProperty("name") String name,
@@ -57,8 +65,8 @@ public class Graph extends Item<GraphVersion> {
 
     Graph otherGraph = (Graph) other;
 
-    return this.name.equals(otherGraph.name) &&
-        this.getId() == otherGraph.getId() &&
-        this.sourceKey.equals(otherGraph.sourceKey);
+    return this.name.equals(otherGraph.name)
+        && this.getId() == otherGraph.getId()
+        && this.sourceKey.equals(otherGraph.sourceKey);
   }
 }

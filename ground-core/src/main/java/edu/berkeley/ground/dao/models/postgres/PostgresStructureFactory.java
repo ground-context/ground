@@ -14,25 +14,25 @@
 
 package edu.berkeley.ground.dao.models.postgres;
 
-import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Structure;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostgresStructureFactory extends StructureFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureFactory.class);
@@ -41,12 +41,30 @@ public class PostgresStructureFactory extends StructureFactory {
 
   private final IdGenerator idGenerator;
 
-  public PostgresStructureFactory(PostgresItemFactory itemFactory, PostgresClient dbClient, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Postgres structure factory.
+   *
+   * @param itemFactory the singleton PostgresItemFactory
+   * @param dbClient the Postgres client
+   * @param idGenerator a unique id generator
+   */
+  public PostgresStructureFactory(PostgresItemFactory itemFactory,
+                                  PostgresClient dbClient,
+                                  IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Create and persist a structure.
+   *
+   * @param name the name of the structure
+   * @param sourceKey the user generated unique key for this structure
+   * @param tags the tags associated with this structurej
+   * @return the created structure
+   * @throws GroundException an error while creating or persisting the structure
+   */
   public Structure create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
     try {
@@ -72,6 +90,13 @@ public class PostgresStructureFactory extends StructureFactory {
     }
   }
 
+  /**
+   * Retrieve the leaves of this structure's DAG.
+   *
+   * @param name the name of the structure
+   * @return the list of leaves in this structure's DAG
+   * @throws GroundException an error while retrieving the structure
+   */
   public List<Long> getLeaves(String name) throws GroundException {
     Structure structure = this.retrieveFromDatabase(name);
 
@@ -81,6 +106,13 @@ public class PostgresStructureFactory extends StructureFactory {
     return leaves;
   }
 
+  /**
+   * Retrieve a structure from the database.
+   *
+   * @param name the name of the structure
+   * @return the retrieved structure
+   * @throws GroundException either the structure doesn't exist or couldn't be retrieved
+   */
   public Structure retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -88,7 +120,7 @@ public class PostgresStructureFactory extends StructureFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("structure", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("structure", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         throw new GroundException("No Structure found with name " + name + ".");
       }

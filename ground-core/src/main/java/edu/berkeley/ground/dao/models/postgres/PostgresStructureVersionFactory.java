@@ -14,38 +14,62 @@
 
 package edu.berkeley.ground.dao.models.postgres;
 
-import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.postgres.PostgresVersionFactory;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
 public class PostgresStructureVersionFactory extends StructureVersionFactory {
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresStructureVersionFactory.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(PostgresStructureVersionFactory.class);
   private final PostgresClient dbClient;
   private final PostgresStructureFactory structureFactory;
   private final PostgresVersionFactory versionFactory;
 
   private final IdGenerator idGenerator;
 
-  public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory, PostgresVersionFactory versionFactory, PostgresClient dbClient, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Postgres structure version factory.
+   *
+   * @param structureFactory the singleton PostgresStructureFactory
+   * @param versionFactory the singleton PostgresVersionFactory
+   * @param dbClient the Postgres client
+   * @param idGenerator a unique id generator
+   */
+  public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory,
+                                         PostgresVersionFactory versionFactory,
+                                         PostgresClient dbClient,
+                                         IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
     this.versionFactory = versionFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Create and persist a structure version.
+   *
+   * @param structureId the id of the structure containing this version
+   * @param attributes the attributes required by this structure version
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the created structure version
+   * @throws GroundException an error while creating or persisting this version
+   */
   public StructureVersion create(long structureId,
                                  Map<String, GroundType> attributes,
                                  List<Long> parentIds) throws GroundException {
@@ -64,7 +88,8 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
       List<DbDataContainer> itemInsertions = new ArrayList<>();
       itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
       itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
+      itemInsertions.add(new DbDataContainer("type", GroundType.STRING,
+          attributes.get(key).toString()));
 
       this.dbClient.insert("structure_version_attribute", itemInsertions);
     }
@@ -77,12 +102,20 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
+  /**
+   * Retrieve a structure version from the database.
+   *
+   * @param id the id of the version to retrieve
+   * @return the retrieved version
+   * @throws GroundException either the version doesn't exist or couldn't be retrieved
+   */
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
     QueryResults resultSet;
     try {
-      resultSet = this.dbClient.equalitySelect("structure_version", DBClient.SELECT_STAR, predicates);
+      resultSet = this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR,
+          predicates);
     } catch (EmptyResultException e) {
       throw new GroundException("No StructureVersion found with id " + id + ".");
     }
@@ -92,7 +125,8 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
     QueryResults attributesSet;
     try {
-      attributesSet = this.dbClient.equalitySelect("structure_version_attribute", DBClient.SELECT_STAR, attributePredicates);
+      attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+          DbClient.SELECT_STAR, attributePredicates);
     } catch (EmptyResultException e) {
       throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
     }

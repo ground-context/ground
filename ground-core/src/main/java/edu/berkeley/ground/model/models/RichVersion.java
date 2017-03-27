@@ -18,9 +18,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.berkeley.ground.model.versions.Version;
 
-import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
+import java.util.Map;
 
-import java.util.*;
+import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
 public class RichVersion extends Version {
   // the map of Keys to Tags associated with this RichVersion
@@ -37,6 +37,15 @@ public class RichVersion extends Version {
   // the optional parameters associated with this RichVersion if there is a reference
   private Map<String, String> parameters;
 
+  /**
+   * Create a new rich version.
+   *
+   * @param id the id of the version
+   * @param tags the tags associated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters the access parameters for the reference
+   */
   public RichVersion(long id,
                      Map<String, Tag> tags,
                      long structureVersionId,
@@ -79,10 +88,10 @@ public class RichVersion extends Version {
 
     RichVersion otherRichVersion = (RichVersion) other;
 
-    return this.getId() == otherRichVersion.getId() &&
-        this.tags.equals(otherRichVersion.tags) &&
-        this.structureVersionId == otherRichVersion.structureVersionId &&
-        this.reference.equals(otherRichVersion.reference) &&
-        this.parameters.equals(otherRichVersion.parameters);
+    return this.getId() == otherRichVersion.getId()
+        && this.tags.equals(otherRichVersion.tags)
+        && this.structureVersionId == otherRichVersion.structureVersionId
+        && this.reference.equals(otherRichVersion.reference)
+        && this.parameters.equals(otherRichVersion.parameters);
   }
 }

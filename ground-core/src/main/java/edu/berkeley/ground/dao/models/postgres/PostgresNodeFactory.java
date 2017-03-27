@@ -14,25 +14,25 @@
 
 package edu.berkeley.ground.dao.models.postgres;
 
-import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostgresNodeFactory extends NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresNodeFactory.class);
@@ -41,12 +41,30 @@ public class PostgresNodeFactory extends NodeFactory {
 
   private final IdGenerator idGenerator;
 
-  public PostgresNodeFactory(PostgresItemFactory itemFactory, PostgresClient dbClient, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Postgres node factory.
+   *
+   * @param itemFactory the singleton PostgresItemFactory
+   * @param dbClient the Postgres client
+   * @param idGenerator a unique id generator
+   */
+  public PostgresNodeFactory(PostgresItemFactory itemFactory,
+                             PostgresClient dbClient,
+                             IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Create and persist a node.
+   *
+   * @param name the name of the node to create
+   * @param sourceKey the user generated unique id for the node
+   * @param tags tags associated with this node
+   * @return the newly created node
+   * @throws GroundException an error while creating or persisting the node
+   */
   public Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
@@ -71,6 +89,13 @@ public class PostgresNodeFactory extends NodeFactory {
     }
   }
 
+  /**
+   * Retrieve the DAG leaves for this node.
+   *
+   * @param name the name of the node to retrieve leaves for.
+   * @return the leaves of the node
+   * @throws GroundException an error while retrieving the node
+   */
   public List<Long> getLeaves(String name) throws GroundException {
     Node node = this.retrieveFromDatabase(name);
 
@@ -81,6 +106,13 @@ public class PostgresNodeFactory extends NodeFactory {
   }
 
 
+  /**
+   * Retrieve a node from the database.
+   *
+   * @param name the name of the node to retrieve
+   * @return the retrieved node
+   * @throws GroundException either the node doesn't exist or couldn't be retrieved
+   */
   public Node retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -88,7 +120,7 @@ public class PostgresNodeFactory extends NodeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("node", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("node", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         throw new GroundException("No Node found with name " + name + ".");
       }

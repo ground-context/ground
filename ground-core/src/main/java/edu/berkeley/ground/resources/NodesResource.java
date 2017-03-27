@@ -16,23 +16,30 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.model.models.NodeVersion;
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.NodeVersion;
+import edu.berkeley.ground.model.models.Tag;
+
 import io.swagger.annotations.Api;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.Valid;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/nodes")
 @Api(value = "/nodes", description = "Interact with the nodes in the graph")
@@ -75,6 +82,14 @@ public class NodesResource {
     return this.nodeFactory.create(name, sourceKey, tags);
   }
 
+  /**
+   * Create a node version.
+   *
+   * @param nodeVersion the data to create the version with
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the newly created version along with an id
+   * @throws GroundException an error while creating the version
+   */
   @POST
   @Timed
   @Path("/versions")
@@ -98,13 +113,21 @@ public class NodesResource {
     return this.nodeFactory.getLeaves(name);
   }
 
+  /**
+   * Return the nodes adjacent to this one, filtered by the edge name.
+   *
+   * @param nodeVersionId the source id of the query
+   * @param edgeNameRegex the edge name to filter by
+   * @return the list of adjacent version
+   * @throws GroundException the version doesn't exist or the query couldn't be run
+   */
   @GET
   @Timed
   @Path("/adjacent/{id}/{edgeName}")
   public List<Long> adjacentNodes(@PathParam("id") long nodeVersionId,
                                   @PathParam("edgeName") String edgeNameRegex)
       throws GroundException {
-    LOGGER.info("Retrieving adjancent nodes to node version  " + nodeVersionId + ".");
+    LOGGER.info("Retrieving adjacent nodes to node version  " + nodeVersionId + ".");
 
     return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);
   }

@@ -17,9 +17,9 @@ package edu.berkeley.ground.model.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
-
 import edu.berkeley.ground.model.versions.Item;
+
+import java.util.Map;
 
 public class Edge extends Item<EdgeVersion> {
   // the name of this Edge
@@ -35,6 +35,16 @@ public class Edge extends Item<EdgeVersion> {
   private String sourceKey;
 
 
+  /**
+   * Construct a new Edge.
+   *
+   * @param id the edge id
+   * @param name the edge name
+   * @param sourceKey the user-generated unique key for the edge
+   * @param fromNodeId the source node of this edge
+   * @param toNodeId the destination node of this edge
+   * @param tags the tags associated with this edge
+   */
   @JsonCreator
   public Edge(@JsonProperty("id") long id,
               @JsonProperty("name") String name,
@@ -78,10 +88,10 @@ public class Edge extends Item<EdgeVersion> {
 
     Edge otherEdge = (Edge) other;
 
-    return this.name.equals(otherEdge.name) &&
-        this.getId() == otherEdge.getId() &&
-        this.fromNodeId == otherEdge.fromNodeId &&
-        this.toNodeId == otherEdge.toNodeId &&
-        this.sourceKey.equals(otherEdge.sourceKey);
+    return this.name.equals(otherEdge.name)
+        && this.getId() == otherEdge.getId()
+        && this.fromNodeId == otherEdge.fromNodeId
+        && this.toNodeId == otherEdge.toNodeId
+        && this.sourceKey.equals(otherEdge.sourceKey);
   }
 }

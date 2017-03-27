@@ -14,11 +14,6 @@
 
 package edu.berkeley.ground.plugins.hive;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.util.Properties;
-
 import com.google.common.annotations.VisibleForTesting;
 
 import edu.berkeley.ground.dao.models.EdgeFactory;
@@ -29,13 +24,20 @@ import edu.berkeley.ground.dao.models.NodeFactory;
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
 import edu.berkeley.ground.dao.models.StructureFactory;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
-import edu.berkeley.ground.dao.models.postgres.*;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.dao.models.postgres.PostgresEdgeVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresGraphVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresNodeVersionFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.util.Neo4jFactories;
 import edu.berkeley.ground.util.PostgresFactories;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -46,16 +48,14 @@ public class GroundReadWrite {
 
   private static final String GROUNDCONF = "ground.properties";
 
-  static final private Logger LOG = LoggerFactory.getLogger(GroundReadWrite.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(GroundReadWrite.class.getName());
 
-  static final String GRAPHFACTORY_CLASS = "ground.graph.factory";
-
-  static final String NODEFACTORY_CLASS = "ground.node.factory";
-
-  static final String EDGEFACTORY_CLASS = "ground.edge.factory";
+  private static final String GRAPHFACTORY_CLASS = "ground.graph.factory";
+  private static final String NODEFACTORY_CLASS = "ground.node.factory";
+  private static final String EDGEFACTORY_CLASS = "ground.edge.factory";
 
   static final String NO_CACHE_CONF = "no.use.cache";
-  private DBClient dbClient;
+  private DbClient dbClient;
   private GraphFactory graphFactory;
   private GraphVersionFactory graphVersionFactory;
   private NodeVersionFactory nodeVersionFactory;
@@ -63,7 +63,7 @@ public class GroundReadWrite {
   private String factoryType;
 
   @VisibleForTesting
-  final static String TEST_CONN = "test_connection";
+  private static final String TEST_CONN = "test_connection";
 
   protected static final String DEFAULT_FACTORY = "neo4j";
 
@@ -93,18 +93,8 @@ public class GroundReadWrite {
     this.structureVersionFactory = svf;
   }
 
-  /**
-   * @return the sf
-   */
   public StructureFactory getStructureFactory() {
     return structureFactory;
-  }
-
-  /**
-   * @param sf the sf to set
-   */
-  public void setStructureFactory(StructureFactory sf) {
-    this.structureFactory = sf;
   }
 
   private static ThreadLocal<GroundReadWrite> self = new ThreadLocal<GroundReadWrite>() {
@@ -115,7 +105,7 @@ public class GroundReadWrite {
       }
       try {
         return new GroundReadWrite(staticConf);
-      } catch (GroundDBException e) {
+      } catch (GroundDbException e) {
         LOG.error("create groundreadwrite failed {}", e.getMessage());
       }
       return null;
@@ -133,7 +123,6 @@ public class GroundReadWrite {
      */
     if (staticConf == null) {
       staticConf = conf;
-      //conf.setVar(HiveConf.ConfVars.METASTORE_EXPRESSION_PROXY_CLASS, MockPartitionExpressionProxy.class.getName());
       HiveConf.setVar(conf, HiveConf.ConfVars.METASTORE_CONNECTION_DRIVER, "test_connection");
       conf.set(GRAPHFACTORY_CLASS, PostgresGraphVersionFactory.class.getName());
       conf.set(NODEFACTORY_CLASS, PostgresNodeVersionFactory.class.getName());
@@ -153,7 +142,7 @@ public class GroundReadWrite {
     return self.get();
   }
 
-  private GroundReadWrite(Configuration conf) throws GroundDBException {
+  private GroundReadWrite(Configuration conf) throws GroundDbException {
     Properties props = new Properties();
     try {
       String groundPropertyResource = GROUNDCONF; //ground properties from resources
@@ -163,7 +152,7 @@ public class GroundReadWrite {
         resourceStream.close();
       }
       //
-      String clientClass = props.getProperty("edu.berkeley.ground.model.config.dbClient");
+      final String clientClass = props.getProperty("edu.berkeley.ground.model.config.dbClient");
       host = props.getProperty("edu.berkeley.ground.model.config.host");
       int port = new Integer(props.getProperty("edu.berkeley.ground.model.config.port"));
       dbName = props.getProperty("edu.berkeley.ground.model.config.dbName");
@@ -190,7 +179,7 @@ public class GroundReadWrite {
         Class<?> clazz = Class.forName(clientClass);
         Constructor<?> constructor = clazz.getConstructor(String.class, Integer.class,
             String.class, String.class, String.class);
-        dbClient = (DBClient) constructor.newInstance(host, port, dbName, userName, password);
+        dbClient = (DbClient) constructor.newInstance(host, port, dbName, userName, password);
         // dbClient = new PostgresClient(host, port, dbName, userName, password);
         LOG.debug("Instantiating connection class " + clientClass);
         if (staticConf.get("factoryType", DEFAULT_FACTORY).equals("postgres")) {
@@ -200,7 +189,7 @@ public class GroundReadWrite {
         }
       }
     } catch (Exception e) {
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
@@ -215,7 +204,7 @@ public class GroundReadWrite {
     this.structureVersionFactory = neo4JFactories.getStructureVersionFactory();
   }
 
-  private void createPostgresInstance() throws GroundDBException {
+  private void createPostgresInstance() throws GroundDbException {
     PostgresFactories postgresFactories = new PostgresFactories((PostgresClient) dbClient, 0, 1);
     this.nodeFactory = postgresFactories.getNodeFactory();
     this.nodeVersionFactory = postgresFactories.getNodeVersionFactory();
@@ -230,14 +219,6 @@ public class GroundReadWrite {
   }
 
   public void begin() {
-  }
-
-  public void commit() {
-    try {
-      dbClient.commit();
-    } catch (GroundDBException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public GraphFactory getGraphFactory() {
@@ -256,7 +237,7 @@ public class GroundReadWrite {
     return factoryType;
   }
 
-  public DBClient getDbClient() {
+  public DbClient getDbClient() {
     return dbClient;
   }
 

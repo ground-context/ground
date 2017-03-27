@@ -16,9 +16,9 @@ package edu.berkeley.ground.model.versions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
-
 import edu.berkeley.ground.model.models.Tag;
+
+import java.util.Map;
 
 public class Item<T extends Version> {
 

@@ -14,22 +14,25 @@
 
 package edu.berkeley.ground.dao.models.neo4j;
 
-import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class Neo4jStructureVersionFactory extends StructureVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureVersionFactory.class);
@@ -38,13 +41,33 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
 
   private final IdGenerator idGenerator;
 
-  public Neo4jStructureVersionFactory(Neo4jClient dbClient, Neo4jStructureFactory structureFactory, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Neo4j structure version factory.
+   *
+   * @param structureFactory the singleton Neo4jStructureFactory
+   * @param dbClient the Neo4j client
+   * @param idGenerator a unique id generator
+   */
+  public Neo4jStructureVersionFactory(Neo4jClient dbClient,
+                                      Neo4jStructureFactory structureFactory,
+                                      IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
     this.idGenerator = idGenerator;
   }
 
-  public StructureVersion create(long structureId, Map<String, GroundType> attributes, List<Long> parentIds) throws GroundException {
+  /**
+   * Create and persist a structure version.
+   *
+   * @param structureId the id of the structure containing this version
+   * @param attributes the attributes required by this structure version
+   * @param parentIds the ids of the parent(s) of this version
+   * @return the created structure version
+   * @throws GroundException an error while creating or persisting this version
+   */
+  public StructureVersion create(long structureId,
+                                 Map<String, GroundType> attributes,
+                                 List<Long> parentIds) throws GroundException {
     try {
       long id = this.idGenerator.generateVersionId();
 
@@ -58,9 +81,11 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
         List<DbDataContainer> itemInsertions = new ArrayList<>();
         itemInsertions.add(new DbDataContainer("svid", GroundType.LONG, id));
         itemInsertions.add(new DbDataContainer("skey", GroundType.STRING, key));
-        itemInsertions.add(new DbDataContainer("stype", GroundType.STRING, attributes.get(key).toString()));
+        itemInsertions.add(new DbDataContainer("stype", GroundType.STRING,
+            attributes.get(key).toString()));
 
-        this.dbClient.addVertexAndEdge("StructureVersionItem", itemInsertions, "StructureVersionItemConnection", id, new ArrayList<>());
+        this.dbClient.addVertexAndEdge("StructureVersionItem", itemInsertions,
+            "StructureVersionItemConnection", id, new ArrayList<>());
       }
 
       this.structureFactory.update(structureId, id, parentIds);
@@ -69,12 +94,19 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
       LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundDBException ge) {
+    } catch (GroundDbException ge) {
       this.dbClient.abort();
       throw ge;
     }
   }
 
+  /**
+   * Retrieve a structure version from the database.
+   *
+   * @param id the id of the version to retrieve
+   * @return the retrieved version
+   * @throws GroundException either the version doesn't exist or couldn't be retrieved
+   */
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -83,28 +115,32 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
       long structureId;
 
       try {
-        structureId = this.dbClient.getVertex(predicates).get("v").asNode().get("structure_id").asLong();
+        structureId = this.dbClient.getVertex(predicates).get("v").asNode()
+            .get("structure_id").asLong();
       } catch (EmptyResultException e) {
-        throw new GroundDBException("No StructureVersion found with id " + id + ".");
+        throw new GroundDbException("No StructureVersion found with id " + id + ".");
       }
       List<String> returnFields = new ArrayList<>();
       returnFields.add("svid");
       returnFields.add("skey");
       returnFields.add("stype");
 
-      List<Record> edges = this.dbClient.getAdjacentVerticesByEdgeLabel("StructureVersionItemConnection", id, returnFields);
+      List<Record> edges = this.dbClient.getAdjacentVerticesByEdgeLabel(
+          "StructureVersionItemConnection", id, returnFields);
       Map<String, GroundType> attributes = new HashMap<>();
 
 
       for (Record record : edges) {
-        attributes.put(Neo4jClient.getStringFromValue((StringValue) record.get("skey")), GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("stype"))));
+        attributes.put(Neo4jClient.getStringFromValue((StringValue) record.get("skey")),
+            GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("stype")))
+        );
       }
 
       this.dbClient.commit();
       LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
       return StructureVersionFactory.construct(id, structureId, attributes);
-    } catch (GroundDBException ge) {
+    } catch (GroundDbException ge) {
       this.dbClient.abort();
 
       throw ge;

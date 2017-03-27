@@ -19,11 +19,15 @@ import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 public abstract class VersionSuccessorFactory {
-  public abstract <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException;
+  public abstract <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
+      throws GroundException;
 
-  public abstract <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException;
+  public abstract <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
+      throws GroundException;
 
-  protected static <T extends Version> VersionSuccessor<T> construct(long id, long fromId, long toId) {
+  protected static <T extends Version> VersionSuccessor<T> construct(long id,
+                                                                     long fromId,
+                                                                     long toId) {
     return new VersionSuccessor<>(id, fromId, toId);
   }
 }

@@ -25,7 +25,7 @@ import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
-import edu.berkeley.ground.model.versions.VersionHistoryDAG;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -60,7 +60,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       parentIds.add(fromId);
       CassandraTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
@@ -100,7 +100,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       // automatically make this a child of EMPTY
       CassandraTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
@@ -137,7 +137,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       parentIds.add(fromId);
       CassandraTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
@@ -216,7 +216,7 @@ public class CassandraItemFactoryTest extends CassandraTest {
       parentIds.add(parentTwo);
       CassandraTest.itemFactory.update(testId, child, parentIds);
 
-      VersionHistoryDAG<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(4, dag.getEdgeIds().size());
       assertEquals(1, dag.getLeaves().size());

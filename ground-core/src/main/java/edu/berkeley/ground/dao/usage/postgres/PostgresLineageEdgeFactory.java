@@ -14,25 +14,25 @@
 
 package edu.berkeley.ground.dao.usage.postgres;
 
-import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.usage.LineageEdge;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.db.DBClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.usage.LineageEdge;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.util.IdGenerator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresLineageEdgeFactory.class);
@@ -41,12 +41,30 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
 
   private final IdGenerator idGenerator;
 
-  public PostgresLineageEdgeFactory(PostgresItemFactory itemFactory, PostgresClient dbClient, IdGenerator idGenerator) {
+  /**
+   * Constructor for the Postgres lineage edge factory.
+   *
+   * @param itemFactory the singleton PostgresItemFactory
+   * @param dbClient the Postgres client
+   * @param idGenerator a unique id generator
+   */
+  public PostgresLineageEdgeFactory(PostgresItemFactory itemFactory,
+                                    PostgresClient dbClient,
+                                    IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
+  /**
+   * Create and persist a lineage edge.
+   *
+   * @param name the name of the lineage edge
+   * @param sourceKey the user generated unique id of the lineage edge
+   * @param tags the tags associated with this lineage edge
+   * @return the created lineage edge
+   * @throws GroundException an unexpected error while creating or persisting this lineage edge
+   */
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
     try {
@@ -72,6 +90,13 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
     }
   }
 
+  /**
+   * Retrieve a lineage edge from the database.
+   *
+   * @param name the name of the lineage edge
+   * @return the retrieved lineage edge
+   * @throws GroundException either the lineage edge doesn't exist or couldn't be retrieved
+   */
   public LineageEdge retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -79,7 +104,7 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
 
       QueryResults resultSet;
       try {
-        resultSet = this.dbClient.equalitySelect("lineage_edge", DBClient.SELECT_STAR, predicates);
+        resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
         throw new GroundException("No LineageEdge found with name " + name + ".");
       }

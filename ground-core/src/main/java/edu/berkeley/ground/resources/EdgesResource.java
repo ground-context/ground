@@ -16,26 +16,33 @@ package edu.berkeley.ground.resources;
 
 import com.codahale.metrics.annotation.Timed;
 
-import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.dao.models.EdgeVersionFactory;
-import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.model.models.EdgeVersion;
+import edu.berkeley.ground.model.models.Node;
+import edu.berkeley.ground.model.models.Tag;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.validation.Valid;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-
-import java.util.List;
-import java.util.Map;
 
 @Path("/edges")
 @Api(value = "/edges", description = "Interact with the edges in the graph")
@@ -48,6 +55,13 @@ public class EdgesResource {
 
   private NodeFactory nodeFactory;
 
+  /**
+   * Constructor for EdgesResource.
+   *
+   * @param edgeFactory the database edge factory
+   * @param edgeVersionFactory the database edge version factory
+   * @param nodeFactory the database node factory
+   */
   public EdgesResource(EdgeFactory edgeFactory,
                        EdgeVersionFactory edgeVersionFactory,
                        NodeFactory nodeFactory) {
@@ -73,6 +87,17 @@ public class EdgesResource {
     return this.edgeVersionFactory.retrieveFromDatabase(id);
   }
 
+  /**
+   * Create a new edge.
+   *
+   * @param name the name of the edge
+   * @param fromNodeName the name of the source node
+   * @param toNodeName the name of the destination node
+   * @param sourceKey the user-generated unique key for this edge
+   * @param tags the tags associated with this edge
+   * @return the created edge
+   * @throws GroundException an error while creating this edge
+   */
   @POST
   @Timed
   @Path("/{name}")
@@ -90,10 +115,21 @@ public class EdgesResource {
     return this.edgeFactory.create(name, sourceKey, fromNode.getId(), toNode.getId(), tags);
   }
 
+  /**
+   * Create a new edge version.
+   *
+   * @param edgeVersion the data to create the edge version with
+   * @param parentIds the parents of this version
+   * @return the created version with an id
+   * @throws GroundException an error while creating this edge version
+   */
   @POST
   @Timed
   @Path("/versions")
-  public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion, @QueryParam("parent") List<Long> parentIds) throws GroundException {
+  public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion,
+                                       @QueryParam("parent") List<Long> parentIds)
+      throws GroundException {
+
     LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
     return this.edgeVersionFactory.create(edgeVersion.getTags(),
         edgeVersion.getStructureVersionId(),

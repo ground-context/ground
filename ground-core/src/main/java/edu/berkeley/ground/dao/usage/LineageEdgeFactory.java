@@ -14,8 +14,8 @@
 
 package edu.berkeley.ground.dao.usage;
 
-import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageEdge;
 
 import java.util.List;
@@ -29,7 +29,8 @@ public abstract class LineageEdgeFactory {
 
   public abstract LineageEdge retrieveFromDatabase(String name) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  public abstract void update(long itemId, long childId, List<Long> parentIds)
+      throws GroundException;
 
   public static LineageEdge construct(long id,
                                       String name,

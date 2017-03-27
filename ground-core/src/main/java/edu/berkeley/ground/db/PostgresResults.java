@@ -14,14 +14,15 @@
 
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.exceptions.GroundDBException;
+import edu.berkeley.ground.exceptions.GroundDbException;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class PostgresResults implements QueryResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
@@ -32,74 +33,133 @@ public class PostgresResults implements QueryResults {
     this.resultSet = resultSet;
   }
 
-  public boolean next() throws GroundDBException {
+  /**
+   * Move on to the next column in the result set.
+   *
+   * @return false if there are no more rows
+   */
+  public boolean next() throws GroundDbException {
     try {
       return this.resultSet.next();
     } catch (SQLException e) {
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
-  public String getString(int index) throws GroundDBException {
+  /**
+   * Retrieve the string at the index.
+   *
+   * @param index the index to use
+   * @return the string at index
+   * @throws GroundDbException either the column doesn't exist or it isn't a string
+   */
+  public String getString(int index) throws GroundDbException {
     try {
       return resultSet.getString(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
+  /**
+   * Return the string in the column with the given name.
+   *
+   * @param field the column to look in
+   * @return the string in the column
+   * @throws GroundDbException either the column doesn't exist or it isn't a string
+   */
   public String getString(String field) {
     throw new NotImplementedException();
   }
 
-
-  public long getLong(String field) {
-    throw new NotImplementedException();
-  }
-
-  public int getInt(int index) throws GroundDBException {
+  /**
+   * Retrieve the int at the index.
+   *
+   * @param index the index to use
+   * @return the int at index
+   * @throws GroundDbException either column doesn't exist or isn't an int
+   */
+  public int getInt(int index) throws GroundDbException {
     try {
       return resultSet.getInt(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
-  public boolean getBoolean(int index) throws GroundDBException {
-    try {
-      return resultSet.getBoolean(index);
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
-
-      throw new GroundDBException(e);
-    }
+  /**
+   * Retrieve the long in the column with name field.
+   *
+   * @param field the name of the column
+   * @return the long in field
+   * @throws GroundDbException either column doesn't exist or isn't a long
+   */
+  public long getLong(String field) {
+    throw new NotImplementedException();
   }
 
-  public long getLong(int index) throws GroundDBException {
+  /**
+   * Retrieve the long at the index.
+   *
+   * @param index the index to use
+   * @return the long at the index
+   * @throws GroundDbException either the column doesn't exist or isn't a long
+   */
+  public long getLong(int index) throws GroundDbException {
     try {
       return resultSet.getLong(index);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
-  public boolean isNull(int index) throws GroundDBException {
+
+  /**
+   * Retrieve the boolean at the index.
+   *
+   * @param index the index to use
+   * @return the boolean at index
+   * @throws GroundDbException either column doesn't exist or isn't an boolean
+   */
+  public boolean getBoolean(int index) throws GroundDbException {
+    try {
+      return resultSet.getBoolean(index);
+    } catch (SQLException e) {
+      LOGGER.error(e.getMessage());
+
+      throw new GroundDbException(e);
+    }
+  }
+
+  /**
+   * Determine if the index of current row is null.
+   *
+   * @param index the index to use
+   * @return true if null, false otherwise
+   */
+  public boolean isNull(int index) throws GroundDbException {
     try {
       resultSet.getBlob(index);
       return resultSet.wasNull();
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundDBException(e);
+      throw new GroundDbException(e);
     }
   }
 
+  /**
+   * Determine if the index of current row is null.
+   *
+   * @param field the field to check
+   * @return true if null, false otherwise
+   */
   public boolean isNull(String field) {
     throw new NotImplementedException();
   }

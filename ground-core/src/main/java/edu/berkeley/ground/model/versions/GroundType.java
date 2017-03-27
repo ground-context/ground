@@ -37,6 +37,13 @@ public enum GroundType {
     return this.klass;
   }
 
+  /**
+   * Return a type based on the string name.
+   *
+   * @param str the name of the type
+   * @return the corresponding GroundType
+   * @throws GroundException no such type
+   */
   @JsonCreator
   public static GroundType fromString(String str) throws GroundException {
     if (str == null) {
@@ -59,6 +66,13 @@ public enum GroundType {
     }
   }
 
+  /**
+   * Take a string of type GroundType and return the parsed object.
+   *
+   * @param str the value
+   * @param groundType the type of the value
+   * @return the parsed object
+   */
   @JsonValue
   public static Object stringToType(String str, GroundType groundType) {
     if (str == null) {

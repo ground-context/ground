@@ -35,6 +35,20 @@ public class EdgeVersion extends RichVersion {
   // the last NodeVersion in toNode that this EdgeVersion applies to
   private long toNodeVersionEndId;
 
+  /**
+   * Create a new EdgeVersion.
+   *
+   * @param id the id of the edge version
+   * @param tags the tags associated with the edge version
+   * @param structureVersionId the id of the StructureVersion associated with this edge version
+   * @param reference an optional external reference
+   * @param referenceParameters the access parameters for the reference
+   * @param edgeId the id of the edge containing this version
+   * @param fromNodeVersionStartId the start node version id from this edge's from node
+   * @param fromNodeVersionEndId the end node version id from this edge's from node
+   * @param toNodeVersionStartId the start node version id from this edge's to node
+   * @param toNodeVersionEndId the end node version id from this edge's to node
+   */
   @JsonCreator
   public EdgeVersion(
       @JsonProperty("id") long id,
@@ -62,6 +76,7 @@ public class EdgeVersion extends RichVersion {
   public long getEdgeId() {
     return this.edgeId;
   }
+
   @JsonProperty
   public long getFromNodeVersionStartId() {
     return this.fromNodeVersionStartId;
@@ -90,12 +105,12 @@ public class EdgeVersion extends RichVersion {
 
     EdgeVersion otherEdgeVersion = (EdgeVersion) other;
 
-    return this.edgeId == otherEdgeVersion.edgeId &&
-        this.fromNodeVersionStartId == otherEdgeVersion.fromNodeVersionStartId &&
-        this.fromNodeVersionEndId  == otherEdgeVersion.fromNodeVersionEndId &&
-        this.toNodeVersionStartId == otherEdgeVersion.toNodeVersionStartId &&
-        this.toNodeVersionEndId == otherEdgeVersion.toNodeVersionEndId &&
-        this.getId() == otherEdgeVersion.getId() &&
-        super.equals(other);
+    return this.edgeId == otherEdgeVersion.edgeId
+        && this.fromNodeVersionStartId == otherEdgeVersion.fromNodeVersionStartId
+        && this.fromNodeVersionEndId  == otherEdgeVersion.fromNodeVersionEndId
+        && this.toNodeVersionStartId == otherEdgeVersion.toNodeVersionStartId
+        && this.toNodeVersionEndId == otherEdgeVersion.toNodeVersionEndId
+        && this.getId() == otherEdgeVersion.getId()
+        && super.equals(other);
   }
 }
