@@ -1,15 +1,16 @@
 # Ground
 
 [![Build Status](https://amplab.cs.berkeley.edu/jenkins/buildStatus/icon?job=Ground)](https://amplab.cs.berkeley.edu/jenkins/job/Ground/)
-[![Coverage Status](https://coveralls.io/repos/github/ground-context/ground/badge.png?branch=master)](https://coveralls.io/github/ground-context/ground?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/ground-context/ground/badge.svg?branch=master)](https://coveralls.io/github/ground-context/ground?branch=master)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Ground is an open-source data context service under development in UC Berkeley's [RISE Lab](http://rise.cs.berkeley.edu). Ground serves as a central model, API, and repistory for capturing the broad context in which data is used. Our goal is to address practical problems for the Big Data community in the short term and to open up opportunities for long-term research and innovation.
+Ground is an open-source data context service under development in UC Berkeley's [RISE Lab](https://rise.cs.berkeley.edu/). Ground serves as a central model, API, and repository for capturing the broad context in which data is used. Our goal is to address practical problems for the Big Data community in the short term and to open up opportunities for long-term research and innovation.
 
 For the vision behind Ground as well as a more detailed description of the state of the project, please see our [CIDR '17](http://cidrdb.org/cidr2017/) [publication](CIDR17.pdf).
 
 ## Getting Started
 
-Please take a look at our Getting Started docs. We lead you through an example scenario, enabling Ground as the Hive Metstore and loading metadata across common big data tools (HDFS, Hive, and git).
+Please take a look at our [Getting Started](https://github.com/ground-context/ground/wiki/Getting-Started) docs. We lead you through an example scenario, enabling Ground as the Hive Metastore and loading metadata across common big data tools (HDFS, Hive, and git).
 
 Once you have completed the Getting Started docs, please take a look at our Next Steps docs.
 
@@ -24,8 +25,8 @@ To start a Ground server: `java -jar ground-core/target/ground-core-0.1-SNAPSHOT
 
 ## License
 
-Ground is licensed under the [Apache v2 License](http://www.apache.org/licenses/LICENSE-2.0).
+Ground is licensed under the [Apache v2 License](https://www.apache.org/licenses/LICENSE-2.0).
 
 ## Contributing
 
-Please see the guidelines in [CONTRIBUTING.md](https://github.com/ground-context/ground/blob/master/CONTRIBUTING.md).
+Please see the guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
