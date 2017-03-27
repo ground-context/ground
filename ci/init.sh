@@ -21,5 +21,5 @@ cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 
 sudo neo4j-community-$NEO4J_VERSION/bin/neo4j start
 
 # set Postgres and Cassandra schemas
-cd scripts/postgres && python2.7 postgres_setup.py test test && cd ../../..
-cd scripts/cassandra && python2.7 cassandra_setup.py test && cd ../../..
+cd scripts/postgres && python2.7 postgres_setup.py test test && cd ../..
+cd scripts/cassandra && python2.7 cassandra_setup.py test && cd ../..
