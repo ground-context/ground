@@ -30,4 +30,17 @@ public class PostgresLineageGraphFactoryTest extends PostgresTest {
     assertEquals(testName, lineageGraph.getName());
     assertEquals(sourceKey, lineageGraph.getSourceKey());
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadLineageGraph() throws GroundException {
+    String testName = "test";
+
+    try {
+      super.factories.getLineageGraphFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

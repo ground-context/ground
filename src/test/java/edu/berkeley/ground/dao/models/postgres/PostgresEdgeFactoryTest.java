@@ -53,4 +53,17 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
     assertEquals(toNodeId, edge.getToNodeId());
     assertEquals(sourceKey, edge.getSourceKey());
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadEdge() throws GroundException {
+    String testName = "test";
+
+    try {
+      super.factories.getEdgeFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No Edge found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

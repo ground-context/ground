@@ -43,4 +43,17 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
     assertEquals(testName, lineageEdge.getName());
     assertEquals(sourceKey, lineageEdge.getSourceKey());
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadLineageEdge() throws GroundException {
+    String testName = "test";
+
+    try {
+      CassandraTest.factories.getLineageEdgeFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No LineageEdge found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

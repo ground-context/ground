@@ -44,4 +44,17 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadLineageGraph() throws GroundException {
+    String testName = "test";
+
+    try {
+      CassandraTest.factories.getLineageGraphFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

@@ -68,4 +68,17 @@ public class PostgresNodeFactoryTest extends PostgresTest {
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(leaves.contains(secondNVId));
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadNode() throws GroundException {
+    String testName = "test";
+
+    try {
+      super.factories.getNodeFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No Node found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

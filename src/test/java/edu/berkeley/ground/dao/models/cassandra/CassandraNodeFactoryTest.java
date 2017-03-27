@@ -70,4 +70,17 @@ public class CassandraNodeFactoryTest extends CassandraTest {
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(leaves.contains(secondNVId));
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadNode() throws GroundException {
+    String testName = "test";
+
+    try {
+      CassandraTest.factories.getNodeFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No Node found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

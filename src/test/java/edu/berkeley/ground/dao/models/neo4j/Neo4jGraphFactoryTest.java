@@ -43,4 +43,17 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadGraph() throws GroundException {
+    String testName = "test";
+
+    try {
+      super.factories.getGraphFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No Graph found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

@@ -62,4 +62,17 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     assertTrue(leaves.contains(structureVersionId));
     assertTrue(leaves.contains(secondNVId));
   }
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadStructure() throws GroundException {
+    String testName = "test";
+
+    try {
+      super.factories.getStructureFactory().retrieveFromDatabase(testName);
+    } catch (GroundException e) {
+      assertEquals("No Structure found with name " + testName + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }
