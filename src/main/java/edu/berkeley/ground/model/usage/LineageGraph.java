@@ -14,14 +14,13 @@
 
 package edu.berkeley.ground.model.usage;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.Item;
 
 import java.util.Map;
-
-import org.codehaus.jackson.annotate.JsonCreator;
 
 public class LineageGraph extends Item<LineageGraphVersion> {
   // the name of this graph

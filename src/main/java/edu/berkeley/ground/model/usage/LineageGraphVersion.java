@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.model.usage;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.berkeley.ground.model.models.RichVersion;
@@ -21,8 +22,6 @@ import edu.berkeley.ground.model.models.Tag;
 
 import java.util.List;
 import java.util.Map;
-
-import org.codehaus.jackson.annotate.JsonCreator;
 
 public class LineageGraphVersion extends RichVersion {
   // the id of the LineageGraph that contains this version

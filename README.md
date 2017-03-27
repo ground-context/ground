@@ -21,7 +21,7 @@ We'd love to hear any feedback you have!
 If you'd like to build Ground from source:
 `mvn clean package -DskipTests`.
 
-To start a Ground server: `java -jar ground-core/target/ground-core-0.1-SNAPSHOT.jar server ground-core/conf/config.yml`.
+To start a Ground server: `java -jar target/ground-0.1-SNAPSHOT.jar server conf/config.yml`.
 
 ## License
 
