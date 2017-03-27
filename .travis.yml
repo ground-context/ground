@@ -13,5 +13,5 @@ script:
   - mvn clean test
 
 after_success:
-  - sh -e ci/server.sh
   - bash <(curl -s https://codecov.io/bash)
+  - sh -e ci/server.sh
