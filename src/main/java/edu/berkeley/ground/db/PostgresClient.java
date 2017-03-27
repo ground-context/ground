@@ -197,39 +197,6 @@ public class PostgresClient extends DbClient {
     }
   }
 
-  /**
-   * Return the nodes adjacent to this one, optionally filtering based on the edge name.
-   *
-   * @param nodeVersionId the start node version
-   * @param edgeNameRegex the edge name to filter by
-   * @return the list of adjacent nodes
-   */
-  public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex)
-      throws GroundDbException {
-    String query =
-        "select endpoint_two from EdgeVersions ev where ev.endpoint_one = ?"
-            + " and ev.edge_id like ?;";
-
-    edgeNameRegex = '%' + edgeNameRegex + '%';
-
-    try {
-      PreparedStatement statement = this.prepareStatement(query);
-      statement.setLong(1, nodeVersionId);
-      statement.setString(2, edgeNameRegex);
-
-      ResultSet resultSet = statement.executeQuery();
-      List<Long> result = new ArrayList<>();
-
-      while (resultSet.next()) {
-        result.add(resultSet.getLong(1));
-      }
-
-      return result;
-    } catch (SQLException e) {
-      throw new GroundDbException(e);
-    }
-  }
-
   @Override
   public void commit() throws GroundDbException {
     try {

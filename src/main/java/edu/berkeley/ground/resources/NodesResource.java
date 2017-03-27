@@ -112,23 +112,4 @@ public class NodesResource {
     LOGGER.info("Retrieving the latest version of node " + name + ".");
     return this.nodeFactory.getLeaves(name);
   }
-
-  /**
-   * Return the nodes adjacent to this one, filtered by the edge name.
-   *
-   * @param nodeVersionId the source id of the query
-   * @param edgeNameRegex the edge name to filter by
-   * @return the list of adjacent version
-   * @throws GroundException the version doesn't exist or the query couldn't be run
-   */
-  @GET
-  @Timed
-  @Path("/adjacent/{id}/{edgeName}")
-  public List<Long> adjacentNodes(@PathParam("id") long nodeVersionId,
-                                  @PathParam("edgeName") String edgeNameRegex)
-      throws GroundException {
-    LOGGER.info("Retrieving adjacent nodes to node version  " + nodeVersionId + ".");
-
-    return this.nodeVersionFactory.getAdjacentNodes(nodeVersionId, edgeNameRegex);
-  }
 }

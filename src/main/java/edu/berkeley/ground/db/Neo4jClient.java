@@ -329,31 +329,6 @@ public class Neo4jClient extends DbClient {
     this.transaction.run(insert);
   }
 
-  /**
-   * Return the nodes adjacent to this one, optionally filtering based on the edge name.
-   *
-   * @param nodeVersionId the start node version
-   * @param edgeNameRegex the edge name to filter by
-   * @return the list of adjacent nodes
-   */
-  public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) {
-    String query =
-        "MATCH (n: NodeVersion {id: '"
-            + nodeVersionId
-            + "'})"
-            + "-[e: EdgeVersionConnection]->(evn: EdgeVersion) where evn.edge_id =~ '.*"
-            + edgeNameRegex
-            + ".*'"
-            + "MATCH (evn)-[f: EdgeVersionConnection]->(dst)"
-            + "return dst.id";
-
-    List<Record> records = this.transaction.run(query).list();
-    List<Long> result =
-        records.stream().map(record -> record.get("dst.id").asLong()).collect(Collectors.toList());
-
-    return result;
-  }
-
   @Override
   public void commit() {
     this.transaction.success();

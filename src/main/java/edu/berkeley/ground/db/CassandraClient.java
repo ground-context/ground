@@ -177,32 +177,6 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
-  /**
-   * Return the nodes adjacent to this one, optionally filtering based on the edge name.
-   *
-   * @param nodeVersionId the start node version
-   * @param edgeNameRegex the edge name to filter by
-   * @return the list of adjacent nodes
-   */
-  public List<Long> adjacentNodes(long nodeVersionId, String edgeNameRegex) {
-    BoundStatement statement =
-        this.prepareStatement(
-            "select to_node_version_start_id, edge_id from edge_version"
-                + "where from_node_version_start_id = ? allow filtering;");
-
-    statement.setLong(0, nodeVersionId);
-    ResultSet resultSet = this.session.execute(statement);
-
-    List<Long> result = new ArrayList<>();
-    for (Row row : resultSet) {
-      if (row.getString(1).contains(edgeNameRegex)) {
-        result.add(row.getLong(0));
-      }
-    }
-
-    return result;
-  }
-
   @Override
   public void commit() {}
 

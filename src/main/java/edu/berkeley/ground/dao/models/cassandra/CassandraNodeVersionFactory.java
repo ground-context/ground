@@ -155,19 +155,4 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       throw e;
     }
   }
-
-  /**
-   * Retrieve the node versions adjacent to this version, optionally filtering by the name of the
-   * edges connecting them.
-   *
-   * @param nodeVersionId the starting node version's id
-   * @param edgeNameRegex the filter for the edge names
-   * @return the list of adjacent versions
-   */
-  public List<Long> getAdjacentNodes(long nodeVersionId, String edgeNameRegex) {
-    List<Long> result = this.dbClient.adjacentNodes(nodeVersionId, edgeNameRegex);
-
-    this.dbClient.commit();
-    return result;
-  }
 }
