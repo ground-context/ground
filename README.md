@@ -1,6 +1,6 @@
 # Ground
 
-[![Build Status](https://amplab.cs.berkeley.edu/jenkins/buildStatus/icon?job=Ground)](https://amplab.cs.berkeley.edu/jenkins/job/Ground/)
+[![Build Status](https://travis-ci.org/ground-context/ground.svg?branch=master)](https://travis-ci.org/ground-context/ground)
 [![Coverage Status](https://coveralls.io/repos/github/ground-context/ground/badge.svg?branch=master)](https://coveralls.io/github/ground-context/ground?branch=master)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
