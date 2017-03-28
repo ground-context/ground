@@ -40,6 +40,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
 
+  @Override
   public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
     return construct(itemId);
   }
@@ -52,6 +53,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
    * @return the retrieved DAG
    * @throws GroundException an error retrieving the DAG
    */
+  @Override
   public <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
       throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -83,6 +85,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
    * @param itemId the id of the Item whose DAG we're updating
    * @throws GroundException an error adding the edge
    */
+  @Override
   public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
       throws GroundException {
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);

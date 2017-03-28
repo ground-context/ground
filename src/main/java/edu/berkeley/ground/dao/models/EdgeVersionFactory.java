@@ -48,7 +48,7 @@ public abstract class EdgeVersionFactory {
                                          long fromNodeVersionStartId,
                                          long fromNodeVersionEndId,
                                          long toNodeVersionStartId,
-                                         long toNodeVersionEndId) throws GroundException {
+                                         long toNodeVersionEndId) {
 
     return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters, edgeId,
         fromNodeVersionStartId, fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);

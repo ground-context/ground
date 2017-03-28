@@ -49,6 +49,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
    * @return the created version successor
    * @throws GroundException an error creating the successor
    */
+  @Override
   public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
       throws GroundException {
 
@@ -99,6 +100,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
    * @return the retrieved version successor
    * @throws GroundException either the successor didn't exist or couldn't be retrieved
    */
+  @Override
   public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
       throws GroundException {
 
@@ -115,7 +117,7 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     return this.constructFromRelationship(result);
   }
 
-  protected <T extends Version> VersionSuccessor<T> constructFromRelationship(Relationship r) {
+  private <T extends Version> VersionSuccessor<T> constructFromRelationship(Relationship r) {
     long id = (r.get("id")).asLong();
     long fromId = (r.get("fromId")).asLong();
     long toId = (r.get("toId")).asLong();

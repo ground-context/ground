@@ -34,7 +34,7 @@ import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.IdGenerator;
 
 public class CassandraTest {
-  private static String TEST_DB_NAME = "test";
+  private static final String TEST_DB_NAME = "test";
 
   protected static CassandraClient cassandraClient;
   protected static CassandraFactories factories;

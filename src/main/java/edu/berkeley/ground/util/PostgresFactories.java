@@ -108,50 +108,62 @@ public class PostgresFactories implements FactoryGenerator {
         this.lineageGraphFactory, richVersionFactory, postgresClient, idGenerator);
   }
 
+  @Override
   public EdgeFactory getEdgeFactory() {
     return this.edgeFactory;
   }
 
+  @Override
   public EdgeVersionFactory getEdgeVersionFactory() {
     return this.edgeVersionFactory;
   }
 
+  @Override
   public GraphFactory getGraphFactory() {
     return this.graphFactory;
   }
 
+  @Override
   public GraphVersionFactory getGraphVersionFactory() {
     return this.graphVersionFactory;
   }
 
+  @Override
   public NodeFactory getNodeFactory() {
     return this.nodeFactory;
   }
 
+  @Override
   public NodeVersionFactory getNodeVersionFactory() {
     return this.nodeVersionFactory;
   }
 
+  @Override
   public LineageEdgeFactory getLineageEdgeFactory() {
     return this.lineageEdgeFactory;
   }
 
+  @Override
   public LineageEdgeVersionFactory getLineageEdgeVersionFactory() {
     return this.lineageEdgeVersionFactory;
   }
 
+  @Override
   public StructureFactory getStructureFactory() {
     return this.structureFactory;
   }
 
+  @Override
   public StructureVersionFactory getStructureVersionFactory() {
     return this.structureVersionFactory;
   }
 
+  @Override
   public LineageGraphFactory getLineageGraphFactory() {
     return this.lineageGraphFactory;
   }
 
+  @Override
   public LineageGraphVersionFactory getLineageGraphVersionFactory() {
     return this.lineageGraphVersionFactory;
   }

@@ -19,14 +19,11 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
 import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.model.versions.GroundType;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -136,11 +133,10 @@ public class CassandraClient extends DbClient {
    * @param setPredicates the set portion of the update statement
    * @param wherePredicates the where portion of the update statement
    * @param table the table to update
-   * @throws GroundDbException an error while executing the update
    */
   public void update(List<DbDataContainer> setPredicates,
                      List<DbDataContainer> wherePredicates,
-                     String table) throws GroundDbException {
+                     String table) {
 
     String updateString = "update " + table + " set ";
 
@@ -167,7 +163,6 @@ public class CassandraClient extends DbClient {
       CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
       index++;
     }
-
 
     for (DbDataContainer predicate : wherePredicates) {
       CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);

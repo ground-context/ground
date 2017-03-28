@@ -78,6 +78,7 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
    * @return the created lineage graph version
    * @throws GroundException an error while creating or persisting this version
    */
+  @Override
   public LineageGraphVersion create(Map<String, Tag> tags,
                                     long structureVersionId,
                                     String reference,
@@ -133,6 +134,7 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
    * @return the retrieved version
    * @throws GroundException either the version doesn't exist or couldn't be retrieved
    */
+  @Override
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);

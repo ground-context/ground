@@ -65,6 +65,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
    * @return the created lineage graph
    * @throws GroundException an unexpected error while creating or persisting this lineage graph
    */
+  @Override
   public LineageGraph create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
     try {
@@ -97,6 +98,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
    * @return the retrieved lineage graph
    * @throws GroundException either the lineage graph doesn't exist or couldn't be retrieved
    */
+  @Override
   public LineageGraph retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -127,6 +129,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
     }
   }
 
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }

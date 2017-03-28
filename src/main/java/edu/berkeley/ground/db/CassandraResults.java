@@ -36,6 +36,7 @@ public class CassandraResults implements QueryResults {
    * @return the string at index
    * @throws GroundDbException either the column doesn't exist or it isn't a string
    */
+  @Override
   public String getString(int index) throws GroundDbException {
     try {
       return this.currentRow.getString(index);
@@ -51,6 +52,7 @@ public class CassandraResults implements QueryResults {
    * @return the string in the column
    * @throws GroundDbException either the column doesn't exist or it isn't a string
    */
+  @Override
   public String getString(String field) throws GroundDbException {
     try {
       return this.currentRow.getString(field);
@@ -66,6 +68,7 @@ public class CassandraResults implements QueryResults {
    * @return the int at index
    * @throws GroundDbException either column doesn't exist or isn't an int
    */
+  @Override
   public int getInt(int index) throws GroundDbException {
     try {
       return this.currentRow.getInt(index);
@@ -81,6 +84,7 @@ public class CassandraResults implements QueryResults {
    * @return the boolean at index
    * @throws GroundDbException either column doesn't exist or isn't an boolean
    */
+  @Override
   public boolean getBoolean(int index) throws GroundDbException {
     try {
       return this.currentRow.getBool(index);
@@ -96,6 +100,7 @@ public class CassandraResults implements QueryResults {
    * @return the long at the index
    * @throws GroundDbException either the column doesn't exist or isn't a long
    */
+  @Override
   public long getLong(int index) throws GroundDbException {
     try {
       return this.currentRow.getLong(index);
@@ -111,6 +116,7 @@ public class CassandraResults implements QueryResults {
    * @return the long in field
    * @throws GroundDbException either column doesn't exist or isn't a long
    */
+  @Override
   public long getLong(String field) throws GroundDbException {
     try {
       return this.currentRow.getLong(field);
@@ -124,6 +130,7 @@ public class CassandraResults implements QueryResults {
    *
    * @return false if there are no more rows
    */
+  @Override
   public boolean next() {
     this.currentRow = this.resultSet.one();
 
@@ -136,6 +143,7 @@ public class CassandraResults implements QueryResults {
    * @param index the index to use
    * @return true if null, false otherwise
    */
+  @Override
   public boolean isNull(int index) {
     return this.currentRow.isNull(index);
   }
@@ -146,6 +154,7 @@ public class CassandraResults implements QueryResults {
    * @param field the field to check
    * @return true if null, false otherwise
    */
+  @Override
   public boolean isNull(String field) {
     return this.currentRow.isNull(field);
   }

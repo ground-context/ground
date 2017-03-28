@@ -66,6 +66,7 @@ public class CassandraNodeFactory extends NodeFactory {
    * @return the newly created node
    * @throws GroundException an error while creating or persisting the node
    */
+  @Override
   public Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
@@ -97,6 +98,7 @@ public class CassandraNodeFactory extends NodeFactory {
    * @return the leaves of the node
    * @throws GroundException an error while retrieving the node
    */
+  @Override
   public List<Long> getLeaves(String name) throws GroundException {
     Node node = this.retrieveFromDatabase(name);
 
@@ -119,6 +121,7 @@ public class CassandraNodeFactory extends NodeFactory {
    * @return the retrieved node
    * @throws GroundException either the node doesn't exist or couldn't be retrieved
    */
+  @Override
   public Node retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -149,6 +152,7 @@ public class CassandraNodeFactory extends NodeFactory {
     }
   }
 
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }

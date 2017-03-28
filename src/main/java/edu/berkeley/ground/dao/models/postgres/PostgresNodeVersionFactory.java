@@ -73,6 +73,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
    * @return the newly created version
    * @throws GroundException an error while creating or persisting the version
    */
+  @Override
   public NodeVersion create(Map<String, Tag> tags,
                             long structureVersionId,
                             String reference,
@@ -118,6 +119,7 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
    * @return the retrieved version
    * @throws GroundException either the version doesn't exist or couldn't be retrieved
    */
+  @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);

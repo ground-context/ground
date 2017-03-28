@@ -36,13 +36,13 @@ public class Neo4jTest {
      * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
      * Versions. */
 
-  protected Neo4jClient neo4jClient;
-  protected Neo4jFactories factories;
-  protected Neo4jVersionSuccessorFactory versionSuccessorFactory;
-  protected Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
-  protected Neo4jItemFactory itemFactory;
-  protected Neo4jTagFactory tagFactory;
-  protected Neo4jRichVersionFactory richVersionFactory;
+  protected final Neo4jClient neo4jClient;
+  protected final Neo4jFactories factories;
+  protected final Neo4jVersionSuccessorFactory versionSuccessorFactory;
+  protected final Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
+  protected final Neo4jItemFactory itemFactory;
+  protected final Neo4jTagFactory tagFactory;
+  protected final Neo4jRichVersionFactory richVersionFactory;
 
   public Neo4jTest() {
     this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
