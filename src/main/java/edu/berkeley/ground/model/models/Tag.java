@@ -22,20 +22,22 @@ import edu.berkeley.ground.model.versions.GroundType;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
+import java.util.Objects;
+
 public class Tag {
-  private long id;
+  private final long id;
 
   @NotEmpty
   // the Key of the Tag
-  private String key;
+  private final String key;
 
   @UnwrapValidatedValue
   // the optional Value of the Tag
-  private Object value;
+  private final Object value;
 
   @UnwrapValidatedValue
   // the Type of the Value if it exists
-  private GroundType valueType;
+  private final GroundType valueType;
 
   /**
    * Create a new tag.
@@ -82,24 +84,10 @@ public class Tag {
       return false;
     }
 
-    Tag that = (Tag) other;
+    Tag otherTag = (Tag) other;
 
-    if (!this.key.equals(that.key)) {
-      return false;
-    }
-
-    if (this.value == null && that.value != null) {
-      return false;
-    }
-
-    if (this.value != null && !this.value.equals(that.value)) {
-      return false;
-    }
-
-    if (this.valueType == null && that.valueType != null) {
-      return false;
-    }
-
-    return !(this.valueType != null && !this.valueType.equals(that.valueType));
+    return this.key.equals(otherTag.key)
+        && Objects.equals(this.value, otherTag.value)
+        && Objects.equals(this.valueType, otherTag.valueType);
   }
 }

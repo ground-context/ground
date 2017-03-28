@@ -22,9 +22,9 @@ import java.util.Map;
 
 public class Item<T extends Version> {
 
-  private long id;
+  private final long id;
 
-  private Map<String, Tag> tags;
+  private final Map<String, Tag> tags;
 
   public Item(long id, Map<String, Tag> tags) {
     this.id = id;

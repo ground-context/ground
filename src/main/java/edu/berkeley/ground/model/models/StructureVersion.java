@@ -24,10 +24,10 @@ import java.util.Map;
 
 public class StructureVersion extends Version {
   // the id of the Structure containing this Version
-  private long structureId;
+  private final long structureId;
 
   // the map of attribute names to types
-  private Map<String, GroundType> attributes;
+  private final Map<String, GroundType> attributes;
 
   /**
    * Create a new structure version.

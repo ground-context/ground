@@ -20,13 +20,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class VersionSuccessor<T extends Version> {
 
   // the unique id of this VersionSuccessor
-  private long id;
+  private final long id;
 
   // the id of the Version that originates this successor
-  private long fromId;
+  private final long fromId;
 
   // the id of the Version that this success points to
-  private long toId;
+  private final long toId;
 
   /**
    * Create a version successor.

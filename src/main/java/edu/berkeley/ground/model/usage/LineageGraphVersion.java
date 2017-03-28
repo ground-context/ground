@@ -25,10 +25,10 @@ import java.util.Map;
 
 public class LineageGraphVersion extends RichVersion {
   // the id of the LineageGraph that contains this version
-  private long lineageGraphId;
+  private final long lineageGraphId;
 
   // the list of ids of LineageEdgeVersions that are in this LineageGraph
-  private List<Long> lineageEdgeVersionIds;
+  private final List<Long> lineageEdgeVersionIds;
 
   /**
    * Create a lineage graph version.

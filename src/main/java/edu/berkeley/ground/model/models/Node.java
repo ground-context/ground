@@ -23,10 +23,10 @@ import java.util.Map;
 
 public class Node extends Item<NodeVersion> {
   // the name of this Node
-  private String name;
+  private final String name;
 
   // the source key for this Node
-  private String sourceKey;
+  private final String sourceKey;
 
   /**
    * Create a new node.

@@ -23,10 +23,10 @@ import java.util.Map;
 
 public class Graph extends Item<GraphVersion> {
   // the name of this Graph
-  private String name;
+  private final String name;
 
   // the source key for this Graph
-  private String sourceKey;
+  private final String sourceKey;
 
   /**
    * Create a new Graph.

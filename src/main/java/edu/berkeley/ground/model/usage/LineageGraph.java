@@ -24,10 +24,10 @@ import java.util.Map;
 
 public class LineageGraph extends Item<LineageGraphVersion> {
   // the name of this graph
-  private String name;
+  private final String name;
 
   // the source key for this Node
-  private String sourceKey;
+  private final String sourceKey;
 
   /**
    * Create a new lineage graph.

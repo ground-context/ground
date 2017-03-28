@@ -48,8 +48,8 @@ import org.slf4j.LoggerFactory;
 public class NodesResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(NodesResource.class);
 
-  private NodeFactory nodeFactory;
-  private NodeVersionFactory nodeVersionFactory;
+  private final NodeFactory nodeFactory;
+  private final NodeVersionFactory nodeVersionFactory;
 
   public NodesResource(NodeFactory nodeFactory, NodeVersionFactory nodeVersionFactory) {
     this.nodeFactory = nodeFactory;

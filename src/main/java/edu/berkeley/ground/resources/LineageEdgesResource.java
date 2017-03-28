@@ -45,8 +45,8 @@ import org.slf4j.LoggerFactory;
 public class LineageEdgesResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(LineageEdgesResource.class);
 
-  private LineageEdgeFactory lineageEdgeFactory;
-  private LineageEdgeVersionFactory lineageEdgeVersionFactory;
+  private final LineageEdgeFactory lineageEdgeFactory;
+  private final LineageEdgeVersionFactory lineageEdgeVersionFactory;
 
   public LineageEdgesResource(LineageEdgeFactory lineageEdgeFactory,
                               LineageEdgeVersionFactory lineageEdgeVersionFactory) {

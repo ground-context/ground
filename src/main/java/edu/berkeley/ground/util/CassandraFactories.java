@@ -47,19 +47,19 @@ import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionSuccessorFacto
 import edu.berkeley.ground.db.CassandraClient;
 
 public class CassandraFactories implements FactoryGenerator {
-  private CassandraStructureFactory structureFactory;
-  private CassandraStructureVersionFactory structureVersionFactory;
-  private CassandraEdgeFactory edgeFactory;
-  private CassandraEdgeVersionFactory edgeVersionFactory;
-  private CassandraGraphFactory graphFactory;
-  private CassandraGraphVersionFactory graphVersionFactory;
-  private CassandraNodeFactory nodeFactory;
-  private CassandraNodeVersionFactory nodeVersionFactory;
+  private final CassandraStructureFactory structureFactory;
+  private final CassandraStructureVersionFactory structureVersionFactory;
+  private final CassandraEdgeFactory edgeFactory;
+  private final CassandraEdgeVersionFactory edgeVersionFactory;
+  private final CassandraGraphFactory graphFactory;
+  private final CassandraGraphVersionFactory graphVersionFactory;
+  private final CassandraNodeFactory nodeFactory;
+  private final CassandraNodeVersionFactory nodeVersionFactory;
 
-  private CassandraLineageEdgeFactory lineageEdgeFactory;
-  private CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
-  private CassandraLineageGraphFactory lineageGraphFactory;
-  private CassandraLineageGraphVersionFactory lineageGraphVersionFactory;
+  private final CassandraLineageEdgeFactory lineageEdgeFactory;
+  private final CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
+  private final CassandraLineageGraphFactory lineageGraphFactory;
+  private final CassandraLineageGraphVersionFactory lineageGraphVersionFactory;
 
   /**
    * Create all the Cassandra factories.

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class PostgresResults implements QueryResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
 
-  private ResultSet resultSet;
+  private final ResultSet resultSet;
 
   public PostgresResults(ResultSet resultSet) {
     this.resultSet = resultSet;

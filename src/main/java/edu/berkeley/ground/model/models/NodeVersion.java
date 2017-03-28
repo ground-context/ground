@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class NodeVersion extends RichVersion {
   // the id of the Node containing this Version
-  private long nodeId;
+  private final long nodeId;
 
   /**
    * Create a new node version.

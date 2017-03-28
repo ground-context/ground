@@ -22,10 +22,10 @@ import java.util.Map;
 
 public class GraphVersion extends RichVersion {
   // the id of the Graph that contains this Version
-  private long graphId;
+  private final long graphId;
 
   // the list of ids of EdgeVersions in this GraphVersion
-  private List<Long> edgeVersionIds;
+  private final List<Long> edgeVersionIds;
 
   /**
    * Create a new graph version.

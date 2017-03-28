@@ -47,19 +47,19 @@ import edu.berkeley.ground.db.Neo4jClient;
 
 public class Neo4jFactories implements FactoryGenerator {
 
-  private Neo4jStructureFactory structureFactory;
-  private Neo4jStructureVersionFactory structureVersionFactory;
-  private Neo4jEdgeFactory edgeFactory;
-  private Neo4jEdgeVersionFactory edgeVersionFactory;
-  private Neo4jGraphFactory graphFactory;
-  private Neo4jGraphVersionFactory graphVersionFactory;
-  private Neo4jNodeFactory nodeFactory;
-  private Neo4jNodeVersionFactory nodeVersionFactory;
+  private final Neo4jStructureFactory structureFactory;
+  private final Neo4jStructureVersionFactory structureVersionFactory;
+  private final Neo4jEdgeFactory edgeFactory;
+  private final Neo4jEdgeVersionFactory edgeVersionFactory;
+  private final Neo4jGraphFactory graphFactory;
+  private final Neo4jGraphVersionFactory graphVersionFactory;
+  private final Neo4jNodeFactory nodeFactory;
+  private final Neo4jNodeVersionFactory nodeVersionFactory;
 
-  private Neo4jLineageEdgeFactory lineageEdgeFactory;
-  private Neo4jLineageEdgeVersionFactory lineageEdgeVersionFactory;
-  private Neo4jLineageGraphFactory lineageGraphFactory;
-  private Neo4jLineageGraphVersionFactory lineageGraphVersionFactory;
+  private final Neo4jLineageEdgeFactory lineageEdgeFactory;
+  private final Neo4jLineageEdgeVersionFactory lineageEdgeVersionFactory;
+  private final Neo4jLineageGraphFactory lineageGraphFactory;
+  private final Neo4jLineageGraphVersionFactory lineageGraphVersionFactory;
 
   /**
    * Create the Neo4j factories.

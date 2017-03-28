@@ -21,19 +21,19 @@ import java.util.Map;
 
 public class EdgeVersion extends RichVersion {
   // the id of the Edge containing this Version
-  private long edgeId;
+  private final long edgeId;
 
   // the first NodeVersion in fromNode that this EdgeVersion applies to
-  private long fromNodeVersionStartId;
+  private final long fromNodeVersionStartId;
 
   // the last NodeVersion in fromNode that this EdgeVersion applies to
-  private long fromNodeVersionEndId;
+  private final long fromNodeVersionEndId;
 
   // the first NodeVersion in toNode that this EdgeVersion applies to
-  private long toNodeVersionStartId;
+  private final long toNodeVersionStartId;
 
   // the last NodeVersion in toNode that this EdgeVersion applies to
-  private long toNodeVersionEndId;
+  private final long toNodeVersionEndId;
 
   /**
    * Create a new EdgeVersion.
@@ -107,7 +107,7 @@ public class EdgeVersion extends RichVersion {
 
     return this.edgeId == otherEdgeVersion.edgeId
         && this.fromNodeVersionStartId == otherEdgeVersion.fromNodeVersionStartId
-        && this.fromNodeVersionEndId  == otherEdgeVersion.fromNodeVersionEndId
+        && this.fromNodeVersionEndId == otherEdgeVersion.fromNodeVersionEndId
         && this.toNodeVersionStartId == otherEdgeVersion.toNodeVersionStartId
         && this.toNodeVersionEndId == otherEdgeVersion.toNodeVersionEndId
         && this.getId() == otherEdgeVersion.getId()

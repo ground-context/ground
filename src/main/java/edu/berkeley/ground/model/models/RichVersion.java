@@ -24,18 +24,18 @@ import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
 public class RichVersion extends Version {
   // the map of Keys to Tags associated with this RichVersion
-  private Map<String, Tag> tags;
+  private final Map<String, Tag> tags;
 
   // the StructureVersion associated with this RichVersion
-  private long structureVersionId;
+  private final long structureVersionId;
 
   @UnwrapValidatedValue
   // the optional reference associated with this RichVersion
-  private String reference;
+  private final String reference;
 
   @UnwrapValidatedValue
   // the optional parameters associated with this RichVersion if there is a reference
-  private Map<String, String> parameters;
+  private final Map<String, String> parameters;
 
   /**
    * Create a new rich version.

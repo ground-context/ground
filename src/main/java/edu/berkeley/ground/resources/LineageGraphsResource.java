@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
 public class LineageGraphsResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphsResource.class);
 
-  private LineageGraphFactory lineageGraphFactory;
-  private LineageGraphVersionFactory lineageGraphVersionFactory;
+  private final LineageGraphFactory lineageGraphFactory;
+  private final LineageGraphVersionFactory lineageGraphVersionFactory;
 
   public LineageGraphsResource(
       LineageGraphFactory lineageGraphFactory,

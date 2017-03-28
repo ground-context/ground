@@ -15,13 +15,13 @@
 package edu.berkeley.ground.util;
 
 public class IdGenerator {
-  private long prefix;
+  private final long prefix;
   private long versionCounter;
   private long successorCounter;
   private long itemCounter;
 
   // If true, only one counter will be used. If false, all three counters will be used.
-  private boolean globallyUnique;
+  private final boolean globallyUnique;
 
   /**
    * Create a unique id generator.

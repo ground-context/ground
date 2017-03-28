@@ -15,7 +15,7 @@
 package edu.berkeley.ground.exceptions;
 
 public class EmptyResultException extends Exception {
-  private String message;
+  private final String message;
 
   public EmptyResultException(String message) {
     this.message = message;
