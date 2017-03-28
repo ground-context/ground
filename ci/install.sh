@@ -11,7 +11,7 @@ sudo apt-get install -y postgresql
 sudo sed -i "s|peer|trust|g" /etc/postgresql/9.6/main/pg_hba.conf
 sudo sed -i "s|md5|trust|g" /etc/postgresql/9.6/main/pg_hba.conf
 
-# stop running cassandra and remove any existing versionsj
+# stop running cassandra and remove any existing versions
 sudo service cassandra stop
 sudo rm -rf /var/lib/cassandra
 sudo rm -rf /var/log/cassandra
@@ -27,7 +27,7 @@ gpg --export --armor 2B5C1B00 | sudo apt-key add -
 gpg --keyserver pgp.mit.edu --recv-keys 0353B12C
 gpg --export --armor 0353B12C | sudo apt-key add -
 
-# install cassandr
+# install cassandra
 sudo apt-get update
 sudo apt-get install -y --allow-unauthenticated -o Dpkg::Options::="--force-confnew" cassandra
 printf "[cql]\nversion = 3.4.2\n" > ~/.cqlshrc
