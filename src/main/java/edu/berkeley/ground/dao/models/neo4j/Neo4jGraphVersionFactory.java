@@ -74,6 +74,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
    * @return the created graph version
    * @throws GroundException an error while creating or persisting the graph
    */
+  @Override
   public GraphVersion create(Map<String, Tag> tags,
                              long structureVersionId,
                              String reference,
@@ -125,6 +126,7 @@ public class Neo4jGraphVersionFactory extends GraphVersionFactory {
    * @return the retrieved graph version
    * @throws GroundException either the graph version doesn't exist or couldn't be retrieved
    */
+  @Override
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);

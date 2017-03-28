@@ -60,6 +60,7 @@ public class CassandraItemFactory extends ItemFactory {
    * @param tags the tags associated with the item
    * @throws GroundException an error inserting data into the database
    */
+  @Override
   public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -94,6 +95,7 @@ public class CassandraItemFactory extends ItemFactory {
    * @return the retrieved item
    * @throws GroundException either the item doesn't exist or couldn't be retrieved
    */
+  @Override
   public Item retrieveFromDatabase(long id) throws GroundException {
     return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
   }
@@ -106,6 +108,7 @@ public class CassandraItemFactory extends ItemFactory {
    * @param parentIds the ids of the parents of the child
    * @throws GroundException an error
    */
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // TODO: Refactor logic for parent into function in ItemFactory
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY,

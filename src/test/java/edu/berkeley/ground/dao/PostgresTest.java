@@ -32,7 +32,7 @@ import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.PostgresFactories;
 
 public class PostgresTest {
-  private static String TEST_DB_NAME = "test";
+  private static final String TEST_DB_NAME = "test";
 
   protected PostgresClient postgresClient;
   protected PostgresFactories factories;

@@ -54,39 +54,17 @@ public class Neo4jClient extends DbClient {
   }
 
   private String addValuesToStatement(String statement, List<DbDataContainer> values) {
-    int count = 0;
-    for (DbDataContainer container : values) {
-      if (container.getValue() != null) {
-        statement += container.getField() + " : ";
-
-        switch (container.getGroundType()) {
-          case STRING:
-            statement += "'" + container.getValue().toString() + "'";
-            break;
-          case INTEGER:
-            statement += (int) container.getValue();
-            break;
-          case BOOLEAN:
-            statement += container.getValue();
-            break;
-          case LONG:
-            statement += (long) container.getValue();
-            break;
-          default:
-            // impossible because we've listed all enum values
-            break;
-        }
-
-        statement += ", ";
-        count++;
-      }
-    }
-
-    if (count > 0) {
-      statement = statement.substring(0, statement.length() - 2);
-    }
-
-    return statement;
+    return statement + values.stream()
+        .filter(container -> container.getValue() != null)
+        .map(container -> {
+          String stmt = container.getField() + " : ";
+          if (container.getGroundType() == GroundType.STRING) {
+            return stmt + "'" + container.getValue() + "'";
+          } else {
+            return stmt + container.getValue();
+          }
+        })
+        .collect(Collectors.joining(", "));
   }
 
   /**

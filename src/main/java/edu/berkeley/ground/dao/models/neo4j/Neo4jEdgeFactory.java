@@ -46,7 +46,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
   private  Neo4jEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
-  
+
   /**
    * Constructor for Neo4j edge factory.
    *
@@ -81,6 +81,7 @@ public class Neo4jEdgeFactory extends EdgeFactory {
    * @return the created edge
    * @throws GroundException an error while creating or persisting the edge
    */
+  @Override
   public Edge create(String name,
                      String sourceKey,
                      long fromNodeId,
@@ -110,10 +111,12 @@ public class Neo4jEdgeFactory extends EdgeFactory {
     }
   }
 
+  @Override
   public Edge retrieveFromDatabase(String name) throws GroundException {
     return this.retrieveByPredicate("name", name, GroundType.STRING);
   }
 
+  @Override
   public Edge retrieveFromDatabase(long id) throws GroundException {
     return this.retrieveByPredicate("id", id, GroundType.LONG);
   }
@@ -161,12 +164,13 @@ public class Neo4jEdgeFactory extends EdgeFactory {
    * @param parentIds the ids of any parents of the child
    * @throws GroundException an unexpected error during the update
    */
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
 
     for (long parentId : parentIds) {
       EdgeVersion currentVersion = this.edgeVersionFactory.retrieveFromDatabase(childId);
-      EdgeVersion parentVersion = null;
+      EdgeVersion parentVersion;
       try {
         parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
       } catch (GroundDbException dbe) {

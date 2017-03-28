@@ -9,7 +9,7 @@ public class IdGeneratorTest {
   @Test
   public void testMultipleMachineGenerator() {
     IdGenerator generator = new IdGenerator(1, 2, false);
-    long id =generator.generateItemId();
+    long id = generator.generateItemId();
 
     long expected = (1L << 63) | 1L;
 

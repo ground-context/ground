@@ -77,6 +77,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
    * @return the created lineage edge version
    * @throws GroundException an error while creating or persisting this version
    */
+  @Override
   public LineageEdgeVersion create(Map<String, Tag> tags,
                                    long structureVersionId,
                                    String reference,
@@ -125,6 +126,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
    * @return the retrieved version
    * @throws GroundException either the version didn't exist or couldn't be retrieved
    */
+  @Override
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);

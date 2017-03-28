@@ -82,6 +82,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
    * @return the created edge
    * @throws GroundException an error while creating or persisting the edge
    */
+  @Override
   public Edge create(String name,
                      String sourceKey,
                      long fromNodeId,
@@ -111,10 +112,12 @@ public class CassandraEdgeFactory extends EdgeFactory {
     }
   }
 
+  @Override
   public Edge retrieveFromDatabase(String name) throws GroundException {
     return this.retrieveByPredicate("name", name, GroundType.STRING);
   }
 
+  @Override
   public Edge retrieveFromDatabase(long id) throws GroundException {
     return this.retrieveByPredicate("item_id", id, GroundType.LONG);
   }
@@ -163,6 +166,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
    * @param parentIds the ids of any parents of the child
    * @throws GroundException an unexpected error during the update
    */
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
     parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());

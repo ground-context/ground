@@ -67,6 +67,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
    * @param referenceParameters access parameters for the reference
    * @throws GroundException an error while persisting data
    */
+  @Override
   public void insertIntoDatabase(long id,
                                  Map<String, Tag> tags,
                                  long structureVersionId,
@@ -127,6 +128,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
    * @return the retrieved rich version
    * @throws GroundException either the rich version didn't exist or couldn't be retrieved
    */
+  @Override
   public RichVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));

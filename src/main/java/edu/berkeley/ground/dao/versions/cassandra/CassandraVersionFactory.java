@@ -36,6 +36,7 @@ public class CassandraVersionFactory extends VersionFactory {
    * @param id the id to insert
    * @throws GroundException the id already exists in the database
    */
+  @Override
   public void insertIntoDatabase(long id) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));

@@ -65,6 +65,7 @@ public class PostgresGraphFactory extends GraphFactory {
    * @return the created graph
    * @throws GroundException an error while persisting the graph
    */
+  @Override
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
     try {
       long uniqueId = this.idGenerator.generateItemId();
@@ -96,6 +97,7 @@ public class PostgresGraphFactory extends GraphFactory {
    * @return the retrieved graph
    * @throws GroundException either the graph doesn't exist or couldn't be retrieved
    */
+  @Override
   public Graph retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -124,6 +126,7 @@ public class PostgresGraphFactory extends GraphFactory {
     }
   }
 
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
