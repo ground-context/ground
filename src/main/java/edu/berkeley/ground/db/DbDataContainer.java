@@ -19,13 +19,13 @@ import edu.berkeley.ground.model.versions.GroundType;
 
 public class DbDataContainer {
   // the name of the field
-  private String field;
+  private final String field;
 
   // the type of the field
-  private GroundType groundType;
+  private final GroundType groundType;
 
   // the value of the field;
-  private Object value;
+  private final Object value;
 
   /**
    * Create a new data container.

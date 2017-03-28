@@ -45,8 +45,8 @@ import org.slf4j.LoggerFactory;
 public class StructuresResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(StructuresResource.class);
 
-  private StructureFactory structureFactory;
-  private StructureVersionFactory structureVersionFactory;
+  private final StructureFactory structureFactory;
+  private final StructureVersionFactory structureVersionFactory;
 
   public StructuresResource(StructureFactory structureFactory,
                             StructureVersionFactory structureVersionFactory) {

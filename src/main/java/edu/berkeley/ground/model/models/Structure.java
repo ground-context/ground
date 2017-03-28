@@ -23,10 +23,10 @@ import java.util.Map;
 
 public class Structure extends Item<StructureVersion> {
   // the name of this Structure
-  private String name;
+  private final String name;
 
   // the source key for this Node
-  private String sourceKey;
+  private final String sourceKey;
 
   /**
    * Create a new structure.

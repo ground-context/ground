@@ -15,7 +15,7 @@
 package edu.berkeley.ground.exceptions;
 
 public class GroundException extends Exception {
-  private String message;
+  private final String message;
 
   public GroundException(String message) {
     this.message = message;

@@ -50,10 +50,10 @@ import org.slf4j.LoggerFactory;
 public class EdgesResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(EdgesResource.class);
 
-  private EdgeFactory edgeFactory;
-  private EdgeVersionFactory edgeVersionFactory;
+  private final EdgeFactory edgeFactory;
+  private final EdgeVersionFactory edgeVersionFactory;
 
-  private NodeFactory nodeFactory;
+  private final NodeFactory nodeFactory;
 
   /**
    * Constructor for EdgesResource.

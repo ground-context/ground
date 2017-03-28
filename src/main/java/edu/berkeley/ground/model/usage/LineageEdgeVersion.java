@@ -24,13 +24,13 @@ import java.util.Map;
 
 public class LineageEdgeVersion extends RichVersion {
   // the id of the LineageEdge containing this Version
-  private long lineageEdgeId;
+  private final long lineageEdgeId;
 
   // the id of the RichVersion that this LineageEdgeVersion originates from
-  private long fromId;
+  private final long fromId;
 
   // the id of the RichVersion that this LineageEdgeVersion points to
-  private long toId;
+  private final long toId;
 
   /**
    * Create a lineage edge version.

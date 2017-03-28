@@ -20,7 +20,7 @@ import com.datastax.driver.core.Row;
 import edu.berkeley.ground.exceptions.GroundDbException;
 
 public class CassandraResults implements QueryResults {
-  private ResultSet resultSet;
+  private final ResultSet resultSet;
   private Row currentRow;
 
   public CassandraResults(ResultSet resultSet) {

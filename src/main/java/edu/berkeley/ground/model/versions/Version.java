@@ -17,7 +17,7 @@ package edu.berkeley.ground.model.versions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Version {
-  private long id;
+  private final long id;
 
   public Version(@JsonProperty long id) {
     this.id = id;

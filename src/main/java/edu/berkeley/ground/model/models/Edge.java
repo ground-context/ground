@@ -23,16 +23,16 @@ import java.util.Map;
 
 public class Edge extends Item<EdgeVersion> {
   // the name of this Edge
-  private String name;
+  private final String name;
 
   // the id of the Node that this EdgeVersion originates from
-  private long fromNodeId;
+  private final long fromNodeId;
 
   // the id of the Node that this EdgeVersion points to
-  private long toNodeId;
+  private final long toNodeId;
 
   // the source key for this Edge
-  private String sourceKey;
+  private final String sourceKey;
 
 
   /**

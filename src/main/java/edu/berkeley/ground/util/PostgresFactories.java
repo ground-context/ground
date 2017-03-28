@@ -47,19 +47,19 @@ import edu.berkeley.ground.dao.versions.postgres.PostgresVersionSuccessorFactory
 import edu.berkeley.ground.db.PostgresClient;
 
 public class PostgresFactories implements FactoryGenerator {
-  private PostgresStructureFactory structureFactory;
-  private PostgresStructureVersionFactory structureVersionFactory;
-  private PostgresEdgeFactory edgeFactory;
-  private PostgresEdgeVersionFactory edgeVersionFactory;
-  private PostgresGraphFactory graphFactory;
-  private PostgresGraphVersionFactory graphVersionFactory;
-  private PostgresNodeFactory nodeFactory;
-  private PostgresNodeVersionFactory nodeVersionFactory;
+  private final PostgresStructureFactory structureFactory;
+  private final PostgresStructureVersionFactory structureVersionFactory;
+  private final PostgresEdgeFactory edgeFactory;
+  private final PostgresEdgeVersionFactory edgeVersionFactory;
+  private final PostgresGraphFactory graphFactory;
+  private final PostgresGraphVersionFactory graphVersionFactory;
+  private final PostgresNodeFactory nodeFactory;
+  private final PostgresNodeVersionFactory nodeVersionFactory;
 
-  private PostgresLineageEdgeFactory lineageEdgeFactory;
-  private PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
-  private PostgresLineageGraphFactory lineageGraphFactory;
-  private PostgresLineageGraphVersionFactory lineageGraphVersionFactory;
+  private final PostgresLineageEdgeFactory lineageEdgeFactory;
+  private final PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
+  private final PostgresLineageGraphFactory lineageGraphFactory;
+  private final PostgresLineageGraphVersionFactory lineageGraphVersionFactory;
 
   /**
    * Create the Postgres factories.

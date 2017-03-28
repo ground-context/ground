@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
 public class KafkaResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaResource.class);
 
-  private String kafkaHost;
-  private String kafkaPort;
+  private final String kafkaHost;
+  private final String kafkaPort;
 
   public KafkaResource(String kafkaHost, String kafkaPort) {
     this.kafkaHost = kafkaHost;

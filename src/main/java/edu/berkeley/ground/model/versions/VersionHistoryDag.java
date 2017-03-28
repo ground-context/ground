@@ -25,13 +25,13 @@ import java.util.Set;
 
 public class VersionHistoryDag<T extends Version> {
   // the id of the Version that's at the rootId of this DAG
-  private long itemId;
+  private final long itemId;
 
   // list of VersionSuccessors that make up this DAG
-  private List<Long> edgeIds;
+  private final List<Long> edgeIds;
 
   // map of parents to children
-  private Map<Long, List<Long>> parentChildMap;
+  private final Map<Long, List<Long>> parentChildMap;
 
   /**
    * Create a new version history DAG.

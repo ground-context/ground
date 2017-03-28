@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
 public class GraphsResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphsResource.class);
 
-  private GraphFactory graphFactory;
-  private GraphVersionFactory graphVersionFactory;
+  private final GraphFactory graphFactory;
+  private final GraphVersionFactory graphVersionFactory;
 
   public GraphsResource(GraphFactory graphFactory, GraphVersionFactory graphVersionFactory) {
     this.graphFactory = graphFactory;
