@@ -38,10 +38,12 @@ public class Neo4jTagFactory extends TagFactory {
     this.dbClient = dbClient;
   }
 
+  @Override
   public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "RichVersion");
   }
 
+  @Override
   public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "Item");
   }
@@ -84,10 +86,12 @@ public class Neo4jTagFactory extends TagFactory {
     return tags;
   }
 
+  @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundDbException {
     return this.getIdsByTag(tag, "rich_version_id");
   }
 
+  @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundDbException {
     return this.getIdsByTag(tag, "item_id");
   }

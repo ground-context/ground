@@ -77,6 +77,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
    * @return the created version
    * @throws GroundException an error while creating or persisting the version
    */
+  @Override
   public EdgeVersion create(Map<String, Tag> tags,
                             long structureVersionId,
                             String reference,
@@ -141,6 +142,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
    * @return the retrieved edge version
    * @throws GroundException either the version doesn't exist or wasn't able to be retrieved
    */
+  @Override
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     try {
       final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
@@ -178,6 +180,7 @@ public class Neo4jEdgeVersionFactory extends EdgeVersionFactory {
     }
   }
 
+  @Override
   protected void updatePreviousVersion(long id, long fromEndId, long toEndId)
       throws GroundException {
 

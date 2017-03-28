@@ -65,6 +65,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
    * @return the created lineage edge
    * @throws GroundException an unexpected error while creating or persisting this lineage edge
    */
+  @Override
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
     try {
@@ -97,6 +98,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
    * @return the retrieved lineage edge
    * @throws GroundException either the lineage edge doesn't exist or couldn't be retrieved
    */
+  @Override
   public LineageEdge retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -127,6 +129,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     }
   }
 
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }

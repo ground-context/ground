@@ -70,6 +70,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
    * @return the created structure version
    * @throws GroundException an error while creating or persisting this version
    */
+  @Override
   public StructureVersion create(long structureId,
                                  Map<String, GroundType> attributes,
                                  List<Long> parentIds) throws GroundException {
@@ -115,6 +116,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
    * @return the retrieved version
    * @throws GroundException either the version doesn't exist or couldn't be retrieved
    */
+  @Override
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     try {
 

@@ -36,10 +36,12 @@ public class PostgresTagFactory extends TagFactory {
     this.dbClient = dbClient;
   }
 
+  @Override
   public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "rich_version");
   }
 
+  @Override
   public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "item");
   }
@@ -75,11 +77,13 @@ public class PostgresTagFactory extends TagFactory {
     return result;
   }
 
+  @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundException {
     return this.getIdsByTag(tag, "rich_version");
   }
 
 
+  @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
     return this.getIdsByTag(tag, "item");
   }

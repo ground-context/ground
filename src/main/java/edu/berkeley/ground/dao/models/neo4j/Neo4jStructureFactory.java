@@ -65,6 +65,7 @@ public class Neo4jStructureFactory extends StructureFactory {
    * @return the created structure
    * @throws GroundException an error while creating or persisting the structure
    */
+  @Override
   public Structure create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
     try {
@@ -96,6 +97,7 @@ public class Neo4jStructureFactory extends StructureFactory {
    * @return the list of leaves in this structure's DAG
    * @throws GroundException an error while retrieving the structure
    */
+  @Override
   public List<Long> getLeaves(String name) throws GroundException {
     Structure structure = this.retrieveFromDatabase(name);
 
@@ -112,6 +114,7 @@ public class Neo4jStructureFactory extends StructureFactory {
    * @return the retrieved structure
    * @throws GroundException either the structure doesn't exist or couldn't be retrieved
    */
+  @Override
   public Structure retrieveFromDatabase(String name) throws GroundException {
     try {
       List<DbDataContainer> predicates = new ArrayList<>();
@@ -140,6 +143,7 @@ public class Neo4jStructureFactory extends StructureFactory {
     }
   }
 
+  @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
