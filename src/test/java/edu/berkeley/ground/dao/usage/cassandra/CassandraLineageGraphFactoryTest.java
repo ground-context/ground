@@ -57,4 +57,17 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
       throw e;
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadLineageGraphVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      CassandraTest.factories.getLineageGraphVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

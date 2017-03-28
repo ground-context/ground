@@ -30,7 +30,7 @@ public class IdGenerator {
    * @param numMachines the total number of machines
    * @param globallyUnique if true, only one counter will be used for all version
    */
-  public IdGenerator(int machineId, int numMachines, boolean globallyUnique) {
+  public IdGenerator(long machineId, long numMachines, boolean globallyUnique) {
     long machineBits = 1;
     long fence = 2;
 

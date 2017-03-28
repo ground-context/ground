@@ -91,4 +91,17 @@ public class Neo4jNodeVersionFactoryTest extends Neo4jTest {
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(1 == leaves.size());
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadNodeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getNodeVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

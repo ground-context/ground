@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -184,5 +185,18 @@ public class CassandraEdgeVersionFactoryTest extends CassandraTest {
     assertEquals(secondNodeVersionId, parent.getToNodeVersionStartId());
     assertEquals(fromEndId, parent.getFromNodeVersionEndId());
     assertEquals(toEndId, parent.getToNodeVersionEndId());
+  }
+
+  @Test(expected = GroundException.class)
+  public void testBadEdgeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      CassandraTest.factories.getEdgeVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
   }
 }

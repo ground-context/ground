@@ -118,4 +118,17 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadGraphVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      CassandraTest.factories.getGraphVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

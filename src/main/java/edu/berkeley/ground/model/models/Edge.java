@@ -89,9 +89,9 @@ public class Edge extends Item<EdgeVersion> {
     Edge otherEdge = (Edge) other;
 
     return this.name.equals(otherEdge.name)
+        && this.sourceKey.equals(otherEdge.sourceKey)
         && this.getId() == otherEdge.getId()
         && this.fromNodeId == otherEdge.fromNodeId
-        && this.toNodeId == otherEdge.toNodeId
-        && this.sourceKey.equals(otherEdge.sourceKey);
+        && this.toNodeId == otherEdge.toNodeId;
   }
 }

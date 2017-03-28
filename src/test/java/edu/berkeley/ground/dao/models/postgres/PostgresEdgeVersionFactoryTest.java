@@ -186,4 +186,17 @@ public class PostgresEdgeVersionFactoryTest extends PostgresTest {
     assertEquals(fromEndId, parent.getFromNodeVersionEndId());
     assertEquals(toEndId, parent.getToNodeVersionEndId());
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadEdgeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getEdgeVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

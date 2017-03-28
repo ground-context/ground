@@ -102,4 +102,17 @@ public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadLineageGraphVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getLineageGraphVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

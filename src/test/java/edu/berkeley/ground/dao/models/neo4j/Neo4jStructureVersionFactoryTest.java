@@ -58,4 +58,18 @@ public class Neo4jStructureVersionFactoryTest extends Neo4jTest {
       assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadStructureVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getStructureVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
+      super.neo4jClient.abort();
+
+      throw e;
+    }
+  }
 }

@@ -88,4 +88,17 @@ public class PostgresLineageEdgeVersionFactoryTest extends PostgresTest {
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadLineageEdgeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getLineageEdgeVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

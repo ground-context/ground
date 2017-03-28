@@ -184,4 +184,17 @@ public class Neo4jEdgeVersionFactoryTest extends Neo4jTest {
     assertEquals(fromEndId, parent.getFromNodeVersionEndId());
     assertEquals(toEndId, parent.getToNodeVersionEndId());
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadEdgeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getEdgeVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

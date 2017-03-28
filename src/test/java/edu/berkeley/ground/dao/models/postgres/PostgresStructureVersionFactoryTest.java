@@ -58,4 +58,18 @@ public class PostgresStructureVersionFactoryTest extends PostgresTest {
       assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadStructureVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getStructureVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
+      super.postgresClient.abort();
+
+      throw e;
+    }
+  }
 }

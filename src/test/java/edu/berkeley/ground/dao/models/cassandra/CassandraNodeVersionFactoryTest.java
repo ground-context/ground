@@ -94,4 +94,17 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(1 == leaves.size());
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadNodeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      CassandraTest.factories.getNodeVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }

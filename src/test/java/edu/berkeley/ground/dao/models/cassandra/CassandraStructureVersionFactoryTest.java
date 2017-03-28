@@ -58,4 +58,18 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
       assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadStructureVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      CassandraTest.factories.getStructureVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
+      CassandraTest.cassandraClient.abort();
+
+      throw e;
+    }
+  }
 }

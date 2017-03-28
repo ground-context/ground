@@ -117,4 +117,17 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadGraphVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      super.factories.getGraphVersionFactory().retrieveFromDatabase(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
+    }
+  }
 }
