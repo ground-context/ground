@@ -144,10 +144,6 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
         throw new GroundException("No GraphVersion found with id " + id + ".");
       }
 
-      if (!resultSet.next()) {
-        throw new GroundException("No GraphVersion found with id " + id + ".");
-      }
-
       long graphId = resultSet.getLong(1);
 
       List<Long> edgeVersionIds = new ArrayList<>();
@@ -155,9 +151,9 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
         QueryResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
             DbClient.SELECT_STAR, edgePredicate);
 
-        while (edgeSet.next()) {
+        do {
           edgeVersionIds.add(edgeSet.getLong(1));
-        }
+        } while (edgeSet.next());
       } catch (EmptyResultException e) {
         // do nothing; this means that the graph is empty
       }

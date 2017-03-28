@@ -143,12 +143,6 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
         throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
-      }
-
       long lineageEdgeId = resultSet.getLong("lineage_edge_id");
       long fromId = resultSet.getLong("from_rich_version_id");
       long toId = resultSet.getLong("to_rich_version_id");

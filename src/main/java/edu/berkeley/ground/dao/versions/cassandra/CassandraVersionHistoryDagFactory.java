@@ -67,9 +67,9 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
 
-    while (resultSet.next()) {
+    do {
       edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet.getLong(1)));
-    }
+    } while (resultSet.next());
 
     return VersionHistoryDagFactory.construct(itemId, edges);
   }

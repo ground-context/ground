@@ -147,12 +147,6 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
         throw new GroundException("No EdgeVersion found with id " + id + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No EdgeVersion found with id " + id + ".");
-      }
-
       long edgeId = resultSet.getLong("edge_id");
 
       long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");

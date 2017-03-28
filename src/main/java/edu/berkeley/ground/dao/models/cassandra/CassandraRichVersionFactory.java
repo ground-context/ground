@@ -137,10 +137,6 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       throw new GroundException("No RichVersion found with id " + id + ".");
     }
 
-    if (!resultSet.next()) {
-      throw new GroundException("No RichVersion found with id " + id + ".");
-    }
-
     List<DbDataContainer> parameterPredicates = new ArrayList<>();
     parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
@@ -148,9 +144,9 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       QueryResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
           DbClient.SELECT_STAR, parameterPredicates);
 
-      while (parameterSet.next()) {
+      do {
         referenceParameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
-      }
+      } while (parameterSet.next());
     } catch (EmptyResultException e) {
       // do nothing; this just means that there are no referenceParameters
     }

@@ -150,10 +150,6 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
         throw new GroundException("No LineageGraphVersion found with id " + id + ".");
       }
 
-      if (!resultSet.next()) {
-        throw new GroundException("No LineageGraphVersion found with id " + id + ".");
-      }
-
       long lineageGraphId = resultSet.getLong(1);
 
       List<Long> lineageEdgeVersionIds = new ArrayList<>();
@@ -161,9 +157,9 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
         QueryResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
             DbClient.SELECT_STAR, lineageEdgePredicate);
 
-        while (lineageEdgeSet.next()) {
+       do {
           lineageEdgeVersionIds.add(lineageEdgeSet.getLong(1));
-        }
+        } while (lineageEdgeSet.next());
       } catch (EmptyResultException e) {
         // do nothing; this means that the lineage_graph is empty
       }

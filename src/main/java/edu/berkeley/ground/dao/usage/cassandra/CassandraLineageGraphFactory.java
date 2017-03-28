@@ -111,12 +111,6 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
         throw new GroundException("No LineageGraph found with name " + name + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No LineageGraph found with name " + name + ".");
-      }
-
       long id = resultSet.getLong(0);
       String sourceKey = resultSet.getString("source_key");
 

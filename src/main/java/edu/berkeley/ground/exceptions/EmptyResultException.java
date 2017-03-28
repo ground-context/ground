@@ -21,11 +21,6 @@ public class EmptyResultException extends Exception {
     this.message = message;
   }
 
-  public EmptyResultException(Exception e) {
-    this.message = e.getClass() + ": " + e.getMessage();
-  }
-
-  @Override
   public String getMessage() {
     return this.message;
   }

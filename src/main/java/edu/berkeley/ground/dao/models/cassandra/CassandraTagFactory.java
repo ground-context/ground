@@ -61,7 +61,7 @@ public class CassandraTagFactory extends TagFactory {
       return result;
     }
 
-    while (resultSet.next()) {
+    do {
       String key = resultSet.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
@@ -71,7 +71,7 @@ public class CassandraTagFactory extends TagFactory {
       Object value = GroundType.stringToType(valueString, type);
 
       result.put(key, new Tag(id, key, value, type));
-    }
+    } while (resultSet.next());
 
     return result;
   }
@@ -101,9 +101,9 @@ public class CassandraTagFactory extends TagFactory {
       return result;
     }
 
-    while (resultSet.next()) {
+    do {
       result.add(resultSet.getLong(0));
-    }
+    } while (resultSet.next());
 
     return result;
   }

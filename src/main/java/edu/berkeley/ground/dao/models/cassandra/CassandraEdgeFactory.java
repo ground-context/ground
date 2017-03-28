@@ -135,12 +135,6 @@ public class CassandraEdgeFactory extends EdgeFactory {
         throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
-      }
-
       long id = resultSet.getLong(0);
       long fromNodeId = resultSet.getLong("from_node_id");
       long toNodeId = resultSet.getLong("to_node_id");

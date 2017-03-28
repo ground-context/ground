@@ -50,33 +50,25 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
   public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
       throws GroundException {
     // check to see if both are valid ids since we don't have foreign key constraints
-    QueryResults results;
     List<DbDataContainer> predicates = new ArrayList<>();
 
     predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
     try {
-      results = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicates);
+      this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("Id " + fromId + " is not valid.");
-    }
-
-    if (!results.next()) {
       throw new GroundException("Id " + fromId + " is not valid.");
     }
 
     predicates.clear();
     predicates.add(new DbDataContainer("id", GroundType.LONG, toId));
+
     try {
-      results = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicates);
+      this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("Id " + toId + " is not valid.");
-    }
-    if (!results.next()) {
       throw new GroundException("Id " + toId + " is not valid.");
     }
 
     List<DbDataContainer> insertions = new ArrayList<>();
-
 
     long dbId = this.idGenerator.generateSuccessorId();
 
@@ -107,10 +99,6 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
       resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
           predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
-    }
-
-    if (!resultSet.next()) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 

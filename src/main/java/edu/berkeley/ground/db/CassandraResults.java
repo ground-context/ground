@@ -26,6 +26,7 @@ public class CassandraResults implements QueryResults {
   public CassandraResults(ResultSet resultSet) {
     this.resultSet = resultSet;
     this.currentRow = null;
+    this.next();
   }
 
   /**

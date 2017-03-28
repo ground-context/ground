@@ -111,12 +111,6 @@ public class CassandraGraphFactory extends GraphFactory {
         throw new GroundException("No Graph found with name " + name + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No Graph found with name " + name + ".");
-      }
-
       long id = resultSet.getLong(0);
       String sourceKey = resultSet.getString("source_key");
 

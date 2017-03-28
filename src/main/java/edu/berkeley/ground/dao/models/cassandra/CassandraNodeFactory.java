@@ -133,12 +133,6 @@ public class CassandraNodeFactory extends NodeFactory {
         throw new GroundException("No Node found with name " + name + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No Node found with name " + name + ".");
-      }
-
       long id = resultSet.getLong(0);
       String sourceKey = resultSet.getString("source_key");
 

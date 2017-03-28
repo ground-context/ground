@@ -111,12 +111,6 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
         throw new GroundException("No LineageEdge found with name " + name + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No LineageEdge found with name " + name + ".");
-      }
-
       long id = resultSet.getLong("item_id");
       String sourceKey = resultSet.getString("source_key");
 

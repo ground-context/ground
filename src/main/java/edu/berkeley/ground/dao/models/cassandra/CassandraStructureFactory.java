@@ -134,12 +134,6 @@ public class CassandraStructureFactory extends StructureFactory {
         throw new GroundException("No Structure found with name " + name + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No Structure found with name " + name + ".");
-      }
-
       long id = resultSet.getLong(0);
       String sourceKey = resultSet.getString("source_key");
 

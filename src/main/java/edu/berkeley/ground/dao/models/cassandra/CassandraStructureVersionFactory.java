@@ -131,12 +131,6 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
         throw new GroundException("No StructureVersion found with id " + id + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No StructureVersion found with id " + id + ".");
-      }
-
       Map<String, GroundType> attributes = new HashMap<>();
 
       try {
@@ -145,10 +139,10 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
         QueryResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
             DbClient.SELECT_STAR, attributePredicates);
 
-        while (attributesSet.next()) {
+        do {
           attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet
               .getString(2)));
-        }
+        } while (attributesSet.next());
       } catch (EmptyResultException e) {
         this.dbClient.abort();
 

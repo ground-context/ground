@@ -136,12 +136,6 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
-      if (!resultSet.next()) {
-        this.dbClient.abort();
-
-        throw new GroundException("No NodeVersion found with id " + id + ".");
-      }
-
       long nodeId = resultSet.getLong(1);
 
       this.dbClient.commit();

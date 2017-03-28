@@ -44,7 +44,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
 
     List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag("testtag");
 
-    super.cassandraClient.commit();
+    CassandraTest.cassandraClient.commit();
 
     assertTrue(ids.contains(nodeId1));
     assertTrue(ids.contains(nodeId2));
@@ -64,7 +64,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
 
     List<Long> ids = CassandraTest.tagFactory.getVersionIdsByTag("testtag");
 
-    super.cassandraClient.commit();
+    CassandraTest.cassandraClient.commit();
 
     assertTrue(ids.contains(nodeVersionId1));
     assertTrue(ids.contains(nodeVersionId2));
