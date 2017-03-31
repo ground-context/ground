@@ -14,14 +14,7 @@
 
 package edu.berkeley.ground;
 
-import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.dao.models.EdgeVersionFactory;
-import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.dao.models.GraphVersionFactory;
-import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.dao.models.NodeVersionFactory;
-import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.*;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
@@ -30,13 +23,7 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.resources.EdgesResource;
-import edu.berkeley.ground.resources.GraphsResource;
-import edu.berkeley.ground.resources.KafkaResource;
-import edu.berkeley.ground.resources.LineageEdgesResource;
-import edu.berkeley.ground.resources.LineageGraphsResource;
-import edu.berkeley.ground.resources.NodesResource;
-import edu.berkeley.ground.resources.StructuresResource;
+import edu.berkeley.ground.resources.*;
 import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.FactoryGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
@@ -60,6 +47,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
   private StructureVersionFactory structureVersionFactory;
   private LineageGraphFactory lineageGraphFactory;
   private LineageGraphVersionFactory lineageGraphVersionFactory;
+  private TagFactory tagFactory;
 
   public static void main(String[] args) throws Exception {
     new GroundServer().run(args);
@@ -133,6 +121,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     final LineageGraphsResource lineageGraphsResource = new LineageGraphsResource(
         this.lineageGraphFactory,
         this.lineageGraphVersionFactory);
+    final TagsResource tagsResource = new TagsResource(this.tagFactory);
 
     environment.jersey().register(edgesResource);
     environment.jersey().register(graphsResource);
@@ -141,6 +130,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     environment.jersey().register(structuresResource);
     environment.jersey().register(kafkaResource);
     environment.jersey().register(lineageGraphsResource);
+    environment.jersey().register(tagsResource);
   }
 
   private void setPostgresFactories(PostgresClient postgresClient, int machineId, int numMachines) {
@@ -170,5 +160,6 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     structureVersionFactory = factoryGenerator.getStructureVersionFactory();
     lineageGraphFactory = factoryGenerator.getLineageGraphFactory();
     lineageGraphVersionFactory = factoryGenerator.getLineageGraphVersionFactory();
+    tagFactory = factoryGenerator.getTagFactory();
   }
 }
