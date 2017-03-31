@@ -1,0 +1,13 @@
+{
+  "id": 1,
+  "name": "test",
+  "sourceKey": "testKey",
+  "tags": {
+    "testtag": {
+      "id": 1,
+      "key": "testtag",
+      "value": "tag",
+      "type": "string"
+    }
+  }
+}
