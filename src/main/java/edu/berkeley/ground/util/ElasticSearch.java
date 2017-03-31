@@ -60,10 +60,10 @@ public class ElasticSearch {
     } else {
       System.out.println("SUCCESSFULLY CONNECTED");
     }
-    if (bool) {
-      DeleteIndexResponse deleteResponse = client.admin().indices().delete(new DeleteIndexRequest("groundtest")).actionGet();
-      bool = false;
-    }
+//    if (bool) {
+//      DeleteIndexResponse deleteResponse = client.admin().indices().delete(new DeleteIndexRequest("groundtest")).actionGet();
+//      bool = false;
+//    }
 
 
     ObjectMapper mapper = new ObjectMapper();
