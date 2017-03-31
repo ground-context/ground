@@ -37,12 +37,13 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
   @Test
   public void testGetItemIdsByTag() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
+    tagsMap.put("testtag", tag);
 
     long nodeId1 = super.factories.getNodeFactory().create("test1", null, tagsMap).getId();
     long nodeId2 = super.factories.getNodeFactory().create("test2", null, tagsMap).getId();
 
-    List<Long> ids = super.tagFactory.getItemIdsByTag("testtag");
+    List<Long> ids = super.tagFactory.getItemIdsByTag(tag);
 
     super.neo4jClient.commit();
 
@@ -53,7 +54,8 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
   @Test
   public void testGetVersionIdsByTag() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
+    tagsMap.put("testtag", tag);
 
     long nodeId = super.factories.getNodeFactory().create("test1", null, new HashMap<>()).getId();
 
@@ -62,7 +64,7 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
     long nodeVersionId2 = super.factories.getNodeVersionFactory().create(tagsMap,
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
 
-    List<Long> ids = super.tagFactory.getVersionIdsByTag("testtag");
+    List<Long> ids = super.tagFactory.getVersionIdsByTag(tag);
 
     super.neo4jClient.commit();
 
