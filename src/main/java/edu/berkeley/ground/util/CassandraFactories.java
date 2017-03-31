@@ -14,14 +14,7 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.dao.models.EdgeVersionFactory;
-import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.dao.models.GraphVersionFactory;
-import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.dao.models.NodeVersionFactory;
-import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.*;
 import edu.berkeley.ground.dao.models.cassandra.CassandraEdgeFactory;
 import edu.berkeley.ground.dao.models.cassandra.CassandraEdgeVersionFactory;
 import edu.berkeley.ground.dao.models.cassandra.CassandraGraphFactory;
@@ -55,7 +48,7 @@ public class CassandraFactories implements FactoryGenerator {
   private final CassandraGraphVersionFactory graphVersionFactory;
   private final CassandraNodeFactory nodeFactory;
   private final CassandraNodeVersionFactory nodeVersionFactory;
-
+  private final CassandraTagFactory tagFactory;
   private final CassandraLineageEdgeFactory lineageEdgeFactory;
   private final CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
   private final CassandraLineageGraphFactory lineageGraphFactory;
@@ -107,6 +100,7 @@ public class CassandraFactories implements FactoryGenerator {
         idGenerator);
     this.lineageGraphVersionFactory = new CassandraLineageGraphVersionFactory(
         this.lineageGraphFactory, richVersionFactory, cassandraClient, idGenerator);
+    this.tagFactory = new CassandraTagFactory(cassandraClient);
   }
 
   @Override
@@ -167,5 +161,10 @@ public class CassandraFactories implements FactoryGenerator {
   @Override
   public LineageGraphVersionFactory getLineageGraphVersionFactory() {
     return this.lineageGraphVersionFactory;
+  }
+
+  @Override
+  public TagFactory getTagFactory() {
+    return this.tagFactory;
   }
 }

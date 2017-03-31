@@ -14,14 +14,7 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.dao.models.EdgeVersionFactory;
-import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.dao.models.GraphVersionFactory;
-import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.dao.models.NodeVersionFactory;
-import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.*;
 import edu.berkeley.ground.dao.models.postgres.PostgresEdgeFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresEdgeVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresGraphFactory;
@@ -60,6 +53,7 @@ public class PostgresFactories implements FactoryGenerator {
   private final PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
   private final PostgresLineageGraphFactory lineageGraphFactory;
   private final PostgresLineageGraphVersionFactory lineageGraphVersionFactory;
+  private final PostgresTagFactory tagFactory;
 
   /**
    * Create the Postgres factories.
@@ -106,6 +100,7 @@ public class PostgresFactories implements FactoryGenerator {
         postgresClient, idGenerator);
     this.lineageGraphVersionFactory = new PostgresLineageGraphVersionFactory(
         this.lineageGraphFactory, richVersionFactory, postgresClient, idGenerator);
+    this.tagFactory = new PostgresTagFactory(postgresClient);
   }
 
   @Override
@@ -166,5 +161,10 @@ public class PostgresFactories implements FactoryGenerator {
   @Override
   public LineageGraphVersionFactory getLineageGraphVersionFactory() {
     return this.lineageGraphVersionFactory;
+  }
+
+  @Override
+  public TagFactory getTagFactory() {
+    return this.tagFactory;
   }
 }

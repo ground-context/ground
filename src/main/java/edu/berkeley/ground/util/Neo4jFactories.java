@@ -14,14 +14,7 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.dao.models.EdgeFactory;
-import edu.berkeley.ground.dao.models.EdgeVersionFactory;
-import edu.berkeley.ground.dao.models.GraphFactory;
-import edu.berkeley.ground.dao.models.GraphVersionFactory;
-import edu.berkeley.ground.dao.models.NodeFactory;
-import edu.berkeley.ground.dao.models.NodeVersionFactory;
-import edu.berkeley.ground.dao.models.StructureFactory;
-import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.*;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jEdgeFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jEdgeVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jGraphFactory;
@@ -55,11 +48,12 @@ public class Neo4jFactories implements FactoryGenerator {
   private final Neo4jGraphVersionFactory graphVersionFactory;
   private final Neo4jNodeFactory nodeFactory;
   private final Neo4jNodeVersionFactory nodeVersionFactory;
-
+  private final Neo4jTagFactory tagFactory;
   private final Neo4jLineageEdgeFactory lineageEdgeFactory;
   private final Neo4jLineageEdgeVersionFactory lineageEdgeVersionFactory;
   private final Neo4jLineageGraphFactory lineageGraphFactory;
   private final Neo4jLineageGraphVersionFactory lineageGraphVersionFactory;
+
 
   /**
    * Create the Neo4j factories.
@@ -103,6 +97,7 @@ public class Neo4jFactories implements FactoryGenerator {
     this.lineageGraphFactory = new Neo4jLineageGraphFactory(neo4jClient, itemFactory, idGenerator);
     this.lineageGraphVersionFactory = new Neo4jLineageGraphVersionFactory(neo4jClient, this
         .lineageGraphFactory, richVersionFactory, idGenerator);
+    this.tagFactory = new Neo4jTagFactory(neo4jClient);
   }
 
   @Override
@@ -163,5 +158,10 @@ public class Neo4jFactories implements FactoryGenerator {
   @Override
   public LineageGraphVersionFactory getLineageGraphVersionFactory() {
     return this.lineageGraphVersionFactory;
+  }
+
+  @Override
+  public TagFactory getTagFactory() {
+    return this.tagFactory;
   }
 }
