@@ -58,7 +58,7 @@ public class Neo4jItemFactory extends ItemFactory {
    * @throws GroundDbException an error inserting data into the database
    */
   @Override
-  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDbException {
+  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
       ElasticSearch.insertElasticSearch(tag, "item");
