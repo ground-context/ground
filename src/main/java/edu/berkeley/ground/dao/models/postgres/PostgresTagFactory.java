@@ -23,6 +23,7 @@ import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,14 +79,14 @@ public class PostgresTagFactory extends TagFactory {
   }
 
   @Override
-  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "rich_version");
+  public List<Long> getVersionIdsByTag(Tag tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("rich_version", tag.getKey());
   }
 
 
   @Override
-  public List<Long> getItemIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "item");
+  public List<Long> getItemIdsByTag(Tag tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("item", tag.getKey());
   }
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
