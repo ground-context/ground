@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import edu.berkeley.ground.util.ElasticSearch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,7 @@ public class CassandraItemFactory extends ItemFactory {
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
-
+      ElasticSearch.insertElasticSearch(tag, "item");
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));

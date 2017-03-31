@@ -24,6 +24,7 @@ import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,7 @@ public class Neo4jItemFactory extends ItemFactory {
   public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDbException {
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
+      ElasticSearch.insertElasticSearch(tag, "item");
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
