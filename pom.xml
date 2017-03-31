@@ -4,14 +4,45 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ground-core</artifactId>
-    <name>Ground Core</name>
-    <parent>
-        <groupId>edu.berkeley</groupId>
-        <artifactId>ground</artifactId>
-        <version>${ground.version}</version>
-        <relativePath>../</relativePath>
-    </parent>
+    <groupId>edu.berkeley</groupId>
+    <artifactId>ground</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <name>Ground</name>
+
+    <url>http://www.ground-context.org</url>
+    <prerequisites>
+        <maven>3.3.9</maven>
+    </prerequisites>
+
+    <properties>
+        <!-- use UTF-8 for everything -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Apache Commons version -->
+        <commons.version>2.6</commons.version>
+
+        <!-- Cassandra version -->
+        <cassandra.version>3.1.4</cassandra.version>
+
+        <!-- Dropwizard version -->
+        <dropwizard.version>1.0.0</dropwizard.version>
+
+        <!-- Jacoco version -->
+        <jacoco.version>0.7.9</jacoco.version>
+
+        <!-- Kafka version -->
+        <kafka.version>0.10.0.1</kafka.version>
+
+        <!-- log4j version -->
+        <log4j.version>2.5</log4j.version>
+
+        <!-- Neo4j version -->
+        <neo4j.version>1.2.0</neo4j.version>
+
+        <!-- slf4j version -->
+        <slf4j.version>1.7.21</slf4j.version>
+    </properties>
 
     <repositories>
         <!-- the Maven Central Repository -->
@@ -54,25 +85,21 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.directory.studio</groupId>
+            <artifactId>org.apache.commons.lang</artifactId>
+            <version>${commons.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
             <version>${cassandra.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.directory.studio</groupId>
-            <artifactId>org.apache.commons.lang</artifactId>
-            <version>2.6</version>
-        </dependency>
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>9.4.1208</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-core</artifactId>
-            <version>${jgrapht.version}</version>
         </dependency>
 
         <dependency>
@@ -92,71 +119,6 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>${kafka.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.thinkaurelius.titan</groupId>
-            <artifactId>titan-all</artifactId>
-            <version>${titan.version}</version>
-
-            <exclusions>
-                <!-- Exclude transitive dependencies that break Dropwizard -->
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.reflections</groupId>
-                    <artifactId>reflections</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jersey</groupId>
-                    <artifactId>jersey-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jersey</groupId>
-                    <artifactId>jersey-server</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jersey</groupId>
-                    <artifactId>jersey-json</artifactId>
-                </exclusion>
-
-                <!-- Exclude Lucene version that breaks Elasticsearch -->
-                <exclusion>
-                    <groupId>com.thinkaurelius.titan</groupId>
-                    <artifactId>titan-lucene</artifactId>
-                </exclusion>
-
-                <!-- Exclude Hadoop core 1.0 that breaks Gobblin -->
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-core</artifactId>
-                </exclusion>
-
-                <!-- Exclude titan-hadoop that breaks Gobblin due to scala 2.10 -->
-                <exclusion>
-                    <groupId>com.thinkaurelius.titan</groupId>
-                    <artifactId>titan-hadoop</artifactId>
-                </exclusion>
-
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -181,12 +143,37 @@
 
     <build>
         <plugins>
+            <!-- Plugin to generate test coverage information. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Plugin to generate test information -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
             </plugin>
 
+            <!-- Set compiler version -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -200,6 +187,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Generate shaded JARs -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -237,6 +225,7 @@
                 </executions>
             </plugin>
 
+            <!-- Generate JARs -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -249,31 +238,46 @@
                     </archive>
                 </configuration>
             </plugin>
+        </plugins>
 
+        <pluginManagement>
+
+            <!-- Add the Checkstyle plugin -->
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.17</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>LATEST</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <reporting>
+        <plugins>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.13</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+
                 <configuration>
-                    <imageName>groundcontext/ground</imageName>
-                    <baseImage>openjdk:alpine</baseImage>
-                    <entryPoint>["java", "-Djava.security.egd=file:/dev/./urandom", "-jar",
-                        "/${project.build.finalName}.jar", "server", "config.yml"]
-                    </entryPoint>
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>conf/</directory>
-                            <include>config.yml</include>
-                        </resource>
-                    </resources>
+                    <failOnViolation>true</failOnViolation>
                 </configuration>
             </plugin>
         </plugins>
-    </build>
+    </reporting>
 </project>
