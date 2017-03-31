@@ -79,14 +79,14 @@ public class PostgresTagFactory extends TagFactory {
   }
 
   @Override
-  public List<Long> getVersionIdsByTag(Tag tag) throws GroundException {
-    return ElasticSearch.getSearchResponse("rich_version", tag.getKey());
+  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("rich_version", tag);
   }
 
 
   @Override
-  public List<Long> getItemIdsByTag(Tag tag) throws GroundException {
-    return ElasticSearch.getSearchResponse("item", tag.getKey());
+  public List<Long> getItemIdsByTag(String tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("item", tag);
   }
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {

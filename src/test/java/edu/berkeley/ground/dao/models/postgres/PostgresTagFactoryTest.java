@@ -43,7 +43,7 @@ public class PostgresTagFactoryTest extends PostgresTest {
     long nodeId1 = super.factories.getNodeFactory().create("test1", null, tagsMap).getId();
     long nodeId2 = super.factories.getNodeFactory().create("test2", null, tagsMap).getId();
 
-    List<Long> ids = super.tagFactory.getItemIdsByTag(tag);
+    List<Long> ids = super.tagFactory.getItemIdsByTag(tag.getKey());
 
     super.postgresClient.commit();
 
@@ -64,7 +64,7 @@ public class PostgresTagFactoryTest extends PostgresTest {
     long nodeVersionId2 = super.factories.getNodeVersionFactory().create(tagsMap,
         -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
 
-    List<Long> ids = super.tagFactory.getVersionIdsByTag(tag);
+    List<Long> ids = super.tagFactory.getVersionIdsByTag(tag.getKey());
 
     super.postgresClient.commit();
 

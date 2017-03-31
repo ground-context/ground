@@ -80,12 +80,12 @@ public class CassandraTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getVersionIdsByTag(Tag tag) throws GroundException {
-    return ElasticSearch.getSearchResponse("rich_version", tag.getKey());
+  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("rich_version", tag);
   }
 
-  public List<Long> getItemIdsByTag(Tag tag) throws GroundException {
-    return ElasticSearch.getSearchResponse("item", tag.getKey());
+  public List<Long> getItemIdsByTag(String tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("item", tag);
 
   }
 
