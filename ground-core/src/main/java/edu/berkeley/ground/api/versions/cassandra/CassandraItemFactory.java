@@ -16,14 +16,12 @@ package edu.berkeley.ground.api.versions.cassandra;
 
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.cassandra.CassandraTagFactory;
-import edu.berkeley.ground.api.versions.Item;
-import edu.berkeley.ground.api.versions.ItemFactory;
-import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.api.versions.VersionHistoryDAG;
+import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.exceptions.GroundException;
+import org.elasticsearch.node.Node;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+
 
 public class CassandraItemFactory extends ItemFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraItemFactory.class);
@@ -46,6 +46,7 @@ public class CassandraItemFactory extends ItemFactory {
   public void insertIntoDatabase(GroundDBConnection connectionPointer, long id, Map<String, Tag> tags) throws GroundException {
     CassandraConnection connection = (CassandraConnection) connectionPointer;
 
+
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
@@ -53,6 +54,7 @@ public class CassandraItemFactory extends ItemFactory {
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
+      ElasticSearch.insertElasticSearch(tag, "item");
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));

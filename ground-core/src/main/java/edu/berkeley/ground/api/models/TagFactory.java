@@ -25,7 +25,7 @@ public abstract class TagFactory {
 
   public abstract Map<String, Tag> retrieveFromDatabaseByItemId(GroundDBConnection connection, long id) throws GroundException;
 
-  public abstract List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException;
+  public abstract List<Long> getVersionIdsByTag(GroundDBConnection connection, Tag tag) throws GroundException;
 
-  public abstract List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException;
+  public abstract List<Long> getItemIdsByTag(GroundDBConnection connection, Tag tag) throws GroundException;
 }

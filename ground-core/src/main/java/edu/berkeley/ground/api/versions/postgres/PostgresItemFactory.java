@@ -16,10 +16,7 @@ package edu.berkeley.ground.api.versions.postgres;
 
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.postgres.PostgresTagFactory;
-import edu.berkeley.ground.api.versions.Item;
-import edu.berkeley.ground.api.versions.ItemFactory;
-import edu.berkeley.ground.api.versions.GroundType;
-import edu.berkeley.ground.api.versions.VersionHistoryDAG;
+import edu.berkeley.ground.api.versions.*;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient.PostgresConnection;
@@ -53,6 +50,7 @@ public class PostgresItemFactory extends ItemFactory {
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
+      ElasticSearch.insertElasticSearch(tag, "item");
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));

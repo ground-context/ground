@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.cassandra;
 
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
+import edu.berkeley.ground.api.versions.ElasticSearch;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.CassandraClient.CassandraConnection;
 import edu.berkeley.ground.db.DBClient;
@@ -67,12 +68,12 @@ public class CassandraTagFactory extends TagFactory {
     return result;
   }
 
-  public List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
-    return this.getIdsByTag(connection, tag, "rich_version");
+  public List<Long> getVersionIdsByTag(GroundDBConnection connection, Tag tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("rich_version", tag.getKey());
   }
 
-  public List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
-    return this.getIdsByTag(connection, tag, "item");
+  public List<Long> getItemIdsByTag(GroundDBConnection connection, Tag tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("item", tag.getKey());
   }
 
   private List<Long> getIdsByTag(GroundDBConnection connectionPointer, String tag, String keyPrefix) throws GroundException {

@@ -18,6 +18,7 @@ import edu.berkeley.ground.api.models.RichVersion;
 import edu.berkeley.ground.api.models.RichVersionFactory;
 import edu.berkeley.ground.api.models.StructureVersion;
 import edu.berkeley.ground.api.models.Tag;
+import edu.berkeley.ground.api.versions.ElasticSearch;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.api.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DBClient;
@@ -68,7 +69,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
-
+      ElasticSearch.insertElasticSearch(tag, "rich_version");
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));

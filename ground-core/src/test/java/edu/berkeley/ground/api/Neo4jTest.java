@@ -32,7 +32,7 @@ public class Neo4jTest {
   protected Neo4jRichVersionFactory richVersionFactory;
 
   public Neo4jTest() {
-    this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
+    this.neo4jClient = new Neo4jClient("localhost", "neo4j", "Na18891rk!");
     this.factories = new Neo4jFactories(neo4jClient, 0, 1);
     this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory(new IdGenerator(0, 1, true));
     this.versionHistoryDAGFactory = new Neo4jVersionHistoryDAGFactory(this.versionSuccessorFactory);

@@ -16,6 +16,7 @@ package edu.berkeley.ground.api.models.neo4j;
 
 import edu.berkeley.ground.api.models.Tag;
 import edu.berkeley.ground.api.models.TagFactory;
+import edu.berkeley.ground.api.versions.ElasticSearch;
 import edu.berkeley.ground.api.versions.GroundType;
 import edu.berkeley.ground.db.DBClient.GroundDBConnection;
 import edu.berkeley.ground.db.DbDataContainer;
@@ -74,12 +75,12 @@ public class Neo4jTagFactory extends TagFactory {
     return tags;
   }
 
-  public List<Long> getVersionIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
-    return this.getIdsByTag(connection, tag, "rich_version_id");
+  public List<Long> getVersionIdsByTag(GroundDBConnection connection, Tag tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("rich_version", tag.getKey());
   }
 
-  public List<Long> getItemIdsByTag(GroundDBConnection connection, String tag) throws GroundException {
-    return this.getIdsByTag(connection, tag, "item_id");
+  public List<Long> getItemIdsByTag(GroundDBConnection connection, Tag tag) throws GroundException {
+    return ElasticSearch.getSearchResponse("item", tag.getKey());
   }
 
 

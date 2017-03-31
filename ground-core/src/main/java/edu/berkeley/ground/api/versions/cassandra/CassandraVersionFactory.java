@@ -32,5 +32,6 @@ public class CassandraVersionFactory extends VersionFactory {
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
     connection.insert("version", insertions);
+
   }
 }
