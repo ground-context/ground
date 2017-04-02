@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.GroundType;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.node.Node;
@@ -23,11 +24,10 @@ public class ElasticSearch {
   private static Node node;
   private static Client client;
   private static String clusterName = "groundtest";
-  private static String typeName;
 
 
-  public static boolean connectElasticSearch(String table) throws GroundException {
-    typeName = table;
+
+  public static boolean connectElasticSearch() throws GroundException {
     try {
       node = nodeBuilder().clusterName(clusterName).node();
       client = node.client();
@@ -39,17 +39,18 @@ public class ElasticSearch {
   }
 
   public static boolean insertElasticSearch(Tag tag, String table) throws GroundException {
-    boolean connected = connectElasticSearch(table);
-    if (!connected) {
-      throw new GroundException("ElasticSearch node failed to connect");
+    if (client == null) {
+      connectElasticSearch();
     }
 
     ObjectMapper mapper = new ObjectMapper();
 
     try {
       String json = mapper.writeValueAsString(tag);
-      IndexResponse response = client.prepareIndex(clusterName, typeName, Long.toString(tag.getId()))
+      IndexResponse response = client.prepareIndex(clusterName, table, Long.toString(tag.getId()))
         .setSource(json).get();
+      client.admin().indices().prepareRefresh().execute().actionGet(); // need to refresh index with new inserted item
+
       return response.isCreated();
 
     } catch (JsonProcessingException e) {
@@ -57,9 +58,17 @@ public class ElasticSearch {
       throw new GroundException("ObjectMapper failed to parse Tag object");
     }
 
+
+
   }
 
   public static List<Long> getSearchResponse(String type, String searchQuery) throws GroundException {
+    if (client == null) {
+      connectElasticSearch();
+    }
+
+    SearchResponse test = client.prepareSearch().get();
+    System.out.println(test.toString());
     SearchResponse response = client.prepareSearch().setTypes(type).setQuery(QueryBuilders.matchQuery("key", searchQuery)).get();
     SearchHit[] hits = response.getHits().getHits();
 
@@ -80,10 +89,21 @@ public class ElasticSearch {
       throw new GroundException("ObjectMapper failed to map json string into Tag object");
     } catch (IOException e) {
       e.printStackTrace();
-      throw new GroundException("ObjectMapper detected and IOException");
+      throw new GroundException("ObjectMapper detected an IOException");
     }
     return tagIds;
   }
+
+  public static void closeElasticSearch() {
+    System.out.println("CLOSING ELASTIC SEARCH!");
+    node.close();
+    client.close();
+  }
+
+
+
+
+
 
 
 }
