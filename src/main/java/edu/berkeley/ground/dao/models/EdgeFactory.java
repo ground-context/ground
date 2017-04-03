@@ -36,6 +36,8 @@ public abstract class EdgeFactory {
   public abstract void update(long itemId, long childId, List<Long> parentIds)
       throws GroundException;
 
+  public abstract void truncate(long itemId, int numLevels) throws GroundException;
+
   protected static Edge construct(long id,
                                   String name,
                                   String sourceKey,

@@ -97,8 +97,9 @@ public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
-  public void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
-      GroundException {
+  @Override
+  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+      throws GroundException {
 
     int keptLevels = 1;
     List<Long> previousLevel = dag.getLeaves();

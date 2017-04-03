@@ -108,6 +108,7 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
+  @Override
   public void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
       GroundException {
 
@@ -134,6 +135,13 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
       this.dbClient.delete(predicates, itemType);
+
+      if (!itemType.equals("structure")) {
+        this.dbClient.delete(predicates, "rich_version");
+      }
+
+      this.dbClient.delete(predicates, "version");
+
       deleted.add(id);
 
       deleteQueue.remove(0);

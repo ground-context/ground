@@ -196,6 +196,10 @@ public class PostgresEdgeFactory extends EdgeFactory {
         this.edgeVersionFactory.updatePreviousVersion(parentId, fromEndId, toEndId);
       }
     }
+  }
 
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    this.itemFactory.truncate(itemId, numLevels, "edge");
   }
 }

@@ -107,8 +107,9 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
-  public void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
-      GroundException {
+  @Override
+  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+      throws GroundException {
 
     int keptLevels = 1;
     List<Long> previousLevel = dag.getLeaves();
@@ -132,7 +133,14 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       long id = deleteQueue.get(0);
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      this.dbClient.delete(predicates, itemType);
+      this.dbClient.delete(predicates, itemType + "_version");
+
+      if (!itemType.equals("structure")) {
+        this.dbClient.delete(predicates, "rich_version");
+      }
+
+      this.dbClient.delete(predicates, "version");
+
       deleted.add(id);
 
       deleteQueue.remove(0);

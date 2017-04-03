@@ -199,4 +199,9 @@ public class CassandraEdgeFactory extends EdgeFactory {
       }
     }
   }
+
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    this.itemFactory.truncate(itemId, numLevels, "edge");
+  }
 }
