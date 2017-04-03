@@ -27,7 +27,9 @@ import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
   private final PostgresClient dbClient;
@@ -98,5 +100,50 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
     this.dbClient.insert("version_history_dag", insertions);
 
     dag.addEdge(parentId, childId, successor.getId());
+  }
+
+  /**
+   * Truncate the DAG to only have a certain number of levels, removing everything before that.
+   *
+   * @param dag the DAG to truncate
+   * @param numLevels the number of levels to keep
+   */
+  public void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
+      GroundException {
+
+    int keptLevels = 1;
+    List<Long> previousLevel = dag.getLeaves();
+    while (keptLevels < numLevels) {
+      List<Long> currentLevel = new ArrayList<>();
+
+      previousLevel.forEach(id ->
+          currentLevel.addAll(dag.getParent(id))
+      );
+
+      previousLevel = currentLevel;
+
+      keptLevels++;
+    }
+
+    List<Long> deleteQueue = previousLevel;
+    Set<Long> deleted = new HashSet<>();
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    while (deleteQueue.size() > 0) {
+      long id = deleteQueue.get(0);
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+      this.dbClient.delete(predicates, itemType);
+      deleted.add(id);
+
+      deleteQueue.remove(0);
+      List<Long> parents = dag.getParent(id);
+
+      parents.forEach(parentId -> {
+        if (!deleted.contains(parentId)) {
+          deleteQueue.add(parentId);
+        }
+      });
+    }
   }
 }

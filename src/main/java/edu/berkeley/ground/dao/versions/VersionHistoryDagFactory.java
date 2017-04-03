@@ -40,6 +40,15 @@ public abstract class VersionHistoryDagFactory {
   public abstract void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
       throws GroundException;
 
+  /**
+   * Truncate the DAG to only have a certain number of levels, removing everything before that.
+   *
+   * @param dag the DAG to truncate
+   * @param numLevels the number of levels to keep
+   */
+  public abstract void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
+      GroundException;
+
   protected static <T extends Version> VersionHistoryDag<T> construct(long itemId) {
     return new VersionHistoryDag<>(itemId, new ArrayList<>());
   }
