@@ -196,6 +196,35 @@ public class PostgresClient extends DbClient {
     }
   }
 
+  /**
+   * Delete a row from a table.
+   *
+   * @param predicates the delete predicates
+   * @param table the table to delete from
+   */
+  public void delete(List<DbDataContainer> predicates, String table) throws GroundDbException {
+    String deleteString = "delete from " + table + " ";
+
+    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+        .collect(Collectors.joining(", "));
+
+    deleteString += "where " + predicateString;
+
+    int index = 0;
+
+    try {
+      PreparedStatement statement = this.prepareStatement(deleteString);
+
+      for (DbDataContainer predicate : predicates) {
+        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+      }
+
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      throw new GroundDbException(e);
+    }
+  }
+
   @Override
   public void commit() throws GroundDbException {
     try {
