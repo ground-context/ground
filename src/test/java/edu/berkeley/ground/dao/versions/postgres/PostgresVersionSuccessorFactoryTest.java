@@ -69,4 +69,21 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
       super.postgresClient.abort();
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadVersionSuccessorRetrieval() throws GroundException {
+    try {
+      super.versionSuccessorFactory.retrieveFromDatabase(10);
+
+      super.postgresClient.commit();
+    } catch (GroundException e) {
+      super.postgresClient.abort();
+
+      if (!e.getMessage().contains("No VersionSuccessor found with id 10.")) {
+        fail();
+      }
+
+      throw e;
+    }
+  }
 }

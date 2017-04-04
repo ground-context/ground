@@ -55,6 +55,24 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   }
 
   @Test
+  public void testNodeCreationWithoutTagValues() throws GroundException {
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", null, null));
+
+    String testName = "test";
+    String sourceKey = "testKey";
+
+    Neo4jNodeFactory nodeFactory = (Neo4jNodeFactory) super.factories.getNodeFactory();
+    nodeFactory.create(testName, sourceKey, tagsMap);
+
+    Node node = nodeFactory.retrieveFromDatabase(testName);
+
+    assertEquals(testName, node.getName());
+    assertEquals(tagsMap, node.getTags());
+    assertEquals(sourceKey, node.getSourceKey());
+  }
+
+  @Test
   public void testNodeTagRetrieval() throws GroundException {
     try {
       Map<String, Tag> tags = new HashMap<>();

@@ -72,4 +72,21 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
       CassandraTest.cassandraClient.abort();
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadVersionSuccessorRetrieval() throws GroundException {
+    try {
+      CassandraTest.versionSuccessorFactory.retrieveFromDatabase(10);
+
+      CassandraTest.cassandraClient.commit();
+    } catch (GroundException e) {
+      CassandraTest.cassandraClient.abort();
+
+      if (!e.getMessage().contains("No VersionSuccessor found with id 10.")) {
+        fail();
+      }
+
+      throw e;
+    }
+  }
 }
