@@ -117,6 +117,21 @@ public class Neo4jGraphVersionFactoryTest extends Neo4jTest {
     }
   }
 
+  @Test
+  public void testCreateEmptyGraph() throws GroundException {
+    String graphName = "testGraph";
+    long graphId = super.factories.getGraphFactory().create(graphName, null, new HashMap<>())
+        .getId();
+
+    long graphVersionId = super.factories.getGraphVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), graphId, new ArrayList<>(), new ArrayList<>()).getId();
+
+    GraphVersion retrieved = super.factories.getGraphVersionFactory()
+        .retrieveFromDatabase(graphVersionId);
+
+    assertTrue(retrieved.getEdgeVersionIds().isEmpty());
+  }
+
   @Test(expected = GroundException.class)
   public void testBadGraphVersion() throws GroundException {
     long id = 1;
