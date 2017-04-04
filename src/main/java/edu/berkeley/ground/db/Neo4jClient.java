@@ -310,11 +310,11 @@ public class Neo4jClient extends DbClient {
   public void deleteNode(List<DbDataContainer> predicates, String label) {
     String delete = "MATCH (n: " + label + " {";
 
-    this.addValuesToStatement(delete, predicates);
+    delete = this.addValuesToStatement(delete, predicates);
 
     delete += "})" +
         "MATCH (n)-[e]-()" +
-        "DELETE e" +
+        "DELETE e " +
         "DELETE n;";
 
     this.transaction.run(delete);

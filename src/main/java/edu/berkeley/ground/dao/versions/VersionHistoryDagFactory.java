@@ -43,6 +43,8 @@ public abstract class VersionHistoryDagFactory {
   /**
    * Truncate the DAG to only have a certain number of levels, removing everything before that.
    *
+   * TODO: Once we have delta-encoded tags, this should also update the associated tags.
+   *
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */

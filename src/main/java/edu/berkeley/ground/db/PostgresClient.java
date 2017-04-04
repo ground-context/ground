@@ -210,13 +210,14 @@ public class PostgresClient extends DbClient {
 
     deleteString += "where " + predicateString;
 
-    int index = 0;
+    int index = 1;
 
     try {
       PreparedStatement statement = this.prepareStatement(deleteString);
 
       for (DbDataContainer predicate : predicates) {
         PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
       }
 
       statement.executeUpdate();

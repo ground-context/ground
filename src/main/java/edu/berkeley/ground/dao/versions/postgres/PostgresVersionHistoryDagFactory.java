@@ -113,14 +113,17 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
       GroundException {
 
     int keptLevels = 1;
+    List<Long> lastLevel = new ArrayList<>();
     List<Long> previousLevel = dag.getLeaves();
-    while (keptLevels < numLevels) {
+
+    while (keptLevels <= numLevels) {
       List<Long> currentLevel = new ArrayList<>();
 
       previousLevel.forEach(id ->
           currentLevel.addAll(dag.getParent(id))
       );
 
+      lastLevel = previousLevel;
       previousLevel = currentLevel;
 
       keptLevels++;
@@ -130,28 +133,46 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
     Set<Long> deleted = new HashSet<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();
+    for (long id : lastLevel) {
+      this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
+      this.addEdge(dag, 0, id, dag.getItemId());
+    }
+
     while (deleteQueue.size() > 0) {
       long id = deleteQueue.get(0);
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      this.dbClient.delete(predicates, itemType);
+      if (id != 0) {
+        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      if (!itemType.equals("structure")) {
-        this.dbClient.delete(predicates, "rich_version");
+        this.dbClient.delete(predicates, itemType + "_version");
+
+        if (!itemType.equals("structure")) {
+          this.dbClient.delete(predicates, "rich_version");
+        }
+
+        this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
+
+        predicates.clear();
+        predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+        this.dbClient.delete(predicates, "rich_version_tag");
+
+        predicates.clear();
+        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+        this.dbClient.delete(predicates, "version");
+
+        deleted.add(id);
+
+        List<Long> parents = dag.getParent(id);
+
+        parents.forEach(parentId -> {
+          if (!deleted.contains(parentId)) {
+            deleteQueue.add(parentId);
+          }
+        });
+        predicates.clear();
       }
 
-      this.dbClient.delete(predicates, "version");
-
-      deleted.add(id);
-
       deleteQueue.remove(0);
-      List<Long> parents = dag.getParent(id);
-
-      parents.forEach(parentId -> {
-        if (!deleted.contains(parentId)) {
-          deleteQueue.add(parentId);
-        }
-      });
     }
   }
 }

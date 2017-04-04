@@ -182,16 +182,16 @@ public class CassandraClient extends DbClient {
     String deleteString = "delete from " + table + " ";
 
     String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
-        .collect(Collectors.joining(", "));
+        .collect(Collectors.joining(" and "));
 
     deleteString += "where " + predicateString;
 
-    int index = 0;
-
     BoundStatement statement = this.prepareStatement(deleteString);
 
+    int index = 0;
     for (DbDataContainer predicate : predicates) {
       CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+      index++;
     }
 
     this.session.execute(statement);

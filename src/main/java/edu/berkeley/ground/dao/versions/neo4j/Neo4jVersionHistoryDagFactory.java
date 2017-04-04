@@ -102,14 +102,17 @@ public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
       throws GroundException {
 
     int keptLevels = 1;
+    List<Long> lastLevel = new ArrayList<>();
     List<Long> previousLevel = dag.getLeaves();
-    while (keptLevels < numLevels) {
+
+    while (keptLevels <= numLevels) {
       List<Long> currentLevel = new ArrayList<>();
 
       previousLevel.forEach(id ->
           currentLevel.addAll(dag.getParent(id))
       );
 
+      lastLevel = previousLevel;
       previousLevel = currentLevel;
 
       keptLevels++;
@@ -118,16 +121,28 @@ public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
     List<Long> deleteQueue = previousLevel;
     Set<Long> deleted = new HashSet<>();
 
+    for (long id : lastLevel) {
+      this.addEdge(dag, dag.getItemId(), id, dag.getItemId());
+    }
+
     List<DbDataContainer> predicates = new ArrayList<>();
+
     while (deleteQueue.size() > 0) {
       long id = deleteQueue.get(0);
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      this.dbClient.deleteNode(predicates, itemType);
-      deleted.add(id);
+      this.dbClient.deleteNode(predicates, itemType.substring(0, 1).toUpperCase() + itemType
+          .substring(1).toLowerCase() + "Version");
 
       deleteQueue.remove(0);
       List<Long> parents = dag.getParent(id);
+
+      predicates.clear();
+      predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+      this.dbClient.deleteNode(predicates, "RichVersionTag");
+      this.dbClient.commit();
+
+      deleted.add(id);
 
       parents.forEach(parentId -> {
         if (!deleted.contains(parentId)) {
