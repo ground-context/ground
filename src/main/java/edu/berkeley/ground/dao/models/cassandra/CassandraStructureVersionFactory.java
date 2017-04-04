@@ -17,9 +17,9 @@ package edu.berkeley.ground.dao.models.cassandra;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.StructureVersion;
@@ -123,7 +123,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      QueryResults resultSet;
+      CassandraResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR,
             predicates);
@@ -138,12 +138,12 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
       try {
         List<DbDataContainer> attributePredicates = new ArrayList<>();
         attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-        QueryResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+        CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
             DbClient.SELECT_STAR, attributePredicates);
 
         do {
-          attributes.put(attributesSet.getString(1), GroundType.fromString(attributesSet
-              .getString(2)));
+          attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
+              .getString("type")));
         } while (attributesSet.next());
       } catch (EmptyResultException e) {
         this.dbClient.abort();
@@ -151,7 +151,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
         throw new GroundException("No StructureVersion attributes found for id " + id + ".");
       }
 
-      long structureId = resultSet.getLong(1);
+      long structureId = resultSet.getLong("structure_id");
 
       this.dbClient.commit();
       LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");

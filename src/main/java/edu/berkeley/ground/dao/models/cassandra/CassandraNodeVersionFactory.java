@@ -16,9 +16,9 @@ package edu.berkeley.ground.dao.models.cassandra;
 
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.NodeVersion;
@@ -129,7 +129,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      QueryResults resultSet;
+      CassandraResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("node_version", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
@@ -138,7 +138,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
         throw new GroundException("No NodeVersion found with id " + id + ".");
       }
 
-      long nodeId = resultSet.getLong(1);
+      long nodeId = resultSet.getLong("node_id");
 
       this.dbClient.commit();
       LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");

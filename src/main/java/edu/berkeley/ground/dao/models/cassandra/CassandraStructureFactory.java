@@ -17,9 +17,9 @@ package edu.berkeley.ground.dao.models.cassandra;
 import edu.berkeley.ground.dao.models.StructureFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Structure;
@@ -128,7 +128,7 @@ public class CassandraStructureFactory extends StructureFactory {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
-      QueryResults resultSet;
+      CassandraResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("structure", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
@@ -137,7 +137,7 @@ public class CassandraStructureFactory extends StructureFactory {
         throw new GroundException("No Structure found with name " + name + ".");
       }
 
-      long id = resultSet.getLong(0);
+      long id = resultSet.getLong("item_id");
       String sourceKey = resultSet.getString("source_key");
 
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();

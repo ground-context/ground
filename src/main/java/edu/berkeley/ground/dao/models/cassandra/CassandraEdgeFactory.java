@@ -18,9 +18,9 @@ import edu.berkeley.ground.dao.models.EdgeFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Edge;
@@ -129,7 +129,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
     try {
-      QueryResults resultSet;
+      CassandraResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
@@ -138,7 +138,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
         throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
       }
 
-      long id = resultSet.getLong(0);
+      long id = resultSet.getLong("item_id");
       long fromNodeId = resultSet.getLong("from_node_id");
       long toNodeId = resultSet.getLong("to_node_id");
 

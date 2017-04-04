@@ -19,7 +19,7 @@ import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -146,7 +146,7 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
       lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
           id));
 
-      QueryResults resultSet;
+      PostgresResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
             predicates);
@@ -154,7 +154,7 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
         throw new GroundException("No LineageGraphVersion found with id " + id + ".");
       }
 
-      QueryResults lineageEdgeSet;
+      PostgresResults lineageEdgeSet;
       List<Long> lineageEdgeVersionIds = new ArrayList<>();
       try {
         lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient

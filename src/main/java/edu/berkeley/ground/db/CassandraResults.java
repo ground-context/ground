@@ -18,8 +18,9 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 
 import edu.berkeley.ground.exceptions.GroundDbException;
+import edu.berkeley.ground.model.versions.GroundType;
 
-public class CassandraResults implements QueryResults {
+public class CassandraResults {
   private final ResultSet resultSet;
   private Row currentRow;
 
@@ -30,29 +31,12 @@ public class CassandraResults implements QueryResults {
   }
 
   /**
-   * Retrieve the string at the index.
-   *
-   * @param index the index to use
-   * @return the string at index
-   * @throws GroundDbException either the column doesn't exist or it isn't a string
-   */
-  @Override
-  public String getString(int index) throws GroundDbException {
-    try {
-      return this.currentRow.getString(index);
-    } catch (Exception e) {
-      throw new GroundDbException(e);
-    }
-  }
-
-  /**
    * Return the string in the column with the given name.
    *
    * @param field the column to look in
    * @return the string in the column
    * @throws GroundDbException either the column doesn't exist or it isn't a string
    */
-  @Override
   public String getString(String field) throws GroundDbException {
     try {
       return this.currentRow.getString(field);
@@ -62,48 +46,32 @@ public class CassandraResults implements QueryResults {
   }
 
   /**
-   * Retrieve the int at the index.
+   * Retrieve the int in the column with the given name.
    *
-   * @param index the index to use
-   * @return the int at index
+   * @param field the column to look in
+   * @return the int in the column
    * @throws GroundDbException either column doesn't exist or isn't an int
    */
-  @Override
-  public int getInt(int index) throws GroundDbException {
+  public int getInt(String field) throws GroundDbException {
     try {
-      return this.currentRow.getInt(index);
+      return (Integer) GroundType.stringToType(this.currentRow.getString(field),
+          GroundType.INTEGER);
     } catch (Exception e) {
       throw new GroundDbException(e);
     }
   }
 
   /**
-   * Retrieve the boolean at the index.
+   * Retrieve the boolean in the column with the given name.
    *
-   * @param index the index to use
-   * @return the boolean at index
+   * @param field the column to look in
+   * @return the boolean in the column
    * @throws GroundDbException either column doesn't exist or isn't an boolean
    */
-  @Override
-  public boolean getBoolean(int index) throws GroundDbException {
+  public boolean getBoolean(String field) throws GroundDbException {
     try {
-      return this.currentRow.getBool(index);
-    } catch (Exception e) {
-      throw new GroundDbException(e);
-    }
-  }
-
-  /**
-   * Retrieve the long at the index.
-   *
-   * @param index the index to use
-   * @return the long at the index
-   * @throws GroundDbException either the column doesn't exist or isn't a long
-   */
-  @Override
-  public long getLong(int index) throws GroundDbException {
-    try {
-      return this.currentRow.getLong(index);
+      return (Boolean) GroundType.stringToType(this.currentRow.getString(field),
+          GroundType.BOOLEAN);
     } catch (Exception e) {
       throw new GroundDbException(e);
     }
@@ -116,7 +84,6 @@ public class CassandraResults implements QueryResults {
    * @return the long in field
    * @throws GroundDbException either column doesn't exist or isn't a long
    */
-  @Override
   public long getLong(String field) throws GroundDbException {
     try {
       return this.currentRow.getLong(field);
@@ -130,7 +97,6 @@ public class CassandraResults implements QueryResults {
    *
    * @return false if there are no more rows
    */
-  @Override
   public boolean next() {
     this.currentRow = this.resultSet.one();
 
@@ -140,21 +106,9 @@ public class CassandraResults implements QueryResults {
   /**
    * Determine if the index of current row is null.
    *
-   * @param index the index to use
-   * @return true if null, false otherwise
-   */
-  @Override
-  public boolean isNull(int index) {
-    return this.currentRow.isNull(index);
-  }
-
-  /**
-   * Determine if the index of current row is null.
-   *
    * @param field the field to check
    * @return true if null, false otherwise
    */
-  @Override
   public boolean isNull(String field) {
     return this.currentRow.isNull(field);
   }
