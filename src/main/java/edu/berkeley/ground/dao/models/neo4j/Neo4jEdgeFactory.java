@@ -208,4 +208,17 @@ public class Neo4jEdgeFactory extends EdgeFactory {
       }
     }
   }
+
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    try {
+      this.itemFactory.truncate(itemId, numLevels, "edge");
+
+      this.dbClient.commit();
+    } catch (GroundException e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
+  }
 }

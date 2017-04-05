@@ -148,4 +148,8 @@ public class Neo4jStructureFactory extends StructureFactory {
     this.itemFactory.update(itemId, childId, parentIds);
   }
 
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    this.itemFactory.truncate(itemId, numLevels, "structure");
+  }
 }

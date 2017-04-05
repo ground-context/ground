@@ -75,7 +75,8 @@ public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
         structureVersionId, testReference, parameters, graphId, lineageEdgeVersionIds,
         new ArrayList<>()).getId();
 
-    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory().retrieveFromDatabase(graphVersionId);
+    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory()
+        .retrieveFromDatabase(graphVersionId);
 
     assertEquals(graphId, retrieved.getLineageGraphId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());

@@ -16,13 +16,18 @@ package edu.berkeley.ground.dao.models.postgres;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Edge;
+import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -65,5 +70,60 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncation() throws GroundException {
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
+        new HashMap<>()).getId();
+    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
+        new HashMap<>()).getId();
+    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+
+    String edgeName = "testEdge";
+    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
+        secondTestNodeId, new HashMap<>()).getId();
+
+
+    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
+        new ArrayList<>()).getId();
+
+    // create new node versions in each of the nodes
+    List<Long> parents = new ArrayList<>();
+    parents.add(firstNodeVersionId);
+    long newFirstNodeVersionId = super.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), firstTestNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(secondNodeVersionId);
+    long newSecondNodeVersionId = super.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), secondTestNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(edgeVersionId);
+    long newEdgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), edgeId, newFirstNodeVersionId, -1, newSecondNodeVersionId, -1,
+        parents).getId();
+
+    super.factories.getEdgeFactory().truncate(edgeId, 1);
+
+    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(edgeId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    super.postgresClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newEdgeVersionId, successor.getToId());
   }
 }

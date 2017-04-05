@@ -38,6 +38,16 @@ public abstract class ItemFactory {
   public abstract void update(long itemId, long childId, List<Long> parentIds)
       throws GroundException;
 
+  /**
+   * Truncate the item to only have the most recent levels.
+   *
+   * @param numLevels the levels to keep
+   * @param itemType the type of the item to truncate
+   * @throws GroundException an error while removing versions
+   */
+  public abstract void truncate(long itemId, int numLevels, String itemType)
+      throws GroundException;
+
   public static Item construct(long id, Map<String, Tag> tags) {
     return new Item(id, tags);
   }

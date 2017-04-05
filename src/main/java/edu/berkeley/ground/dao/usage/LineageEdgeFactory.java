@@ -32,6 +32,8 @@ public abstract class LineageEdgeFactory {
   public abstract void update(long itemId, long childId, List<Long> parentIds)
       throws GroundException;
 
+  public abstract void truncate(long itemId, int numLevels) throws GroundException;
+
   public static LineageEdge construct(long id,
                                       String name,
                                       String sourceKey,

@@ -107,4 +107,24 @@ public class LineageEdgesResource {
         lineageEdgeVersion.getLineageEdgeId(),
         parentIds);
   }
+
+  /**
+   * Truncate a lineage edge's history to be of a certain height, only keeping the most recent
+   * levels.
+   *
+   * @param name the name of the lineage edge to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this lineage edge
+   */
+  @POST
+  @Timed
+  @Path("/truncate/{name}/{height}")
+  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    LOGGER.info("Truncating lineage edge " + name + " to height " + height + ".");
+
+    long id = this.lineageEdgeFactory.retrieveFromDatabase(name).getId();
+
+    this.lineageEdgeFactory.truncate(id, height);
+  }
 }

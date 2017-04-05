@@ -37,23 +37,23 @@ public class CassandraLineageEdgeVersionFactoryTest extends CassandraTest {
   @Test
   public void testLineageEdgeVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
+    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, null,
         new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+    long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
+    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, null,
         new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+    long secondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
         -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
 
     String lineageEdgeName = "testLineageEdge";
-    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
+    long lineageEdgeId = CassandraTest.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
         new HashMap<>()).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
+    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
         new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
@@ -61,7 +61,7 @@ public class CassandraLineageEdgeVersionFactoryTest extends CassandraTest {
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
     Map<String, Tag> tags = new HashMap<>();
@@ -73,11 +73,11 @@ public class CassandraLineageEdgeVersionFactoryTest extends CassandraTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(tags,
+    long lineageEdgeVersionId = CassandraTest.factories.getLineageEdgeVersionFactory().create(tags,
         structureVersionId, testReference, parameters, firstNodeVersionId,
         secondNodeVersionId, lineageEdgeId, new ArrayList<>()).getId();
 
-    LineageEdgeVersion retrieved = super.factories.getLineageEdgeVersionFactory()
+    LineageEdgeVersion retrieved = CassandraTest.factories.getLineageEdgeVersionFactory()
         .retrieveFromDatabase(lineageEdgeVersionId);
 
     assertEquals(lineageEdgeId, retrieved.getLineageEdgeId());

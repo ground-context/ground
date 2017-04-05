@@ -160,4 +160,18 @@ public class CassandraItemFactory extends ItemFactory {
       return new ArrayList<>();
     }
   }
+
+  /**
+   * Truncate the item to only have the most recent levels.
+   *
+   * @param numLevels the levels to keep
+   * @param itemType the type of the item to truncate
+   * @throws GroundException an error while removing versions
+   */
+  @Override
+  public void truncate(long itemId, int numLevels, String itemType) throws GroundException {
+    VersionHistoryDag<?> dag = this.versionHistoryDagFactory.retrieveFromDatabase(itemId);
+
+    this.versionHistoryDagFactory.truncate(dag, numLevels, itemType);
+  }
 }

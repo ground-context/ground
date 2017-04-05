@@ -106,4 +106,24 @@ public class LineageGraphsResource {
         lineageGraphVersion.getLineageEdgeVersionIds(),
         parentIds);
   }
+
+  /**
+   * Truncate a lineage graph's history to be of a certain height, only keeping the most recent
+   * levels.
+   *
+   * @param name the name of the lineage graph to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this lineage graph
+   */
+  @POST
+  @Timed
+  @Path("/truncate/{name}/{height}")
+  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    LOGGER.info("Truncating lineage graph " + name + " to height " + height + ".");
+
+    long id = this.lineageGraphFactory.retrieveFromDatabase(name).getId();
+
+    this.lineageGraphFactory.truncate(id, height);
+  }
 }

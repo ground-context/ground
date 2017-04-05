@@ -31,6 +31,8 @@ import java.util.List;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.types.Relationship;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
   private final Neo4jClient dbClient;
   private final IdGenerator idGenerator;
@@ -110,5 +112,16 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     long toId = (result.get("toId")).asLong();
 
     return VersionSuccessorFactory.construct(id, fromId, toId);
+  }
+
+  /**
+   * Delete a version successor from the database.
+   *
+   * @param toId the destination version
+   */
+  @Override
+  public void deleteFromDestination(long toId, long itemId) throws GroundException {
+    // this is not currently needed and would require a special case function in the DB client
+    throw new NotImplementedException();
   }
 }

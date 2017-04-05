@@ -19,10 +19,15 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.StructureVersion;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -76,5 +81,39 @@ public class CassandraStructureFactoryTest extends CassandraTest {
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    String structureName = "testStructure";
+    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
+
+    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
+    structureVersionAttributes.put("intfield", GroundType.INTEGER);
+
+    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
+        structureId, structureVersionAttributes, new ArrayList<>()).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(structureVersionId);
+
+    long newStructureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
+        structureId, structureVersionAttributes, parents).getId();
+
+    CassandraTest.factories.getStructureFactory().truncate(structureId, 1);
+
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(structureId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    CassandraTest.cassandraClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newStructureVersionId, successor.getToId());
   }
 }

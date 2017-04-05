@@ -148,4 +148,9 @@ public class PostgresNodeFactory extends NodeFactory {
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
   }
+
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    this.itemFactory.truncate(itemId, numLevels, "node");
+  }
 }

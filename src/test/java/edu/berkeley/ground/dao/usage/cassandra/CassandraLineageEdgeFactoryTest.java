@@ -16,11 +16,15 @@ package edu.berkeley.ground.dao.usage.cassandra;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.usage.LineageEdge;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -68,5 +72,50 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, null,
+        new HashMap<>()).getId();
+    long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, null,
+        new HashMap<>()).getId();
+    long secondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+
+    String lineageEdgeName = "testLineageEdge";
+    long lineageEdgeId = CassandraTest.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
+        new HashMap<>()).getId();
+
+    long lineageEdgeVersionId = CassandraTest.factories.getLineageEdgeVersionFactory().create(
+        new HashMap<>(), -1, null, new HashMap<>(), firstNodeVersionId, secondNodeVersionId,
+        lineageEdgeId, new ArrayList<>()).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(lineageEdgeVersionId);
+
+    long newLineageEdgeVersionId = CassandraTest.factories.getLineageEdgeVersionFactory().create(
+        new HashMap<>(), -1, null, new HashMap<>(), firstNodeVersionId, secondNodeVersionId,
+        lineageEdgeId, parents).getId();
+
+    CassandraTest.factories.getLineageEdgeFactory().truncate(lineageEdgeId, 1);
+
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(lineageEdgeId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    CassandraTest.cassandraClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newLineageEdgeVersionId, successor.getToId());
   }
 }
