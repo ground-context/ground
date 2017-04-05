@@ -142,4 +142,23 @@ public class EdgesResource {
         edgeVersion.getToNodeVersionEndId(),
         parentIds);
   }
+
+  /**
+   * Truncate an edge's history to be of a certain height, only keeping the most recent levels.
+   *
+   * @param name the name of the edge to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this edge
+   */
+  @POST
+  @Timed
+  @Path("/truncate/{name}/{height}")
+  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    LOGGER.info("Truncating edge " + name + " to height " + height + ".");
+
+    long id = this.edgeFactory.retrieveFromDatabase(name).getId();
+
+    this.edgeFactory.truncate(id, height);
+  }
 }

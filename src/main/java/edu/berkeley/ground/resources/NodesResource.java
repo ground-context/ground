@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/nodes")
-@Api(value = "/nodes", description = "Interact with the nodes in the graph")
+@Api(value = "/nodes", description = "Interact with the nodes in the node")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class NodesResource {
@@ -111,5 +111,24 @@ public class NodesResource {
   public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
     LOGGER.info("Retrieving the latest version of node " + name + ".");
     return this.nodeFactory.getLeaves(name);
+  }
+
+  /**
+   * Truncate a node's history to be of a certain height, only keeping the most recent levels.
+   *
+   * @param name the name of the node to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this node
+   */
+  @POST
+  @Timed
+  @Path("/truncate/{name}/{height}")
+  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    LOGGER.info("Truncating node " + name + " to height " + height + ".");
+
+    long id = this.nodeFactory.retrieveFromDatabase(name).getId();
+
+    this.nodeFactory.truncate(id, height);
   }
 }

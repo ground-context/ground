@@ -105,4 +105,23 @@ public class GraphsResource {
         graphVersion.getEdgeVersionIds(),
         parentIds);
   }
+
+  /**
+   * Truncate a graph's history to be of a certain height, only keeping the most recent levels.
+   *
+   * @param name the name of the graph to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this graph
+   */
+  @POST
+  @Timed
+  @Path("/truncate/{name}/{height}")
+  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    LOGGER.info("Truncating graph " + name + " to height " + height + ".");
+
+    long id = this.graphFactory.retrieveFromDatabase(name).getId();
+
+    this.graphFactory.truncate(id, height);
+  }
 }

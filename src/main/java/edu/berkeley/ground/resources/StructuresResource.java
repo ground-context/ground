@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/structures")
-@Api(value = "/structures", description = "Interact with the structures in the graph")
+@Api(value = "/structures", description = "Interact with the structures in the structure")
 @Produces(MediaType.APPLICATION_JSON)
 public class StructuresResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(StructuresResource.class);
@@ -110,5 +110,24 @@ public class StructuresResource {
   public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
     LOGGER.info("Retrieving the latest version of node " + name + ".");
     return this.structureFactory.getLeaves(name);
+  }
+
+  /**
+   * Truncate a structure's history to be of a certain height, only keeping the most recent levels.
+   *
+   * @param name the name of the structure to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this structure
+   */
+  @POST
+  @Timed
+  @Path("/truncate/{name}/{height}")
+  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    LOGGER.info("Truncating structure " + name + " to height " + height + ".");
+
+    long id = this.structureFactory.retrieveFromDatabase(name).getId();
+
+    this.structureFactory.truncate(id, height);
   }
 }
