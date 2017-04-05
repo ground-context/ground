@@ -88,36 +88,30 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
                                    long lineageEdgeId,
                                    List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-          new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-      );
+    tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+    );
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("lineage_edge_id", GroundType.LONG, lineageEdgeId));
-      insertions.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, fromId));
-      insertions.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, toId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("lineage_edge_id", GroundType.LONG, lineageEdgeId));
+    insertions.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, toId));
 
-      this.dbClient.insert("lineage_edge_version", insertions);
+    this.dbClient.insert("lineage_edge_version", insertions);
 
-      this.lineageEdgeFactory.update(lineageEdgeId, id, parentIds);
+    this.lineageEdgeFactory.update(lineageEdgeId, id, parentIds);
 
-      this.dbClient.commit();
-      LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
+    this.dbClient.commit();
+    LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-      return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, fromId, toId, lineageEdgeId);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, fromId, toId, lineageEdgeId);
   }
 
   /**
@@ -129,37 +123,31 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
    */
   @Override
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    CassandraResults resultSet;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      CassandraResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("lineage_edge_version", DbClient.SELECT_STAR,
-            predicates);
-      } catch (EmptyResultException e) {
-        this.dbClient.abort();
-
-        throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
-      }
-
-      long lineageEdgeId = resultSet.getLong("lineage_edge_id");
-      long fromId = resultSet.getLong("from_rich_version_id");
-      long toId = resultSet.getLong("to_rich_version_id");
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
-          + ".");
-
-      return LineageEdgeVersionFactory.construct(id, version.getTags(),
-          version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId,
-          toId, lineageEdgeId);
-    } catch (GroundException e) {
+      resultSet = this.dbClient.equalitySelect("lineage_edge_version", DbClient.SELECT_STAR,
+          predicates);
+    } catch (EmptyResultException e) {
       this.dbClient.abort();
 
-      throw e;
+      throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
     }
+
+    long lineageEdgeId = resultSet.getLong("lineage_edge_id");
+    long fromId = resultSet.getLong("from_rich_version_id");
+    long toId = resultSet.getLong("to_rich_version_id");
+
+    this.dbClient.commit();
+    LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
+        + ".");
+
+    return LineageEdgeVersionFactory.construct(id, version.getTags(),
+        version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId,
+        toId, lineageEdgeId);
   }
 }

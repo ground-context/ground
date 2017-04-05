@@ -88,28 +88,22 @@ public class CassandraEdgeFactory extends EdgeFactory {
                      long fromNodeId,
                      long toNodeId,
                      Map<String, Tag> tags) throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
+    long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
-      insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
+    insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.insert("edge", insertions);
+    this.dbClient.insert("edge", insertions);
 
-      this.dbClient.commit();
-      LOGGER.info("Created edge " + name + ".");
-      return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    this.dbClient.commit();
+    LOGGER.info("Created edge " + name + ".");
+    return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 
   @Override
@@ -128,34 +122,26 @@ public class CassandraEdgeFactory extends EdgeFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
+    CassandraResults resultSet;
     try {
-      CassandraResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        this.dbClient.abort();
-
-        throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
-      }
-
-      long id = resultSet.getLong("item_id");
-      long fromNodeId = resultSet.getLong("from_node_id");
-      long toNodeId = resultSet.getLong("to_node_id");
-
-      String name = resultSet.getString("name");
-      String sourceKey = resultSet.getString("source_key");
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved edge " + value + ".");
-
-      return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
     }
+
+    long id = resultSet.getLong("item_id");
+    long fromNodeId = resultSet.getLong("from_node_id");
+    long toNodeId = resultSet.getLong("to_node_id");
+
+    String name = resultSet.getString("name");
+    String sourceKey = resultSet.getString("source_key");
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+    this.dbClient.commit();
+    LOGGER.info("Retrieved edge " + value + ".");
+
+    return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 
   /**

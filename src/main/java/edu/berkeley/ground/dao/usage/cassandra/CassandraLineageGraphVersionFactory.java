@@ -85,44 +85,38 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
                                     List<Long> lineageEdgeVersionIds,
                                     List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag
-          .getKey(), tag.getValue(), tag.getValueType())));
+    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag
+        .getKey(), tag.getValue(), tag.getValueType())));
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("lineage_graph_id", GroundType.LONG, lineageGraphId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("lineage_graph_id", GroundType.LONG, lineageGraphId));
 
-      this.dbClient.insert("lineage_graph_version", insertions);
+    this.dbClient.insert("lineage_graph_version", insertions);
 
-      for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
-        List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
-        lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
-            id));
-        lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
-            lineageEdgeVersionId));
+    for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
+      List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
+      lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+          id));
+      lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
+          lineageEdgeVersionId));
 
-        this.dbClient.insert("lineage_graph_version_edge", lineageEdgeInsertion);
-      }
-
-      this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
-
-      this.dbClient.commit();
-      LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
-          + ".");
-
-      return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, lineageGraphId, lineageEdgeVersionIds);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      this.dbClient.insert("lineage_graph_version_edge", lineageEdgeInsertion);
     }
+
+    this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
+
+    this.dbClient.commit();
+    LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
+        + ".");
+
+    return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, lineageGraphId, lineageEdgeVersionIds);
   }
 
   /**
@@ -134,50 +128,45 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
    */
   @Override
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
+
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
+    lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+        id));
+
+    CassandraResults resultSet;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
-      lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
-          id));
-
-      CassandraResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
-            predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundException("No LineageGraphVersion found with id " + id + ".");
-      }
-
-      long lineageGraphId = resultSet.getLong("lineage_graph_id");
-
-      List<Long> lineageEdgeVersionIds = new ArrayList<>();
-      try {
-        CassandraResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
-            DbClient.SELECT_STAR, lineageEdgePredicate);
-
-       do {
-          lineageEdgeVersionIds.add(lineageEdgeSet.getLong("lineage_edge_version_id"));
-        } while (lineageEdgeSet.next());
-      } catch (EmptyResultException e) {
-        // do nothing; this means that the lineage_graph is empty
-      }
-
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId
-          + ".");
-
-      return LineageGraphVersionFactory.construct(id, version.getTags(), version
-          .getStructureVersionId(), version.getReference(), version.getParameters(),
-          lineageGraphId, lineageEdgeVersionIds);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
+          predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No LineageGraphVersion found with id " + id + ".");
     }
+
+    long lineageGraphId = resultSet.getLong("lineage_graph_id");
+
+    List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    try {
+      CassandraResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
+          DbClient.SELECT_STAR, lineageEdgePredicate);
+
+      do {
+        lineageEdgeVersionIds.add(lineageEdgeSet.getLong("lineage_edge_version_id"));
+      } while (lineageEdgeSet.next());
+    } catch (EmptyResultException e) {
+      // do nothing; this means that the lineage_graph is empty
+    }
+
+
+    this.dbClient.commit();
+    LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId
+        + ".");
+
+    return LineageGraphVersionFactory.construct(id, version.getTags(), version
+            .getStructureVersionId(), version.getReference(), version.getParameters(),
+        lineageGraphId, lineageEdgeVersionIds);
   }
 }
