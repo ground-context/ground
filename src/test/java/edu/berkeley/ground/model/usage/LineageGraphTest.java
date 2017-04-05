@@ -53,4 +53,24 @@ public class LineageGraphTest {
     assertEquals(MAPPER.readValue(fixture("fixtures/usage/lineage_graph.json"),
         LineageGraph.class), lineageGraph);
   }
+
+  @Test
+  public void testLineageGraphNotEquals() throws Exception {
+    LineageGraph truth = new LineageGraph(1, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals("notLineageGraph"));
+
+    LineageGraph differentId = new LineageGraph(2, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentId));
+
+    LineageGraph differentName = new LineageGraph(1, "notName", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentName));
+
+    LineageGraph differentKey = new LineageGraph(1, "name", "notSourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentKey));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    LineageGraph differentTags = new LineageGraph(1, "name", "sourceKey", tags);
+    assertFalse(truth.equals(differentTags));
+  }
 }

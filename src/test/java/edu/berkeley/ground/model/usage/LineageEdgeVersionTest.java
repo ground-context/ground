@@ -58,4 +58,47 @@ public class LineageEdgeVersionTest {
 
     assertEquals(MAPPER.readValue(fixture("fixtures/usage/lineage_edge_version.json"), LineageEdgeVersion.class), lineageEdgeVersion);
   }
+
+  @Test
+  public void testLineageEdgeVersionNotEquals() throws Exception {
+    LineageEdgeVersion truth = new LineageEdgeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", new HashMap<>(), 3, 4, 5);
+    assertFalse(truth.equals("notEdgeVersion"));
+
+    LineageEdgeVersion differentId = new LineageEdgeVersion(2, new HashMap<>(), 2,
+        "http://www.google.com", new HashMap<>(), 3, 4, 5);
+    assertFalse(truth.equals(differentId));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    LineageEdgeVersion differentTags = new LineageEdgeVersion(1, tags, 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 5);
+    assertFalse(truth.equals(differentTags));
+
+    LineageEdgeVersion differenStructureVersionId = new LineageEdgeVersion(1, new HashMap<>(), 10,
+        "http://www.google.com", new HashMap<>(), 3, 4, 5);
+    assertFalse(truth.equals(differenStructureVersionId));
+
+    LineageEdgeVersion differentReference = new LineageEdgeVersion(1, new HashMap<>(), 2,
+        "http://www.fb.com", new HashMap<>(), 3, 4, 5);
+    assertFalse(truth.equals(differentReference));
+
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("test", "param");
+    LineageEdgeVersion differentParameters = new LineageEdgeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", parameters, 3, 4, 5);
+    assertFalse(truth.equals(differentParameters));
+
+    LineageEdgeVersion differentEdgeId = new LineageEdgeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", new HashMap<>(), 10, 4, 5);
+    assertFalse(truth.equals(differentEdgeId));
+
+    LineageEdgeVersion differentFromVersion = new LineageEdgeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", new HashMap<>(), 3, 10, 5);
+    assertFalse(truth.equals(differentFromVersion));
+
+    LineageEdgeVersion differentToVersion = new LineageEdgeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", new HashMap<>(), 3, 4, 10);
+    assertFalse(truth.equals(differentToVersion));
+  }
 }

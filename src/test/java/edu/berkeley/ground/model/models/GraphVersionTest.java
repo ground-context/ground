@@ -64,4 +64,45 @@ public class GraphVersionTest {
 
     assertEquals(MAPPER.readValue(fixture("fixtures/models/graph_version.json"), GraphVersion.class), graphVersion);
   }
+
+  @Test
+  public void testGraphVersionNotEquals() throws Exception {
+    GraphVersion truth = new GraphVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, new ArrayList<>());
+    assertFalse(truth.equals("notGraphVersion"));
+
+    GraphVersion differentId = new GraphVersion(2, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, new ArrayList<>());
+    assertFalse(truth.equals(differentId));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    GraphVersion differentTags = new GraphVersion(1, tags, 2, "http://www.google.com",
+        new HashMap<>(), 3, new ArrayList<>());
+    assertFalse(truth.equals(differentTags));
+
+    GraphVersion differenStructureVersionId = new GraphVersion(1, new HashMap<>(), 10,
+        "http://www.google.com", new HashMap<>(), 3, new ArrayList<>());
+    assertFalse(truth.equals(differenStructureVersionId));
+
+    GraphVersion differentReference = new GraphVersion(1, new HashMap<>(), 2, "http://www.fb.com",
+        new HashMap<>(), 3, new ArrayList<>());
+    assertFalse(truth.equals(differentReference));
+
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("test", "param");
+    GraphVersion differentParameters = new GraphVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", parameters, 3, new ArrayList<>());
+    assertFalse(truth.equals(differentParameters));
+
+    GraphVersion differentGraphId = new GraphVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 10, new ArrayList<>());
+    assertFalse(truth.equals(differentGraphId));
+
+    List<Long> ids = new ArrayList<>();
+    ids.add(10L);
+    GraphVersion differentEdgeVersionIds = new GraphVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", new HashMap<>(), 3, ids);
+    assertFalse(truth.equals(differentEdgeVersionIds));
+  }
 }

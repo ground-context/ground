@@ -59,4 +59,55 @@ public class EdgeVersionTest {
 
     assertEquals(MAPPER.readValue(fixture("fixtures/models/edge_version.json"), EdgeVersion.class), edgeVersion);
   }
+
+  @Test
+  public void testEdgeVersionNotEquals() throws Exception {
+    EdgeVersion truth = new EdgeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 5, 6, 7);
+    assertFalse(truth.equals("notEdgeVersion"));
+
+    EdgeVersion differentId = new EdgeVersion(2, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 5, 6, 7);
+    assertFalse(truth.equals(differentId));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    EdgeVersion differentTags = new EdgeVersion(1, tags, 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 5, 6, 7);
+    assertFalse(truth.equals(differentTags));
+
+    EdgeVersion differenStructureVersionId = new EdgeVersion(1, new HashMap<>(), 10,
+        "http://www.google.com", new HashMap<>(), 3, 4, 5, 6, 7);
+    assertFalse(truth.equals(differenStructureVersionId));
+
+    EdgeVersion differentReference = new EdgeVersion(1, new HashMap<>(), 2, "http://www.fb.com",
+        new HashMap<>(), 3, 4, 5, 6, 7);
+    assertFalse(truth.equals(differentReference));
+
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("test", "param");
+    EdgeVersion differentParameters = new EdgeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", parameters, 3, 4, 5, 6, 7);
+    assertFalse(truth.equals(differentParameters));
+
+    EdgeVersion differentEdgeId = new EdgeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 10, 4, 5, 6, 7);
+    assertFalse(truth.equals(differentEdgeId));
+
+    EdgeVersion differentFromStart = new EdgeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, 10, 5, 6, 7);
+    assertFalse(truth.equals(differentFromStart));
+
+    EdgeVersion differentFromEnd = new EdgeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 10, 6, 7);
+    assertFalse(truth.equals(differentFromEnd));
+
+    EdgeVersion differentToStart = new EdgeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 5, 10, 7);
+    assertFalse(truth.equals(differentToStart));
+
+    EdgeVersion differentToEnd = new EdgeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3, 4, 5, 6, 10);
+    assertFalse(truth.equals(differentToEnd));
+  }
 }

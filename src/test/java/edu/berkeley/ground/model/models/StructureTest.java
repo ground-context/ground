@@ -50,4 +50,24 @@ public class StructureTest {
     Structure structure = new Structure(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/structure.json"), Structure.class), structure);
   }
+
+  @Test
+  public void testStructureNotEquals() throws Exception {
+    Structure truth = new Structure(1, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals("notStructure"));
+
+    Structure differentId = new Structure(2, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentId));
+
+    Structure differentName = new Structure(1, "notName", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentName));
+
+    Structure differentKey = new Structure(1, "name", "notSourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentKey));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    Structure differentTags = new Structure(1, "name", "sourceKey", tags);
+    assertFalse(truth.equals(differentTags));
+  }
 }

@@ -68,6 +68,7 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
 
     return this.name.equals(otherLineageEdge.name)
         && this.getId() == otherLineageEdge.getId()
-        && this.sourceKey.equals(otherLineageEdge.sourceKey);
+        && this.sourceKey.equals(otherLineageEdge.sourceKey)
+        && this.getTags().equals(otherLineageEdge.getTags());
   }
 }
