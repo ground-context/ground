@@ -128,7 +128,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       keptLevels++;
     }
 
-    List<Long> deleteQueue = previousLevel;
+    List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
     Set<Long> deleted = new HashSet<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();

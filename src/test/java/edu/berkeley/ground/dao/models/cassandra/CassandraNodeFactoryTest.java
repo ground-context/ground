@@ -17,9 +17,12 @@ package edu.berkeley.ground.dao.models.cassandra;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Node;
@@ -112,5 +115,50 @@ public class CassandraNodeFactoryTest extends CassandraTest {
 
     assertEquals(0, successor.getFromId());
     assertEquals(newNodeVersionId, successor.getToId());
+  }
+
+  @Test
+  public void testBranchTruncation() throws GroundException {
+    String testNode = "testNode";
+    long testNodeId = CassandraTest.factories.getNodeFactory().create(testNode, null,
+        new HashMap<>()).getId();
+    long originalId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(originalId);
+    long firstParentId = CassandraTest.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+
+    long secondParentId = CassandraTest.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+
+    parents.clear();
+    parents.add(firstParentId);
+    parents.add(secondParentId);
+
+    long childId = CassandraTest.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+
+    CassandraTest.factories.getNodeFactory().truncate(testNodeId, 2);
+
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+
+    assertEquals(4, dag.getEdgeIds().size());
+
+    Set<List<Long>> correctSuccessors = new HashSet<>();
+    correctSuccessors.add(Arrays.asList(0L, firstParentId));
+    correctSuccessors.add(Arrays.asList(0L, secondParentId));
+    correctSuccessors.add(Arrays.asList(firstParentId, childId));
+    correctSuccessors.add(Arrays.asList(secondParentId, childId));
+
+    for (long successorId : dag.getEdgeIds()) {
+      VersionSuccessor successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(successorId);
+      correctSuccessors.remove(Arrays.asList(successor.getFromId(), successor.getToId()));
+    }
+
+    assertTrue(correctSuccessors.isEmpty());
+
+    CassandraTest.cassandraClient.commit();
   }
 }
