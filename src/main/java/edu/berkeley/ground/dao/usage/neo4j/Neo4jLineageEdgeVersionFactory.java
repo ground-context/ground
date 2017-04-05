@@ -100,7 +100,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
       insertions.add(new DbDataContainer("endpoint_one", GroundType.LONG, fromId));
       insertions.add(new DbDataContainer("endpoint_two", GroundType.LONG, toId));
 
-      this.dbClient.addVertex("LineageEdgeVersions", insertions);
+      this.dbClient.addVertex("LineageEdgeVersion", insertions);
 
       this.lineageEdgeFactory.update(lineageEdgeId, id, parentIds);
       this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,

@@ -19,10 +19,14 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -75,5 +79,39 @@ public class PostgresStructureFactoryTest extends PostgresTest {
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    String structureName = "testStructure";
+    long structureId = super.factories.getStructureFactory().create(structureName, null,
+        new HashMap<>()).getId();
+
+    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
+    structureVersionAttributes.put("intfield", GroundType.INTEGER);
+
+    long structureVersionId = super.factories.getStructureVersionFactory().create(
+        structureId, structureVersionAttributes, new ArrayList<>()).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(structureVersionId);
+
+    long newStructureVersionId = super.factories.getStructureVersionFactory().create(
+        structureId, structureVersionAttributes, parents).getId();
+
+    super.factories.getStructureFactory().truncate(structureId, 1);
+
+    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory
+        .retrieveFromDatabase(structureId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    super.postgresClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newStructureVersionId, successor.getToId());
   }
 }

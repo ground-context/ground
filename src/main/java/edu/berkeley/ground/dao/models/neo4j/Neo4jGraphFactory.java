@@ -133,6 +133,6 @@ public class Neo4jGraphFactory extends GraphFactory {
 
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "edge");
+    this.itemFactory.truncate(itemId, numLevels, "graph");
   }
 }

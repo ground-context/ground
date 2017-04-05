@@ -142,8 +142,19 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       long id = deleteQueue.get(0);
 
       if (id != 0) {
-        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+        if (itemType.equals("structure")) {
+          predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, "structure_version_attribute");
+          predicates.clear();
+        }
 
+        if (itemType.contains("graph")) {
+          predicates.add(new DbDataContainer(itemType + "_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, itemType + "_version_edge");
+          predicates.clear();
+        }
+
+        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
         this.dbClient.delete(predicates, itemType + "_version");
 
         if (!itemType.equals("structure")) {

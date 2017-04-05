@@ -105,12 +105,14 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
   /**
    * Truncate the DAG to only have a certain number of levels, removing everything before that.
    *
+   * TODO: refactor to move specific logic into those classes.
+   *
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
-      GroundException {
+  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+      throws GroundException {
 
     int keptLevels = 1;
     List<Long> lastLevel = new ArrayList<>();
@@ -142,6 +144,18 @@ public class PostgresVersionHistoryDagFactory extends VersionHistoryDagFactory {
       long id = deleteQueue.get(0);
 
       if (id != 0) {
+        if (itemType.equals("structure")) {
+          predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, "structure_version_attribute");
+          predicates.clear();
+        }
+
+        if (itemType.contains("graph")) {
+          predicates.add(new DbDataContainer(itemType + "_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, itemType + "_version_edge");
+          predicates.clear();
+        }
+
         predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
         this.dbClient.delete(predicates, itemType + "_version");

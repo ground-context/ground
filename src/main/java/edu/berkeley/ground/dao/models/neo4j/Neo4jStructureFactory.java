@@ -150,6 +150,6 @@ public class Neo4jStructureFactory extends StructureFactory {
 
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "edge");
+    this.itemFactory.truncate(itemId, numLevels, "structure");
   }
 }

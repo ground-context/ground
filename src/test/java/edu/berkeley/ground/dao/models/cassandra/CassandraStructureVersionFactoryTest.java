@@ -36,7 +36,7 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
   @Test
   public void testStructureVersionCreation() throws GroundException {
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
+    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
         new HashMap<>()).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
@@ -44,10 +44,10 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
-    StructureVersion retrieved = super.factories.getStructureVersionFactory()
+    StructureVersion retrieved = CassandraTest.factories.getStructureVersionFactory()
         .retrieveFromDatabase(structureVersionId);
 
     assertEquals(structureId, retrieved.getStructureId());

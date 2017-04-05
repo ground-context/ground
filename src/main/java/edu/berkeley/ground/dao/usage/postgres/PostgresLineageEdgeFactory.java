@@ -134,6 +134,6 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
 
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "edge");
+    this.itemFactory.truncate(itemId, numLevels, "lineage_edge");
   }
 }

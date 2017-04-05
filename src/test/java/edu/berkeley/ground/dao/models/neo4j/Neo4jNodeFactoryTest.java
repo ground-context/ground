@@ -27,6 +27,8 @@ import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -125,5 +127,33 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncation() throws GroundException {
+    String testNode = "testNode";
+    long testNodeId = super.factories.getNodeFactory().create(testNode, null,
+        new HashMap<>()).getId();
+    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(firstNodeVersionId);
+    long newNodeVersionId = super.factories.getNodeVersionFactory().create(new
+        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+
+    super.factories.getNodeFactory().truncate(testNodeId, 1);
+
+    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    super.neo4jClient.commit();
+
+    assertEquals(testNodeId, successor.getFromId());
+    assertEquals(newNodeVersionId, successor.getToId());
   }
 }
