@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class PostgresResults implements QueryResults {
+public class PostgresResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
 
   private final ResultSet resultSet;
@@ -38,7 +38,6 @@ public class PostgresResults implements QueryResults {
    *
    * @return false if there are no more rows
    */
-  @Override
   public boolean next() throws GroundDbException {
     try {
       return this.resultSet.next();
@@ -54,7 +53,6 @@ public class PostgresResults implements QueryResults {
    * @return the string at index
    * @throws GroundDbException either the column doesn't exist or it isn't a string
    */
-  @Override
   public String getString(int index) throws GroundDbException {
     try {
       return resultSet.getString(index);
@@ -66,24 +64,12 @@ public class PostgresResults implements QueryResults {
   }
 
   /**
-   * Return the string in the column with the given name.
-   *
-   * @param field the column to look in
-   * @return the string in the column
-   */
-  @Override
-  public String getString(String field) {
-    throw new NotImplementedException();
-  }
-
-  /**
    * Retrieve the int at the index.
    *
    * @param index the index to use
    * @return the int at index
    * @throws GroundDbException either column doesn't exist or isn't an int
    */
-  @Override
   public int getInt(int index) throws GroundDbException {
     try {
       return resultSet.getInt(index);
@@ -95,24 +81,12 @@ public class PostgresResults implements QueryResults {
   }
 
   /**
-   * Retrieve the long in the column with name field.
-   *
-   * @param field the name of the column
-   * @return the long in field
-   */
-  @Override
-  public long getLong(String field) {
-    throw new NotImplementedException();
-  }
-
-  /**
    * Retrieve the long at the index.
    *
    * @param index the index to use
    * @return the long at the index
    * @throws GroundDbException either the column doesn't exist or isn't a long
    */
-  @Override
   public long getLong(int index) throws GroundDbException {
     try {
       return resultSet.getLong(index);
@@ -131,7 +105,6 @@ public class PostgresResults implements QueryResults {
    * @return the boolean at index
    * @throws GroundDbException either column doesn't exist or isn't an boolean
    */
-  @Override
   public boolean getBoolean(int index) throws GroundDbException {
     try {
       return resultSet.getBoolean(index);
@@ -148,7 +121,6 @@ public class PostgresResults implements QueryResults {
    * @param index the index to use
    * @return true if null, false otherwise
    */
-  @Override
   public boolean isNull(int index) throws GroundDbException {
     try {
       resultSet.getBlob(index);
@@ -158,16 +130,5 @@ public class PostgresResults implements QueryResults {
 
       throw new GroundDbException(e);
     }
-  }
-
-  /**
-   * Determine if the index of current row is null.
-   *
-   * @param field the field to check
-   * @return true if null, false otherwise
-   */
-  @Override
-  public boolean isNull(String field) {
-    throw new NotImplementedException();
   }
 }

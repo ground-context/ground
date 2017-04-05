@@ -41,10 +41,11 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
       parameters.put("http", "GET");
+      parameters.put("ftp", "test");
 
-      super.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
+      CassandraTest.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = CassandraTest.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -55,7 +56,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
         assertEquals(parameters.get(key), retrievedParams.get(key));
       }
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -70,9 +71,9 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      super.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
+      CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = CassandraTest.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -84,7 +85,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -94,7 +95,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       long id = 1;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName, null,
+      long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
           new HashMap<>()).getId();
 
       Map<String, GroundType> structureVersionAttributes = new HashMap<>();
@@ -102,7 +103,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
       structureVersionAttributes.put("strfield", GroundType.STRING);
 
-      long structureVersionId = super.factories.getStructureVersionFactory().create(
+      long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
           structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
       Map<String, Tag> tags = new HashMap<>();
@@ -110,13 +111,13 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
       tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
-      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = CassandraTest.richVersionFactory.retrieveFromDatabase(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 
@@ -129,7 +130,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName, null,
+        long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
             new HashMap<>()).getId();
 
         Map<String, GroundType> structureVersionAttributes = new HashMap<>();
@@ -137,9 +138,9 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
         structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
         structureVersionAttributes.put("strfield", GroundType.STRING);
 
-        structureVersionId = super.factories.getStructureVersionFactory().create(structureId, structureVersionAttributes, new ArrayList<>()).getId();
+        structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(structureId, structureVersionAttributes, new ArrayList<>()).getId();
       } catch (GroundException ge) {
-        super.cassandraClient.abort();
+        CassandraTest.cassandraClient.abort();
 
         fail(ge.getMessage());
       }
@@ -150,10 +151,10 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
     } finally {
-      super.cassandraClient.abort();
+      CassandraTest.cassandraClient.abort();
     }
   }
 }

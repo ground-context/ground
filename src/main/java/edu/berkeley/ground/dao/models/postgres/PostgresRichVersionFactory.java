@@ -19,7 +19,7 @@ import edu.berkeley.ground.dao.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -133,7 +133,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    QueryResults resultSet;
+    PostgresResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("rich_version", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
@@ -145,7 +145,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     Map<String, String> referenceParameters = new HashMap<>();
 
     try {
-      QueryResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
+      PostgresResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
           DbClient.SELECT_STAR, parameterPredicates);
 
       do {

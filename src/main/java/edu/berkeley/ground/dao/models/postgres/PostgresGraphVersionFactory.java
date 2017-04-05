@@ -18,7 +18,7 @@ import edu.berkeley.ground.dao.models.GraphVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.GraphVersion;
@@ -139,7 +139,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
       List<DbDataContainer> edgePredicate = new ArrayList<>();
       edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
 
-      QueryResults resultSet;
+      PostgresResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("graph_version", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
@@ -148,7 +148,7 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
 
       long graphId = resultSet.getLong(2);
 
-      QueryResults edgeSet;
+      PostgresResults edgeSet;
       List<Long> edgeVersionIds = new ArrayList<>();
       try {
         edgeSet = this.dbClient.equalitySelect("graph_version_edge", DbClient.SELECT_STAR,

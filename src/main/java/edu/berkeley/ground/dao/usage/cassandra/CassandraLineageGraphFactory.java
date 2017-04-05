@@ -17,9 +17,9 @@ package edu.berkeley.ground.dao.usage.cassandra;
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
@@ -104,7 +104,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
-      QueryResults resultSet;
+      CassandraResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("lineage_graph", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {
@@ -113,7 +113,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
         throw new GroundException("No LineageGraph found with name " + name + ".");
       }
 
-      long id = resultSet.getLong(0);
+      long id = resultSet.getLong("item_id");
       String sourceKey = resultSet.getString("source_key");
 
       Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();

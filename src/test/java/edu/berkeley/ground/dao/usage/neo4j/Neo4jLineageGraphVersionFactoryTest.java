@@ -14,6 +14,7 @@ import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
 
@@ -114,5 +115,20 @@ public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
 
       throw e;
     }
+  }
+
+  @Test
+  public void testCreateEmptyLineageGraph() throws GroundException {
+    String graphName = "testGraph";
+    long graphId = super.factories.getLineageGraphFactory().create(graphName, null, new HashMap<>())
+        .getId();
+
+    long graphVersionId = super.factories.getLineageGraphVersionFactory().create(new HashMap<>(),
+        -1, null, new HashMap<>(), graphId, new ArrayList<>(), new ArrayList<>()).getId();
+
+    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory()
+        .retrieveFromDatabase(graphVersionId);
+
+    assertTrue(retrieved.getLineageEdgeVersionIds().isEmpty());
   }
 }

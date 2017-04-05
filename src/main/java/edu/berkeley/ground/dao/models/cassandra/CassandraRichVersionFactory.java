@@ -17,9 +17,9 @@ package edu.berkeley.ground.dao.models.cassandra;
 import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -132,7 +132,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    QueryResults resultSet;
+    CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("rich_version", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
@@ -143,7 +143,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
     try {
-      QueryResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
+      CassandraResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
           DbClient.SELECT_STAR, parameterPredicates);
 
       do {
@@ -153,7 +153,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
       // do nothing; this just means that there are no referenceParameters
     }
 
-    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(id);
+    Map<String, Tag> tags = this.tagFactory.retrieveFromDatabaseByVersionId(id);
 
     String reference = resultSet.getString("reference");
     long structureVersionId = resultSet.getLong("structure_version_id");

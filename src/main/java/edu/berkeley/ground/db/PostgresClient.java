@@ -102,7 +102,7 @@ public class PostgresClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public QueryResults equalitySelect(
+  public PostgresResults equalitySelect(
       String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
       throws GroundDbException, EmptyResultException {
     String items = String.join(", ", projection);

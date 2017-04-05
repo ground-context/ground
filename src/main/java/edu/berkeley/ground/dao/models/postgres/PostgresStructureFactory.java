@@ -19,7 +19,7 @@ import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Structure;
@@ -121,7 +121,7 @@ public class PostgresStructureFactory extends StructureFactory {
       List<DbDataContainer> predicates = new ArrayList<>();
       predicates.add(new DbDataContainer("name", GroundType.STRING, name));
 
-      QueryResults resultSet;
+      PostgresResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("structure", DbClient.SELECT_STAR, predicates);
       } catch (EmptyResultException e) {

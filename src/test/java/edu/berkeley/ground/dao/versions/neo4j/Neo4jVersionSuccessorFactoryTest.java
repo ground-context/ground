@@ -77,4 +77,20 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
       super.neo4jClient.abort();
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testBadVersionSuccessorRetrieval() throws GroundException {
+    try {
+      super.versionSuccessorFactory.retrieveFromDatabase(10);
+
+      super.neo4jClient.commit();
+    } catch (GroundException e) {
+      super.neo4jClient.abort();
+      if (!e.getMessage().contains("No VersionSuccessor found with id 10.")) {
+        fail();
+      }
+
+      throw e;
+    }
+  }
 }

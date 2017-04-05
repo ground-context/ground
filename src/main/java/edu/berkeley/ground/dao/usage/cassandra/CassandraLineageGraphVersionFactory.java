@@ -17,9 +17,9 @@ package edu.berkeley.ground.dao.usage.cassandra;
 import edu.berkeley.ground.dao.models.cassandra.CassandraRichVersionFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -144,7 +144,7 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
       lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
           id));
 
-      QueryResults resultSet;
+      CassandraResults resultSet;
       try {
         resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
             predicates);
@@ -152,15 +152,15 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
         throw new GroundException("No LineageGraphVersion found with id " + id + ".");
       }
 
-      long lineageGraphId = resultSet.getLong(1);
+      long lineageGraphId = resultSet.getLong("lineage_graph_id");
 
       List<Long> lineageEdgeVersionIds = new ArrayList<>();
       try {
-        QueryResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
+        CassandraResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
             DbClient.SELECT_STAR, lineageEdgePredicate);
 
        do {
-          lineageEdgeVersionIds.add(lineageEdgeSet.getLong(1));
+          lineageEdgeVersionIds.add(lineageEdgeSet.getLong("lineage_edge_version_id"));
         } while (lineageEdgeSet.next());
       } catch (EmptyResultException e) {
         // do nothing; this means that the lineage_graph is empty

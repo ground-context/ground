@@ -58,28 +58,19 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     // check if both IDs exist
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
-    Record record;
 
     try {
-      record = this.dbClient.getVertex(predicates);
+      this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDbException("Id " + fromId + " is not valid.");
-    }
-
-    if (record == null) {
       throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     predicates.clear();
     predicates.add(new DbDataContainer("id", GroundType.LONG, toId));
     try {
-      record = this.dbClient.getVertex(predicates);
+      this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
       throw new GroundDbException("Id " + toId + " is not valid.");
-    }
-
-    if (record == null) {
-      throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     long dbId = idGenerator.generateSuccessorId();
@@ -116,13 +107,9 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
       throw new GroundDbException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    return this.constructFromRelationship(result);
-  }
-
-  private <T extends Version> VersionSuccessor<T> constructFromRelationship(Relationship r) {
-    long id = (r.get("id")).asLong();
-    long fromId = (r.get("fromId")).asLong();
-    long toId = (r.get("toId")).asLong();
+    long id = (result.get("id")).asLong();
+    long fromId = (result.get("fromId")).asLong();
+    long toId = (result.get("toId")).asLong();
 
     return VersionSuccessorFactory.construct(id, fromId, toId);
   }

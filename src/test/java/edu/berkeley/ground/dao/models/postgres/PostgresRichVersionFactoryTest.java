@@ -41,6 +41,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
       parameters.put("http", "GET");
+      parameters.put("ftp", "test");
 
       super.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1,
           testReference, parameters);

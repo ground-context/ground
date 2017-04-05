@@ -45,6 +45,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
       parameters.put("http", "GET");
+      parameters.put("ftp", "test");
 
       super.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
 

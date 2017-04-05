@@ -16,9 +16,9 @@ package edu.berkeley.ground.dao.versions.cassandra;
 
 import edu.berkeley.ground.dao.versions.VersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -60,7 +60,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    QueryResults resultSet;
+    CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
           predicates);
@@ -72,7 +72,8 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
 
     do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet.getLong(1)));
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
+          .getLong("version_successor_id")));
     } while (resultSet.next());
 
     return VersionHistoryDagFactory.construct(itemId, edges);
