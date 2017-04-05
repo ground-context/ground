@@ -32,7 +32,6 @@ import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.EdgesResource;
 import edu.berkeley.ground.resources.GraphsResource;
-import edu.berkeley.ground.resources.KafkaResource;
 import edu.berkeley.ground.resources.LineageEdgesResource;
 import edu.berkeley.ground.resources.LineageGraphsResource;
 import edu.berkeley.ground.resources.NodesResource;
@@ -128,8 +127,6 @@ public class GroundServer extends Application<GroundServerConfiguration> {
         this.nodeVersionFactory);
     final StructuresResource structuresResource = new StructuresResource(this.structureFactory,
         this.structureVersionFactory);
-    final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(),
-        configuration.getKafkaPort());
     final LineageGraphsResource lineageGraphsResource = new LineageGraphsResource(
         this.lineageGraphFactory,
         this.lineageGraphVersionFactory);
@@ -139,7 +136,6 @@ public class GroundServer extends Application<GroundServerConfiguration> {
     environment.jersey().register(lineageEdgesResource);
     environment.jersey().register(nodesResource);
     environment.jersey().register(structuresResource);
-    environment.jersey().register(kafkaResource);
     environment.jersey().register(lineageGraphsResource);
   }
 

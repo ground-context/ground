@@ -31,9 +31,6 @@
         <!-- Jacoco version -->
         <jacoco.version>0.7.9</jacoco.version>
 
-        <!-- Kafka version -->
-        <kafka.version>0.10.0.1</kafka.version>
-
         <!-- log4j version -->
         <log4j.version>2.5</log4j.version>
 
@@ -113,12 +110,6 @@
             <artifactId>dropwizard-testing</artifactId>
             <version>${dropwizard.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka.version}</version>
         </dependency>
 
         <dependency>

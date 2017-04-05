@@ -13,9 +13,6 @@ public class TagTest {
     Tag truth = new Tag(1, "test", 1L, GroundType.LONG);
     assertFalse(truth.equals("notTag"));
 
-    Tag differentId = new Tag(2, "test", 1L, GroundType.LONG);
-    assertFalse(truth.equals(differentId));
-
     Tag differentKey = new Tag(1, "notTest", 1L, GroundType.LONG);
     assertFalse(truth.equals(differentKey));
 
