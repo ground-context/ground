@@ -105,29 +105,43 @@ public class LineageGraphsResource {
   }
 
   /**
-   * Create a new linea graph version.
    *
    * @param lineageGraphVersion the data to create the version with
+   */
+
+  /**
+   * Create a new linea graph version.
+   *
+   * @param lineageGraphId the id of the lineage graph to create this version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
+   * @param lineageEdgeVersionIds the ids of the lineage edge versions in this graph
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public LineageGraphVersion createGraphVersion(@Valid LineageGraphVersion lineageGraphVersion,
+  @Path("/{id}/versions")
+  public LineageGraphVersion createGraphVersion(@PathParam("id") long lineageGraphId,
+                                                @Valid Map<String, Tag> tags,
+                                                @Valid Map<String, String> referenceParameters,
+                                                long structureVersionId,
+                                                String reference,
+                                                @Valid List<Long> lineageEdgeVersionIds,
                                                 @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
     try {
-      LOGGER.info("Creating graph version in graph " + lineageGraphVersion.getLineageGraphId() + ".");
-      LineageGraphVersion created = this.lineageGraphVersionFactory.create(lineageGraphVersion
-              .getTags(),
-          lineageGraphVersion.getStructureVersionId(),
-          lineageGraphVersion.getReference(),
-          lineageGraphVersion.getParameters(),
-          lineageGraphVersion.getLineageGraphId(),
-          lineageGraphVersion.getLineageEdgeVersionIds(),
+      LOGGER.info("Creating graph version in graph " + lineageGraphId + ".");
+      LineageGraphVersion created = this.lineageGraphVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          lineageGraphId,
+          lineageEdgeVersionIds,
           parentIds);
 
       this.dbClient.commit();

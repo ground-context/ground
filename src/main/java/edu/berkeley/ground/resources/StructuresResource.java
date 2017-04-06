@@ -23,6 +23,7 @@ import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.models.Tag;
 
+import edu.berkeley.ground.model.versions.GroundType;
 import io.swagger.annotations.Api;
 
 import java.util.List;
@@ -118,26 +119,28 @@ public class StructuresResource {
   /**
    * Create a structure version.
    *
-   * @param structureVersion the data to create the version with
+   * @param structureId the id of the structure to create this version in
+   * @param attributes the attributes required by this structure version
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion,
+  @Path("/{id}/versions")
+  public StructureVersion createStructureVersion(@PathParam("id") long structureId,
+                                                 @Valid Map<String, GroundType> attributes,
                                                  @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
     try {
       LOGGER.info("Creating structure version in structure "
-          + structureVersion.getStructureId()
+          + structureId
           + ".");
 
       StructureVersion created = this.structureVersionFactory.create(
-          structureVersion.getStructureId(),
-          structureVersion.getAttributes(),
+          structureId,
+          attributes,
           parentIds);
 
       this.dbClient.commit();

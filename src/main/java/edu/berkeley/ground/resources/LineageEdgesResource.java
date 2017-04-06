@@ -102,32 +102,48 @@ public class LineageEdgesResource {
   }
 
   /**
-   * Create a lineage edge version.
    *
    * @param lineageEdgeVersion the data to create the version with
+   */
+
+  /**
+   * Create a lineage edge version.
+   *
+   * @param lineageEdgeId the id of the lineage edge to create this version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
+   * @param fromId the source version of this edge
+   * @param toId the destination version of this edge
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public LineageEdgeVersion createLineageEdgeVersion(
-      @Valid LineageEdgeVersion lineageEdgeVersion,
-      @QueryParam("parent") List<Long> parentIds) throws GroundException {
+  @Path("/{id}/versions")
+  public LineageEdgeVersion createLineageEdgeVersion(@PathParam("id") long lineageEdgeId,
+                                                     @Valid Map<String, Tag> tags,
+                                                     @Valid Map<String, String> referenceParameters,
+                                                     long structureVersionId,
+                                                     String reference,
+                                                     long fromId,
+                                                     long toId,
+                                                     @QueryParam("parent") List<Long> parentIds)
+      throws GroundException {
 
     try {
       LOGGER.info("Creating lineage edge version in lineage edge "
-          + lineageEdgeVersion.getLineageEdgeId() + ".");
+          + lineageEdgeId + ".");
 
-      LineageEdgeVersion created = this.lineageEdgeVersionFactory.create(lineageEdgeVersion
-              .getTags(),
-          lineageEdgeVersion.getStructureVersionId(),
-          lineageEdgeVersion.getReference(),
-          lineageEdgeVersion.getParameters(),
-          lineageEdgeVersion.getFromId(),
-          lineageEdgeVersion.getToId(),
-          lineageEdgeVersion.getLineageEdgeId(),
+      LineageEdgeVersion created = this.lineageEdgeVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          fromId,
+          toId,
+          lineageEdgeId,
           parentIds);
 
       this.dbClient.commit();

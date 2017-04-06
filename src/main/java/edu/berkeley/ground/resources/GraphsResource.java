@@ -107,27 +107,37 @@ public class GraphsResource {
   /**
    * Create a new graph version.
    *
-   * @param graphVersion the data to create the graph version with
+   * @param graphId the id of the graph to create the version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
+   * @param edgeVersionIds the ids of the edge version in this graph version
    * @param parentIds the ids of the parents of this version
    * @return the created version along with an id
    * @throws GroundException an error while creating the graph version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion,
+  @Path("/{id}/versions")
+  public GraphVersion createGraphVersion(@PathParam("id") long graphId,
+                                         @Valid Map<String, Tag> tags,
+                                         @Valid Map<String, String> referenceParameters,
+                                         long structureVersionId,
+                                         String reference,
+                                         @Valid List<Long> edgeVersionIds,
                                          @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
     try {
-      LOGGER.info("Creating graph version in graph " + graphVersion.getGraphId() + ".");
+      LOGGER.info("Creating graph version in graph " + graphId + ".");
 
-      GraphVersion created = this.graphVersionFactory.create(graphVersion.getTags(),
-          graphVersion.getStructureVersionId(),
-          graphVersion.getReference(),
-          graphVersion.getParameters(),
-          graphVersion.getGraphId(),
-          graphVersion.getEdgeVersionIds(),
+      GraphVersion created = this.graphVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          graphId,
+          edgeVersionIds,
           parentIds);
 
       this.dbClient.commit();

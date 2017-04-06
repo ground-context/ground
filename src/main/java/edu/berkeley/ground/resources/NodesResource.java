@@ -119,24 +119,32 @@ public class NodesResource {
   /**
    * Create a node version.
    *
-   * @param nodeVersion the data to create the version with
+   * @param nodeId the id of the node to create this version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion,
+  @Path("/{id}/versions")
+  public NodeVersion createNodeVersion(@PathParam("id") long nodeId,
+                                       @Valid Map<String, Tag> tags,
+                                       @Valid Map<String, String> referenceParameters,
+                                       long structureVersionId,
+                                       String reference,
                                        @QueryParam("parents") List<Long> parentIds)
       throws GroundException {
     try {
-      LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
-      NodeVersion created = this.nodeVersionFactory.create(nodeVersion.getTags(),
-          nodeVersion.getStructureVersionId(),
-          nodeVersion.getReference(),
-          nodeVersion.getParameters(),
-          nodeVersion.getNodeId(),
+      LOGGER.info("Creating node version in node " + nodeId + ".");
+      NodeVersion created = this.nodeVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          nodeId,
           parentIds);
 
       this.dbClient.commit();

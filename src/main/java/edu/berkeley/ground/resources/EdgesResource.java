@@ -139,29 +139,45 @@ public class EdgesResource {
   /**
    * Create a new edge version.
    *
-   * @param edgeVersion the data to create the edge version with
-   * @param parentIds the parents of this version
-   * @return the created version with an id
-   * @throws GroundException an error while creating this edge version
+   * @param edgeId the id of the edge in which we're creating a version
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
+   * @param fromNodeVersionStartId the start version in the from node
+   * @param fromNodeVersionEndId the end version in the from node
+   * @param toNodeVersionStartId the start version in the to node
+   * @param toNodeVersionEndId the end version in the to node
+   * @param parentIds the id of the parents of this version
+   * @return the created edge version
+   * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public EdgeVersion createEdgeVersion(@Valid EdgeVersion edgeVersion,
+  @Path("/{id}/versions")
+  public EdgeVersion createEdgeVersion(@PathParam("id") long edgeId,
+                                       @Valid Map<String, Tag> tags,
+                                       @Valid Map<String, String> referenceParameters,
+                                       long structureVersionId,
+                                       String reference,
+                                       long fromNodeVersionStartId,
+                                       long fromNodeVersionEndId,
+                                       long toNodeVersionStartId,
+                                       long toNodeVersionEndId,
                                        @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
     try {
-      LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
-      EdgeVersion created = this.edgeVersionFactory.create(edgeVersion.getTags(),
-          edgeVersion.getStructureVersionId(),
-          edgeVersion.getReference(),
-          edgeVersion.getParameters(),
-          edgeVersion.getEdgeId(),
-          edgeVersion.getFromNodeVersionStartId(),
-          edgeVersion.getFromNodeVersionEndId(),
-          edgeVersion.getToNodeVersionStartId(),
-          edgeVersion.getToNodeVersionEndId(),
+      LOGGER.info("Creating edge version in edge " + edgeId + ".");
+      EdgeVersion created = this.edgeVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          edgeId,
+          fromNodeVersionStartId,
+          fromNodeVersionEndId,
+          toNodeVersionStartId,
+          toNodeVersionEndId,
           parentIds);
 
       this.dbClient.commit();
