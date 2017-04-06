@@ -18,6 +18,7 @@ import com.codahale.metrics.annotation.Timed;
 
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraph;
@@ -48,20 +49,27 @@ public class LineageGraphsResource {
 
   private final LineageGraphFactory lineageGraphFactory;
   private final LineageGraphVersionFactory lineageGraphVersionFactory;
+  private final DbClient dbClient;
 
   public LineageGraphsResource(
       LineageGraphFactory lineageGraphFactory,
-      LineageGraphVersionFactory lineageGraphVersionFactory) {
+      LineageGraphVersionFactory lineageGraphVersionFactory,
+      DbClient dbClient) {
     this.lineageGraphFactory = lineageGraphFactory;
     this.lineageGraphVersionFactory = lineageGraphVersionFactory;
+    this.dbClient = dbClient;
   }
 
   @GET
   @Timed
   @Path("/{name}")
   public LineageGraph getLineageGraph(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving graph " + name + ".");
-    return this.lineageGraphFactory.retrieveFromDatabase(name);
+    try {
+      LOGGER.info("Retrieving graph " + name + ".");
+      return this.lineageGraphFactory.retrieveFromDatabase(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @GET
@@ -69,8 +77,12 @@ public class LineageGraphsResource {
   @Path("/versions/{id}")
   public LineageGraphVersion getLineageGraphVersion(@PathParam("id") long id)
       throws GroundException {
-    LOGGER.info("Retrieving graph version " + id + ".");
-    return this.lineageGraphVersionFactory.retrieveFromDatabase(id);
+    try {
+      LOGGER.info("Retrieving graph version " + id + ".");
+      return this.lineageGraphVersionFactory.retrieveFromDatabase(id);
+    } finally {
+      this.dbClient.abort();
+    }
   }
 
   @POST
@@ -79,8 +91,17 @@ public class LineageGraphsResource {
   public LineageGraph createGraph(@PathParam("name") String name,
                                   @PathParam("key") String sourceKey,
                                   @Valid Map<String, Tag> tags) throws GroundException {
-    LOGGER.info("Creating graph " + name + ".");
-    return this.lineageGraphFactory.create(name, sourceKey, tags);
+    try {
+      LOGGER.info("Creating graph " + name + ".");
+      LineageGraph created = this.lineageGraphFactory.create(name, sourceKey, tags);
+
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -97,14 +118,25 @@ public class LineageGraphsResource {
   public LineageGraphVersion createGraphVersion(@Valid LineageGraphVersion lineageGraphVersion,
                                                 @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
-    LOGGER.info("Creating graph version in graph " + lineageGraphVersion.getLineageGraphId() + ".");
-    return this.lineageGraphVersionFactory.create(lineageGraphVersion.getTags(),
-        lineageGraphVersion.getStructureVersionId(),
-        lineageGraphVersion.getReference(),
-        lineageGraphVersion.getParameters(),
-        lineageGraphVersion.getLineageGraphId(),
-        lineageGraphVersion.getLineageEdgeVersionIds(),
-        parentIds);
+
+    try {
+      LOGGER.info("Creating graph version in graph " + lineageGraphVersion.getLineageGraphId() + ".");
+      LineageGraphVersion created = this.lineageGraphVersionFactory.create(lineageGraphVersion
+              .getTags(),
+          lineageGraphVersion.getStructureVersionId(),
+          lineageGraphVersion.getReference(),
+          lineageGraphVersion.getParameters(),
+          lineageGraphVersion.getLineageGraphId(),
+          lineageGraphVersion.getLineageEdgeVersionIds(),
+          parentIds);
+
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -118,12 +150,18 @@ public class LineageGraphsResource {
   @POST
   @Timed
   @Path("/truncate/{name}/{height}")
-  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+  public void truncateLineageGraph(@PathParam("name") String name, @PathParam("height") int height)
       throws GroundException {
-    LOGGER.info("Truncating lineage graph " + name + " to height " + height + ".");
+    try {
+      LOGGER.info("Truncating lineage graph " + name + " to height " + height + ".");
+      long id = this.lineageGraphFactory.retrieveFromDatabase(name).getId();
 
-    long id = this.lineageGraphFactory.retrieveFromDatabase(name).getId();
+      this.lineageGraphFactory.truncate(id, height);
+      this.dbClient.commit();
+    } catch (Exception e) {
+      this.dbClient.abort();
 
-    this.lineageGraphFactory.truncate(id, height);
+      throw e;
+    }
   }
 }

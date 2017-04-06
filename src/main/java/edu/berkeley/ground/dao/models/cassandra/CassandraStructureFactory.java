@@ -81,9 +81,7 @@ public class CassandraStructureFactory extends StructureFactory {
 
     this.dbClient.insert("structure", insertions);
 
-    this.dbClient.commit();
     LOGGER.info("Created structure " + name + ".");
-
     return StructureFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
@@ -99,8 +97,6 @@ public class CassandraStructureFactory extends StructureFactory {
     Structure structure = this.retrieveFromDatabase(name);
 
     List<Long> leaves = this.itemFactory.getLeaves(structure.getId());
-    this.dbClient.commit();
-
     return leaves;
   }
 
@@ -128,9 +124,7 @@ public class CassandraStructureFactory extends StructureFactory {
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved structure " + name + ".");
-
     return StructureFactory.construct(id, name, sourceKey, tags);
   }
 

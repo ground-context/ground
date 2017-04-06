@@ -79,9 +79,7 @@ public class CassandraNodeFactory extends NodeFactory {
 
     this.dbClient.insert("node", insertions);
 
-    this.dbClient.commit();
     LOGGER.info("Created node " + name + ".");
-
     return NodeFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
@@ -95,15 +93,9 @@ public class CassandraNodeFactory extends NodeFactory {
   @Override
   public List<Long> getLeaves(String name) throws GroundException {
     Node node = this.retrieveFromDatabase(name);
+    List<Long> leaves = this.itemFactory.getLeaves(node.getId());
 
-    try {
-      List<Long> leaves = this.itemFactory.getLeaves(node.getId());
-      this.dbClient.commit();
-
-      return leaves;
-    } finally {
-      this.dbClient.abort();
-    }
+    return leaves;
   }
 
   /**
@@ -122,8 +114,6 @@ public class CassandraNodeFactory extends NodeFactory {
     try {
       resultSet = this.dbClient.equalitySelect("node", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      this.dbClient.abort();
-
       throw new GroundException("No Node found with name " + name + ".");
     }
 
@@ -132,9 +122,7 @@ public class CassandraNodeFactory extends NodeFactory {
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved node " + name + ".");
-
     return NodeFactory.construct(id, name, sourceKey, tags);
   }
 

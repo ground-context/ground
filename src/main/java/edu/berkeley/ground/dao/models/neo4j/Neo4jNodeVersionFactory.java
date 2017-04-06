@@ -81,35 +81,26 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
                             long nodeId,
                             List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      // add the id of the version to the tag
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-          new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-      );
+    // add the id of the version to the tag
+    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+    );
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
-      this.dbClient.addVertex("NodeVersion", insertions);
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.dbClient.addVertex("NodeVersion", insertions);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      this.nodeFactory.update(nodeId, id, parentIds);
+    this.nodeFactory.update(nodeId, id, parentIds);
 
-      this.dbClient.commit();
-
-      LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
-
-      return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, nodeId);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
+    return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, nodeId);
   }
 
   /**
@@ -121,30 +112,22 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
    */
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    Record record;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      Record record;
-      try {
-        record = this.dbClient.getVertex(predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundDbException("No NodeVersion found with id " + id + ".");
-      }
-
-      this.dbClient.commit();
-
-      long nodeId = record.get("v").asNode(). get("node_id").asLong();
-      LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
-
-      return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
-          version.getReference(), version.getParameters(), nodeId);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
+      record = this.dbClient.getVertex(predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundDbException("No NodeVersion found with id " + id + ".");
     }
+
+    long nodeId = record.get("v").asNode(). get("node_id").asLong();
+    LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
+
+    return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), nodeId);
   }
 }

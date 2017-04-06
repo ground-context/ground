@@ -109,10 +109,7 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
     insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
     this.dbClient.insert("edge_version", insertions);
-
     this.edgeFactory.update(edgeId, id, parentIds);
-
-    this.dbClient.commit();
     LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
     return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
@@ -150,7 +147,6 @@ public class CassandraEdgeVersionFactory extends EdgeVersionFactory {
     long toNodeVersionEndId = resultSet.isNull("to_node_end_id") ? -1 : resultSet.getLong(
         "to_node_end_id");
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 
     return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),

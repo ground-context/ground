@@ -108,9 +108,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
 
     this.graphFactory.update(graphId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
-
     return GraphVersionFactory.construct(id, tags, structureVersionId, reference,
         referenceParameters, graphId, edgeVersionIds);
   }
@@ -154,9 +152,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
     }
 
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
-
     return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), graphId, edgeVersionIds);
   }

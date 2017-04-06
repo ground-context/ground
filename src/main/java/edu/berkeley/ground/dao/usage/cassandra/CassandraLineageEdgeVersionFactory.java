@@ -107,9 +107,7 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
 
     this.lineageEdgeFactory.update(lineageEdgeId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
-
     return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference,
         referenceParameters, fromId, toId, lineageEdgeId);
   }
@@ -133,8 +131,6 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
       resultSet = this.dbClient.equalitySelect("lineage_edge_version", DbClient.SELECT_STAR,
           predicates);
     } catch (EmptyResultException e) {
-      this.dbClient.abort();
-
       throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
     }
 
@@ -142,10 +138,8 @@ public class CassandraLineageEdgeVersionFactory extends LineageEdgeVersionFactor
     long fromId = resultSet.getLong("from_rich_version_id");
     long toId = resultSet.getLong("to_rich_version_id");
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
         + ".");
-
     return LineageEdgeVersionFactory.construct(id, version.getTags(),
         version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId,
         toId, lineageEdgeId);

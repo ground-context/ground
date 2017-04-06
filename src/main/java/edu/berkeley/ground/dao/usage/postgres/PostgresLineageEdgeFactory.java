@@ -68,27 +68,20 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
   @Override
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    long uniqueId = this.idGenerator.generateItemId();
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      this.dbClient.insert("lineage_edge", insertions);
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.commit();
-      LOGGER.info("Created lineage edge " + name + ".");
+    this.dbClient.insert("lineage_edge", insertions);
 
-      return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    LOGGER.info("Created lineage edge " + name + ".");
+    return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -100,31 +93,23 @@ public class PostgresLineageEdgeFactory extends LineageEdgeFactory {
    */
   @Override
   public LineageEdge retrieveFromDatabase(String name) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+
+    PostgresResults resultSet;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
-      PostgresResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundException("No LineageEdge found with name " + name + ".");
-      }
-
-      long id = resultSet.getLong(1);
-      String sourceKey = resultSet.getString(2);
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved lineage edge " + name + ".");
-
-      return LineageEdgeFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No LineageEdge found with name " + name + ".");
     }
+
+    long id = resultSet.getLong(1);
+    String sourceKey = resultSet.getString(2);
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+    LOGGER.info("Retrieved lineage edge " + name + ".");
+    return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override

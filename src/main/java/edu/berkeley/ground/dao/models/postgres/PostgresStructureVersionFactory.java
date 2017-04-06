@@ -97,9 +97,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
     this.structureFactory.update(structureId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
@@ -141,9 +139,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
     long structureId = resultSet.getLong(2);
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 }

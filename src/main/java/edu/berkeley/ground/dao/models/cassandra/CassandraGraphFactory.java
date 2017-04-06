@@ -79,7 +79,6 @@ public class CassandraGraphFactory extends GraphFactory {
 
     this.dbClient.insert("graph", insertions);
 
-    this.dbClient.commit();
     LOGGER.info("Created graph " + name + ".");
 
     return GraphFactory.construct(uniqueId, name, sourceKey, tags);
@@ -108,8 +107,6 @@ public class CassandraGraphFactory extends GraphFactory {
     String sourceKey = resultSet.getString("source_key");
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-    this.dbClient.commit();
     LOGGER.info("Retrieved graph " + name + ".");
 
     return GraphFactory.construct(id, name, sourceKey, tags);

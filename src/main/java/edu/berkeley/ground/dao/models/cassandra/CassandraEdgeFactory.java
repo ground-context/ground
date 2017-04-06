@@ -101,7 +101,6 @@ public class CassandraEdgeFactory extends EdgeFactory {
 
     this.dbClient.insert("edge", insertions);
 
-    this.dbClient.commit();
     LOGGER.info("Created edge " + name + ".");
     return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
   }
@@ -138,9 +137,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved edge " + value + ".");
-
     return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 

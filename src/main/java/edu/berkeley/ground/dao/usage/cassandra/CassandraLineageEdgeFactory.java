@@ -80,9 +80,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
 
     this.dbClient.insert("lineage_edge", insertions);
 
-    this.dbClient.commit();
     LOGGER.info("Created lineage edge " + name + ".");
-
     return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
@@ -102,8 +100,6 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
     try {
       resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      this.dbClient.abort();
-
       throw new GroundException("No LineageEdge found with name " + name + ".");
     }
 
@@ -112,9 +108,7 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved lineage edge " + name + ".");
-
     return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 

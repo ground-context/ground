@@ -68,26 +68,19 @@ public class Neo4jGraphFactory extends GraphFactory {
    */
   @Override
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
+    long uniqueId = this.idGenerator.generateItemId();
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.addVertex("Graph", insertions);
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    this.dbClient.addVertex("Graph", insertions);
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      this.dbClient.commit();
-      LOGGER.info("Created graph " + name + ".");
+    LOGGER.info("Created graph " + name + ".");
 
-      return GraphFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    return GraphFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -99,31 +92,24 @@ public class Neo4jGraphFactory extends GraphFactory {
    */
   @Override
   public Graph retrieveFromDatabase(String name) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+
+    Record record;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
-      Record record;
-      try {
-        record = this.dbClient.getVertex(predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundDbException("No Graph found with name " + name + ".");
-      }
-
-      long id = record.get("v").asNode().get("id").asLong();
-      String sourceKey = record.get("v").asNode().get("source_key").asString();
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved graph " + name + ".");
-
-      return GraphFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
+      record = this.dbClient.getVertex(predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundDbException("No Graph found with name " + name + ".");
     }
+
+    long id = record.get("v").asNode().get("id").asLong();
+    String sourceKey = record.get("v").asNode().get("source_key").asString();
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+    LOGGER.info("Retrieved graph " + name + ".");
+
+    return GraphFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override

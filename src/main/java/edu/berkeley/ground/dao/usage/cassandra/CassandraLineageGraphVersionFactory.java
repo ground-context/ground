@@ -111,10 +111,8 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
 
     this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
         + ".");
-
     return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
         referenceParameters, lineageGraphId, lineageEdgeVersionIds);
   }
@@ -161,10 +159,8 @@ public class CassandraLineageGraphVersionFactory extends LineageGraphVersionFact
     }
 
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId
         + ".");
-
     return LineageGraphVersionFactory.construct(id, version.getTags(), version
             .getStructureVersionId(), version.getReference(), version.getParameters(),
         lineageGraphId, lineageEdgeVersionIds);

@@ -30,7 +30,8 @@ import java.util.Set;
 
 import org.neo4j.driver.v1.types.Relationship;
 
-public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
+public class
+Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
   private final Neo4jClient dbClient;
   private final Neo4jVersionSuccessorFactory versionSuccessorFactory;
 
@@ -153,8 +154,6 @@ public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
       predicates.clear();
       predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       this.dbClient.deleteNode(predicates, "RichVersionTag");
-      this.dbClient.commit();
-
       deleted.add(id);
 
       parents.forEach(parentId -> {

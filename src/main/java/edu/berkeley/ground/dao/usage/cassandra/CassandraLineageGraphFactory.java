@@ -80,9 +80,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
 
     this.dbClient.insert("lineage_graph", insertions);
 
-    this.dbClient.commit();
     LOGGER.info("Created lineage_graph " + name + ".");
-
     return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
@@ -103,8 +101,6 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
     try {
       resultSet = this.dbClient.equalitySelect("lineage_graph", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      this.dbClient.abort();
-
       throw new GroundException("No LineageGraph found with name " + name + ".");
     }
 
@@ -113,9 +109,7 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved lineage_graph " + name + ".");
-
     return LineageGraphFactory.construct(id, name, sourceKey, tags);
   }
 

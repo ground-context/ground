@@ -19,6 +19,7 @@ import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.dao.models.EdgeFactory;
 import edu.berkeley.ground.dao.models.EdgeVersionFactory;
 import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.EdgeVersion;
@@ -52,6 +53,7 @@ public class EdgesResource {
 
   private final EdgeFactory edgeFactory;
   private final EdgeVersionFactory edgeVersionFactory;
+  private final DbClient dbClient;
 
   private final NodeFactory nodeFactory;
 
@@ -64,10 +66,12 @@ public class EdgesResource {
    */
   public EdgesResource(EdgeFactory edgeFactory,
                        EdgeVersionFactory edgeVersionFactory,
+                       DbClient dbClient,
                        NodeFactory nodeFactory) {
     this.edgeFactory = edgeFactory;
     this.edgeVersionFactory = edgeVersionFactory;
     this.nodeFactory = nodeFactory;
+    this.dbClient = dbClient;
   }
 
   @GET
@@ -75,16 +79,24 @@ public class EdgesResource {
   @ApiOperation(value = "Get an edge")
   @Path("/{name}/{key}")
   public Edge getEdge(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving edge " + name + ".");
-    return this.edgeFactory.retrieveFromDatabase(name);
+    try {
+      LOGGER.info("Retrieving edge " + name + ".");
+      return this.edgeFactory.retrieveFromDatabase(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @GET
   @Timed
   @Path("/versions/{id}")
   public EdgeVersion getEdgeVersion(@PathParam("id") long id) throws GroundException {
-    LOGGER.info("Retrieving edge version " + id + ".");
-    return this.edgeVersionFactory.retrieveFromDatabase(id);
+    try {
+      LOGGER.info("Retrieving edge version " + id + ".");
+      return this.edgeVersionFactory.retrieveFromDatabase(id);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   /**
@@ -107,12 +119,21 @@ public class EdgesResource {
                          @PathParam("key") String sourceKey,
                          @Valid Map<String, Tag> tags)
       throws GroundException {
-    LOGGER.info("Creating edge " + name + ".");
+    try {
+      LOGGER.info("Creating edge " + name + ".");
 
-    Node fromNode = this.nodeFactory.retrieveFromDatabase(fromNodeName);
-    Node toNode = this.nodeFactory.retrieveFromDatabase(toNodeName);
+      Node fromNode = this.nodeFactory.retrieveFromDatabase(fromNodeName);
+      Node toNode = this.nodeFactory.retrieveFromDatabase(toNodeName);
 
-    return this.edgeFactory.create(name, sourceKey, fromNode.getId(), toNode.getId(), tags);
+      Edge edge = this.edgeFactory.create(name, sourceKey, fromNode.getId(), toNode.getId(), tags);
+      this.dbClient.commit();
+
+      return edge;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -130,17 +151,27 @@ public class EdgesResource {
                                        @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
-    LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
-    return this.edgeVersionFactory.create(edgeVersion.getTags(),
-        edgeVersion.getStructureVersionId(),
-        edgeVersion.getReference(),
-        edgeVersion.getParameters(),
-        edgeVersion.getEdgeId(),
-        edgeVersion.getFromNodeVersionStartId(),
-        edgeVersion.getFromNodeVersionEndId(),
-        edgeVersion.getToNodeVersionStartId(),
-        edgeVersion.getToNodeVersionEndId(),
-        parentIds);
+    try {
+      LOGGER.info("Creating edge version in edge " + edgeVersion.getEdgeId() + ".");
+      EdgeVersion created = this.edgeVersionFactory.create(edgeVersion.getTags(),
+          edgeVersion.getStructureVersionId(),
+          edgeVersion.getReference(),
+          edgeVersion.getParameters(),
+          edgeVersion.getEdgeId(),
+          edgeVersion.getFromNodeVersionStartId(),
+          edgeVersion.getFromNodeVersionEndId(),
+          edgeVersion.getToNodeVersionStartId(),
+          edgeVersion.getToNodeVersionEndId(),
+          parentIds);
+
+      this.dbClient.commit();
+
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -155,10 +186,18 @@ public class EdgesResource {
   @Path("/truncate/{name}/{height}")
   public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
       throws GroundException {
-    LOGGER.info("Truncating edge " + name + " to height " + height + ".");
 
-    long id = this.edgeFactory.retrieveFromDatabase(name).getId();
+    try {
+      LOGGER.info("Truncating edge " + name + " to height " + height + ".");
 
-    this.edgeFactory.truncate(id, height);
+      long id = this.edgeFactory.retrieveFromDatabase(name).getId();
+      this.edgeFactory.truncate(id, height);
+      this.dbClient.commit();
+
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 }

@@ -81,35 +81,27 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
                             long nodeId,
                             List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      // add the id of the version to the tag
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-          new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-      );
+    // add the id of the version to the tag
+    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+    );
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
-      this.dbClient.insert("node_version", insertions);
+    this.dbClient.insert("node_version", insertions);
 
-      this.nodeFactory.update(nodeId, id, parentIds);
+    this.nodeFactory.update(nodeId, id, parentIds);
 
-      this.dbClient.commit();
-      LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
-
-      return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, nodeId);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
+    return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, nodeId);
   }
 
   /**
@@ -121,30 +113,22 @@ public class PostgresNodeVersionFactory extends NodeVersionFactory {
    */
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    PostgresResults resultSet;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      PostgresResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("node_version", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundException("No NodeVersion found with id " + id + ".");
-      }
-
-      long nodeId = resultSet.getLong(2);
-      this.dbClient.commit();
-
-      LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
-
-      return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
-          version.getReference(), version.getParameters(), nodeId);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("node_version", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No NodeVersion found with id " + id + ".");
     }
+
+    long nodeId = resultSet.getLong(2);
+
+    LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
+    return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), nodeId);
   }
 }

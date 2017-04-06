@@ -97,9 +97,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     this.structureFactory.update(structureId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
@@ -141,9 +139,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     long structureId = resultSet.getLong("structure_id");
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 }

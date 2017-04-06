@@ -101,9 +101,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
 
     this.nodeFactory.update(nodeId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
-
     return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
         referenceParameters, nodeId);
   }
@@ -126,16 +124,12 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     try {
       resultSet = this.dbClient.equalitySelect("node_version", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      this.dbClient.abort();
-
       throw new GroundException("No NodeVersion found with id " + id + ".");
     }
 
     long nodeId = resultSet.getLong("node_id");
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
-
     return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), nodeId);
   }
