@@ -66,8 +66,8 @@ public class EdgesResource {
    */
   public EdgesResource(EdgeFactory edgeFactory,
                        EdgeVersionFactory edgeVersionFactory,
-                       DbClient dbClient,
-                       NodeFactory nodeFactory) {
+                       NodeFactory nodeFactory,
+                       DbClient dbClient) {
     this.edgeFactory = edgeFactory;
     this.edgeVersionFactory = edgeVersionFactory;
     this.nodeFactory = nodeFactory;
