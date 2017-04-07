@@ -67,8 +67,20 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
   @Override
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
-    long uniqueId = this.idGenerator.generateItemId();
+    LineageEdge lineageEdge = null;
+    try {
+      lineageEdge = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No LineageEdge found")) {
+        throw e;
+      }
+    }
 
+    if (lineageEdge != null) {
+      throw new GroundException("LineageEdge with source_key " + sourceKey + " already exists.");
+    }
+
+    long uniqueId = this.idGenerator.generateItemId();
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));

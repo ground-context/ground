@@ -28,7 +28,6 @@ import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
-// TODO: Once Cassandra schema is fixed, add duplicate edge tests
 public class CassandraEdgeFactoryTest extends CassandraTest {
 
   public CassandraEdgeFactoryTest() throws GroundException {
@@ -57,7 +56,7 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
     assertEquals(sourceKey, edge.getSourceKey());
   }
 
-  // @Test(expected = GroundException.class)
+  @Test(expected = GroundException.class)
   public void testCreateDuplicateEdge() throws GroundException {
     String edgeName = "edgeName";
     String edgeKey = "edgeKey";

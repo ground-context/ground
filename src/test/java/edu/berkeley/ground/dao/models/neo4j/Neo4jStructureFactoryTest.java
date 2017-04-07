@@ -74,6 +74,21 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateStructure() throws GroundException {
+    String structureName = "structureName";
+    String structureKey = "structureKey";
+
+    try {
+      Neo4jTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+  }
+
+
   @Test
   public void testTruncate() throws GroundException {
     String structureName = "testStructure";

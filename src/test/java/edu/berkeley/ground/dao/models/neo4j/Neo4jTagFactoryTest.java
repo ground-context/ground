@@ -39,8 +39,8 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    long nodeId1 = Neo4jTest.nodesResource.createNode("test1", null, tagsMap).getId();
-    long nodeId2 = Neo4jTest.nodesResource.createNode("test2", null, tagsMap).getId();
+    long nodeId1 = Neo4jTest.nodesResource.createNode(null, "test1", tagsMap).getId();
+    long nodeId2 = Neo4jTest.nodesResource.createNode(null, "test2", tagsMap).getId();
 
     List<Long> ids = Neo4jTest.tagFactory.getItemIdsByTag("testtag");
 

@@ -59,6 +59,20 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageEdge() throws GroundException {
+    String lineageEdgeName = "lineageEdgeName";
+    String lineageEdgeKey = "lineageEdgeKey";
+
+    try {
+      CassandraTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+  }
+
   @Test
   public void testTruncate() throws GroundException {
     String firstTestNode = "firstTestNode";

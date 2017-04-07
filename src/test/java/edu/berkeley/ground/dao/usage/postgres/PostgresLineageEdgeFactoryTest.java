@@ -45,6 +45,20 @@ public class PostgresLineageEdgeFactoryTest extends PostgresTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageEdge() throws GroundException {
+    String lineageEdgeName = "lineageEdgeName";
+    String lineageEdgeKey = "lineageEdgeKey";
+
+    try {
+      PostgresTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+  }
+
   @Test
   public void testTruncate() throws GroundException {
     String firstTestNode = "firstTestNode";

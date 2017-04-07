@@ -69,6 +69,20 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
 
+    LineageEdge lineageEdge = null;
+    try {
+      lineageEdge = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No LineageEdge found")) {
+        throw e;
+      }
+    }
+
+    if (lineageEdge != null) {
+      throw new GroundException("LineageEdge with source_key " + sourceKey + " already exists.");
+    }
+
+
     long uniqueId = this.idGenerator.generateItemId();
 
     this.itemFactory.insertIntoDatabase(uniqueId, tags);

@@ -68,6 +68,20 @@ public class Neo4jStructureFactory extends StructureFactory {
   @Override
   public Structure create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
+
+    Structure structure = null;
+    try {
+      structure = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No Structure found")) {
+        throw e;
+      }
+    }
+
+    if (structure != null) {
+      throw new GroundException("Structure with source_key " + sourceKey + " already exists.");
+    }
+
     long uniqueId = this.idGenerator.generateItemId();
 
     List<DbDataContainer> insertions = new ArrayList<>();

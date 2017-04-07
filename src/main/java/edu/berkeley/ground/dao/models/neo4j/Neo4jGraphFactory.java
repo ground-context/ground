@@ -68,6 +68,19 @@ public class Neo4jGraphFactory extends GraphFactory {
    */
   @Override
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
+    Graph graph = null;
+    try {
+      graph = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No Graph found")) {
+        throw e;
+      }
+    }
+
+    if (graph != null) {
+      throw new GroundException("Graph with source_key " + sourceKey + " already exists.");
+    }
+
     long uniqueId = this.idGenerator.generateItemId();
 
     List<DbDataContainer> insertions = new ArrayList<>();
@@ -84,7 +97,7 @@ public class Neo4jGraphFactory extends GraphFactory {
   }
 
   /**
-   * Retrieves an edge from the database.
+   * Retrieves a graph from the database.
    *
    * @param sourceKey the key of the graph to retrieve
    * @return the retrieved graph

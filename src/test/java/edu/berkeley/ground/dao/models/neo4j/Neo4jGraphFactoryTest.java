@@ -59,6 +59,20 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateGraph() throws GroundException {
+    String graphName = "graphName";
+    String graphKey = "graphKey";
+
+    try {
+      Neo4jTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+  }
+
   @Test
   public void testTruncate() throws GroundException {
     long edgeVersionId = Neo4jTest.createTwoNodesAndEdge();
