@@ -29,7 +29,7 @@ public abstract class EdgeFactory {
                               long toNodeId,
                               Map<String, Tag> tags) throws GroundException;
 
-  public abstract Edge retrieveFromDatabase(String name) throws GroundException;
+  public abstract Edge retrieveFromDatabase(String sourceKey) throws GroundException;
 
   public abstract Edge retrieveFromDatabase(long id) throws GroundException;
 

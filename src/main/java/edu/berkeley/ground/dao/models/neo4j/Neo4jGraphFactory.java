@@ -86,28 +86,28 @@ public class Neo4jGraphFactory extends GraphFactory {
   /**
    * Retrieves an edge from the database.
    *
-   * @param name the name of the graph to retrieve
+   * @param sourceKey the key of the graph to retrieve
    * @return the retrieved graph
    * @throws GroundException either the graph doesn't exist or couldn't be retrieved
    */
   @Override
-  public Graph retrieveFromDatabase(String name) throws GroundException {
+  public Graph retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     Record record;
     try {
       record = this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDbException("No Graph found with name " + name + ".");
+      throw new GroundDbException("No Graph found with source_key " + sourceKey + ".");
     }
 
     long id = record.get("v").asNode().get("id").asLong();
-    String sourceKey = record.get("v").asNode().get("source_key").asString();
+    String name = record.get("v").asNode().get("name").asString();
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved graph " + name + ".");
+    LOGGER.info("Retrieved graph " + sourceKey + ".");
 
     return GraphFactory.construct(id, name, sourceKey, tags);
   }

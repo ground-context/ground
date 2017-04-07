@@ -131,14 +131,14 @@ create table principal (
     node_id bigint,
     source_key varchar,
     name varchar,
-    PRIMARY KEY (node_id, name)
+    PRIMARY KEY (node_id, source_key)
 );
 
 create table lineage_edge (
     item_id bigint,
     source_key varchar,
     name varchar,
-    PRIMARY KEY (item_id, name)
+    PRIMARY KEY (item_id, source_key)
 );
 
 create table lineage_edge_version (
@@ -153,7 +153,7 @@ create table lineage_graph (
     item_id bigint,
     source_key varchar,
     name varchar,
-    PRIMARY KEY (item_id, name)
+    PRIMARY KEY (item_id, source_key)
 );
 
 create table lineage_graph_version (

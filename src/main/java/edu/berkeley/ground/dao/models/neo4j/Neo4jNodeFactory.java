@@ -85,13 +85,13 @@ public class Neo4jNodeFactory extends NodeFactory {
   /**
    * Retrieve the DAG leaves for this node.
    *
-   * @param name the name of the node to retrieve leaves for.
+   * @param sourceKey the key of the node to retrieve leaves for.
    * @return the leaves of the node
    * @throws GroundException an error while retrieving the node
    */
   @Override
-  public List<Long> getLeaves(String name) throws GroundException {
-    Node node = this.retrieveFromDatabase(name);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Node node = this.retrieveFromDatabase(sourceKey);
     List<Long> leaves = this.itemFactory.getLeaves(node.getId());
 
     return leaves;
@@ -100,28 +100,28 @@ public class Neo4jNodeFactory extends NodeFactory {
   /**
    * Retrieve a node from the database.
    *
-   * @param name the name of the node to retrieve
+   * @param sourceKey the key of the node to retrieve
    * @return the retrieved node
    * @throws GroundException either the node doesn't exist or couldn't be retrieved
    */
   @Override
-  public Node retrieveFromDatabase(String name) throws GroundException {
+  public Node retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     Record record;
     try {
       record = this.dbClient.getVertex("Node", predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDbException("No Node found with name " + name + ".");
+      throw new GroundDbException("No Node found with source_key " + sourceKey + ".");
     }
 
     long id = record.get("v").asNode().get("id").asLong();
-    String sourceKey = record.get("v").asNode().get("source_key").asString();
+    String name = record.get("v").asNode().get("name").asString();
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved node " + name + ".");
+    LOGGER.info("Retrieved node " + sourceKey + ".");
 
     return NodeFactory.construct(id, name, sourceKey, tags);
   }

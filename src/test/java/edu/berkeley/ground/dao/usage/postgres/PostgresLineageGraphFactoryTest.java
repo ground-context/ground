@@ -26,7 +26,7 @@ public class PostgresLineageGraphFactoryTest extends PostgresTest {
     String sourceKey = "testKey";
 
     PostgresTest.lineageGraphsResource.createLineageGraph(testName, sourceKey, new HashMap<>());
-    LineageGraph graph = PostgresTest.lineageGraphsResource.getLineageGraph(testName);
+    LineageGraph graph = PostgresTest.lineageGraphsResource.getLineageGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -34,12 +34,12 @@ public class PostgresLineageGraphFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.lineageGraphsResource.getLineageGraph(testName);
+      PostgresTest.lineageGraphsResource.getLineageGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+      assertEquals("No LineageGraph found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }

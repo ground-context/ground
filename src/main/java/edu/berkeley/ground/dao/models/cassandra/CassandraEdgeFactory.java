@@ -106,8 +106,8 @@ public class CassandraEdgeFactory extends EdgeFactory {
   }
 
   @Override
-  public Edge retrieveFromDatabase(String name) throws GroundException {
-    return this.retrieveByPredicate("name", name, GroundType.STRING);
+  public Edge retrieveFromDatabase(String sourceKey) throws GroundException {
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
   }
 
   @Override

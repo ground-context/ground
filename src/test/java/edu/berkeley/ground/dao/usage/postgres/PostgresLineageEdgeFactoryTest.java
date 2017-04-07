@@ -26,7 +26,7 @@ public class PostgresLineageEdgeFactoryTest extends PostgresTest {
     String sourceKey = "testKey";
 
     PostgresTest.lineageEdgesResource.createLineageEdge(testName, sourceKey, new HashMap<>());
-    LineageEdge lineageEdge = PostgresTest.lineageEdgesResource.getLineageEdge(testName);
+    LineageEdge lineageEdge = PostgresTest.lineageEdgesResource.getLineageEdge(sourceKey);
 
     assertEquals(testName, lineageEdge.getName());
     assertEquals(sourceKey, lineageEdge.getSourceKey());
@@ -34,12 +34,12 @@ public class PostgresLineageEdgeFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageEdge() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.lineageEdgesResource.getLineageEdge(testName);
+      PostgresTest.lineageEdgesResource.getLineageEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageEdge found with name " + testName + ".", e.getMessage());
+      assertEquals("No LineageEdge found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }

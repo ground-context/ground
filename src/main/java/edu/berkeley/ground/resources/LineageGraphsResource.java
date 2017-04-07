@@ -63,10 +63,11 @@ public class LineageGraphsResource {
   @GET
   @Timed
   @Path("/{name}")
-  public LineageGraph getLineageGraph(@PathParam("name") String name) throws GroundException {
+  public LineageGraph getLineageGraph(@PathParam("sourceKey") String sourceKey)
+      throws GroundException {
     try {
-      LOGGER.info("Retrieving graph " + name + ".");
-      return this.lineageGraphFactory.retrieveFromDatabase(name);
+      LOGGER.info("Retrieving graph " + sourceKey + ".");
+      return this.lineageGraphFactory.retrieveFromDatabase(sourceKey);
     } finally {
       this.dbClient.commit();
     }
