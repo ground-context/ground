@@ -32,15 +32,15 @@ public class Neo4JVersionHistoryDagFactoryTest extends Neo4jTest {
   public void testVersionHistoryDAGCreation() throws GroundException {
     try {
       long testId = 1;
-      super.versionHistoryDAGFactory.create(testId);
+      Neo4jTest.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 }

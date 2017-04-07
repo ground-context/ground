@@ -48,11 +48,9 @@ public class PostgresNodeFactoryTest extends PostgresTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    PostgresNodeFactory nodeFactory = (PostgresNodeFactory) super.factories.getNodeFactory();
-    nodeFactory.create(testName, sourceKey, tagsMap);
+    PostgresTest.nodesResource.createNode(testName, sourceKey,tagsMap);
 
-    Node node = nodeFactory.retrieveFromDatabase(testName);
-
+    Node node = PostgresTest.nodesResource.getNode(testName);
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
     assertEquals(sourceKey, node.getSourceKey());
@@ -61,17 +59,15 @@ public class PostgresNodeFactoryTest extends PostgresTest {
   @Test
   public void testLeafRetrieval() throws GroundException {
     String nodeName = "testNode1";
-    long nodeId = super.factories.getNodeFactory().create(nodeName, null, new HashMap<>()).getId();
+    long nodeId = PostgresTest.createNode(nodeName).getId();
 
-    long nodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    long secondNVId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
-        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+    long nodeVersionId = PostgresTest.createNodeVersion(nodeId).getId();
+    long secondNodeVersionId = PostgresTest.createNodeVersion(nodeId).getId();
 
-    List<Long> leaves = super.factories.getNodeFactory().getLeaves(nodeName);
+    List<Long> leaves = PostgresTest.nodesResource.getLatestVersions(nodeName);
 
     assertTrue(leaves.contains(nodeVersionId));
-    assertTrue(leaves.contains(secondNVId));
+    assertTrue(leaves.contains(secondNodeVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -79,7 +75,7 @@ public class PostgresNodeFactoryTest extends PostgresTest {
     String testName = "test";
 
     try {
-      super.factories.getNodeFactory().retrieveFromDatabase(testName);
+      PostgresTest.nodesResource.getNode(testName);
     } catch (GroundException e) {
       assertEquals("No Node found with name " + testName + ".", e.getMessage());
 
@@ -90,26 +86,22 @@ public class PostgresNodeFactoryTest extends PostgresTest {
   @Test
   public void testTruncation() throws GroundException {
     String testNode = "testNode";
-    long testNodeId = super.factories.getNodeFactory().create(testNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+    long testNodeId = PostgresTest.createNode(testNode).getId();
+    long firstNodeVersionId = PostgresTest.createNodeVersion(testNodeId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long newNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    long newNodeVersionId = PostgresTest.createNodeVersion(testNodeId, parents).getId();
 
-    super.factories.getNodeFactory().truncate(testNodeId, 1);
+    PostgresTest.nodesResource.truncateNode(testNode, 1);
 
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
-
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(testNodeId);
     assertEquals(1, dag.getEdgeIds().size());
 
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
-
-    super.postgresClient.commit();
+    PostgresTest.postgresClient.commit();
 
     assertEquals(0, successor.getFromId());
     assertEquals(newNodeVersionId, successor.getToId());
@@ -118,29 +110,22 @@ public class PostgresNodeFactoryTest extends PostgresTest {
   @Test
   public void testBranchTruncation() throws GroundException {
     String testNode = "testNode";
-    long testNodeId = super.factories.getNodeFactory().create(testNode, null,
-        new HashMap<>()).getId();
-    long originalId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+    long testNodeId = PostgresTest.createNode(testNode).getId();
+    long originalId = PostgresTest.createNodeVersion(testNodeId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(originalId);
-    long firstParentId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
-
-    long secondParentId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    long firstParentId = PostgresTest.createNodeVersion(testNodeId, parents).getId();
+    long secondParentId = PostgresTest.createNodeVersion(testNodeId, parents).getId();
 
     parents.clear();
     parents.add(firstParentId);
     parents.add(secondParentId);
+    long childId = PostgresTest.createNodeVersion(testNodeId, parents).getId();
 
-    long childId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    PostgresTest.nodesResource.truncateNode(testNode, 2);
 
-    super.factories.getNodeFactory().truncate(testNodeId, 2);
-
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 
     assertEquals(4, dag.getEdgeIds().size());
 
@@ -151,12 +136,12 @@ public class PostgresNodeFactoryTest extends PostgresTest {
     correctSuccessors.add(Arrays.asList(secondParentId, childId));
 
     for (long successorId : dag.getEdgeIds()) {
-      VersionSuccessor successor = super.versionSuccessorFactory.retrieveFromDatabase(successorId);
+      VersionSuccessor successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(successorId);
       correctSuccessors.remove(Arrays.asList(successor.getFromId(), successor.getToId()));
     }
 
     assertTrue(correctSuccessors.isEmpty());
 
-    super.postgresClient.commit();
+    PostgresTest.postgresClient.commit();
   }
 }

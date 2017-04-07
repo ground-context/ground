@@ -48,10 +48,9 @@ public class CassandraNodeFactoryTest extends CassandraTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    CassandraNodeFactory nodeFactory = (CassandraNodeFactory) CassandraTest.factories.getNodeFactory();
-    nodeFactory.create(testName, sourceKey, tagsMap);
+    CassandraTest.nodesResource.createNode(testName, sourceKey,tagsMap);
 
-    Node node = nodeFactory.retrieveFromDatabase(testName);
+    Node node = CassandraTest.nodesResource.getNode(testName);
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
     assertEquals(sourceKey, node.getSourceKey());
@@ -60,20 +59,15 @@ public class CassandraNodeFactoryTest extends CassandraTest {
   @Test
   public void testLeafRetrieval() throws GroundException {
     String nodeName = "testNode1";
-    String sourceKey = "testKey";
+    long nodeId = CassandraTest.createNode(nodeName).getId();
 
-    long nodeId = CassandraTest.factories.getNodeFactory().create(nodeName, sourceKey,
-        new HashMap<>()).getId();
+    long nodeVersionId = CassandraTest.createNodeVersion(nodeId).getId();
+    long secondNodeVersionId = CassandraTest.createNodeVersion(nodeId).getId();
 
-    long nodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    long secondNVId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
-        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-
-    List<Long> leaves = CassandraTest.factories.getNodeFactory().getLeaves(nodeName);
+    List<Long> leaves = CassandraTest.nodesResource.getLatestVersions(nodeName);
 
     assertTrue(leaves.contains(nodeVersionId));
-    assertTrue(leaves.contains(secondNVId));
+    assertTrue(leaves.contains(secondNodeVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -81,7 +75,7 @@ public class CassandraNodeFactoryTest extends CassandraTest {
     String testName = "test";
 
     try {
-      CassandraTest.factories.getNodeFactory().retrieveFromDatabase(testName);
+      CassandraTest.nodesResource.getNode(testName);
     } catch (GroundException e) {
       assertEquals("No Node found with name " + testName + ".", e.getMessage());
 
@@ -92,25 +86,21 @@ public class CassandraNodeFactoryTest extends CassandraTest {
   @Test
   public void testTruncation() throws GroundException {
     String testNode = "testNode";
-    long testNodeId = CassandraTest.factories.getNodeFactory().create(testNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+    long testNodeId = CassandraTest.createNode(testNode).getId();
+    long firstNodeVersionId = CassandraTest.createNodeVersion(testNodeId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long newNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    long newNodeVersionId = CassandraTest.createNodeVersion(testNodeId, parents).getId();
 
-    CassandraTest.factories.getNodeFactory().truncate(testNodeId, 1);
+    CassandraTest.nodesResource.truncateNode(testNode, 1);
 
-    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
-
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(testNodeId);
     assertEquals(1, dag.getEdgeIds().size());
 
     VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
-
     CassandraTest.cassandraClient.commit();
 
     assertEquals(0, successor.getFromId());
@@ -120,27 +110,20 @@ public class CassandraNodeFactoryTest extends CassandraTest {
   @Test
   public void testBranchTruncation() throws GroundException {
     String testNode = "testNode";
-    long testNodeId = CassandraTest.factories.getNodeFactory().create(testNode, null,
-        new HashMap<>()).getId();
-    long originalId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+    long testNodeId = CassandraTest.createNode(testNode).getId();
+    long originalId = CassandraTest.createNodeVersion(testNodeId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(originalId);
-    long firstParentId = CassandraTest.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
-
-    long secondParentId = CassandraTest.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    long firstParentId = CassandraTest.createNodeVersion(testNodeId, parents).getId();
+    long secondParentId = CassandraTest.createNodeVersion(testNodeId, parents).getId();
 
     parents.clear();
     parents.add(firstParentId);
     parents.add(secondParentId);
+    long childId = CassandraTest.createNodeVersion(testNodeId, parents).getId();
 
-    long childId = CassandraTest.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
-
-    CassandraTest.factories.getNodeFactory().truncate(testNodeId, 2);
+    CassandraTest.nodesResource.truncateNode(testNode, 2);
 
     VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 

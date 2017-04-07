@@ -95,21 +95,10 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       long id = 1;
 
       String structureName = "testStructure";
-      long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
-          new HashMap<>()).getId();
+      long structureId = CassandraTest.createStructure(structureName).getId();
+      long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
-      Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-      structureVersionAttributes.put("intfield", GroundType.INTEGER);
-      structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-      structureVersionAttributes.put("strfield", GroundType.STRING);
-
-      long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
-          structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-      Map<String, Tag> tags = new HashMap<>();
-      tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-      tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-      tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+      Map<String, Tag> tags = CassandraTest.createTags();
 
       CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
@@ -130,15 +119,8 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
-            new HashMap<>()).getId();
-
-        Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-        structureVersionAttributes.put("intfield", GroundType.INTEGER);
-        structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-        structureVersionAttributes.put("strfield", GroundType.STRING);
-
-        structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(structureId, structureVersionAttributes, new ArrayList<>()).getId();
+        long structureId = CassandraTest.createStructure(structureName).getId();
+        structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
       } catch (GroundException ge) {
         CassandraTest.cassandraClient.abort();
 

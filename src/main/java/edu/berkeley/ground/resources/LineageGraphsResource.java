@@ -88,9 +88,9 @@ public class LineageGraphsResource {
   @POST
   @Timed
   @Path("/{name}/{key}")
-  public LineageGraph createGraph(@PathParam("name") String name,
-                                  @PathParam("key") String sourceKey,
-                                  @Valid Map<String, Tag> tags) throws GroundException {
+  public LineageGraph createLineageGraph(@PathParam("name") String name,
+                                         @PathParam("key") String sourceKey,
+                                         @Valid Map<String, Tag> tags) throws GroundException {
     try {
       LOGGER.info("Creating graph " + name + ".");
       LineageGraph created = this.lineageGraphFactory.create(name, sourceKey, tags);
@@ -125,14 +125,14 @@ public class LineageGraphsResource {
   @POST
   @Timed
   @Path("/{id}/versions")
-  public LineageGraphVersion createGraphVersion(@PathParam("id") long lineageGraphId,
-                                                @Valid Map<String, Tag> tags,
-                                                @Valid Map<String, String> referenceParameters,
-                                                long structureVersionId,
-                                                String reference,
-                                                @Valid List<Long> lineageEdgeVersionIds,
-                                                @QueryParam("parent") List<Long> parentIds)
-      throws GroundException {
+  public LineageGraphVersion createLineageGraphVersion(
+      @PathParam("id") long lineageGraphId,
+      @Valid Map<String, Tag> tags,
+      @Valid Map<String, String> referenceParameters,
+      long structureVersionId,
+      String reference,
+      @Valid List<Long> lineageEdgeVersionIds,
+      @QueryParam("parent") List<Long> parentIds) throws GroundException {
 
     try {
       LOGGER.info("Creating graph version in graph " + lineageGraphId + ".");

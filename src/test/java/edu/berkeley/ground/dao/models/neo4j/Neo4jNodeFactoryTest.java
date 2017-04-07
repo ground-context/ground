@@ -49,10 +49,8 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    Neo4jNodeFactory nodeFactory = (Neo4jNodeFactory) super.factories.getNodeFactory();
-    nodeFactory.create(testName, sourceKey, tagsMap);
-
-    Node node = nodeFactory.retrieveFromDatabase(testName);
+    Neo4jTest.nodesResource.createNode(testName, sourceKey, tagsMap);
+    Node node = Neo4jTest.nodesResource.getNode(testName);
 
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
@@ -67,10 +65,8 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    Neo4jNodeFactory nodeFactory = (Neo4jNodeFactory) super.factories.getNodeFactory();
-    nodeFactory.create(testName, sourceKey, tagsMap);
-
-    Node node = nodeFactory.retrieveFromDatabase(testName);
+    Neo4jTest.nodesResource.createNode(testName, sourceKey, tagsMap);
+    Node node = Neo4jTest.nodesResource.getNode(testName);
 
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
@@ -80,13 +76,10 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   @Test
   public void testNodeTagRetrieval() throws GroundException {
     try {
-      Map<String, Tag> tags = new HashMap<>();
-      tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-      tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-      tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+      Map<String, Tag> tags = Neo4jTest.createTags();
 
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, tags).getId();
-      Item retrieved = super.itemFactory.retrieveFromDatabase(testNodeId);
+      long testNodeId = Neo4jTest.nodesResource.createNode("tesNode", null, tags).getId();
+      Item retrieved = Neo4jTest.itemFactory.retrieveFromDatabase(testNodeId);
 
       assertEquals(testNodeId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -98,7 +91,7 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
@@ -106,17 +99,14 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   @Test
   public void testLeafRetrieval() throws GroundException {
     String nodeName = "testNode1";
-    long nodeId = super.factories.getNodeFactory().create(nodeName, null, new HashMap<>()).getId();
+    long nodeId = Neo4jTest.createNode(nodeName).getId();
+    long nodeVersionId = Neo4jTest.createNodeVersion(nodeId).getId();
+    long secondNodeVersionId = Neo4jTest.createNodeVersion(nodeId).getId();
 
-    long nodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    long secondNVId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
-        null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-
-    List<Long> leaves = super.factories.getNodeFactory().getLeaves(nodeName);
+    List<Long> leaves = Neo4jTest.nodesResource.getLatestVersions(nodeName);
 
     assertTrue(leaves.contains(nodeVersionId));
-    assertTrue(leaves.contains(secondNVId));
+    assertTrue(leaves.contains(secondNodeVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -124,7 +114,7 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     String testName = "test";
 
     try {
-      super.factories.getNodeFactory().retrieveFromDatabase(testName);
+      Neo4jTest.nodesResource.getNode(testName);
     } catch (GroundException e) {
       assertEquals("No Node found with name " + testName + ".", e.getMessage());
 
@@ -135,57 +125,47 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   @Test
   public void testTruncation() throws GroundException {
     String testNode = "testNode";
-    long testNodeId = super.factories.getNodeFactory().create(testNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+    long nodeId = Neo4jTest.createNode(testNode).getId();
+    long firstNodeVersionId = Neo4jTest.createNodeVersion(nodeId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long newNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    long newNodeVersionId = Neo4jTest.createNodeVersion(nodeId, parents).getId();
 
-    super.factories.getNodeFactory().truncate(testNodeId, 1);
+    Neo4jTest.nodesResource.truncateNode(testNode, 1);
 
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+    VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(nodeId);
 
     assertEquals(1, dag.getEdgeIds().size());
 
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+    VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-    super.neo4jClient.commit();
+    Neo4jTest.neo4jClient.commit();
 
-    assertEquals(testNodeId, successor.getFromId());
+    assertEquals(nodeId, successor.getFromId());
     assertEquals(newNodeVersionId, successor.getToId());
   }
 
   @Test
   public void testBranchTruncation() throws GroundException {
     String testNode = "testNode";
-    long testNodeId = super.factories.getNodeFactory().create(testNode, null,
-        new HashMap<>()).getId();
-    long originalId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), testNodeId, new ArrayList<>()).getId();
+    long testNodeId = Neo4jTest.createNode(testNode).getId();
+    long originalId = Neo4jTest.createNodeVersion(testNodeId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(originalId);
-    long firstParentId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
-
-    long secondParentId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    long firstParentId = Neo4jTest.createNodeVersion(testNodeId, parents).getId();
+    long secondParentId = Neo4jTest.createNodeVersion(testNodeId, parents).getId();
 
     parents.clear();
     parents.add(firstParentId);
     parents.add(secondParentId);
+    long childId = Neo4jTest.createNodeVersion(testNodeId, parents).getId();
 
-    long childId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), testNodeId, parents).getId();
+    Neo4jTest.nodesResource.truncateNode(testNode, 2);
 
-    super.factories.getNodeFactory().truncate(testNodeId, 2);
-
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+    VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 
     assertEquals(4, dag.getEdgeIds().size());
 
@@ -196,12 +176,12 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     correctSuccessors.add(Arrays.asList(secondParentId, childId));
 
     for (long successorId : dag.getEdgeIds()) {
-      VersionSuccessor successor = super.versionSuccessorFactory.retrieveFromDatabase(successorId);
+      VersionSuccessor successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(successorId);
       correctSuccessors.remove(Arrays.asList(successor.getFromId(), successor.getToId()));
     }
 
     assertTrue(correctSuccessors.isEmpty());
 
-    super.neo4jClient.commit();
+    Neo4jTest.neo4jClient.commit();
   }
 }

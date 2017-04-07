@@ -15,6 +15,7 @@
 package edu.berkeley.ground.dao;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,46 +29,56 @@ import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionSuccessorFactory;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.resources.EdgesResource;
+import edu.berkeley.ground.resources.GraphsResource;
+import edu.berkeley.ground.resources.LineageEdgesResource;
+import edu.berkeley.ground.resources.LineageGraphsResource;
+import edu.berkeley.ground.resources.NodesResource;
+import edu.berkeley.ground.resources.StructuresResource;
 import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
 
-public class Neo4jTest {
+public class Neo4jTest extends DaoTest {
     /* Note: In Neo4j, we don't create explicit (Rich)Versions because all of the logic is wrapped in
      * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
      * Versions. */
 
-  protected final Neo4jClient neo4jClient;
-  protected final Neo4jFactories factories;
-  protected final Neo4jVersionSuccessorFactory versionSuccessorFactory;
-  protected final Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
-  protected final Neo4jItemFactory itemFactory;
-  protected final Neo4jTagFactory tagFactory;
-  protected final Neo4jRichVersionFactory richVersionFactory;
+  private static Neo4jFactories factories;
 
-  public Neo4jTest() {
-    this.neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
-    this.factories = new Neo4jFactories(this.neo4jClient, 0, 1);
-    this.versionSuccessorFactory = new Neo4jVersionSuccessorFactory(this.neo4jClient, new IdGenerator(0, 1, true));
-    this.versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(this.neo4jClient, this.versionSuccessorFactory);
-    this.tagFactory = new Neo4jTagFactory(this.neo4jClient);
-    this.itemFactory = new Neo4jItemFactory(this.neo4jClient, this.versionHistoryDAGFactory, tagFactory);
-    this.richVersionFactory = new Neo4jRichVersionFactory(this.neo4jClient, (Neo4jStructureVersionFactory)
-        this.factories.getStructureVersionFactory(), this.tagFactory);
+  protected static Neo4jClient neo4jClient;
+  protected static Neo4jVersionSuccessorFactory versionSuccessorFactory;
+  protected static Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
+  protected static Neo4jItemFactory itemFactory;
+  protected static Neo4jTagFactory tagFactory;
+  protected static Neo4jRichVersionFactory richVersionFactory;
+
+  @BeforeClass
+  public static void setupClass() {
+    neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
+    factories = new Neo4jFactories(neo4jClient, 0, 1);
+    versionSuccessorFactory = new Neo4jVersionSuccessorFactory(neo4jClient, new IdGenerator(0, 1, true));
+    versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(neo4jClient, versionSuccessorFactory);
+    tagFactory = new Neo4jTagFactory(neo4jClient);
+    itemFactory = new Neo4jItemFactory(neo4jClient, versionHistoryDAGFactory, tagFactory);
+    richVersionFactory = new Neo4jRichVersionFactory(neo4jClient, (Neo4jStructureVersionFactory)
+        factories.getStructureVersionFactory(), tagFactory);
+
+    edgesResource = new EdgesResource(factories.getEdgeFactory(),
+        factories.getEdgeVersionFactory(), factories.getNodeFactory(), neo4jClient);
+    graphsResource = new GraphsResource(factories.getGraphFactory(),
+        factories.getGraphVersionFactory(), neo4jClient);
+    lineageEdgesResource = new LineageEdgesResource(factories.getLineageEdgeFactory(),
+        factories.getLineageEdgeVersionFactory(), neo4jClient);
+    lineageGraphsResource = new LineageGraphsResource(factories.getLineageGraphFactory(),
+        factories.getLineageGraphVersionFactory(), neo4jClient);
+    nodesResource = new NodesResource(factories.getNodeFactory(),
+        factories.getNodeVersionFactory(), neo4jClient);
+    structuresResource = new StructuresResource(factories.getStructureFactory(),
+        factories.getStructureVersionFactory(), neo4jClient);
   }
 
   @Before
   public void setup() throws IOException, InterruptedException {
-    this.neo4jClient.dropData();
-  }
-
-  /**
-   * Because we don't have simple versions, we're masking the creation of RichVersions by creating
-   * empty NodeVersions. This is a bad hack that requires us creating a Node for each NodeVersion,
-   * but tests right now are small. Eventually, if we mock a database, we can avoid this.
-   *
-   * @return A new, random NodeVersion's id.
-   */
-  protected long createNodeVersion(long nodeId) throws GroundException {
-    return this.factories.getNodeVersionFactory().create(new HashMap<>(), -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+    neo4jClient.dropData();
   }
 }

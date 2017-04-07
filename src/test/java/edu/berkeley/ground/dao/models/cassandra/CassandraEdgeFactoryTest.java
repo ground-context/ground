@@ -14,8 +14,6 @@
 
 package edu.berkeley.ground.dao.models.cassandra;
 
-import com.sun.org.apache.bcel.internal.generic.CASTORE;
-
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -25,7 +23,6 @@ import java.util.List;
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.exceptions.GroundException;
-import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
@@ -42,18 +39,20 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    long fromNodeId = 1;
-    long toNodeId = 2;
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = CassandraTest.createNode(firstTestNode).getId();
 
-    CassandraEdgeFactory edgeFactory = (CassandraEdgeFactory) CassandraTest.factories
-        .getEdgeFactory();
-    edgeFactory.create(testName, sourceKey, fromNodeId, toNodeId, new HashMap<>());
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = CassandraTest.createNode(secondTestNode).getId();
 
-    Edge edge = edgeFactory.retrieveFromDatabase(testName);
+    CassandraTest.edgesResource.createEdge(testName, firstTestNode, secondTestNode, sourceKey,
+        new HashMap<>());
+
+    Edge edge = CassandraTest.edgesResource.getEdge(testName);
 
     assertEquals(testName, edge.getName());
-    assertEquals(fromNodeId, edge.getFromNodeId());
-    assertEquals(toNodeId, edge.getToNodeId());
+    assertEquals(firstTestNodeId, edge.getFromNodeId());
+    assertEquals(secondTestNodeId, edge.getToNodeId());
     assertEquals(sourceKey, edge.getSourceKey());
   }
 
@@ -62,7 +61,7 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
     String testName = "test";
 
     try {
-      CassandraTest.factories.getEdgeFactory().retrieveFromDatabase(testName);
+      CassandraTest.edgesResource.getEdge(testName);
     } catch (GroundException e) {
       assertEquals("No Edge found with name " + testName + ".", e.getMessage());
 
@@ -73,53 +72,43 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
   @Test
   public void testTruncation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = CassandraTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = CassandraTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = CassandraTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = CassandraTest.createNodeVersion(secondTestNodeId).getId();
 
     String edgeName = "testEdge";
-    long edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
+    long edgeId = CassandraTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
 
-    long edgeVersionId = CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = CassandraTest.createEdgeVersion(edgeId, firstNodeVersionId,
+        secondNodeVersionId).getId();
 
     // create new node versions in each of the nodes
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long newFirstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), firstTestNodeId, parents).getId();
+    long newFirstNodeVersionId = CassandraTest.createNodeVersion(firstTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(secondNodeVersionId);
-    long newSecondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), secondTestNodeId, parents).getId();
+    long newSecondNodeVersionId = CassandraTest.createNodeVersion(secondTestNodeId, parents)
+        .getId();
 
     parents.clear();
     parents.add(edgeVersionId);
-    long newEdgeVersionId = CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, newFirstNodeVersionId, -1, newSecondNodeVersionId, -1,
-        parents).getId();
+    long newEdgeVersionId = CassandraTest.createEdgeVersion(edgeId, newFirstNodeVersionId,
+        newSecondNodeVersionId, parents).getId();
 
-    CassandraTest.factories.getEdgeFactory().truncate(edgeId, 1);
+    CassandraTest.edgesResource.truncateEdge(edgeName, 1);
 
     VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(edgeId);
 
     assertEquals(1, dag.getEdgeIds().size());
-
     VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
     CassandraTest.cassandraClient.commit();
-
     assertEquals(0, successor.getFromId());
     assertEquals(newEdgeVersionId, successor.getToId());
   }

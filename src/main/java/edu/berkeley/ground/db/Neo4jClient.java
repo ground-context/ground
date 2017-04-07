@@ -311,6 +311,8 @@ public class Neo4jClient extends DbClient {
   @Override
   public void abort() {
     this.transaction.failure();
+    this.transaction.close();
+    this.transaction = this.session.beginTransaction();
   }
 
   @Override

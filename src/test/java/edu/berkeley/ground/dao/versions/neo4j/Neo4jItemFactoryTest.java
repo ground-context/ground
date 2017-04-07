@@ -24,31 +24,28 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
   @Test
   public void testCorrectUpdateWithParent() throws GroundException {
     try {
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-          .getId();
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
 
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", null,
-          new HashMap<>()).getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode", null, new HashMap<>())
-          .getId();
-      long fromId = super.createNodeVersion(fromNodeId);
-      long toId = super.createNodeVersion(toNodeId);
+      long fromNodeId = Neo4jTest.createNode("testFromNode").getId();
+      long toNodeId = Neo4jTest.createNode("testToNode").getId();
+      long fromId = Neo4jTest.createNodeVersion(fromNodeId).getId();
+      long toId = Neo4jTest.createNodeVersion(toNodeId).getId();
 
       List<Long> parentIds = new ArrayList<>();
-      super.itemFactory.update(testNodeId, fromId, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, fromId, parentIds);
 
       parentIds.clear();
       parentIds.add(fromId);
-      super.itemFactory.update(testNodeId, toId, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+      VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
       VersionSuccessor<?> successor = null;
       for (long id : dag.getEdgeIds()) {
-        successor = super.versionSuccessorFactory.retrieveFromDatabase(id);
+        successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(id);
 
         if (successor.getFromId() != testNodeId) {
           break;
@@ -62,76 +59,74 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       assertEquals(fromId, successor.getFromId());
       assertEquals(toId, successor.getToId());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
   @Test
   public void testCorrectUpdateWithoutParent() throws GroundException {
     try {
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", null,
-          new HashMap<>()).getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode", null, new HashMap<>())
-          .getId();
-      long toId = super.createNodeVersion(toNodeId);
+      long testFromNode = Neo4jTest.createNode("testFrom").getId();
+      long testToNode = Neo4jTest.createNode("testTo").getId();
+      long toId = Neo4jTest.createNodeVersion(testToNode).getId();
 
       List<Long> parentIds = new ArrayList<>();
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      super.itemFactory.update(fromNodeId, toId, parentIds);
+      Neo4jTest.itemFactory.update(testFromNode, toId, parentIds);
+      Neo4jTest.neo4jClient.commit();
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(fromNodeId);
+      VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory
+          .retrieveFromDatabase(testFromNode);
 
       assertEquals(1, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
-      assertEquals(fromNodeId, successor.getFromId());
+      assertEquals(testFromNode, successor.getFromId());
       assertEquals(toId, successor.getToId());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
   @Test
   public void testCorrectUpdateWithLinearHistory() throws GroundException {
     try {
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-          .getId();
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
 
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", null,
-          new HashMap<>()).getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode", null, new HashMap<>())
-          .getId();
-      long fromId = super.createNodeVersion(fromNodeId);
-      long toId = super.createNodeVersion(toNodeId);
+      long fromNodeId = Neo4jTest.createNode("testFromNode").getId();
+      long toNodeId = Neo4jTest.createNode("testToNode").getId();
+
+      long fromId = Neo4jTest.createNodeVersion(fromNodeId).getId();
+      long toId = Neo4jTest.createNodeVersion(toNodeId).getId();
 
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      super.itemFactory.update(testNodeId, fromId, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(fromId);
-      super.itemFactory.update(testNodeId, toId, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
+      VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> fromSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> fromSuccessor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
-      VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> toSuccessor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(1));
 
       if (fromSuccessor.getFromId() != testNodeId) {
@@ -146,65 +141,61 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       assertEquals(fromId, toSuccessor.getFromId());
       assertEquals(toId, toSuccessor.getToId());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
   @Test(expected = GroundException.class)
   public void testIncorrectUpdate() throws GroundException {
     try {
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", null,
-          new HashMap<>()).getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode", null, new HashMap<>())
-          .getId();
+      long fromNodeId = Neo4jTest.createNode("testFromNode").getId();
+      long toNodeId = Neo4jTest.createNode("testToNode").getId();
+
       long fromId = 1123;
-      long toId = super.createNodeVersion(toNodeId);
+      long toId = Neo4jTest.createNodeVersion(toNodeId).getId();
 
       List<Long> parentIds = new ArrayList<>();
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      super.itemFactory.update(fromNodeId, toId, parentIds);
+      Neo4jTest.itemFactory.update(fromNodeId, toId, parentIds);
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
   @Test
   public void testMultipleParents() throws GroundException {
     try {
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-          .getId();
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
 
-      long parentOneNodeId = super.factories.getNodeFactory().create("testFromNode", null,
-          new HashMap<>()).getId();
-      long parentTwoNodeId = super.factories.getNodeFactory().create("testToNode", null,
-          new HashMap<>()).getId();
-      long parentOne = super.createNodeVersion(parentOneNodeId);
-      long parentTwo = super.createNodeVersion(parentTwoNodeId);
+      long parentOneNodeId = Neo4jTest.createNode("testFromNode").getId();
+      long parentTwoNodeId = Neo4jTest.createNode("testToNode").getId();
 
-      long childNodeId = super.factories.getNodeFactory().create("testChildNode", null,
-          new HashMap<>()).getId();
-      long child = super.createNodeVersion(childNodeId);
+      long parentOne = Neo4jTest.createNodeVersion(parentOneNodeId).getId();
+      long parentTwo = Neo4jTest.createNodeVersion(parentTwoNodeId).getId();
+
+      long childNodeId = Neo4jTest.createNode("testChildNode").getId();
+      long child = Neo4jTest.createNodeVersion(childNodeId).getId();
 
 
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      super.itemFactory.update(testNodeId, parentOne, parentIds);
-      super.itemFactory.update(testNodeId, parentTwo, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, parentOne, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      super.itemFactory.update(testNodeId, child, parentIds);
+      Neo4jTest.itemFactory.update(testNodeId, child, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory
+      VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory
           .retrieveFromDatabase(testNodeId);
 
       assertEquals(4, dag.getEdgeIds().size());
@@ -218,16 +209,16 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       correctSuccessors.add(Arrays.asList(parentTwo, child));
 
       for (long edgeId : dag.getEdgeIds()) {
-        VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(edgeId);
+        VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(edgeId);
 
         correctSuccessors.remove(Arrays.asList(successor.getFromId(), successor.getToId()));
       }
 
       assertTrue(correctSuccessors.isEmpty());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 }

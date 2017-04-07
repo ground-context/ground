@@ -90,10 +90,8 @@ public class StructuresResource {
     try {
       LOGGER.info("Retrieving the latest version of node " + name + ".");
       return this.structureFactory.getLeaves(name);
-    } catch (Exception e) {
-      this.dbClient.abort();
-
-      throw e;
+    } finally {
+      this.dbClient.commit();
     }
   }
 

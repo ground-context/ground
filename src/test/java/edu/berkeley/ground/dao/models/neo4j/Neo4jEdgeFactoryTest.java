@@ -39,13 +39,16 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    long firstNodeId = 1;
-    long secondNodeId = 2;
+    String firstNodeName = "firstNode";
+    long firstNodeId = Neo4jTest.createNode(firstNodeName).getId();
+    String secondNodeName = "secondNode";
+    long secondNodeId = Neo4jTest.createNode(secondNodeName).getId();
 
-    Neo4jEdgeFactory edgeFactory = (Neo4jEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName, sourceKey, firstNodeId, secondNodeId, new HashMap<>());
 
-    Edge edge = edgeFactory.retrieveFromDatabase(testName);
+    Neo4jTest.edgesResource.createEdge(testName, firstNodeName, secondNodeName, sourceKey,
+        new HashMap<>());
+
+    Edge edge = Neo4jTest.edgesResource.getEdge(testName);
 
     assertEquals(testName, edge.getName());
     assertEquals(firstNodeId, edge.getFromNodeId());
@@ -58,7 +61,7 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
     String testName = "test";
 
     try {
-      super.factories.getEdgeFactory().retrieveFromDatabase(testName);
+      super.edgesResource.getEdge(testName);
     } catch (GroundException e) {
       assertEquals("No Edge found with name " + testName + ".", e.getMessage());
 
@@ -69,53 +72,43 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
   @Test
   public void testTruncation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = Neo4jTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = Neo4jTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = Neo4jTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = Neo4jTest.createNodeVersion(secondTestNodeId).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
+    long edgeId = Neo4jTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
 
-
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = Neo4jTest.createEdgeVersion(edgeId, firstNodeVersionId,
+        secondNodeVersionId).getId();
 
     // create new node versions in each of the nodes
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long newFirstNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), firstTestNodeId, parents).getId();
+    long newFirstNodeVersionId = Neo4jTest.createNodeVersion(firstTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(secondNodeVersionId);
-    long newSecondNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), secondTestNodeId, parents).getId();
+    long newSecondNodeVersionId = Neo4jTest.createNodeVersion(secondTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(edgeVersionId);
-    long newEdgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, newFirstNodeVersionId, -1, newSecondNodeVersionId, -1,
-        parents).getId();
+    long newEdgeVersionId = Neo4jTest.createEdgeVersion(edgeId, newFirstNodeVersionId,
+        newSecondNodeVersionId, parents).getId();
 
-    super.factories.getEdgeFactory().truncate(edgeId, 1);
+    Neo4jTest.edgesResource.truncateEdge(edgeName, 1);
 
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(edgeId);
+    VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(edgeId);
 
     assertEquals(1, dag.getEdgeIds().size());
 
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+    VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-    super.neo4jClient.commit();
+    Neo4jTest.neo4jClient.commit();
 
     assertEquals(edgeId, successor.getFromId());
     assertEquals(newEdgeVersionId, successor.getToId());
