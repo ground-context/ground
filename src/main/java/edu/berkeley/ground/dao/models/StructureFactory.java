@@ -27,7 +27,7 @@ public abstract class StructureFactory {
                                    Map<String, Tag> tags)
       throws GroundException;
 
-  public abstract Structure retrieveFromDatabase(String name) throws GroundException;
+  public abstract Structure retrieveFromDatabase(String sourceKey) throws GroundException;
 
   public abstract void update(long itemId, long childId, List<Long> parentIds)
       throws GroundException;

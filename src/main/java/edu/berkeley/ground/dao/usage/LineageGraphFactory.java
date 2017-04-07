@@ -27,7 +27,7 @@ public abstract class LineageGraphFactory {
                                       Map<String, Tag> tags)
       throws GroundException;
 
-  public abstract LineageGraph retrieveFromDatabase(String name) throws GroundException;
+  public abstract LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException;
 
   public abstract void update(long itemId, long childId, List<Long> parentIds)
       throws GroundException;

@@ -26,7 +26,7 @@ public class Neo4jLineageEdgeFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.lineageEdgesResource.createLineageEdge(testName, sourceKey, new HashMap<>());
-    LineageEdge lineageEdge = Neo4jTest.lineageEdgesResource.getLineageEdge(testName);
+    LineageEdge lineageEdge = Neo4jTest.lineageEdgesResource.getLineageEdge(sourceKey);
 
     assertEquals(testName, lineageEdge.getName());
     assertEquals(sourceKey, lineageEdge.getSourceKey());
@@ -34,12 +34,12 @@ public class Neo4jLineageEdgeFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageEdge() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      Neo4jTest.lineageEdgesResource.getLineageEdge(testName);
+      Neo4jTest.lineageEdgesResource.getLineageEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageEdge found with name " + testName + ".", e.getMessage());
+      assertEquals("No LineageEdge found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }

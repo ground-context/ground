@@ -61,10 +61,11 @@ public class LineageEdgesResource {
   @GET
   @Timed
   @Path("/{name}")
-  public LineageEdge getLineageEdge(@PathParam("name") String name) throws GroundException {
+  public LineageEdge getLineageEdge(@PathParam("sourceKey") String sourceKey)
+      throws GroundException {
     try {
-      LOGGER.info("Retrieving lineage edge " + name + ".");
-      return this.lineageEdgeFactory.retrieveFromDatabase(name);
+      LOGGER.info("Retrieving lineage edge " + sourceKey + ".");
+      return this.lineageEdgeFactory.retrieveFromDatabase(sourceKey);
     } finally {
       this.dbClient.commit();
     }

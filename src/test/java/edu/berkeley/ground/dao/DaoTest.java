@@ -35,8 +35,8 @@ public class DaoTest {
   protected static NodesResource nodesResource;
   protected static StructuresResource structuresResource;
 
-  public static Node createNode(String name) throws GroundException {
-    return nodesResource.createNode(name, null, new HashMap<>());
+  public static Node createNode(String sourceKey) throws GroundException {
+    return nodesResource.createNode(null, sourceKey, new HashMap<>());
   }
 
   public static NodeVersion createNodeVersion(long nodeId) throws GroundException {
@@ -49,9 +49,9 @@ public class DaoTest {
         parents);
   }
 
-  public static Edge createEdge(String name, String fromNode, String toNode)
+  public static Edge createEdge(String sourceKey, String fromNode, String toNode)
       throws GroundException {
-    return edgesResource.createEdge(name, fromNode, toNode, null, new HashMap<>());
+    return edgesResource.createEdge(null, fromNode, toNode, sourceKey, new HashMap<>());
   }
 
   public static EdgeVersion createEdgeVersion(long edgeId, long fromStart, long toStart)
@@ -69,8 +69,8 @@ public class DaoTest {
         fromStart, -1, toStart, -1, parents);
   }
 
-  public static Graph createGraph(String name) throws GroundException {
-    return graphsResource.createGraph(name, null, new HashMap<>());
+  public static Graph createGraph(String sourceKey) throws GroundException {
+    return graphsResource.createGraph(null, sourceKey, new HashMap<>());
   }
 
   public static GraphVersion createGraphVersion(long graphId, List<Long> edgeVersionIds)
@@ -87,8 +87,8 @@ public class DaoTest {
         edgeVersionIds, parents);
   }
 
-  public static LineageEdge createLineageEdge(String name) throws GroundException {
-    return lineageEdgesResource.createLineageEdge(name, null, new HashMap<>());
+  public static LineageEdge createLineageEdge(String sourceKey) throws GroundException {
+    return lineageEdgesResource.createLineageEdge(null, sourceKey, new HashMap<>());
   }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
@@ -107,8 +107,8 @@ public class DaoTest {
         new HashMap<>(), -1, null, fromId, toId, parents);
   }
 
-  public static LineageGraph createLineageGraph(String name) throws GroundException {
-    return lineageGraphsResource.createLineageGraph(name, null, new HashMap<>());
+  public static LineageGraph createLineageGraph(String sourceKey) throws GroundException {
+    return lineageGraphsResource.createLineageGraph(null, sourceKey, new HashMap<>());
   }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
@@ -128,8 +128,8 @@ public class DaoTest {
   }
 
 
-  public static Structure createStructure(String name) throws GroundException {
-    return structuresResource.createStructure(name, null, new HashMap<>());
+  public static Structure createStructure(String sourceKey) throws GroundException {
+    return structuresResource.createStructure(null, sourceKey, new HashMap<>());
   }
 
   public static StructureVersion createStructureVersion(long structureId) throws GroundException {

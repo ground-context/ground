@@ -88,13 +88,13 @@ public class CassandraStructureFactory extends StructureFactory {
   /**
    * Retrieve the leaves of this structure's DAG.
    *
-   * @param name the name of the structure
+   * @param sourceKey the key of the structure
    * @return the list of leaves in this structure's DAG
    * @throws GroundException an error while retrieving the structure
    */
   @Override
-  public List<Long> getLeaves(String name) throws GroundException {
-    Structure structure = this.retrieveFromDatabase(name);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Structure structure = this.retrieveFromDatabase(sourceKey);
 
     List<Long> leaves = this.itemFactory.getLeaves(structure.getId());
     return leaves;
@@ -103,28 +103,28 @@ public class CassandraStructureFactory extends StructureFactory {
   /**
    * Retrieve a structure from the database.
    *
-   * @param name the name of the structure
+   * @param sourceKey the key of the structure
    * @return the retrieved structure
    * @throws GroundException either the structure doesn't exist or couldn't be retrieved
    */
   @Override
-  public Structure retrieveFromDatabase(String name) throws GroundException {
+  public Structure retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("structure", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("No Structure found with name " + name + ".");
+      throw new GroundException("No Structure found with source_key " + sourceKey + ".");
     }
 
     long id = resultSet.getLong("item_id");
-    String sourceKey = resultSet.getString("source_key");
+    String name = resultSet.getString("name");
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved structure " + name + ".");
+    LOGGER.info("Retrieved structure " + sourceKey + ".");
     return StructureFactory.construct(id, name, sourceKey, tags);
   }
 

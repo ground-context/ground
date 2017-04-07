@@ -40,7 +40,7 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
     String sourceKey = "testKey";
 
     CassandraTest.lineageGraphsResource.createLineageGraph(testName, sourceKey, new HashMap<>());
-    LineageGraph graph = CassandraTest.lineageGraphsResource.getLineageGraph(testName);
+    LineageGraph graph = CassandraTest.lineageGraphsResource.getLineageGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -48,12 +48,12 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      CassandraTest.lineageGraphsResource.getLineageGraph(testName);
+      CassandraTest.lineageGraphsResource.getLineageGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+      assertEquals("No LineageGraph found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }

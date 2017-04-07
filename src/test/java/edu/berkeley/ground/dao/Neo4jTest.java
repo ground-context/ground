@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -75,6 +76,11 @@ public class Neo4jTest extends DaoTest {
         factories.getNodeVersionFactory(), neo4jClient);
     structuresResource = new StructuresResource(factories.getStructureFactory(),
         factories.getStructureVersionFactory(), neo4jClient);
+  }
+
+  @AfterClass
+  public static void teardownClass() {
+    neo4jClient.close();
   }
 
   @Before
