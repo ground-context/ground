@@ -53,4 +53,21 @@ public class StructureVersionTest {
 
     assertEquals(MAPPER.readValue(fixture("fixtures/models/structure_version.json"), StructureVersion.class), structureVersion);
   }
+
+  @Test
+  public void testStructureVersionNotEquals() throws Exception {
+    StructureVersion truth = new StructureVersion(1, 2, new HashMap<>());
+    assertFalse(truth.equals("notStructureVersion"));
+
+    StructureVersion differentId = new StructureVersion(10, 2, new HashMap<>());
+    assertFalse(truth.equals(differentId));
+
+    StructureVersion differentStructureId = new StructureVersion(1, 10, new HashMap<>());
+    assertFalse(truth.equals(differentStructureId));
+
+    Map<String, GroundType> attributes = new HashMap<>();
+    attributes.put("test", GroundType.BOOLEAN);
+    StructureVersion differentAttributes = new StructureVersion(1, 2, attributes);
+    assertFalse(truth.equals(differentAttributes));
+  }
 }

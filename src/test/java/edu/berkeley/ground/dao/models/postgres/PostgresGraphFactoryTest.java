@@ -34,15 +34,14 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     super();
   }
 
+
   @Test
   public void testGraphCreation() throws GroundException {
     String testName = "test";
     String sourceKey = "testKey";
 
-    PostgresGraphFactory graphFactory = (PostgresGraphFactory) super.factories.getGraphFactory();
-    graphFactory.create(testName, sourceKey, new HashMap<>());
-
-    Graph graph = graphFactory.retrieveFromDatabase(testName);
+    PostgresTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
+    Graph graph = PostgresTest.graphsResource.getGraph(testName);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -53,7 +52,7 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     String testName = "test";
 
     try {
-      super.factories.getGraphFactory().retrieveFromDatabase(testName);
+      PostgresTest.graphsResource.getGraph(testName);
     } catch (GroundException e) {
       assertEquals("No Graph found with name " + testName + ".", e.getMessage());
 
@@ -63,53 +62,33 @@ public class PostgresGraphFactoryTest extends PostgresTest {
 
   @Test
   public void testTruncate() throws GroundException {
-    String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
-
-    String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
-
-    String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = PostgresTest.createTwoNodesAndEdge();
 
     List<Long> edgeVersionIds = new ArrayList<>();
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
+    long graphId = PostgresTest.createGraph(graphName).getId();
 
-    long graphVersionId = super.factories.getGraphVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), graphId, edgeVersionIds, new ArrayList<>()).getId();
+    long graphVersionId = PostgresTest.createGraphVersion(graphId, edgeVersionIds).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(graphVersionId);
-    long newGraphVersionId = super.factories.getGraphVersionFactory().create(
-        new HashMap<>(), -1, null, new HashMap<>(), graphId, edgeVersionIds, parents).getId();
+    long newGraphVersionId = PostgresTest.createGraphVersion(graphId, edgeVersionIds, parents)
+        .getId();
 
-    super.factories.getGraphFactory().truncate(graphId, 1);
+    PostgresTest.graphsResource.truncateGraph(graphName, 1);
 
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
 
     assertEquals(1, dag.getEdgeIds().size());
 
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-    super.postgresClient.commit();
+    PostgresTest.postgresClient.commit();
 
     assertEquals(0, successor.getFromId());
     assertEquals(newGraphVersionId, successor.getToId());
-
   }
 }

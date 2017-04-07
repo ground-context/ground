@@ -17,11 +17,13 @@ package edu.berkeley.ground.resources;
 import com.codahale.metrics.annotation.Timed;
 import edu.berkeley.ground.dao.models.StructureFactory;
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.models.Tag;
 
+import edu.berkeley.ground.model.versions.GroundType;
 import io.swagger.annotations.Api;
 
 import java.util.List;
@@ -47,27 +49,50 @@ public class StructuresResource {
 
   private final StructureFactory structureFactory;
   private final StructureVersionFactory structureVersionFactory;
+  private final DbClient dbClient;
 
   public StructuresResource(StructureFactory structureFactory,
-                            StructureVersionFactory structureVersionFactory) {
+                            StructureVersionFactory structureVersionFactory,
+                            DbClient dbClient) {
     this.structureFactory = structureFactory;
     this.structureVersionFactory = structureVersionFactory;
+    this.dbClient = dbClient;
   }
 
   @GET
   @Timed
   @Path("/{name}")
   public Structure getStructure(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving structure " + name + ".");
-    return this.structureFactory.retrieveFromDatabase(name);
+    try {
+      LOGGER.info("Retrieving structure " + name + ".");
+      return this.structureFactory.retrieveFromDatabase(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @GET
   @Timed
   @Path("/versions/{id}")
   public StructureVersion getStructureVersion(@PathParam("id") long id) throws GroundException {
-    LOGGER.info("Retrieving structure version " + id + ".");
-    return this.structureVersionFactory.retrieveFromDatabase(id);
+    try {
+      LOGGER.info("Retrieving structure version " + id + ".");
+      return this.structureVersionFactory.retrieveFromDatabase(id);
+    } finally {
+      this.dbClient.commit();
+    }
+  }
+
+  @GET
+  @Timed
+  @Path("/{name}/latest")
+  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
+    try {
+      LOGGER.info("Retrieving the latest version of node " + name + ".");
+      return this.structureFactory.getLeaves(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @POST
@@ -76,40 +101,53 @@ public class StructuresResource {
   public Structure createStructure(@PathParam("name") String name,
                                    @PathParam("key") String sourceKey,
                                    @Valid Map<String, Tag> tags) throws GroundException {
-    LOGGER.info("Creating structure " + name + ".");
-    return this.structureFactory.create(name, sourceKey, tags);
+    try {
+      LOGGER.info("Creating structure " + name + ".");
+      Structure created = this.structureFactory.create(name, sourceKey, tags);
+
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
    * Create a structure version.
    *
-   * @param structureVersion the data to create the version with
+   * @param structureId the id of the structure to create this version in
+   * @param attributes the attributes required by this structure version
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public StructureVersion createStructureVersion(@Valid StructureVersion structureVersion,
+  @Path("/{id}/versions")
+  public StructureVersion createStructureVersion(@PathParam("id") long structureId,
+                                                 @Valid Map<String, GroundType> attributes,
                                                  @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
-    LOGGER.info("Creating structure version in structure "
-        + structureVersion.getStructureId()
-        + ".");
+    try {
+      LOGGER.info("Creating structure version in structure "
+          + structureId
+          + ".");
 
-    return this.structureVersionFactory.create(structureVersion.getStructureId(),
-        structureVersion.getAttributes(),
-        parentIds);
-  }
+      StructureVersion created = this.structureVersionFactory.create(
+          structureId,
+          attributes,
+          parentIds);
 
-  @GET
-  @Timed
-  @Path("/{name}/latest")
-  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving the latest version of node " + name + ".");
-    return this.structureFactory.getLeaves(name);
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -122,12 +160,18 @@ public class StructuresResource {
   @POST
   @Timed
   @Path("/truncate/{name}/{height}")
-  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+  public void truncateStructure(@PathParam("name") String name, @PathParam("height") int height)
       throws GroundException {
-    LOGGER.info("Truncating structure " + name + " to height " + height + ".");
+    try {
+      LOGGER.info("Truncating structure " + name + " to height " + height + ".");
+      long id = this.structureFactory.retrieveFromDatabase(name).getId();
 
-    long id = this.structureFactory.retrieveFromDatabase(name).getId();
+      this.structureFactory.truncate(id, height);
+      this.dbClient.commit();
+    } catch (Exception e) {
+      this.dbClient.abort();
 
-    this.structureFactory.truncate(id, height);
+      throw e;
+    }
   }
 }

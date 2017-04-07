@@ -67,26 +67,19 @@ public class Neo4jNodeFactory extends NodeFactory {
    */
   @Override
   public Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
+    long uniqueId = this.idGenerator.generateItemId();
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.addVertex("Node", insertions);
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    this.dbClient.addVertex("Node", insertions);
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      this.dbClient.commit();
-      LOGGER.info("Created node " + name + ".");
+    LOGGER.info("Created node " + name + ".");
 
-      return NodeFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    return NodeFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -99,9 +92,7 @@ public class Neo4jNodeFactory extends NodeFactory {
   @Override
   public List<Long> getLeaves(String name) throws GroundException {
     Node node = this.retrieveFromDatabase(name);
-
     List<Long> leaves = this.itemFactory.getLeaves(node.getId());
-    this.dbClient.commit();
 
     return leaves;
   }
@@ -115,31 +106,24 @@ public class Neo4jNodeFactory extends NodeFactory {
    */
   @Override
   public Node retrieveFromDatabase(String name) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+
+    Record record;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
-      Record record;
-      try {
-        record = this.dbClient.getVertex("Node", predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundDbException("No Node found with name " + name + ".");
-      }
-
-      long id = record.get("v").asNode().get("id").asLong();
-      String sourceKey = record.get("v").asNode().get("source_key").asString();
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved node " + name + ".");
-
-      return NodeFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
+      record = this.dbClient.getVertex("Node", predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundDbException("No Node found with name " + name + ".");
     }
+
+    long id = record.get("v").asNode().get("id").asLong();
+    String sourceKey = record.get("v").asNode().get("source_key").asString();
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+    LOGGER.info("Retrieved node " + name + ".");
+
+    return NodeFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override

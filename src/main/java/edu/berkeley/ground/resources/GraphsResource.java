@@ -18,6 +18,7 @@ import com.codahale.metrics.annotation.Timed;
 
 import edu.berkeley.ground.dao.models.GraphFactory;
 import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.model.models.GraphVersion;
@@ -48,26 +49,38 @@ public class GraphsResource {
 
   private final GraphFactory graphFactory;
   private final GraphVersionFactory graphVersionFactory;
+  private final DbClient dbClient;
 
-  public GraphsResource(GraphFactory graphFactory, GraphVersionFactory graphVersionFactory) {
+  public GraphsResource(GraphFactory graphFactory,
+                        GraphVersionFactory graphVersionFactory,
+                        DbClient dbClient) {
     this.graphFactory = graphFactory;
     this.graphVersionFactory = graphVersionFactory;
+    this.dbClient = dbClient;
   }
 
   @GET
   @Timed
   @Path("/{name}")
   public Graph getGraph(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving graph " + name + ".");
-    return this.graphFactory.retrieveFromDatabase(name);
+    try {
+      LOGGER.info("Retrieving graph " + name + ".");
+      return this.graphFactory.retrieveFromDatabase(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @GET
   @Timed
   @Path("/versions/{id}")
   public GraphVersion getGraphVersion(@PathParam("id") long id) throws GroundException {
-    LOGGER.info("Retrieving graph version " + id + ".");
-    return this.graphVersionFactory.retrieveFromDatabase(id);
+    try {
+      LOGGER.info("Retrieving graph version " + id + ".");
+      return this.graphVersionFactory.retrieveFromDatabase(id);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @POST
@@ -77,33 +90,63 @@ public class GraphsResource {
                            @PathParam("key") String sourceKey,
                            @Valid Map<String, Tag> tags) throws
       GroundException {
-    LOGGER.info("Creating graph " + name + ".");
-    return this.graphFactory.create(name, sourceKey, tags);
+    try {
+      LOGGER.info("Creating graph " + name + ".");
+
+      Graph graph = this.graphFactory.create(name, sourceKey, tags);
+      this.dbClient.commit();
+
+      return graph;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
    * Create a new graph version.
    *
-   * @param graphVersion the data to create the graph version with
+   * @param graphId the id of the graph to create the version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
+   * @param edgeVersionIds the ids of the edge version in this graph version
    * @param parentIds the ids of the parents of this version
    * @return the created version along with an id
    * @throws GroundException an error while creating the graph version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public GraphVersion createGraphVersion(@Valid GraphVersion graphVersion,
+  @Path("/{id}/versions")
+  public GraphVersion createGraphVersion(@PathParam("id") long graphId,
+                                         @Valid Map<String, Tag> tags,
+                                         @Valid Map<String, String> referenceParameters,
+                                         long structureVersionId,
+                                         String reference,
+                                         @Valid List<Long> edgeVersionIds,
                                          @QueryParam("parent") List<Long> parentIds)
       throws GroundException {
 
-    LOGGER.info("Creating graph version in graph " + graphVersion.getGraphId() + ".");
-    return this.graphVersionFactory.create(graphVersion.getTags(),
-        graphVersion.getStructureVersionId(),
-        graphVersion.getReference(),
-        graphVersion.getParameters(),
-        graphVersion.getGraphId(),
-        graphVersion.getEdgeVersionIds(),
-        parentIds);
+    try {
+      LOGGER.info("Creating graph version in graph " + graphId + ".");
+
+      GraphVersion created = this.graphVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          graphId,
+          edgeVersionIds,
+          parentIds);
+
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -116,12 +159,19 @@ public class GraphsResource {
   @POST
   @Timed
   @Path("/truncate/{name}/{height}")
-  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+  public void truncateGraph(@PathParam("name") String name, @PathParam("height") int height)
       throws GroundException {
-    LOGGER.info("Truncating graph " + name + " to height " + height + ".");
+    try {
+      LOGGER.info("Truncating graph " + name + " to height " + height + ".");
 
-    long id = this.graphFactory.retrieveFromDatabase(name).getId();
+      long id = this.graphFactory.retrieveFromDatabase(name).getId();
+      this.graphFactory.truncate(id, height);
 
-    this.graphFactory.truncate(id, height);
+      this.dbClient.commit();
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 }

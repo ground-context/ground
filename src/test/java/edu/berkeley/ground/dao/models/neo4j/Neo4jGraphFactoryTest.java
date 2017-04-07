@@ -39,10 +39,8 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    Neo4jGraphFactory edgeFactory = (Neo4jGraphFactory) super.factories.getGraphFactory();
-    edgeFactory.create(testName, sourceKey, new HashMap<>());
-
-    Graph graph = edgeFactory.retrieveFromDatabase(testName);
+    Neo4jTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
+    Graph graph = Neo4jTest.graphsResource.getGraph(testName);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -53,7 +51,7 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     String testName = "test";
 
     try {
-      super.factories.getGraphFactory().retrieveFromDatabase(testName);
+      Neo4jTest.graphsResource.getGraph(testName);
     } catch (GroundException e) {
       assertEquals("No Graph found with name " + testName + ".", e.getMessage());
 
@@ -63,51 +61,29 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
 
   @Test
   public void testTruncate() throws GroundException {
-    String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
-
-    String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
-
-    String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = Neo4jTest.createTwoNodesAndEdge();
 
     List<Long> edgeVersionIds = new ArrayList<>();
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
-
-    long graphVersionId = super.factories.getGraphVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), graphId, edgeVersionIds, new ArrayList<>()).getId();
-
+    long graphId = Neo4jTest.createGraph(graphName).getId();
+    long graphVersionId = Neo4jTest.createGraphVersion(graphId, edgeVersionIds).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(graphVersionId);
-    long newGraphVersionId = super.factories.getGraphVersionFactory().create(
-        new HashMap<>(), -1, null, new HashMap<>(), graphId, edgeVersionIds, parents).getId();
+    long newGraphVersionId = Neo4jTest.createGraphVersion(graphId, edgeVersionIds, parents).getId();
 
-    super.factories.getGraphFactory().truncate(graphId, 1);
+    Neo4jTest.graphsResource.truncateGraph(graphName, 1);
 
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
+    VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
 
     assertEquals(1, dag.getEdgeIds().size());
 
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+    VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-    super.neo4jClient.commit();
+    Neo4jTest.neo4jClient.commit();
 
     assertEquals(graphId, successor.getFromId());
     assertEquals(newGraphVersionId, successor.getToId());

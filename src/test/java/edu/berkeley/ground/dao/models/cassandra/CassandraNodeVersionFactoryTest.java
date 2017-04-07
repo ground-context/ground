@@ -38,36 +38,22 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
   @Test
   public void testNodeVersionCreation() throws GroundException {
     String nodeName = "testNode";
-    long nodeId = CassandraTest.factories.getNodeFactory()
-        .create(nodeName, null, new HashMap<>()).getId();
+    long nodeId = CassandraTest.createNode(nodeName).getId();
 
     String structureName = "testStructure";
-    long structureId = CassandraTest.factories.getStructureFactory()
-        .create(structureName, null, new HashMap<>()).getId();
+    long structureId = CassandraTest.createStructure(structureName).getId();
+    long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
-
-    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = CassandraTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long nodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, nodeId, new ArrayList<>()).getId();
+    long nodeVersionId = CassandraTest.nodesResource.createNodeVersion(nodeId, tags, parameters,
+        structureVersionId, testReference, new ArrayList<>()).getId();
 
-    NodeVersion retrieved = CassandraTest.factories.
-        getNodeVersionFactory().
-        retrieveFromDatabase(nodeVersionId);
+    NodeVersion retrieved = CassandraTest.nodesResource.getNodeVersion(nodeVersionId);
 
     assertEquals(nodeId, retrieved.getNodeId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -89,7 +75,7 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
       assertEquals(tags.get(key), retrievedTags.get(key));
     }
 
-    List<Long> leaves = CassandraTest.factories.getNodeFactory().getLeaves(nodeName);
+    List<Long> leaves = CassandraTest.nodesResource.getLatestVersions(nodeName);
 
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(1 == leaves.size());
@@ -100,7 +86,7 @@ public class CassandraNodeVersionFactoryTest extends CassandraTest {
     long id = 1;
 
     try {
-      CassandraTest.factories.getNodeVersionFactory().retrieveFromDatabase(id);
+      CassandraTest.nodesResource.getNodeVersion(id);
     } catch (GroundException e) {
       assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
 

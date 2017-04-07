@@ -25,56 +25,41 @@ public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
   @Test
   public void testLineageGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = Neo4jTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = Neo4jTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = Neo4jTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = Neo4jTest.createNodeVersion(secondTestNodeId).getId();
 
-    String lineageEdgeName = "testEdge";
-    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
-        new HashMap<>()).getId();
-    long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), lineageEdgeId, firstNodeVersionId, secondNodeVersionId, new ArrayList<>()).getId();
+    String lineageEdgeName = "testLineageEdge";
+    long lineageEdgeId = Neo4jTest.createLineageEdge(lineageEdgeName).getId();
+
+    long lineageEdgeVersionId = Neo4jTest.createLineageEdgeVersion(lineageEdgeId,
+        firstNodeVersionId, secondNodeVersionId).getId();
 
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
     lineageEdgeVersionIds.add(lineageEdgeVersionId);
 
-    long lineageGraphId = super.factories.getLineageGraphFactory().create("testGraph", null,
-        new HashMap<>()).getId();
+    String lineageGraphName = "testLineageGraph";
+    long lineageGraphId = Neo4jTest.createLineageGraph(lineageGraphName).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = Neo4jTest.createStructure(structureName).getId();
+    long structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
-
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = Neo4jTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long lineageGraphVersionId = super.factories.getLineageGraphVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, lineageGraphId, lineageEdgeVersionIds,
-        new ArrayList<>()).getId();
+    long lineageGraphVersionId = Neo4jTest.lineageGraphsResource
+        .createLineageGraphVersion(lineageGraphId, tags, parameters, structureVersionId,
+            testReference, lineageEdgeVersionIds, new ArrayList<>()).getId();
 
-    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory()
-        .retrieveFromDatabase(lineageGraphVersionId);
+    LineageGraphVersion retrieved = Neo4jTest.lineageGraphsResource
+        .getLineageGraphVersion(lineageGraphVersionId);
 
     assertEquals(lineageGraphId, retrieved.getLineageGraphId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -109,7 +94,7 @@ public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
     long id = 1;
 
     try {
-      super.factories.getLineageGraphVersionFactory().retrieveFromDatabase(id);
+      Neo4jTest.lineageGraphsResource.getLineageGraphVersion(id);
     } catch (GroundException e) {
       assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
 
@@ -119,15 +104,14 @@ public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
 
   @Test
   public void testCreateEmptyLineageGraph() throws GroundException {
-    String graphName = "testGraph";
-    long graphId = super.factories.getLineageGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
+    String lineageGraphName = "testGraph";
+    long lineageGraphId = Neo4jTest.createLineageGraph(lineageGraphName).getId();
 
-    long graphVersionId = super.factories.getLineageGraphVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), graphId, new ArrayList<>(), new ArrayList<>()).getId();
+    long lineageGraphVersionId = Neo4jTest.createLineageGraphVersion(lineageGraphId,
+        new ArrayList<>()).getId();
 
-    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory()
-        .retrieveFromDatabase(graphVersionId);
+    LineageGraphVersion retrieved = Neo4jTest.lineageGraphsResource
+        .getLineageGraphVersion(lineageGraphVersionId);
 
     assertTrue(retrieved.getLineageEdgeVersionIds().isEmpty());
   }

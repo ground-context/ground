@@ -68,27 +68,20 @@ public class CassandraGraphFactory extends GraphFactory {
    */
   @Override
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
+    long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.insert("graph", insertions);
+    this.dbClient.insert("graph", insertions);
 
-      this.dbClient.commit();
-      LOGGER.info("Created graph " + name + ".");
+    LOGGER.info("Created graph " + name + ".");
 
-      return GraphFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    return GraphFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -100,33 +93,23 @@ public class CassandraGraphFactory extends GraphFactory {
    */
   @Override
   public Graph retrieveFromDatabase(String name) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+
+    CassandraResults resultSet;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
-      CassandraResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("graph", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        this.dbClient.abort();
-
-        throw new GroundException("No Graph found with name " + name + ".");
-      }
-
-      long id = resultSet.getLong("item_id");
-      String sourceKey = resultSet.getString("source_key");
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved graph " + name + ".");
-
-      return GraphFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("graph", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No Graph found with name " + name + ".");
     }
+
+    long id = resultSet.getLong("item_id");
+    String sourceKey = resultSet.getString("source_key");
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    LOGGER.info("Retrieved graph " + name + ".");
+
+    return GraphFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override

@@ -37,59 +37,29 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
 
   @Test
   public void testGraphVersionCreation() throws GroundException {
-    String firstTestNode = "firstTestNode";
-    long firstTestNodeId = CassandraTest.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
-
-    String secondTestNode = "secondTestNode";
-    long secondTestNodeId = CassandraTest.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = CassandraTest.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
-
-    String edgeName = "testEdge";
-    long edgeId = CassandraTest.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
-
-    long edgeVersionId = CassandraTest.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, secondNodeVersionId, -1, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = CassandraTest.createTwoNodesAndEdge();
 
     List<Long> edgeVersionIds = new ArrayList<>();
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    long graphId = CassandraTest.factories.getGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
+    long graphId = CassandraTest.createGraph(graphName).getId();
 
     String structureName = "testStructure";
-    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = CassandraTest.createStructure(structureName).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
+    long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
-    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = CassandraTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long graphVersionId = CassandraTest.factories.getGraphVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, graphId, edgeVersionIds,
-        new ArrayList<>()).getId();
+    long graphVersionId = CassandraTest.graphsResource.createGraphVersion(graphId, tags, parameters,
+        structureVersionId, testReference, edgeVersionIds, new ArrayList<>()).getId();
 
-    GraphVersion retrieved = CassandraTest.factories.getGraphVersionFactory().retrieveFromDatabase(graphVersionId);
+    GraphVersion retrieved = CassandraTest.graphsResource.getGraphVersion(graphVersionId);
 
     assertEquals(graphId, retrieved.getGraphId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -122,14 +92,12 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
   @Test
   public void testCreateEmptyGraph() throws GroundException {
     String graphName = "testGraph";
-    long graphId = CassandraTest.factories.getGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
+    long graphId = CassandraTest.createGraph(graphName).getId();
 
-    long graphVersionId = CassandraTest.factories.getGraphVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), graphId, new ArrayList<>(), new ArrayList<>()).getId();
+    long graphVersionId = CassandraTest.graphsResource.createGraphVersion(graphId, new HashMap<>(),
+        new HashMap<>(), -1, null, new ArrayList<>(), new ArrayList<>()).getId();
 
-    GraphVersion retrieved = CassandraTest.factories.getGraphVersionFactory()
-        .retrieveFromDatabase(graphVersionId);
+    GraphVersion retrieved = CassandraTest.graphsResource.getGraphVersion(graphVersionId);
 
     assertTrue(retrieved.getEdgeVersionIds().isEmpty());
   }
@@ -139,7 +107,7 @@ public class CassandraGraphVersionFactoryTest extends CassandraTest {
     long id = 1;
 
     try {
-      CassandraTest.factories.getGraphVersionFactory().retrieveFromDatabase(id);
+      CassandraTest.graphsResource.getGraphVersion(id);
     } catch (GroundException e) {
       assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
 

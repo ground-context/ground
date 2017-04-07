@@ -43,10 +43,9 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       parameters.put("http", "GET");
       parameters.put("ftp", "test");
 
-      super.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1,
-          testReference, parameters);
+      PostgresTest.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = PostgresTest.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -57,7 +56,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
         assertEquals(parameters.get(key), retrievedParams.get(key));
       }
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -72,10 +71,9 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      super.richVersionFactory.insertIntoDatabase(id, tags, -1,
-          null, new HashMap<>());
+      PostgresTest.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = PostgresTest.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -87,39 +85,28 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
   @Test
   public void testStructureVersionConformation() throws GroundException {
     try {
-      long id = 2;
+      long id = 10;
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName,  null,
-          new HashMap<>()).getId();
+      long structureId = PostgresTest.createStructure(structureName).getId();
+      long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-      Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-      structureVersionAttributes.put("intfield", GroundType.INTEGER);
-      structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-      structureVersionAttributes.put("strfield", GroundType.STRING);
+      Map<String, Tag> tags = PostgresTest.createTags();
 
-      long structureVersionId = super.factories.getStructureVersionFactory().create(
-          structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-      Map<String, Tag> tags = new HashMap<>();
-      tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-      tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-      tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
-
-      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      PostgresTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = PostgresTest.richVersionFactory.retrieveFromDatabase(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -132,17 +119,11 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName, null,
-            new HashMap<>()).getId();
-
-        Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-        structureVersionAttributes.put("intfield", GroundType.INTEGER);
-        structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-        structureVersionAttributes.put("strfield", GroundType.STRING);
-
-        structureVersionId = super.factories.getStructureVersionFactory().create(
-            structureId, structureVersionAttributes, new ArrayList<>()).getId();
+        long structureId = PostgresTest.createStructure(structureName).getId();
+        structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
       } catch (GroundException ge) {
+        PostgresTest.postgresClient.abort();
+
         fail(ge.getMessage());
       }
 
@@ -152,10 +133,10 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      PostgresTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 }

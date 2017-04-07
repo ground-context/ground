@@ -87,28 +87,21 @@ public class Neo4jEdgeFactory extends EdgeFactory {
                      long fromNodeId,
                      long toNodeId,
                      Map<String, Tag> tags) throws GroundException {
-    try {
-      long uniqueId = idGenerator.generateItemId();
+    long uniqueId = idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
-      insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
+    insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.addVertex("GroundEdge", insertions);
+    this.dbClient.addVertex("GroundEdge", insertions);
 
-      this.dbClient.commit();
-      LOGGER.info("Created edge " + name + ".");
-      return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    LOGGER.info("Created edge " + name + ".");
+    return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 
   @Override
@@ -123,36 +116,29 @@ public class Neo4jEdgeFactory extends EdgeFactory {
 
   private Edge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    Record record;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer(fieldName, valueType, value));
-
-      Record record;
-      try {
-        record = this.dbClient.getVertex(predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundDbException("No Edge found with " + fieldName + " " + value + ".");
-      }
-
-      long id = record.get("v").asNode().get("id").asLong();
-      long fromNodeId = record.get("v").asNode().get("from_node_id").asLong();
-      long toNodeId = record.get("v").asNode().get("to_node_id").asLong();
-
-      String name = record.get("v").asNode().get("name").asString();
-      String sourceKey = record.get("v").asNode().get("source_key").asString();
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved edge " + name + ".");
-
-      return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
+      record = this.dbClient.getVertex(predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundDbException("No Edge found with " + fieldName + " " + value + ".");
     }
+
+    long id = record.get("v").asNode().get("id").asLong();
+    long fromNodeId = record.get("v").asNode().get("from_node_id").asLong();
+    long toNodeId = record.get("v").asNode().get("to_node_id").asLong();
+
+    String name = record.get("v").asNode().get("name").asString();
+    String sourceKey = record.get("v").asNode().get("source_key").asString();
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+
+    LOGGER.info("Retrieved edge " + name + ".");
+
+    return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 
 
@@ -211,14 +197,6 @@ public class Neo4jEdgeFactory extends EdgeFactory {
 
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    try {
-      this.itemFactory.truncate(itemId, numLevels, "edge");
-
-      this.dbClient.commit();
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    this.itemFactory.truncate(itemId, numLevels, "edge");
   }
 }

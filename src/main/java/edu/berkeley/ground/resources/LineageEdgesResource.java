@@ -18,6 +18,7 @@ import com.codahale.metrics.annotation.Timed;
 
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageEdge;
@@ -47,27 +48,38 @@ public class LineageEdgesResource {
 
   private final LineageEdgeFactory lineageEdgeFactory;
   private final LineageEdgeVersionFactory lineageEdgeVersionFactory;
+  private final DbClient dbClient;
 
   public LineageEdgesResource(LineageEdgeFactory lineageEdgeFactory,
-                              LineageEdgeVersionFactory lineageEdgeVersionFactory) {
+                              LineageEdgeVersionFactory lineageEdgeVersionFactory,
+                              DbClient dbClient) {
     this.lineageEdgeFactory = lineageEdgeFactory;
     this.lineageEdgeVersionFactory = lineageEdgeVersionFactory;
+    this.dbClient = dbClient;
   }
 
   @GET
   @Timed
   @Path("/{name}")
   public LineageEdge getLineageEdge(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving lineage edge " + name + ".");
-    return this.lineageEdgeFactory.retrieveFromDatabase(name);
+    try {
+      LOGGER.info("Retrieving lineage edge " + name + ".");
+      return this.lineageEdgeFactory.retrieveFromDatabase(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @GET
   @Timed
   @Path("/versions/{id}")
   public LineageEdgeVersion getLineageEdgeVersion(@PathParam("id") long id) throws GroundException {
-    LOGGER.info("Retrieving lineage edge version " + id + ".");
-    return this.lineageEdgeVersionFactory.retrieveFromDatabase(id);
+    try {
+      LOGGER.info("Retrieving lineage edge version " + id + ".");
+      return this.lineageEdgeVersionFactory.retrieveFromDatabase(id);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @POST
@@ -76,36 +88,71 @@ public class LineageEdgesResource {
   public LineageEdge createLineageEdge(@PathParam("name") String name,
                                        @PathParam("key") String sourceKey,
                                        @Valid Map<String, Tag> tags) throws GroundException {
-    LOGGER.info("Creating lineage edge " + name + ".");
-    return this.lineageEdgeFactory.create(name, sourceKey, tags);
+    try {
+      LOGGER.info("Creating lineage edge " + name + ".");
+      LineageEdge lineageEdge = this.lineageEdgeFactory.create(name, sourceKey, tags);
+
+      this.dbClient.commit();
+      return lineageEdge;
+    } catch (Exception e){
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
+
+  /**
+   *
+   * @param lineageEdgeVersion the data to create the version with
+   */
 
   /**
    * Create a lineage edge version.
    *
-   * @param lineageEdgeVersion the data to create the version with
+   * @param lineageEdgeId the id of the lineage edge to create this version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
+   * @param fromId the source version of this edge
+   * @param toId the destination version of this edge
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public LineageEdgeVersion createLineageEdgeVersion(
-      @Valid LineageEdgeVersion lineageEdgeVersion,
-      @QueryParam("parent") List<Long> parentIds) throws GroundException {
+  @Path("/{id}/versions")
+  public LineageEdgeVersion createLineageEdgeVersion(@PathParam("id") long lineageEdgeId,
+                                                     @Valid Map<String, Tag> tags,
+                                                     @Valid Map<String, String> referenceParameters,
+                                                     long structureVersionId,
+                                                     String reference,
+                                                     long fromId,
+                                                     long toId,
+                                                     @QueryParam("parent") List<Long> parentIds)
+      throws GroundException {
 
-    LOGGER.info("Creating lineage edge version in lineage edge "
-        + lineageEdgeVersion.getLineageEdgeId() + ".");
+    try {
+      LOGGER.info("Creating lineage edge version in lineage edge "
+          + lineageEdgeId + ".");
 
-    return this.lineageEdgeVersionFactory.create(lineageEdgeVersion.getTags(),
-        lineageEdgeVersion.getStructureVersionId(),
-        lineageEdgeVersion.getReference(),
-        lineageEdgeVersion.getParameters(),
-        lineageEdgeVersion.getFromId(),
-        lineageEdgeVersion.getToId(),
-        lineageEdgeVersion.getLineageEdgeId(),
-        parentIds);
+      LineageEdgeVersion created = this.lineageEdgeVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          fromId,
+          toId,
+          lineageEdgeId,
+          parentIds);
+
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
@@ -119,12 +166,18 @@ public class LineageEdgesResource {
   @POST
   @Timed
   @Path("/truncate/{name}/{height}")
-  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+  public void truncateLineageEdge(@PathParam("name") String name, @PathParam("height") int height)
       throws GroundException {
-    LOGGER.info("Truncating lineage edge " + name + " to height " + height + ".");
+    try {
+      LOGGER.info("Truncating lineage edge " + name + " to height " + height + ".");
+      long id = this.lineageEdgeFactory.retrieveFromDatabase(name).getId();
 
-    long id = this.lineageEdgeFactory.retrieveFromDatabase(name).getId();
+      this.lineageEdgeFactory.truncate(id, height);
+      this.dbClient.commit();
+    } catch (Exception e) {
+      this.dbClient.abort();
 
-    this.lineageEdgeFactory.truncate(id, height);
+      throw e;
+    }
   }
 }

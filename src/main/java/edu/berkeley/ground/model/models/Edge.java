@@ -92,6 +92,7 @@ public class Edge extends Item<EdgeVersion> {
         && this.sourceKey.equals(otherEdge.sourceKey)
         && this.getId() == otherEdge.getId()
         && this.fromNodeId == otherEdge.fromNodeId
-        && this.toNodeId == otherEdge.toNodeId;
+        && this.toNodeId == otherEdge.toNodeId
+        && this.getTags().equals(otherEdge.getTags());
   }
 }

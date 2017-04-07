@@ -27,12 +27,12 @@ import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.EdgesResource;
 import edu.berkeley.ground.resources.GraphsResource;
-import edu.berkeley.ground.resources.KafkaResource;
 import edu.berkeley.ground.resources.LineageEdgesResource;
 import edu.berkeley.ground.resources.LineageGraphsResource;
 import edu.berkeley.ground.resources.NodesResource;
@@ -87,27 +87,28 @@ public class GroundServer extends Application<GroundServerConfiguration> {
   public void run(GroundServerConfiguration configuration, Environment environment)
       throws GroundException {
 
+    DbClient dbClient;
     switch (configuration.getDbType()) {
       case "postgres":
-        PostgresClient postgresClient = new PostgresClient(configuration.getDbHost(),
+        dbClient = new PostgresClient(configuration.getDbHost(),
             configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(),
             configuration.getDbPassword());
-        setPostgresFactories(postgresClient, configuration.getMachineId(),
+        setPostgresFactories((PostgresClient) dbClient, configuration.getMachineId(),
             configuration.getNumMachines());
         break;
 
       case "cassandra":
-        CassandraClient cassandraClient = new CassandraClient(configuration.getDbHost(),
+        dbClient = new CassandraClient(configuration.getDbHost(),
             configuration.getDbPort(), configuration.getDbName(), configuration.getDbUser(),
             configuration.getDbPassword());
-        setCassandraFactories(cassandraClient, configuration.getMachineId(),
+        setCassandraFactories((CassandraClient) dbClient, configuration.getMachineId(),
             configuration.getNumMachines());
         break;
 
       case "neo4j":
-        Neo4jClient neo4jClient = new Neo4jClient(configuration.getDbHost(),
+        dbClient = new Neo4jClient(configuration.getDbHost(),
             configuration.getDbUser(), configuration.getDbPassword());
-        setNeo4jFactories(neo4jClient, configuration.getMachineId(),
+        setNeo4jFactories((Neo4jClient) dbClient, configuration.getMachineId(),
             configuration.getNumMachines());
         break;
 
@@ -118,28 +119,31 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
     final EdgesResource edgesResource = new EdgesResource(this.edgeFactory,
         this.edgeVersionFactory,
-        this.nodeFactory);
+        this.nodeFactory,
+        dbClient);
     final GraphsResource graphsResource = new GraphsResource(this.graphFactory,
-        this.graphVersionFactory);
+        this.graphVersionFactory,
+        dbClient);
     final LineageEdgesResource lineageEdgesResource = new LineageEdgesResource(
         this.lineageEdgeFactory,
-        this.lineageEdgeVersionFactory);
+        this.lineageEdgeVersionFactory,
+        dbClient);
     final NodesResource nodesResource = new NodesResource(this.nodeFactory,
-        this.nodeVersionFactory);
+        this.nodeVersionFactory,
+        dbClient);
     final StructuresResource structuresResource = new StructuresResource(this.structureFactory,
-        this.structureVersionFactory);
-    final KafkaResource kafkaResource = new KafkaResource(configuration.getKafkaHost(),
-        configuration.getKafkaPort());
+        this.structureVersionFactory,
+        dbClient);
     final LineageGraphsResource lineageGraphsResource = new LineageGraphsResource(
         this.lineageGraphFactory,
-        this.lineageGraphVersionFactory);
+        this.lineageGraphVersionFactory,
+        dbClient);
 
     environment.jersey().register(edgesResource);
     environment.jersey().register(graphsResource);
     environment.jersey().register(lineageEdgesResource);
     environment.jersey().register(nodesResource);
     environment.jersey().register(structuresResource);
-    environment.jersey().register(kafkaResource);
     environment.jersey().register(lineageGraphsResource);
   }
 

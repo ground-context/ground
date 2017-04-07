@@ -42,10 +42,8 @@ public class CassandraStructureFactoryTest extends CassandraTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    CassandraStructureFactory edgeFactory = (CassandraStructureFactory) CassandraTest.factories.getStructureFactory();
-    edgeFactory.create(testName, sourceKey, new HashMap<>());
-
-    Structure structure = edgeFactory.retrieveFromDatabase(testName);
+    CassandraTest.structuresResource.createStructure(testName, sourceKey, new HashMap<>());
+    Structure structure = CassandraTest.structuresResource.getStructure(testName);
 
     assertEquals(testName, structure.getName());
     assertEquals(sourceKey, structure.getSourceKey());
@@ -54,20 +52,15 @@ public class CassandraStructureFactoryTest extends CassandraTest {
   @Test
   public void testLeafRetrieval() throws GroundException {
     String structureName = "testStructure1";
-    String sourceKey = "testKey";
+    long structureId = CassandraTest.createStructure(structureName).getId();
 
-    long structureId = CassandraTest.factories.getStructureFactory().create(structureName,
-        sourceKey, new HashMap<>()).getId();
+    long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
+    long secondStructureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
-    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(structureId,
-        new HashMap<>(), new ArrayList<>()).getId();
-    long secondNVId = CassandraTest.factories.getStructureVersionFactory().create(structureId,
-        new HashMap<>(), new ArrayList<>()).getId();
-
-    List<Long> leaves = CassandraTest.factories.getStructureFactory().getLeaves(structureName);
+    List<Long> leaves = CassandraTest.structuresResource.getLatestVersions(structureName);
 
     assertTrue(leaves.contains(structureVersionId));
-    assertTrue(leaves.contains(secondNVId));
+    assertTrue(leaves.contains(secondStructureVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -75,7 +68,7 @@ public class CassandraStructureFactoryTest extends CassandraTest {
     String testName = "test";
 
     try {
-      CassandraTest.factories.getStructureFactory().retrieveFromDatabase(testName);
+      CassandraTest.structuresResource.getStructure(testName);
     } catch (GroundException e) {
       assertEquals("No Structure found with name " + testName + ".", e.getMessage());
 
@@ -85,32 +78,24 @@ public class CassandraStructureFactoryTest extends CassandraTest {
 
   @Test
   public void testTruncate() throws GroundException {
-    String structureName = "testStructure";
-    long structureId = CassandraTest.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    String structureName = "testStructure1";
+    long structureId = CassandraTest.createStructure(structureName).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-
-    long structureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
+    long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(structureVersionId);
+    long newStructureVersionId = CassandraTest.createStructureVersion(structureId, parents)
+        .getId();
 
-    long newStructureVersionId = CassandraTest.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, parents).getId();
-
-    CassandraTest.factories.getStructureFactory().truncate(structureId, 1);
+    CassandraTest.structuresResource.truncateStructure(structureName, 1);
 
     VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory
         .retrieveFromDatabase(structureId);
-
     assertEquals(1, dag.getEdgeIds().size());
 
     VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
-
     CassandraTest.cassandraClient.commit();
 
     assertEquals(0, successor.getFromId());

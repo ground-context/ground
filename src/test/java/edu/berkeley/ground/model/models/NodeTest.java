@@ -50,4 +50,24 @@ public class NodeTest {
     final Node node = new Node(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/node.json"), Node.class), node);
   }
+
+  @Test
+  public void testNodeNotEquals() throws Exception {
+    Node truth = new Node(1, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals("notNode"));
+
+    Node differentId = new Node(2, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentId));
+
+    Node differentName = new Node(1, "notName", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentName));
+
+    Node differentKey = new Node(1, "name", "notSourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentKey));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    Node differentTags = new Node(1, "name", "sourceKey", tags);
+    assertFalse(truth.equals(differentTags));
+  }
 }

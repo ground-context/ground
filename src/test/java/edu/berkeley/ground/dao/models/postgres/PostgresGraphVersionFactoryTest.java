@@ -37,58 +37,29 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
 
   @Test
   public void testGraphVersionCreation() throws GroundException {
-    String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
-
-    String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
-
-    String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = PostgresTest.createTwoNodesAndEdge();
 
     List<Long> edgeVersionIds = new ArrayList<>();
     edgeVersionIds.add(edgeVersionId);
 
     String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
+    long graphId = PostgresTest.createGraph(graphName).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = PostgresTest.createStructure(structureName).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
+    long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = PostgresTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long graphVersionId = super.factories.getGraphVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, graphId, edgeVersionIds,
-        new ArrayList<>()).getId();
+    long graphVersionId = PostgresTest.graphsResource.createGraphVersion(graphId, tags, parameters,
+        structureVersionId, testReference, edgeVersionIds, new ArrayList<>()).getId();
 
-    GraphVersion retrieved = super.factories.getGraphVersionFactory().retrieveFromDatabase(graphVersionId);
+    GraphVersion retrieved = PostgresTest.graphsResource.getGraphVersion(graphVersionId);
 
     assertEquals(graphId, retrieved.getGraphId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -121,14 +92,12 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
   @Test
   public void testCreateEmptyGraph() throws GroundException {
     String graphName = "testGraph";
-    long graphId = super.factories.getGraphFactory().create(graphName, null, new HashMap<>())
-        .getId();
+    long graphId = PostgresTest.createGraph(graphName).getId();
 
-    long graphVersionId = super.factories.getGraphVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), graphId, new ArrayList<>(), new ArrayList<>()).getId();
+    long graphVersionId = PostgresTest.graphsResource.createGraphVersion(graphId, new HashMap<>(),
+        new HashMap<>(), -1, null, new ArrayList<>(), new ArrayList<>()).getId();
 
-    GraphVersion retrieved = super.factories.getGraphVersionFactory()
-        .retrieveFromDatabase(graphVersionId);
+    GraphVersion retrieved = PostgresTest.graphsResource.getGraphVersion(graphVersionId);
 
     assertTrue(retrieved.getEdgeVersionIds().isEmpty());
   }
@@ -138,7 +107,7 @@ public class PostgresGraphVersionFactoryTest extends PostgresTest {
     long id = 1;
 
     try {
-      super.factories.getGraphVersionFactory().retrieveFromDatabase(id);
+      PostgresTest.graphsResource.getGraphVersion(id);
     } catch (GroundException e) {
       assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
 

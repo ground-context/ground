@@ -57,4 +57,39 @@ public class NodeVersionTest {
 
     assertEquals(MAPPER.readValue(fixture("fixtures/models/node_version.json"), NodeVersion.class), nodeVersion);
   }
+
+  @Test
+  public void testNodeVersionNotEquals() throws Exception {
+    NodeVersion truth = new NodeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3);
+    assertFalse(truth.equals("notNodeVersion"));
+
+    NodeVersion differentId = new NodeVersion(2, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 3);
+    assertFalse(truth.equals(differentId));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    NodeVersion differentTags = new NodeVersion(1, tags, 2, "http://www.google.com",
+        new HashMap<>(), 3);
+    assertFalse(truth.equals(differentTags));
+
+    NodeVersion differenStructureVersionId = new NodeVersion(1, new HashMap<>(), 10,
+        "http://www.google.com", new HashMap<>(), 3);
+    assertFalse(truth.equals(differenStructureVersionId));
+
+    NodeVersion differentReference = new NodeVersion(1, new HashMap<>(), 2, "http://www.fb.com",
+        new HashMap<>(), 3);
+    assertFalse(truth.equals(differentReference));
+
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("test", "param");
+    NodeVersion differentParameters = new NodeVersion(1, new HashMap<>(), 2,
+        "http://www.google.com", parameters, 3);
+    assertFalse(truth.equals(differentParameters));
+
+    NodeVersion differentNodeId = new NodeVersion(1, new HashMap<>(), 2, "http://www.google.com",
+        new HashMap<>(), 10);
+    assertFalse(truth.equals(differentNodeId));
+  }
 }

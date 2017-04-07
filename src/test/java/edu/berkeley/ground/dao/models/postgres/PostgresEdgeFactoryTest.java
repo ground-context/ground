@@ -42,16 +42,15 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    Map<String, Tag> tagsMap = new HashMap<>();
+    String fromNodeName = "testNode1";
+    String toNodeName = "testNode2";
+    long fromNodeId = PostgresTest.createNode(fromNodeName).getId();
+    long toNodeId = PostgresTest.createNode(toNodeName).getId();
 
-    PostgresNodeFactory nodeFactory = (PostgresNodeFactory) super.factories.getNodeFactory();
-    long fromNodeId = nodeFactory.create("testNode1", null, tagsMap).getId();
-    long toNodeId = nodeFactory.create("testNode2", null, tagsMap).getId();
+    PostgresTest.edgesResource.createEdge(testName, fromNodeName, toNodeName, sourceKey,
+        new HashMap<>());
 
-    PostgresEdgeFactory edgeFactory = (PostgresEdgeFactory) super.factories.getEdgeFactory();
-    edgeFactory.create(testName, sourceKey, fromNodeId, toNodeId, new HashMap<>());
-
-    Edge edge = edgeFactory.retrieveFromDatabase(testName);
+    Edge edge = PostgresTest.edgesResource.getEdge(testName);
 
     assertEquals(testName, edge.getName());
     assertEquals(fromNodeId, edge.getFromNodeId());
@@ -64,7 +63,7 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
     String testName = "test";
 
     try {
-      super.factories.getEdgeFactory().retrieveFromDatabase(testName);
+      PostgresTest.edgesResource.getEdge(testName);
     } catch (GroundException e) {
       assertEquals("No Edge found with name " + testName + ".", e.getMessage());
 
@@ -75,54 +74,43 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
   @Test
   public void testTruncation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = PostgresTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = PostgresTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
+    long edgeId = PostgresTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
 
-
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
+    long edgeVersionId = PostgresTest.createEdgeVersion(edgeId, firstNodeVersionId,
+        secondNodeVersionId).getId();
 
     // create new node versions in each of the nodes
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long newFirstNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), firstTestNodeId, parents).getId();
+    long newFirstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(secondNodeVersionId);
-    long newSecondNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), secondTestNodeId, parents).getId();
+    long newSecondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId, parents)
+        .getId();
 
     parents.clear();
     parents.add(edgeVersionId);
-    long newEdgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, newFirstNodeVersionId, -1, newSecondNodeVersionId, -1,
-        parents).getId();
+    long newEdgeVersionId = PostgresTest.createEdgeVersion(edgeId, newFirstNodeVersionId,
+        newSecondNodeVersionId, parents).getId();
 
-    super.factories.getEdgeFactory().truncate(edgeId, 1);
+    PostgresTest.edgesResource.truncateEdge(edgeName, 1);
 
-    VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(edgeId);
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(edgeId);
 
     assertEquals(1, dag.getEdgeIds().size());
-
-    VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-    super.postgresClient.commit();
-
+    PostgresTest.postgresClient.commit();
     assertEquals(0, successor.getFromId());
     assertEquals(newEdgeVersionId, successor.getToId());
   }

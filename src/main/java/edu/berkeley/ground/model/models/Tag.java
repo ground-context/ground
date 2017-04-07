@@ -52,6 +52,14 @@ public class Tag {
              @JsonProperty("key") String key,
              @JsonProperty("value") Object value,
              @JsonProperty("type") GroundType valueType) {
+
+    assert ((value != null) == (valueType != null));
+
+    if (value != null) {
+      assert (value.getClass().equals(valueType.getTypeClass()));
+    }
+
+
     this.id = id;
     this.key = key;
     this.value = value;
