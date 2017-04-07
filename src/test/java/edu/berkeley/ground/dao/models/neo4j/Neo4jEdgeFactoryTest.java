@@ -69,7 +69,7 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
     }
   }
 
-  // @Test(expected = GroundException.class)
+  @Test(expected = GroundException.class)
   public void testCreateDuplicateEdge() throws GroundException {
     String edgeName = "edgeName";
     String edgeKey = "edgeKey";

@@ -60,6 +60,21 @@ public class CassandraGraphFactoryTest extends CassandraTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateGraph() throws GroundException {
+    String graphName = "graphName";
+    String graphKey = "graphKey";
+
+    try {
+      CassandraTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+  }
+
+
   @Test
   public void testTruncate() throws GroundException {
     long edgeVersionId = CassandraTest.createTwoNodesAndEdge();

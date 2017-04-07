@@ -12,7 +12,7 @@ import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class PostgresLineageGraphFactoryTest extends PostgresTest {
 
@@ -43,6 +43,22 @@ public class PostgresLineageGraphFactoryTest extends PostgresTest {
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageGraph() throws GroundException {
+    String lineageGraphName = "lineageGraphName";
+    String lineageGraphKey = "lineageGraphKey";
+
+    try {
+      PostgresTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+          lineageGraphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+        lineageGraphKey, new HashMap<>());
   }
 
   @Test

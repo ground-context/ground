@@ -45,6 +45,20 @@ public class Neo4jLineageEdgeFactoryTest extends Neo4jTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageEdge() throws GroundException {
+    String lineageEdgeName = "lineageEdgeName";
+    String lineageEdgeKey = "lineageEdgeKey";
+
+    try {
+      Neo4jTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+  }
+
   @Test
   public void testTruncate() throws GroundException {
     String firstTestNode = "firstTestNode";

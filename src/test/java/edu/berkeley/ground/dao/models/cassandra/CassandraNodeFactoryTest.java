@@ -83,6 +83,20 @@ public class CassandraNodeFactoryTest extends CassandraTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateNode() throws GroundException {
+    String nodeName = "nodeName";
+    String nodeKey = "nodeKey";
+
+    try {
+      CassandraTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+  }
+
   @Test
   public void testTruncation() throws GroundException {
     String testNode = "testNode";

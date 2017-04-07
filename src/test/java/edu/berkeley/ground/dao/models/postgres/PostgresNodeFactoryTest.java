@@ -83,6 +83,20 @@ public class PostgresNodeFactoryTest extends PostgresTest {
     }
   }
 
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateNode() throws GroundException {
+    String nodeName = "nodeName";
+    String nodeKey = "nodeKey";
+
+    try {
+      PostgresTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+  }
+
   @Test
   public void testTruncation() throws GroundException {
     String testNode = "testNode";

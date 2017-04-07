@@ -88,6 +88,18 @@ public class Neo4jEdgeFactory extends EdgeFactory {
                      long toNodeId,
                      Map<String, Tag> tags) throws GroundException {
 
+    Edge edge = null;
+    try {
+      edge = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No Edge found")) {
+        throw e;
+      }
+    }
+
+    if (edge != null) {
+      throw new GroundException("Edge with source_key " + sourceKey + " already exists.");
+    }
 
     long uniqueId = idGenerator.generateItemId();
 

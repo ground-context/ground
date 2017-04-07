@@ -88,6 +88,20 @@ public class CassandraEdgeFactory extends EdgeFactory {
                      long fromNodeId,
                      long toNodeId,
                      Map<String, Tag> tags) throws GroundException {
+
+    Edge edge = null;
+    try {
+      edge = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No Edge found")) {
+        throw e;
+      }
+    }
+
+    if (edge != null) {
+      throw new GroundException("Edge with source_key " + sourceKey + " already exists.");
+    }
+
     long uniqueId = this.idGenerator.generateItemId();
 
     this.itemFactory.insertIntoDatabase(uniqueId, tags);
