@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao;
 
+import edu.berkeley.ground.util.ElasticSearch;
 import org.junit.Before;
 
 import java.io.File;

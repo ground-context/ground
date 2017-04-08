@@ -14,6 +14,8 @@
 
 package edu.berkeley.ground.dao;
 
+import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.util.ElasticSearch;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -46,7 +48,7 @@ public class CassandraTest {
   protected static CassandraTagFactory tagFactory;
 
   @BeforeClass
-  public static void setup() throws GroundDbException {
+  public static void setup() throws GroundDbException, GroundException {
     cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
     factories = new CassandraFactories(cassandraClient, 0, 1);
 
@@ -58,10 +60,13 @@ public class CassandraTest {
 
     richVersionFactory = new CassandraRichVersionFactory(cassandraClient, versionFactory,
         (CassandraStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);
+    ElasticSearch.connectElasticSearch();
+
   }
 
   @Before
   public void setupTest() throws IOException, InterruptedException {
+
     Process p = Runtime.getRuntime().exec("cqlsh -k " + TEST_DB_NAME + " -f truncate.cql", null, new File("scripts/cassandra/"));
     p.waitFor();
 
@@ -70,6 +75,7 @@ public class CassandraTest {
 
   @AfterClass
   public static void tearDown() throws IOException, InterruptedException {
+    ElasticSearch.closeElasticSearch();
     cassandraClient.close();
   }
 }

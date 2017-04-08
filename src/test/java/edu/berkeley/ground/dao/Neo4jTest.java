@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao;
 
+import edu.berkeley.ground.util.ElasticSearch;
 import org.junit.Before;
 
 import java.io.IOException;
@@ -53,6 +54,8 @@ public class Neo4jTest {
     this.itemFactory = new Neo4jItemFactory(this.neo4jClient, this.versionHistoryDAGFactory, tagFactory);
     this.richVersionFactory = new Neo4jRichVersionFactory(this.neo4jClient, (Neo4jStructureVersionFactory)
         this.factories.getStructureVersionFactory(), this.tagFactory);
+
+
   }
 
   @Before

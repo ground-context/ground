@@ -24,10 +24,7 @@ import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.*;
-import edu.berkeley.ground.util.CassandraFactories;
-import edu.berkeley.ground.util.FactoryGenerator;
-import edu.berkeley.ground.util.Neo4jFactories;
-import edu.berkeley.ground.util.PostgresFactories;
+import edu.berkeley.ground.util.*;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -51,6 +48,7 @@ public class GroundServer extends Application<GroundServerConfiguration> {
 
   public static void main(String[] args) throws Exception {
     new GroundServer().run(args);
+
   }
 
   @Override

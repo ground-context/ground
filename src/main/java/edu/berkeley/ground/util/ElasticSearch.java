@@ -28,6 +28,7 @@ public class ElasticSearch {
 
 
   public static boolean connectElasticSearch() throws GroundException {
+    System.out.println("CONNECTING TO ELASTIC SEARCH");
     try {
       node = nodeBuilder().clusterName(clusterName).node();
       client = node.client();
@@ -39,9 +40,7 @@ public class ElasticSearch {
   }
 
   public static boolean insertElasticSearch(Tag tag, String table) throws GroundException {
-    if (client == null) {
-      connectElasticSearch();
-    }
+
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -63,9 +62,7 @@ public class ElasticSearch {
   }
 
   public static List<Long> getSearchResponse(String type, String searchQuery) throws GroundException {
-    if (client == null) {
-      connectElasticSearch();
-    }
+
 
     SearchResponse test = client.prepareSearch().get();
     System.out.println(test.toString());
