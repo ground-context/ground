@@ -17,9 +17,9 @@ package edu.berkeley.ground.dao.usage.cassandra;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
@@ -68,27 +68,20 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   @Override
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
 
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    long uniqueId = this.idGenerator.generateItemId();
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      this.dbClient.insert("lineage_edge", insertions);
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.commit();
-      LOGGER.info("Created lineage edge " + name + ".");
+    this.dbClient.insert("lineage_edge", insertions);
 
-      return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
-    }
+    LOGGER.info("Created lineage edge " + name + ".");
+    return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -100,37 +93,32 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
    */
   @Override
   public LineageEdge retrieveFromDatabase(String name) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+
+    CassandraResults resultSet;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
-      QueryResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        this.dbClient.abort();
-
-        throw new GroundException("No LineageEdge found with name " + name + ".");
-      }
-
-      long id = resultSet.getLong("item_id");
-      String sourceKey = resultSet.getString("source_key");
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved lineage edge " + name + ".");
-
-      return LineageEdgeFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No LineageEdge found with name " + name + ".");
     }
+
+    long id = resultSet.getLong("item_id");
+    String sourceKey = resultSet.getString("source_key");
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+    LOGGER.info("Retrieved lineage edge " + name + ".");
+    return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
+  }
+
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    this.itemFactory.truncate(itemId, numLevels, "lineage_edge");
   }
 }

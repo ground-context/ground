@@ -102,7 +102,7 @@ public class PostgresClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public QueryResults equalitySelect(
+  public PostgresResults equalitySelect(
       String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
       throws GroundDbException, EmptyResultException {
     String items = String.join(", ", projection);
@@ -186,6 +186,36 @@ public class PostgresClient extends DbClient {
 
 
       for (DbDataContainer predicate : wherePredicates) {
+        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
+      }
+
+      statement.executeUpdate();
+    } catch (SQLException e) {
+      throw new GroundDbException(e);
+    }
+  }
+
+  /**
+   * Delete a row from a table.
+   *
+   * @param predicates the delete predicates
+   * @param table the table to delete from
+   */
+  public void delete(List<DbDataContainer> predicates, String table) throws GroundDbException {
+    String deleteString = "delete from " + table + " ";
+
+    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+        .collect(Collectors.joining(", "));
+
+    deleteString += "where " + predicateString;
+
+    int index = 1;
+
+    try {
+      PreparedStatement statement = this.prepareStatement(deleteString);
+
+      for (DbDataContainer predicate : predicates) {
         PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
         index++;
       }

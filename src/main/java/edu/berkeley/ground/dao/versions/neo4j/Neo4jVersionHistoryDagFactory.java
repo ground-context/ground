@@ -15,18 +15,23 @@
 package edu.berkeley.ground.dao.versions.neo4j;
 
 import edu.berkeley.ground.dao.versions.VersionHistoryDagFactory;
+import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.neo4j.driver.v1.types.Relationship;
 
-public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
+public class
+Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
   private final Neo4jClient dbClient;
   private final Neo4jVersionSuccessorFactory versionSuccessorFactory;
 
@@ -85,5 +90,77 @@ public class Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
     dag.addEdge(parentId, childId, successor.getId());
+  }
+
+  /**
+   * Truncate the DAG to only have a certain number of levels, removing everything before that.
+   *
+   * @param dag the DAG to truncate
+   * @param numLevels the number of levels to keep
+   */
+  @Override
+  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+      throws GroundException {
+
+    int keptLevels = 1;
+    List<Long> lastLevel = new ArrayList<>();
+    List<Long> previousLevel = dag.getLeaves();
+
+    while (keptLevels <= numLevels) {
+      List<Long> currentLevel = new ArrayList<>();
+
+      previousLevel.forEach(id ->
+          currentLevel.addAll(dag.getParent(id))
+      );
+
+      lastLevel = previousLevel;
+      previousLevel = currentLevel;
+
+      keptLevels++;
+    }
+
+    List<Long> deleteQueue = previousLevel;
+    Set<Long> deleted = new HashSet<>();
+
+    for (long id : lastLevel) {
+      this.addEdge(dag, dag.getItemId(), id, dag.getItemId());
+    }
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+
+    while (deleteQueue.size() > 0) {
+      long id = deleteQueue.get(0);
+
+      if (itemType.equals("structure")) {
+        predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+        this.dbClient.deleteNode(predicates, "structure_version_attribute");
+        predicates.clear();
+      }
+
+      if (itemType.contains("graph")) {
+        predicates.add(new DbDataContainer(itemType + "_version_id", GroundType.LONG, id));
+        this.dbClient.deleteNode(predicates, itemType + "_version_edge");
+        predicates.clear();
+      }
+
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+      this.dbClient.deleteNode(predicates, itemType.substring(0, 1).toUpperCase() +
+          itemType.substring(1) + "Version");
+
+      deleteQueue.remove(0);
+      List<Long> parents = dag.getParent(id);
+
+      predicates.clear();
+      predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+      this.dbClient.deleteNode(predicates, "RichVersionTag");
+      deleted.add(id);
+
+      parents.forEach(parentId -> {
+        if (!deleted.contains(parentId)) {
+          deleteQueue.add(parentId);
+        }
+      });
+    }
   }
 }

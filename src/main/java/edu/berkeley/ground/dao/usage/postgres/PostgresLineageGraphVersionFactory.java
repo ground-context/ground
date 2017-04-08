@@ -19,7 +19,7 @@ import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -87,44 +87,37 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
                                     List<Long> lineageEdgeVersionIds,
                                     List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag
-          .getKey(), tag.getValue(), tag.getValueType())));
+    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag
+        .getKey(), tag.getValue(), tag.getValueType())));
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("lineage_graph_id", GroundType.LONG, lineageGraphId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("lineage_graph_id", GroundType.LONG, lineageGraphId));
 
-      this.dbClient.insert("lineage_graph_version", insertions);
+    this.dbClient.insert("lineage_graph_version", insertions);
 
-      for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
-        List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
-        lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
-            id));
-        lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
-            lineageEdgeVersionId));
+    for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
+      List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
+      lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+          id));
+      lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
+          lineageEdgeVersionId));
 
-        this.dbClient.insert("lineage_graph_version_edge", lineageEdgeInsertion);
-      }
-
-      this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
-
-      this.dbClient.commit();
-      LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
-          + ".");
-
-      return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, lineageGraphId, lineageEdgeVersionIds);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      this.dbClient.insert("lineage_graph_version_edge", lineageEdgeInsertion);
     }
+
+    this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
+
+    LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
+        + ".");
+
+    return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, lineageGraphId, lineageEdgeVersionIds);
   }
 
   /**
@@ -136,52 +129,45 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
    */
   @Override
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
+    lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+        id));
+
+    PostgresResults resultSet;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
-      lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
-          id));
-
-      QueryResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
-            predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundException("No LineageGraphVersion found with id " + id + ".");
-      }
-
-      QueryResults lineageEdgeSet;
-      List<Long> lineageEdgeVersionIds = new ArrayList<>();
-      try {
-        lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient
-            .SELECT_STAR, lineageEdgePredicate);
-
-        do {
-          lineageEdgeVersionIds.add(lineageEdgeSet.getLong(2));
-        } while (lineageEdgeSet.next());
-      } catch (EmptyResultException e) {
-        // do nothing; this just means that there are no edges in the LineageGraphVersion
-      }
-
-      long lineageGraphId = resultSet.getLong(2);
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved lineage_graph version "
-                  + id
-                  + " in lineage_graph "
-                  + lineageGraphId + ".");
-
-      return LineageGraphVersionFactory.construct(id, version.getTags(), version
-          .getStructureVersionId(), version.getReference(), version.getParameters(),
-          lineageGraphId, lineageEdgeVersionIds);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
+          predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No LineageGraphVersion found with id " + id + ".");
     }
+
+    PostgresResults lineageEdgeSet;
+    List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    try {
+      lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient
+          .SELECT_STAR, lineageEdgePredicate);
+
+      do {
+        lineageEdgeVersionIds.add(lineageEdgeSet.getLong(2));
+      } while (lineageEdgeSet.next());
+    } catch (EmptyResultException e) {
+      // do nothing; this just means that there are no edges in the LineageGraphVersion
+    }
+
+    long lineageGraphId = resultSet.getLong(2);
+
+    LOGGER.info("Retrieved lineage_graph version "
+        + id
+        + " in lineage_graph "
+        + lineageGraphId + ".");
+
+    return LineageGraphVersionFactory.construct(id, version.getTags(), version
+            .getStructureVersionId(), version.getReference(), version.getParameters(),
+        lineageGraphId, lineageEdgeVersionIds);
   }
 }

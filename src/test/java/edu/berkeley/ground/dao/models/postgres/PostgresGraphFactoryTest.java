@@ -16,11 +16,15 @@ package edu.berkeley.ground.dao.models.postgres;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -30,15 +34,14 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     super();
   }
 
+
   @Test
   public void testGraphCreation() throws GroundException {
     String testName = "test";
     String sourceKey = "testKey";
 
-    PostgresGraphFactory graphFactory = (PostgresGraphFactory) super.factories.getGraphFactory();
-    graphFactory.create(testName, sourceKey, new HashMap<>());
-
-    Graph graph = graphFactory.retrieveFromDatabase(testName);
+    PostgresTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
+    Graph graph = PostgresTest.graphsResource.getGraph(testName);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -49,11 +52,43 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     String testName = "test";
 
     try {
-      super.factories.getGraphFactory().retrieveFromDatabase(testName);
+      PostgresTest.graphsResource.getGraph(testName);
     } catch (GroundException e) {
       assertEquals("No Graph found with name " + testName + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    long edgeVersionId = PostgresTest.createTwoNodesAndEdge();
+
+    List<Long> edgeVersionIds = new ArrayList<>();
+    edgeVersionIds.add(edgeVersionId);
+
+    String graphName = "testGraph";
+    long graphId = PostgresTest.createGraph(graphName).getId();
+
+    long graphVersionId = PostgresTest.createGraphVersion(graphId, edgeVersionIds).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(graphVersionId);
+    long newGraphVersionId = PostgresTest.createGraphVersion(graphId, edgeVersionIds, parents)
+        .getId();
+
+    PostgresTest.graphsResource.truncateGraph(graphName, 1);
+
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    PostgresTest.postgresClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newGraphVersionId, successor.getToId());
   }
 }

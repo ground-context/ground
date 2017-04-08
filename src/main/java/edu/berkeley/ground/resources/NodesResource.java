@@ -18,6 +18,7 @@ import com.codahale.metrics.annotation.Timed;
 
 import edu.berkeley.ground.dao.models.NodeFactory;
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.NodeVersion;
@@ -42,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/nodes")
-@Api(value = "/nodes", description = "Interact with the nodes in the graph")
+@Api(value = "/nodes", description = "Interact with the nodes in the node")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class NodesResource {
@@ -50,26 +51,50 @@ public class NodesResource {
 
   private final NodeFactory nodeFactory;
   private final NodeVersionFactory nodeVersionFactory;
+  private final DbClient dbClient;
 
-  public NodesResource(NodeFactory nodeFactory, NodeVersionFactory nodeVersionFactory) {
+  public NodesResource(NodeFactory nodeFactory,
+                       NodeVersionFactory nodeVersionFactory,
+                       DbClient dbClient) {
     this.nodeFactory = nodeFactory;
     this.nodeVersionFactory = nodeVersionFactory;
+    this.dbClient = dbClient;
   }
 
   @GET
   @Timed
   @Path("/{name}")
   public Node getNode(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving node " + name + ".");
-    return this.nodeFactory.retrieveFromDatabase(name);
+    try {
+      LOGGER.info("Retrieving node " + name + ".");
+      return this.nodeFactory.retrieveFromDatabase(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @GET
   @Timed
   @Path("/versions/{id}")
   public NodeVersion getNodeVersion(@PathParam("id") long id) throws GroundException {
-    LOGGER.info("Retrieving node version " + id + ".");
-    return this.nodeVersionFactory.retrieveFromDatabase(id);
+    try {
+      LOGGER.info("Retrieving node version " + id + ".");
+      return this.nodeVersionFactory.retrieveFromDatabase(id);
+    } finally {
+      this.dbClient.commit();
+    }
+  }
+
+  @GET
+  @Timed
+  @Path("/{name}/latest")
+  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
+    try {
+      LOGGER.info("Retrieving the latest version of node " + name + ".");
+      return this.nodeFactory.getLeaves(name);
+    } finally {
+      this.dbClient.commit();
+    }
   }
 
   @POST
@@ -78,38 +103,82 @@ public class NodesResource {
   public Node createNode(@PathParam("name") String name,
                          @PathParam("key") String sourceKey,
                          @Valid Map<String, Tag> tags) throws GroundException {
-    LOGGER.info("Creating node " + name + ".");
-    return this.nodeFactory.create(name, sourceKey, tags);
+    try {
+      LOGGER.info("Creating node " + name + ".");
+      Node created = this.nodeFactory.create(name, sourceKey, tags);
+
+      this.dbClient.commit();
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
   /**
    * Create a node version.
    *
-   * @param nodeVersion the data to create the version with
+   * @param nodeId the id of the node to create this version in
+   * @param tags the version's tags
+   * @param referenceParameters optional reference access parameters
+   * @param structureVersionId the id of the structure version associated with this version
+   * @param reference an optional reference
    * @param parentIds the ids of the parent(s) of this version
    * @return the newly created version along with an id
    * @throws GroundException an error while creating the version
    */
   @POST
   @Timed
-  @Path("/versions")
-  public NodeVersion createNodeVersion(@Valid NodeVersion nodeVersion,
+  @Path("/{id}/versions")
+  public NodeVersion createNodeVersion(@PathParam("id") long nodeId,
+                                       @Valid Map<String, Tag> tags,
+                                       @Valid Map<String, String> referenceParameters,
+                                       long structureVersionId,
+                                       String reference,
                                        @QueryParam("parents") List<Long> parentIds)
       throws GroundException {
-    LOGGER.info("Creating node version in node " + nodeVersion.getNodeId() + ".");
-    return this.nodeVersionFactory.create(nodeVersion.getTags(),
-        nodeVersion.getStructureVersionId(),
-        nodeVersion.getReference(),
-        nodeVersion.getParameters(),
-        nodeVersion.getNodeId(),
-        parentIds);
+    try {
+      LOGGER.info("Creating node version in node " + nodeId + ".");
+      NodeVersion created = this.nodeVersionFactory.create(tags,
+          structureVersionId,
+          reference,
+          referenceParameters,
+          nodeId,
+          parentIds);
+
+      this.dbClient.commit();
+
+      return created;
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 
-  @GET
+  /**
+   * Truncate a node's history to be of a certain height, only keeping the most recent levels.
+   *
+   * @param name the name of the node to truncate
+   * @param height the number of levels to keep
+   * @throws GroundException an error while truncating this node
+   */
+  @POST
   @Timed
-  @Path("/{name}/latest")
-  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
-    LOGGER.info("Retrieving the latest version of node " + name + ".");
-    return this.nodeFactory.getLeaves(name);
+  @Path("/truncate/{name}/{height}")
+  public void truncateNode(@PathParam("name") String name, @PathParam("height") int height)
+      throws GroundException {
+    try {
+      LOGGER.info("Truncating node " + name + " to height " + height + ".");
+      long id = this.nodeFactory.retrieveFromDatabase(name).getId();
+
+      this.nodeFactory.truncate(id, height);
+      this.dbClient.commit();
+    } catch (Exception e) {
+      this.dbClient.abort();
+
+      throw e;
+    }
   }
 }

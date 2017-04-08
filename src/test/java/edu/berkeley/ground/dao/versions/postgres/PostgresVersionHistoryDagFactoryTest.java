@@ -32,13 +32,13 @@ public class PostgresVersionHistoryDagFactoryTest extends PostgresTest {
   public void testVersionHistoryDAGCreation() throws GroundException {
     try {
       long testId = 1;
-      super.versionHistoryDAGFactory.create(testId);
+      PostgresTest.versionHistoryDAGFactory.create(testId);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(0, dag.getEdgeIds().size());
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 }

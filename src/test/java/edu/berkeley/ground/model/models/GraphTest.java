@@ -50,4 +50,24 @@ public class GraphTest {
     Graph graph = new Graph(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/models/graph.json"), Graph.class), graph);
   }
+
+  @Test
+  public void testGraphNotEquals() throws Exception {
+    Graph truth = new Graph(1, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals("notGraph"));
+
+    Graph differentId = new Graph(2, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentId));
+
+    Graph differentName = new Graph(1, "notName", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentName));
+
+    Graph differentKey = new Graph(1, "name", "notSourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentKey));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    Graph differentTags = new Graph(1, "name", "sourceKey", tags);
+    assertFalse(truth.equals(differentTags));
+  }
 }

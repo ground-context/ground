@@ -51,4 +51,24 @@ public class LineageEdgeTest {
     LineageEdge lineageEdge = new LineageEdge(1, "test", "testKey", tagsMap);
     assertEquals(MAPPER.readValue(fixture("fixtures/usage/lineage_edge.json"), LineageEdge.class), lineageEdge);
   }
+
+  @Test
+  public void testLineageEdgeNotEquals() throws Exception {
+    LineageEdge truth = new LineageEdge(1, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals("notLineageEdge"));
+
+    LineageEdge differentId = new LineageEdge(2, "name", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentId));
+
+    LineageEdge differentName = new LineageEdge(1, "notName", "sourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentName));
+
+    LineageEdge differentKey = new LineageEdge(1, "name", "notSourceKey", new HashMap<>());
+    assertFalse(truth.equals(differentKey));
+
+    Map<String, Tag> tags = new HashMap<>();
+    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    LineageEdge differentTags = new LineageEdge(1, "name", "sourceKey", tags);
+    assertFalse(truth.equals(differentTags));
+  }
 }

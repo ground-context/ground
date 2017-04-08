@@ -40,12 +40,12 @@ public class PostgresTagFactoryTest extends PostgresTest {
     Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
     tagsMap.put("testtag", tag);
 
-    long nodeId1 = super.factories.getNodeFactory().create("test1", null, tagsMap).getId();
-    long nodeId2 = super.factories.getNodeFactory().create("test2", null, tagsMap).getId();
+    long nodeId1 = PostgresTest.nodesResource.createNode("test1", null, tagsMap).getId();
+    long nodeId2 = PostgresTest.nodesResource.createNode("test2", null, tagsMap).getId();
 
-    List<Long> ids = super.tagFactory.getItemIdsByTag(tag.getKey());
+    List<Long> ids = PostgresTest.tagFactory.getItemIdsByTag("testtag");
 
-    super.postgresClient.commit();
+    PostgresTest.postgresClient.commit();
 
     assertTrue(ids.contains(nodeId1));
     assertTrue(ids.contains(nodeId2));
@@ -57,16 +57,17 @@ public class PostgresTagFactoryTest extends PostgresTest {
     Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
     tagsMap.put("testtag", tag);
 
-    long nodeId = super.factories.getNodeFactory().create("test1", null, tagsMap).getId();
+    long nodeId = PostgresTest.createNode("testNode").getId();
 
-    long nodeVersionId1 = super.factories.getNodeVersionFactory().create(tagsMap,
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    long nodeVersionId2 = super.factories.getNodeVersionFactory().create(tagsMap,
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+    long nodeVersionId1 = PostgresTest.nodesResource.createNodeVersion(nodeId, tagsMap,
+        new HashMap<>(), -1, null, new ArrayList<>()).getId();
+    long nodeVersionId2 = PostgresTest.nodesResource.createNodeVersion(nodeId, tagsMap,
+        new HashMap<>(), -1, null, new ArrayList<>()).getId();
 
-    List<Long> ids = super.tagFactory.getVersionIdsByTag(tag.getKey());
 
-    super.postgresClient.commit();
+    List<Long> ids = PostgresTest.tagFactory.getVersionIdsByTag("testtag");
+
+    PostgresTest.postgresClient.commit();
 
     assertTrue(ids.contains(nodeVersionId1));
     assertTrue(ids.contains(nodeVersionId2));

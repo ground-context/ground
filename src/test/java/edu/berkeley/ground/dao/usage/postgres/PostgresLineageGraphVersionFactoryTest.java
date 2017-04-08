@@ -14,6 +14,7 @@ import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
 
@@ -24,59 +25,43 @@ public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
   @Test
   public void testLineageGraphVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = PostgresTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = PostgresTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId).getId();
 
     String lineageEdgeName = "testLineageEdge";
-    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
-        new HashMap<>()).getId();
-    long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstNodeVersionId, secondNodeVersionId, lineageEdgeId,
-        new ArrayList<>()).getId();
+    long lineageEdgeId = PostgresTest.createLineageEdge(lineageEdgeName).getId();
+
+    long lineageEdgeVersionId = PostgresTest.createLineageEdgeVersion(lineageEdgeId,
+        firstNodeVersionId, secondNodeVersionId).getId();
 
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
     lineageEdgeVersionIds.add(lineageEdgeVersionId);
 
-    String graphName = "testLineageGraph";
-    long graphId = super.factories.getLineageGraphFactory().create(graphName, null,
-        new HashMap<>()).getId();
+    String lineageGraphName = "testLineageGraph";
+    long lineageGraphId = PostgresTest.createLineageGraph(lineageGraphName).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = PostgresTest.createStructure(structureName).getId();
+    long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
-
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = PostgresTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long graphVersionId = super.factories.getLineageGraphVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, graphId, lineageEdgeVersionIds,
-        new ArrayList<>()).getId();
+    long lineageGraphVersionId = PostgresTest.lineageGraphsResource
+        .createLineageGraphVersion(lineageGraphId, tags, parameters, structureVersionId,
+            testReference, lineageEdgeVersionIds, new ArrayList<>()).getId();
 
-    LineageGraphVersion retrieved = super.factories.getLineageGraphVersionFactory().retrieveFromDatabase(graphVersionId);
+    LineageGraphVersion retrieved = PostgresTest.lineageGraphsResource
+        .getLineageGraphVersion(lineageGraphVersionId);
 
-    assertEquals(graphId, retrieved.getLineageGraphId());
+    assertEquals(lineageGraphId, retrieved.getLineageGraphId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
     assertEquals(testReference, retrieved.getReference());
     assertEquals(lineageEdgeVersionIds.size(), retrieved.getLineageEdgeVersionIds().size());
@@ -109,11 +94,25 @@ public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
     long id = 1;
 
     try {
-      super.factories.getLineageGraphVersionFactory().retrieveFromDatabase(id);
+      PostgresTest.lineageGraphsResource.getLineageGraphVersion(id);
     } catch (GroundException e) {
       assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test
+  public void testCreateEmptyLineageGraph() throws GroundException {
+    String lineageGraphName = "testGraph";
+    long lineageGraphId = PostgresTest.createLineageGraph(lineageGraphName).getId();
+
+    long lineageGraphVersionId = PostgresTest.createLineageGraphVersion(lineageGraphId,
+        new ArrayList<>()).getId();
+
+    LineageGraphVersion retrieved = PostgresTest.lineageGraphsResource
+        .getLineageGraphVersion(lineageGraphVersionId);
+
+    assertTrue(retrieved.getLineageEdgeVersionIds().isEmpty());
   }
 }

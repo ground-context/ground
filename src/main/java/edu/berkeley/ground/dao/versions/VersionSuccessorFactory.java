@@ -25,6 +25,8 @@ public abstract class VersionSuccessorFactory {
   public abstract <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
       throws GroundException;
 
+  public abstract void deleteFromDestination(long toId, long itemId) throws GroundException;
+
   protected static <T extends Version> VersionSuccessor<T> construct(long id,
                                                                      long fromId,
                                                                      long toId) {

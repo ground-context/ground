@@ -111,25 +111,6 @@ public class Neo4jClient extends DbClient {
   }
 
   /**
-   * Add a new edge to the graph.
-   *
-   * @param label the edge label
-   * @param fromId the id of the source vertex
-   * @param toId the id of the destination vertex
-   * @param attributes the edge's attributes
-   */
-  public void addEdge(String label, String fromId, long toId, List<DbDataContainer> attributes) {
-    String insert = "MATCH (f" + "{id : '" + fromId + "' })";
-    insert += "MATCH (t" + "{id : " + toId + " })";
-    insert += "CREATE (f)-[:" + label + "{";
-
-    insert = this.addValuesToStatement(insert, attributes);
-    insert += "}]->(t)";
-
-    this.transaction.run(insert);
-  }
-
-  /**
    * Add a new vertex and an edge connecting it to another vertex.
    *
    * @param label the vertex label
@@ -307,6 +288,19 @@ public class Neo4jClient extends DbClient {
     this.transaction.run(insert);
   }
 
+  public void deleteNode(List<DbDataContainer> predicates, String label) {
+    String delete = "MATCH (n: " + label + " {";
+
+    delete = this.addValuesToStatement(delete, predicates);
+
+    delete += "})" +
+        "MATCH (n)-[e]-()" +
+        "DELETE e " +
+        "DELETE n;";
+
+    this.transaction.run(delete);
+  }
+
   @Override
   public void commit() {
     this.transaction.success();
@@ -317,6 +311,8 @@ public class Neo4jClient extends DbClient {
   @Override
   public void abort() {
     this.transaction.failure();
+    this.transaction.close();
+    this.transaction = this.session.beginTransaction();
   }
 
   @Override

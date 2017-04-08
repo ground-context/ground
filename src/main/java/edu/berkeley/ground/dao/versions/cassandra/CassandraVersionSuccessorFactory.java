@@ -16,9 +16,9 @@ package edu.berkeley.ground.dao.versions.cassandra;
 
 import edu.berkeley.ground.dao.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -96,7 +96,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
-    QueryResults resultSet;
+    CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
           predicates);
@@ -108,5 +108,39 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     long toId = resultSet.getLong("to_version_id");
 
     return VersionSuccessorFactory.construct(dbId, fromId, toId);
+  }
+
+  /**
+   * Delete a version successor from the database.
+   *
+   * @param toId the destination version
+   */
+  @Override
+  public void deleteFromDestination(long toId, long itemId) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+
+    CassandraResults resultSet;
+    try {
+      resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
+          predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("Version " + toId + " was not part of a DAG.");
+    }
+
+    do {
+      long dbId = resultSet.getLong("id");
+
+      predicates.clear();
+      predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
+
+      this.dbClient.delete(predicates, "version_history_dag");
+
+      predicates.clear();
+      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+
+      this.dbClient.delete(predicates, "version_successor");
+    } while (resultSet.next());
   }
 }

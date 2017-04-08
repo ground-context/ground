@@ -38,47 +38,31 @@ public class Neo4jEdgeVersionFactoryTest extends Neo4jTest {
   @Test
   public void testEdgeVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null, new
-        HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = Neo4jTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = Neo4jTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = Neo4jTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = Neo4jTest.createNodeVersion(secondTestNodeId).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
+    long edgeId = Neo4jTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = Neo4jTest.createStructure(structureName).getId();
+    long structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
-
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = Neo4jTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, edgeId, firstNodeVersionId, -1,
-        secondNodeVersionId, -1, new ArrayList<>()).getId();
+    long edgeVersionId = Neo4jTest.edgesResource.createEdgeVersion(edgeId, tags, parameters,
+        structureVersionId, testReference, firstNodeVersionId, -1, secondNodeVersionId, -1,
+        new ArrayList<>()).getId();
 
-    EdgeVersion retrieved = super.factories.getEdgeVersionFactory().retrieveFromDatabase(edgeVersionId);
+    EdgeVersion retrieved = Neo4jTest.edgesResource.getEdgeVersion(edgeVersionId);
 
     assertEquals(edgeId, retrieved.getEdgeId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -108,27 +92,19 @@ public class Neo4jEdgeVersionFactoryTest extends Neo4jTest {
   @Test
   public void testCorrectEndVersion() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = Neo4jTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = Neo4jTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = Neo4jTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = Neo4jTest.createNodeVersion(secondTestNodeId).getId();
 
     String edgeName = "testEdge";
-    long edgeId = super.factories.getEdgeFactory().create(edgeName, null, firstTestNodeId,
-        secondTestNodeId, new HashMap<>()).getId();
+    long edgeId = Neo4jTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
+    long edgeVersionId = Neo4jTest.createEdgeVersion(edgeId, firstNodeVersionId,
+        secondNodeVersionId).getId();
 
-    long edgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, firstNodeVersionId, -1, secondNodeVersionId, -1,
-        new ArrayList<>()).getId();
-
-    EdgeVersion retrieved = super.factories.getEdgeVersionFactory()
-        .retrieveFromDatabase(edgeVersionId);
+    EdgeVersion retrieved =  Neo4jTest.edgesResource.getEdgeVersion(edgeVersionId);
 
     assertEquals(edgeId, retrieved.getEdgeId());
     assertEquals(-1, retrieved.getStructureVersionId());
@@ -141,34 +117,28 @@ public class Neo4jEdgeVersionFactoryTest extends Neo4jTest {
     // create two new node versions in each of the nodes
     List<Long> parents = new ArrayList<>();
     parents.add(firstNodeVersionId);
-    long fromEndId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1,
-        null, new HashMap<>(), firstTestNodeId, parents).getId();
+    long fromEndId = Neo4jTest.createNodeVersion(firstTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(fromEndId);
-    long newFirstNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), firstTestNodeId, parents).getId();
+    long newFirstNodeVersionId = Neo4jTest.createNodeVersion(firstTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(secondNodeVersionId);
-    long toEndId = super.factories.getNodeVersionFactory().create(new HashMap<>(), -1, null,
-        new HashMap<>(), secondTestNodeId, parents).getId();
+    long toEndId = Neo4jTest.createNodeVersion(secondTestNodeId, parents).getNodeId();
 
     parents.clear();
     parents.add(toEndId);
-    long newSecondNodeVersionId = super.factories.getNodeVersionFactory().create(new
-        HashMap<>(), -1, null, new HashMap<>(), secondTestNodeId, parents).getId();
+    long newSecondNodeVersionId = Neo4jTest.createNodeVersion(secondTestNodeId, parents)
+        .getId();
 
     parents.clear();
     parents.add(edgeVersionId);
-    long newEdgeVersionId = super.factories.getEdgeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), edgeId, newFirstNodeVersionId, -1, newSecondNodeVersionId, -1,
-        parents).getId();
+    long newEdgeVersionId = Neo4jTest.createEdgeVersion(edgeId, newFirstNodeVersionId,
+        newSecondNodeVersionId, parents).getId();
 
-    EdgeVersion parent = super.factories.getEdgeVersionFactory()
-        .retrieveFromDatabase(edgeVersionId);
-    EdgeVersion child = super.factories.getEdgeVersionFactory()
-        .retrieveFromDatabase(newEdgeVersionId);
+    EdgeVersion parent = Neo4jTest.edgesResource.getEdgeVersion(edgeVersionId);
+    EdgeVersion child = Neo4jTest.edgesResource.getEdgeVersion(newEdgeVersionId);
 
     assertEquals(edgeId, child.getEdgeId());
     assertEquals(-1, child.getStructureVersionId());
@@ -190,7 +160,7 @@ public class Neo4jEdgeVersionFactoryTest extends Neo4jTest {
     long id = 1;
 
     try {
-      super.factories.getEdgeVersionFactory().retrieveFromDatabase(id);
+      Neo4jTest.edgesResource.getEdgeVersion(id);
     } catch (GroundException e) {
       assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
 

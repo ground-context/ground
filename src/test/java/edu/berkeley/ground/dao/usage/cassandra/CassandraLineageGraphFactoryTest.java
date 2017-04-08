@@ -16,11 +16,15 @@ package edu.berkeley.ground.dao.usage.cassandra;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.usage.LineageGraph;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,11 +39,8 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    CassandraLineageGraphFactory graphFactory = (CassandraLineageGraphFactory)
-        CassandraTest.factories.getLineageGraphFactory();
-    graphFactory.create(testName, sourceKey, new HashMap<>());
-
-    LineageGraph graph = graphFactory.retrieveFromDatabase(testName);
+    CassandraTest.lineageGraphsResource.createLineageGraph(testName, sourceKey, new HashMap<>());
+    LineageGraph graph = CassandraTest.lineageGraphsResource.getLineageGraph(testName);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -50,7 +51,7 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
     String testName = "test";
 
     try {
-      CassandraTest.factories.getLineageGraphFactory().retrieveFromDatabase(testName);
+      CassandraTest.lineageGraphsResource.getLineageGraph(testName);
     } catch (GroundException e) {
       assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
 
@@ -58,16 +59,47 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
     }
   }
 
-  @Test(expected = GroundException.class)
-  public void testBadLineageGraphVersion() throws GroundException {
-    long id = 1;
+  @Test
+  public void testTruncate() throws GroundException {
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = CassandraTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = CassandraTest.createNodeVersion(firstTestNodeId).getId();
 
-    try {
-      CassandraTest.factories.getLineageGraphVersionFactory().retrieveFromDatabase(id);
-    } catch (GroundException e) {
-      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = CassandraTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = CassandraTest.createNodeVersion(secondTestNodeId).getId();
 
-      throw e;
-    }
+    String lineageEdgeName = "testLineageEdge";
+    long lineageEdgeId = CassandraTest.createLineageEdge(lineageEdgeName).getId();
+    long lineageEdgeVersionId = CassandraTest.createLineageEdgeVersion(lineageEdgeId,
+        firstNodeVersionId, secondNodeVersionId).getId();
+
+    List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    lineageEdgeVersionIds.add(lineageEdgeVersionId);
+
+    String lineageGraphName = "testLineageGraph";
+    long lineageGraphId = CassandraTest.createLineageGraph(lineageGraphName).getId();
+    long lineageGraphVersionId = CassandraTest.createLineageGraphVersion(lineageGraphId,
+        lineageEdgeVersionIds).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(lineageGraphVersionId);
+    long newLineageGraphVersionId = CassandraTest.createLineageGraphVersion(lineageGraphId,
+        lineageEdgeVersionIds, parents).getId();
+
+    CassandraTest.lineageGraphsResource.truncateLineageGraph(lineageGraphName, 1);
+
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(lineageGraphId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    CassandraTest.cassandraClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newLineageGraphVersionId, successor.getToId());
   }
 }

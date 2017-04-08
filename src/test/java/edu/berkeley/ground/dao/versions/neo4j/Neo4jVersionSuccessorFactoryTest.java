@@ -33,25 +33,24 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
   @Test
   public void testVersionSuccessorCreation() throws GroundException {
     try {
-      long fromNodeId = super.factories.getNodeFactory().create("testFromNode", null,
-          new HashMap<>()).getId();
-      long toNodeId = super.factories.getNodeFactory().create("testToNode", null, new HashMap<>())
-          .getId();
-      long fromId = super.createNodeVersion(fromNodeId);
-      long toId = super.createNodeVersion(toNodeId);
+      long fromNodeId = Neo4jTest.createNode("testFromNode").getId();
+      long toNodeId = Neo4jTest.createNode("testToNode").getId();
 
-      long vsId = super.versionSuccessorFactory.create(fromId, toId).getId();
+      long fromId = Neo4jTest.createNodeVersion(fromNodeId).getId();
+      long toId = Neo4jTest.createNodeVersion(toNodeId).getId();
 
-      VersionSuccessor<?> retrieved = super.versionSuccessorFactory.retrieveFromDatabase(vsId);
+      long vsId = Neo4jTest.versionSuccessorFactory.create(fromId, toId).getId();
+
+      VersionSuccessor<?> retrieved = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(vsId);
 
       assertEquals(fromId, retrieved.getFromId());
       assertEquals(toId, retrieved.getToId());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } catch (Exception e) {
       fail(e.getMessage());
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
@@ -61,20 +60,34 @@ public class Neo4jVersionSuccessorFactoryTest extends Neo4jTest {
       long toId = -1;
 
       try {
-        String nodeName = "testNode";
-        long nodeId = super.factories.getNodeFactory().create(nodeName, null, new HashMap<>())
-            .getId();
-        toId = super.createNodeVersion(nodeId);
+        long nodeId = Neo4jTest.createNode("testNode").getId();
+        toId = Neo4jTest.createNodeVersion(nodeId).getId();
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
 
       // this statement should be fail because the fromId does not exist
-      super.versionSuccessorFactory.create(9, toId).getId();
+      Neo4jTest.versionSuccessorFactory.create(9, toId).getId();
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
+    }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testBadVersionSuccessorRetrieval() throws GroundException {
+    try {
+      Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(10);
+
+      Neo4jTest.neo4jClient.commit();
+    } catch (GroundException e) {
+      Neo4jTest.neo4jClient.abort();
+      if (!e.getMessage().contains("No VersionSuccessor found with id 10.")) {
+        fail();
+      }
+
+      throw e;
     }
   }
 }

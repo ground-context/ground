@@ -16,11 +16,16 @@ package edu.berkeley.ground.dao.models.cassandra;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.GraphVersion;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -35,10 +40,8 @@ public class CassandraGraphFactoryTest extends CassandraTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    CassandraGraphFactory graphFactory = (CassandraGraphFactory) super.factories.getGraphFactory();
-    graphFactory.create(testName, sourceKey, new HashMap<>());
-
-    Graph graph = graphFactory.retrieveFromDatabase(testName);
+    CassandraTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
+    Graph graph = CassandraTest.graphsResource.getGraph(testName);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -49,11 +52,43 @@ public class CassandraGraphFactoryTest extends CassandraTest {
     String testName = "test";
 
     try {
-      CassandraTest.factories.getGraphFactory().retrieveFromDatabase(testName);
+      CassandraTest.graphsResource.getGraph(testName);
     } catch (GroundException e) {
       assertEquals("No Graph found with name " + testName + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    long edgeVersionId = CassandraTest.createTwoNodesAndEdge();
+
+    List<Long> edgeVersionIds = new ArrayList<>();
+    edgeVersionIds.add(edgeVersionId);
+
+    String graphName = "testGraph";
+    long graphId = CassandraTest.createGraph(graphName).getId();
+
+    long graphVersionId = CassandraTest.createGraphVersion(graphId, edgeVersionIds).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(graphVersionId);
+    long newGraphVersionId = CassandraTest.createGraphVersion(graphId, edgeVersionIds, parents)
+        .getId();
+
+    CassandraTest.graphsResource.truncateGraph(graphName, 1);
+
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    CassandraTest.cassandraClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newGraphVersionId, successor.getToId());
   }
 }

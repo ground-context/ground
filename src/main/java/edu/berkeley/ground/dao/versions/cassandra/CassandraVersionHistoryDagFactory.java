@@ -16,9 +16,9 @@ package edu.berkeley.ground.dao.versions.cassandra;
 
 import edu.berkeley.ground.dao.versions.VersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.db.QueryResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -27,7 +27,9 @@ import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory {
   private final CassandraClient dbClient;
@@ -58,7 +60,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    QueryResults resultSet;
+    CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
           predicates);
@@ -70,7 +72,8 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
 
     do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet.getLong(1)));
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
+          .getLong("version_successor_id")));
     } while (resultSet.next());
 
     return VersionHistoryDagFactory.construct(itemId, edges);
@@ -97,5 +100,89 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
     this.dbClient.insert("version_history_dag", insertions);
 
     dag.addEdge(parentId, childId, successor.getId());
+  }
+
+  /**
+   * Truncate the DAG to only have a certain number of levels, removing everything before that.
+   *
+   * @param dag the DAG to truncate
+   * @param numLevels the number of levels to keep
+   */
+  @Override
+  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+      throws GroundException {
+
+    int keptLevels = 1;
+    List<Long> previousLevel = dag.getLeaves();
+    List<Long> lastLevel = new ArrayList<>();
+    while (keptLevels <= numLevels) {
+      List<Long> currentLevel = new ArrayList<>();
+
+      previousLevel.forEach(id ->
+          currentLevel.addAll(dag.getParent(id))
+      );
+
+      lastLevel = previousLevel;
+      previousLevel = currentLevel;
+
+      keptLevels++;
+    }
+
+    List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
+    Set<Long> deleted = new HashSet<>();
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    for (long id : lastLevel) {
+      this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
+      this.addEdge(dag, 0, id, dag.getItemId());
+    }
+
+
+    while (deleteQueue.size() > 0) {
+      long id = deleteQueue.get(0);
+
+      if (id != 0) {
+        if (itemType.equals("structure")) {
+          predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, "structure_version_attribute");
+          predicates.clear();
+        }
+
+        if (itemType.contains("graph")) {
+          predicates.add(new DbDataContainer(itemType + "_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, itemType + "_version_edge");
+          predicates.clear();
+        }
+
+        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+        this.dbClient.delete(predicates, itemType + "_version");
+
+        if (!itemType.equals("structure")) {
+          this.dbClient.delete(predicates, "rich_version");
+        }
+
+        this.dbClient.delete(predicates, "version");
+
+        predicates.clear();
+        predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+        this.dbClient.delete(predicates, "rich_version_tag");
+
+        this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
+
+        deleted.add(id);
+
+        List<Long> parents = dag.getParent(id);
+
+        parents.forEach(parentId -> {
+          if (!deleted.contains(parentId)) {
+            deleteQueue.add(parentId);
+          }
+        });
+
+        predicates.clear();
+      }
+
+      deleteQueue.remove(0);
+    }
   }
 }

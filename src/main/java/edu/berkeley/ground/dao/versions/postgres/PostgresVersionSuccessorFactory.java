@@ -18,7 +18,7 @@ import edu.berkeley.ground.dao.versions.VersionSuccessorFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -78,7 +78,7 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
-    QueryResults resultSet;
+    PostgresResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
           predicates);
@@ -90,5 +90,38 @@ public class PostgresVersionSuccessorFactory extends VersionSuccessorFactory {
     long fromId = resultSet.getLong(3);
 
     return VersionSuccessorFactory.construct(dbId, toId, fromId);
+  }
+
+  /**
+   * Delete a version successor from the database.
+   *
+   * @param toId the destination version
+   */
+  @Override
+  public void deleteFromDestination(long toId, long itemId) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+
+    PostgresResults resultSet;
+    try {
+      resultSet = this.dbClient.equalitySelect("version_successor",
+          DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("Version " + toId + " was not part of a DAG.");
+    }
+
+    do {
+      long dbId = resultSet.getLong(1);
+
+      predicates.clear();
+      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
+
+      this.dbClient.delete(predicates, "version_history_dag");
+
+      predicates.clear();
+      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+
+      this.dbClient.delete(predicates, "version_successor");
+    } while (resultSet.next());
   }
 }

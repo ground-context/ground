@@ -36,19 +36,18 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
   @Test
   public void testStructureVersionCreation() throws GroundException {
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = CassandraTest.createStructure(structureName).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = CassandraTest.structuresResource.createStructureVersion(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
-    StructureVersion retrieved = super.factories.getStructureVersionFactory()
-        .retrieveFromDatabase(structureVersionId);
+    StructureVersion retrieved = CassandraTest.structuresResource
+        .getStructureVersion(structureVersionId);
 
     assertEquals(structureId, retrieved.getStructureId());
     Map<String, GroundType> retrievedAttributes = retrieved.getAttributes();
@@ -64,7 +63,7 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
     long id = 1;
 
     try {
-      CassandraTest.factories.getStructureVersionFactory().retrieveFromDatabase(id);
+      CassandraTest.structuresResource.getStructureVersion(id);
     } catch (GroundException e) {
       assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
       CassandraTest.cassandraClient.abort();

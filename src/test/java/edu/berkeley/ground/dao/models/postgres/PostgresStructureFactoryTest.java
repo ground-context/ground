@@ -19,10 +19,14 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -32,16 +36,14 @@ public class PostgresStructureFactoryTest extends PostgresTest {
     super();
   }
 
+
   @Test
   public void testStructureCreation() throws GroundException {
     String testName = "test";
     String sourceKey = "testKey";
 
-    PostgresStructureFactory structureFactory = (PostgresStructureFactory) super.factories
-        .getStructureFactory();
-    structureFactory.create(testName, sourceKey, new HashMap<>());
-
-    Structure structure = structureFactory.retrieveFromDatabase(testName);
+    PostgresTest.structuresResource.createStructure(testName, sourceKey, new HashMap<>());
+    Structure structure = PostgresTest.structuresResource.getStructure(testName);
 
     assertEquals(testName, structure.getName());
     assertEquals(sourceKey, structure.getSourceKey());
@@ -50,18 +52,15 @@ public class PostgresStructureFactoryTest extends PostgresTest {
   @Test
   public void testLeafRetrieval() throws GroundException {
     String structureName = "testStructure1";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = PostgresTest.createStructure(structureName).getId();
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(structureId,
-        new HashMap<>(), new ArrayList<>()).getId();
-    long secondNVId = super.factories.getStructureVersionFactory().create(structureId,
-        new HashMap<>(), new ArrayList<>()).getId();
+    long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
+    long secondStructureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-    List<Long> leaves = super.factories.getStructureFactory().getLeaves(structureName);
+    List<Long> leaves = PostgresTest.structuresResource.getLatestVersions(structureName);
 
     assertTrue(leaves.contains(structureVersionId));
-    assertTrue(leaves.contains(secondNVId));
+    assertTrue(leaves.contains(secondStructureVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -69,11 +68,37 @@ public class PostgresStructureFactoryTest extends PostgresTest {
     String testName = "test";
 
     try {
-      super.factories.getStructureFactory().retrieveFromDatabase(testName);
+      PostgresTest.structuresResource.getStructure(testName);
     } catch (GroundException e) {
       assertEquals("No Structure found with name " + testName + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    String structureName = "testStructure1";
+    long structureId = PostgresTest.createStructure(structureName).getId();
+
+    long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(structureVersionId);
+    long newStructureVersionId = PostgresTest.createStructureVersion(structureId, parents)
+        .getId();
+
+    PostgresTest.structuresResource.truncateStructure(structureName, 1);
+
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(structureId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    PostgresTest.postgresClient.commit();
+    assertEquals(0, successor.getFromId());
+    assertEquals(newStructureVersionId, successor.getToId());
   }
 }

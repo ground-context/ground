@@ -42,29 +42,29 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
 
-      super.versionFactory.insertIntoDatabase(fromId);
-      super.versionFactory.insertIntoDatabase(toId);
+      PostgresTest.versionFactory.insertIntoDatabase(fromId);
+      PostgresTest.versionFactory.insertIntoDatabase(toId);
 
       List<Long> parentIds = new ArrayList<>();
-      super.itemFactory.update(testId, fromId, parentIds);
+      PostgresTest.itemFactory.update(testId, fromId, parentIds);
 
       parentIds.clear();
       parentIds.add(fromId);
-      super.itemFactory.update(testId, toId, parentIds);
+      PostgresTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
       VersionSuccessor<?> successor = null;
       for (long id : dag.getEdgeIds()) {
-        successor = super.versionSuccessorFactory.retrieveFromDatabase(id);
+        successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(id);
 
         if (successor.getFromId() != 0) {
           break;
@@ -80,7 +80,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
 
       fail();
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -89,28 +89,28 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
       long toId = 2;
-      super.versionFactory.insertIntoDatabase(toId);
+      PostgresTest.versionFactory.insertIntoDatabase(toId);
 
       List<Long> parentIds = new ArrayList<>();
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      super.itemFactory.update(testId, toId, parentIds);
+      PostgresTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(1, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> successor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
       assertEquals(0, successor.getFromId());
       assertEquals(toId, successor.getToId());
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -119,32 +119,32 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
 
-      super.versionFactory.insertIntoDatabase(fromId);
-      super.versionFactory.insertIntoDatabase(toId);
+      PostgresTest.versionFactory.insertIntoDatabase(fromId);
+      PostgresTest.versionFactory.insertIntoDatabase(toId);
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      super.itemFactory.update(testId, fromId, parentIds);
+      PostgresTest.itemFactory.update(testId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(fromId);
-      super.itemFactory.update(testId, toId, parentIds);
+      PostgresTest.itemFactory.update(testId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> fromSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> fromSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
-      VersionSuccessor<?> toSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> toSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(1));
 
       if (fromSuccessor.getFromId() != 0) {
@@ -159,7 +159,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       assertEquals(fromId, toSuccessor.getFromId());
       assertEquals(toId, toSuccessor.getToId());
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -171,9 +171,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long toId = 3;
 
       try {
-        super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+        PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
-        super.versionFactory.insertIntoDatabase(toId);
+        PostgresTest.versionFactory.insertIntoDatabase(toId);
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -182,9 +182,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      super.itemFactory.update(testId, toId, parentIds);
+      PostgresTest.itemFactory.update(testId, toId, parentIds);
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -193,43 +193,43 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      super.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long parentOne = 2;
       long parentTwo = 3;
       long child = 4;
 
-      super.versionFactory.insertIntoDatabase(parentOne);
-      super.versionFactory.insertIntoDatabase(parentTwo);
-      super.versionFactory.insertIntoDatabase(child);
+      PostgresTest.versionFactory.insertIntoDatabase(parentOne);
+      PostgresTest.versionFactory.insertIntoDatabase(parentTwo);
+      PostgresTest.versionFactory.insertIntoDatabase(child);
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      super.itemFactory.update(testId, parentOne, parentIds);
-      super.itemFactory.update(testId, parentTwo, parentIds);
+      PostgresTest.itemFactory.update(testId, parentOne, parentIds);
+      PostgresTest.itemFactory.update(testId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      super.itemFactory.update(testId, child, parentIds);
+      PostgresTest.itemFactory.update(testId, child, parentIds);
 
-      VersionHistoryDag<?> dag = super.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
       assertEquals(4, dag.getEdgeIds().size());
       assertEquals(child, (long) dag.getLeaves().get(0));
 
       // Retrieve all the version successors and check that they have the correct data.
-      VersionSuccessor<?> parentOneSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> parentOneSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(0));
 
-      VersionSuccessor<?> parentTwoSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> parentTwoSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(1));
 
-      VersionSuccessor<?> childOneSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> childOneSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(2));
 
-      VersionSuccessor<?> childTwoSuccessor = super.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> childTwoSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
           dag.getEdgeIds().get(3));
 
       assertEquals(0, parentOneSuccessor.getFromId());
@@ -245,7 +245,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       assertEquals(child, childTwoSuccessor.getToId());
       assertEquals(child, childTwoSuccessor.getToId());
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 
@@ -259,9 +259,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      super.itemFactory.insertIntoDatabase(testId, tags);
+      PostgresTest.itemFactory.insertIntoDatabase(testId, tags);
 
-      Item retrieved = super.itemFactory.retrieveFromDatabase(testId);
+      Item retrieved = PostgresTest.itemFactory.retrieveFromDatabase(testId);
 
       assertEquals(testId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -273,7 +273,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
     }
   }
 }

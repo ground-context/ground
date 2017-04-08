@@ -18,7 +18,7 @@ import edu.berkeley.ground.dao.models.TagFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
@@ -55,7 +55,7 @@ public class PostgresTagFactory extends TagFactory {
 
     Map<String, Tag> result = new HashMap<>();
 
-    QueryResults resultSet;
+    PostgresResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
           predicates);
@@ -68,9 +68,7 @@ public class PostgresTagFactory extends TagFactory {
 
       // these methods will return null if the input is null, so there's no need to check
       GroundType type = GroundType.fromString(resultSet.getString(4));
-
-      String valueString = resultSet.getString(3);
-      Object value = GroundType.stringToType(valueString, type);
+      Object value = this.getValue(type, resultSet, 3);
 
       result.put(key, new Tag(id, key, value, type));
     } while (resultSet.next());
@@ -93,7 +91,7 @@ public class PostgresTagFactory extends TagFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
-    QueryResults resultSet;
+    PostgresResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
           predicates);
@@ -108,5 +106,27 @@ public class PostgresTagFactory extends TagFactory {
     } while (resultSet.next());
 
     return result;
+  }
+
+  private Object getValue(GroundType type, PostgresResults resultSet, int index)
+      throws GroundException {
+
+    if (type == null) {
+      return null;
+    }
+
+    switch (type) {
+      case STRING:
+        return resultSet.getString(index);
+      case INTEGER:
+        return resultSet.getInt(index);
+      case LONG:
+        return resultSet.getLong(index);
+      case BOOLEAN:
+        return resultSet.getBoolean(index);
+      default:
+        // this should never happen because we've listed all types
+        throw new GroundException("Unidentified type: " + type);
+    }
   }
 }

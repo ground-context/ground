@@ -33,22 +33,22 @@ public class PostgresStructureVersionFactoryTest extends PostgresTest {
     super();
   }
 
+
   @Test
   public void testStructureVersionCreation() throws GroundException {
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = PostgresTest.createStructure(structureName).getId();
 
     Map<String, GroundType> structureVersionAttributes = new HashMap<>();
     structureVersionAttributes.put("intfield", GroundType.INTEGER);
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
+    long structureVersionId = PostgresTest.structuresResource.createStructureVersion(
         structureId, structureVersionAttributes, new ArrayList<>()).getId();
 
-    StructureVersion retrieved = super.factories.getStructureVersionFactory()
-        .retrieveFromDatabase(structureVersionId);
+    StructureVersion retrieved = PostgresTest.structuresResource
+        .getStructureVersion(structureVersionId);
 
     assertEquals(structureId, retrieved.getStructureId());
     Map<String, GroundType> retrievedAttributes = retrieved.getAttributes();
@@ -64,10 +64,10 @@ public class PostgresStructureVersionFactoryTest extends PostgresTest {
     long id = 1;
 
     try {
-      super.factories.getStructureVersionFactory().retrieveFromDatabase(id);
+      PostgresTest.structuresResource.getStructureVersion(id);
     } catch (GroundException e) {
       assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
-      super.postgresClient.abort();
+      PostgresTest.postgresClient.abort();
 
       throw e;
     }

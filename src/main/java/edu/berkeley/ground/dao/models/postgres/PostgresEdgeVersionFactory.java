@@ -18,7 +18,7 @@ import edu.berkeley.ground.dao.models.EdgeVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.EdgeVersion;
@@ -89,41 +89,35 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
                             long toNodeVersionEndId,
                             List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-          new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-      );
+    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+    );
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-      insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
-          fromNodeVersionStartId));
-      insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
-          fromNodeVersionEndId));
-      insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
-          toNodeVersionStartId));
-      insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
+    insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+        fromNodeVersionStartId));
+    insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+        fromNodeVersionEndId));
+    insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+        toNodeVersionStartId));
+    insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
-      this.dbClient.insert("edge_version", insertions);
+    this.dbClient.insert("edge_version", insertions);
 
-      this.edgeFactory.update(edgeId, id, parentIds);
+    this.edgeFactory.update(edgeId, id, parentIds);
 
-      this.dbClient.commit();
-      LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
+    LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-      return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
-          toNodeVersionStartId, toNodeVersionEndId);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-      throw e;
-    }
+    return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
+        toNodeVersionStartId, toNodeVersionEndId);
   }
 
   /**
@@ -135,36 +129,28 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
    */
   @Override
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    PostgresResults resultSet;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      QueryResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("edge_version", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundException("No EdgeVersion found with id " + id + ".");
-      }
-      long edgeId = resultSet.getLong(2);
-
-      long fromNodeVersionStartId = resultSet.getLong(3);
-      long fromNodeVersionEndId = resultSet.isNull(4) ? -1 : resultSet.getLong(4);
-      long toNodeVersionStartId = resultSet.getLong(5);
-      long toNodeVersionEndId = resultSet.isNull(6) ? -1 : resultSet.getLong(6);
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
-
-      return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
-          version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
-          fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("edge_version", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No EdgeVersion found with id " + id + ".");
     }
+    long edgeId = resultSet.getLong(2);
+
+    long fromNodeVersionStartId = resultSet.getLong(3);
+    long fromNodeVersionEndId = resultSet.isNull(4) ? -1 : resultSet.getLong(4);
+    long toNodeVersionStartId = resultSet.getLong(5);
+    long toNodeVersionEndId = resultSet.isNull(6) ? -1 : resultSet.getLong(6);
+
+    LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
+    return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
+        fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
   }
 
   @Override

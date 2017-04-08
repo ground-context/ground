@@ -69,26 +69,20 @@ public class Neo4jLineageGraphFactory extends LineageGraphFactory {
   @Override
   public LineageGraph create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
-    try {
-      long uniqueId = this.idGenerator.generateItemId();
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-      insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
-      insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    long uniqueId = this.idGenerator.generateItemId();
 
-      this.dbClient.addVertex("LineageGraph", insertions);
-      this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
+    insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
+    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
-      this.dbClient.commit();
-      LOGGER.info("Created lineage graph " + name + ".");
+    this.dbClient.addVertex("LineageGraph", insertions);
+    this.itemFactory.insertIntoDatabase(uniqueId, tags);
 
-      return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
+    LOGGER.info("Created lineage graph " + name + ".");
 
-      throw e;
-    }
+    return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -100,35 +94,33 @@ public class Neo4jLineageGraphFactory extends LineageGraphFactory {
    */
   @Override
   public LineageGraph retrieveFromDatabase(String name) throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+
+    Record record;
     try {
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("name", GroundType.STRING, name));
-
-      Record record;
-      try {
-        record = this.dbClient.getVertex(predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundDbException("No LineageGraph found with name " + name + ".");
-      }
-
-      long id = record.get("v").asNode().get("id").asLong();
-      String sourceKey = record.get("v").asNode().get("source_key").asString();
-
-      Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved lineage graph " + name + ".");
-
-      return LineageGraphFactory.construct(id, name, sourceKey, tags);
-    } catch (GroundDbException e) {
-      this.dbClient.abort();
-
-      throw e;
+      record = this.dbClient.getVertex(predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundDbException("No LineageGraph found with name " + name + ".");
     }
+
+    long id = record.get("v").asNode().get("id").asLong();
+    String sourceKey = record.get("v").asNode().get("source_key").asString();
+
+    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+
+    LOGGER.info("Retrieved lineage graph " + name + ".");
+
+    return LineageGraphFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     this.itemFactory.update(itemId, childId, parentIds);
+  }
+
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    this.itemFactory.truncate(itemId, numLevels, "lineageGraph");
   }
 }

@@ -32,6 +32,8 @@ public abstract class NodeFactory {
   public abstract void update(long itemId, long childId, List<Long> parentIds)
       throws GroundException;
 
+  public abstract void truncate(long itemId, int numLevels) throws GroundException;
+
   public abstract List<Long> getLeaves(String name) throws GroundException;
 
   protected static Node construct(long id, String name, String sourceKey, Map<String, Tag> tags) {

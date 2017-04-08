@@ -18,7 +18,7 @@ import edu.berkeley.ground.dao.models.GraphVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.GraphVersion;
@@ -83,42 +83,34 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
                              List<Long> edgeVersionIds,
                              List<Long> parentIds) throws GroundException {
 
-    try {
-      long id = this.idGenerator.generateVersionId();
+    long id = this.idGenerator.generateVersionId();
 
-      tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-          new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-      );
+    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+    );
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-          referenceParameters);
+    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
+        referenceParameters);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("graph_id", GroundType.LONG, graphId));
+    List<DbDataContainer> insertions = new ArrayList<>();
+    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    insertions.add(new DbDataContainer("graph_id", GroundType.LONG, graphId));
 
-      this.dbClient.insert("graph_version", insertions);
+    this.dbClient.insert("graph_version", insertions);
 
-      for (long edgeVersionId : edgeVersionIds) {
-        List<DbDataContainer> edgeInsertion = new ArrayList<>();
-        edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
-        edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.LONG, edgeVersionId));
+    for (long edgeVersionId : edgeVersionIds) {
+      List<DbDataContainer> edgeInsertion = new ArrayList<>();
+      edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
+      edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.LONG, edgeVersionId));
 
-        this.dbClient.insert("graph_version_edge", edgeInsertion);
-      }
-
-      this.graphFactory.update(graphId, id, parentIds);
-
-      this.dbClient.commit();
-      LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
-
-      return GraphVersionFactory.construct(id, tags, structureVersionId, reference,
-          referenceParameters, graphId, edgeVersionIds);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      this.dbClient.insert("graph_version_edge", edgeInsertion);
     }
+
+    this.graphFactory.update(graphId, id, parentIds);
+
+    LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
+    return GraphVersionFactory.construct(id, tags, structureVersionId, reference,
+        referenceParameters, graphId, edgeVersionIds);
   }
 
   /**
@@ -130,46 +122,38 @@ public class PostgresGraphVersionFactory extends GraphVersionFactory {
    */
   @Override
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
+    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    List<DbDataContainer> edgePredicate = new ArrayList<>();
+    edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
+
+    PostgresResults resultSet;
     try {
-      final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
-
-      List<DbDataContainer> predicates = new ArrayList<>();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-      List<DbDataContainer> edgePredicate = new ArrayList<>();
-      edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
-
-      QueryResults resultSet;
-      try {
-        resultSet = this.dbClient.equalitySelect("graph_version", DbClient.SELECT_STAR, predicates);
-      } catch (EmptyResultException e) {
-        throw new GroundException("No GraphVersion found with id " + id + ".");
-      }
-
-      long graphId = resultSet.getLong(2);
-
-      QueryResults edgeSet;
-      List<Long> edgeVersionIds = new ArrayList<>();
-      try {
-        edgeSet = this.dbClient.equalitySelect("graph_version_edge", DbClient.SELECT_STAR,
-            edgePredicate);
-
-        do {
-          edgeVersionIds.add(edgeSet.getLong(2));
-        } while (edgeSet.next());
-      } catch (EmptyResultException e) {
-        // do nothing; this just means that there are no edges in the GraphVersion
-      }
-
-      this.dbClient.commit();
-      LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
-
-      return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
-          version.getReference(), version.getParameters(), graphId, edgeVersionIds);
-    } catch (GroundException e) {
-      this.dbClient.abort();
-
-      throw e;
+      resultSet = this.dbClient.equalitySelect("graph_version", DbClient.SELECT_STAR, predicates);
+    } catch (EmptyResultException e) {
+      throw new GroundException("No GraphVersion found with id " + id + ".");
     }
+
+    long graphId = resultSet.getLong(2);
+
+    PostgresResults edgeSet;
+    List<Long> edgeVersionIds = new ArrayList<>();
+    try {
+      edgeSet = this.dbClient.equalitySelect("graph_version_edge", DbClient.SELECT_STAR,
+          edgePredicate);
+
+      do {
+        edgeVersionIds.add(edgeSet.getLong(2));
+      } while (edgeSet.next());
+    } catch (EmptyResultException e) {
+      // do nothing; this just means that there are no edges in the GraphVersion
+    }
+
+    LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
+    return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), graphId, edgeVersionIds);
   }
 }

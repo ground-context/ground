@@ -16,11 +16,15 @@ package edu.berkeley.ground.dao.usage.cassandra;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.berkeley.ground.dao.CassandraTest;
 import edu.berkeley.ground.model.usage.LineageEdge;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -35,10 +39,8 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    CassandraLineageEdgeFactory edgeFactory = (CassandraLineageEdgeFactory) super.factories.getLineageEdgeFactory();
-    edgeFactory.create(testName, sourceKey, new HashMap<>());
-
-    LineageEdge lineageEdge = edgeFactory.retrieveFromDatabase(testName);
+    CassandraTest.lineageEdgesResource.createLineageEdge(testName, sourceKey, new HashMap<>());
+    LineageEdge lineageEdge = CassandraTest.lineageEdgesResource.getLineageEdge(testName);
 
     assertEquals(testName, lineageEdge.getName());
     assertEquals(sourceKey, lineageEdge.getSourceKey());
@@ -49,7 +51,7 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
     String testName = "test";
 
     try {
-      CassandraTest.factories.getLineageEdgeFactory().retrieveFromDatabase(testName);
+      CassandraTest.lineageEdgesResource.getLineageEdge(testName);
     } catch (GroundException e) {
       assertEquals("No LineageEdge found with name " + testName + ".", e.getMessage());
 
@@ -57,16 +59,39 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
     }
   }
 
-  @Test(expected = GroundException.class)
-  public void testBadLineageEdgeVersion() throws GroundException {
-    long id = 1;
+  @Test
+  public void testTruncate() throws GroundException {
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = CassandraTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = CassandraTest.createNodeVersion(firstTestNodeId).getId();
 
-    try {
-      CassandraTest.factories.getLineageEdgeVersionFactory().retrieveFromDatabase(id);
-    } catch (GroundException e) {
-      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = CassandraTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = CassandraTest.createNodeVersion(secondTestNodeId).getId();
 
-      throw e;
-    }
+    String lineageEdgeName = "testLineageEdge";
+    long lineageEdgeId = CassandraTest.createLineageEdge(lineageEdgeName).getId();
+    long lineageEdgeVersionId = CassandraTest.createLineageEdgeVersion(lineageEdgeId,
+        firstNodeVersionId, secondNodeVersionId).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(lineageEdgeVersionId);
+    long newLineageEdgeVersionId = CassandraTest.createLineageEdgeVersion(lineageEdgeId,
+        firstNodeVersionId, secondNodeVersionId, parents).getId();
+
+    CassandraTest.lineageEdgesResource.truncateLineageEdge(lineageEdgeName, 1);
+
+    VersionHistoryDag<?> dag = CassandraTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(lineageEdgeId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    CassandraTest.cassandraClient.commit();
+
+    assertEquals(0, successor.getFromId());
+    assertEquals(newLineageEdgeVersionId, successor.getToId());
   }
 }

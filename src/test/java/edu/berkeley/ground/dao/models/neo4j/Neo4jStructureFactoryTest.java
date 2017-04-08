@@ -19,10 +19,14 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -37,10 +41,8 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    Neo4jStructureFactory edgeFactory = (Neo4jStructureFactory) super.factories.getStructureFactory();
-    edgeFactory.create(testName, sourceKey, new HashMap<>());
-
-    Structure structure = edgeFactory.retrieveFromDatabase(testName);
+    Neo4jTest.structuresResource.createStructure(testName, sourceKey, new HashMap<>());
+    Structure structure = Neo4jTest.structuresResource.getStructure(testName);
 
     assertEquals(testName, structure.getName());
     assertEquals(sourceKey, structure.getSourceKey());
@@ -49,18 +51,14 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
   @Test
   public void testLeafRetrieval() throws GroundException {
     String structureName = "testStructure1";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = Neo4jTest.createStructure(structureName).getId();
+    long structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
+    long secondStructureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
 
-    long structureVersionId = super.factories.getStructureVersionFactory().create(structureId,
-        new HashMap<>(), new ArrayList<>()).getId();
-    long secondNVId = super.factories.getStructureVersionFactory().create(structureId,
-        new HashMap<>(), new ArrayList<>()).getId();
-
-    List<Long> leaves = super.factories.getStructureFactory().getLeaves(structureName);
+    List<Long> leaves = Neo4jTest.structuresResource.getLatestVersions(structureName);
 
     assertTrue(leaves.contains(structureVersionId));
-    assertTrue(leaves.contains(secondNVId));
+    assertTrue(leaves.contains(secondStructureVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -68,11 +66,37 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     String testName = "test";
 
     try {
-      super.factories.getStructureFactory().retrieveFromDatabase(testName);
+      Neo4jTest.structuresResource.getStructure(testName);
     } catch (GroundException e) {
       assertEquals("No Structure found with name " + testName + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    String structureName = "testStructure";
+    long structureId = Neo4jTest.createStructure(structureName).getId();
+    long structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(structureVersionId);
+    long newStructureVersionId = Neo4jTest.createStructureVersion(structureId, parents).getId();
+
+    Neo4jTest.structuresResource.truncateStructure(structureName, 1);
+
+    VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory
+        .retrieveFromDatabase(structureId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    Neo4jTest.neo4jClient.commit();
+
+    assertEquals(structureId, successor.getFromId());
+    assertEquals(newStructureVersionId, successor.getToId());
   }
 }

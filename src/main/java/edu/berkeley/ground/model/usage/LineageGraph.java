@@ -68,6 +68,7 @@ public class LineageGraph extends Item<LineageGraphVersion> {
 
     return this.name.equals(otherLineageGraph.name)
         && this.getId() == otherLineageGraph.getId()
-        && this.sourceKey.equals(otherLineageGraph.sourceKey);
+        && this.sourceKey.equals(otherLineageGraph.sourceKey)
+        && this.getTags().equals(otherLineageGraph.getTags());
   }
 }

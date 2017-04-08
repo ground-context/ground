@@ -37,18 +37,21 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
   @Test
   public void testReference() throws GroundException {
     try {
-      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-          .getId();
-      long id = super.createNodeVersion(testNodeId);
+      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version
+         with this id */
+
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
+      long id = Neo4jTest.createNodeVersion(testNodeId).getId();
 
       String testReference = "http://www.google.com";
       Map<String, String> parameters = new HashMap<>();
       parameters.put("http", "GET");
+      parameters.put("ftp", "test");
 
-      super.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
+      Neo4jTest.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference,
+          parameters);
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = Neo4jTest.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -59,19 +62,19 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
         assertEquals(parameters.get(key), retrievedParams.get(key));
       }
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
   @Test
   public void testTags() throws GroundException {
     try {
-      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-      .getId();
-      long id = super.createNodeVersion(testNodeId);
+      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version
+         with this id */
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
+      long id = Neo4jTest.createNodeVersion(testNodeId).getId();
 
       Map<String, Tag> tags = new HashMap<>();
       tags.put("justkey", new Tag(-1, "justkey", null, null));
@@ -79,9 +82,9 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      super.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
+      Neo4jTest.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = Neo4jTest.richVersionFactory.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -93,46 +96,35 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
   @Test
   public void testStructureVersionConformation() throws GroundException {
     try {
-      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing * version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-          .getId();
-      long id = super.createNodeVersion(testNodeId);
+      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version
+      with this id */
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
+      long id = Neo4jTest.createNodeVersion(testNodeId).getId();
 
       String structureName = "testStructure";
-      long structureId = super.factories.getStructureFactory().create(structureName, null,
-          new HashMap<>()).getId();
+      long structureId = Neo4jTest.createStructure(structureName).getId();
+      long structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
 
-      Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-      structureVersionAttributes.put("intfield", GroundType.INTEGER);
-      structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-      structureVersionAttributes.put("strfield", GroundType.STRING);
+      Map<String, Tag> tags = Neo4jTest.createTags();
 
-      long structureVersionId = super.factories.getStructureVersionFactory().create(
-          structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-      Map<String, Tag> tags = new HashMap<>();
-      tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-      tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-      tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
-
-      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      Neo4jTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = super.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = Neo4jTest.richVersionFactory.retrieveFromDatabase(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 
@@ -141,40 +133,30 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
     long structureVersionId = -1;
 
     try {
-      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version with this id */
-      long testNodeId = super.factories.getNodeFactory().create("testNode", null, new HashMap<>())
-          .getId();
-      long id = super.createNodeVersion(testNodeId);
+      /* Create a NodeVersion because Neo4j's rich version factory looks for an existing version
+      with this id */
+      long testNodeId = Neo4jTest.createNode("testNode").getId();
+      long id = Neo4jTest.createNodeVersion(testNodeId).getId();
 
       // none of these operations should fail
       try {
         String structureName = "testStructure";
-        long structureId = super.factories.getStructureFactory().create(structureName, null,
-            new HashMap<>()).getId();
-
-        Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-        structureVersionAttributes.put("intfield", GroundType.INTEGER);
-        structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-        structureVersionAttributes.put("strfield", GroundType.STRING);
-
-        structureVersionId = super.factories.getStructureVersionFactory().create(
-            structureId, structureVersionAttributes, new ArrayList<>()).getId();
+        long structureId = Neo4jTest.createStructure(structureName).getId();
+        structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
 
       Map<String, Tag> tags = new HashMap<>();
-      tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-      tags.put("intfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-      tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+      tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      super.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      Neo4jTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      super.neo4jClient.commit();
+      Neo4jTest.neo4jClient.commit();
     } finally {
-      super.neo4jClient.abort();
+      Neo4jTest.neo4jClient.abort();
     }
   }
 }

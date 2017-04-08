@@ -19,7 +19,7 @@ import edu.berkeley.ground.dao.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
-import edu.berkeley.ground.db.QueryResults;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.StructureVersion;
@@ -97,9 +97,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
     this.structureFactory.update(structureId, id, parentIds);
 
-    this.dbClient.commit();
     LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 
@@ -114,7 +112,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-    QueryResults resultSet;
+    PostgresResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR,
           predicates);
@@ -125,7 +123,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
 
-    QueryResults attributesSet;
+    PostgresResults attributesSet;
     try {
       attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
           DbClient.SELECT_STAR, attributePredicates);
@@ -141,9 +139,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
     long structureId = resultSet.getLong(2);
 
-    this.dbClient.commit();
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-
     return StructureVersionFactory.construct(id, structureId, attributes);
   }
 }

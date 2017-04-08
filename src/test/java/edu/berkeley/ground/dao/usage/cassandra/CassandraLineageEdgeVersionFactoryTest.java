@@ -37,48 +37,32 @@ public class CassandraLineageEdgeVersionFactoryTest extends CassandraTest {
   @Test
   public void testLineageEdgeVersionCreation() throws GroundException {
     String firstTestNode = "firstTestNode";
-    long firstTestNodeId = super.factories.getNodeFactory().create(firstTestNode, null,
-        new HashMap<>()).getId();
-    long firstNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), firstTestNodeId, new ArrayList<>()).getId();
+    long firstTestNodeId = CassandraTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = CassandraTest.createNodeVersion(firstTestNodeId).getId();
 
     String secondTestNode = "secondTestNode";
-    long secondTestNodeId = super.factories.getNodeFactory().create(secondTestNode, null,
-        new HashMap<>()).getId();
-    long secondNodeVersionId = super.factories.getNodeVersionFactory().create(new HashMap<>(),
-        -1, null, new HashMap<>(), secondTestNodeId, new ArrayList<>()).getId();
+    long secondTestNodeId = CassandraTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = CassandraTest.createNodeVersion(secondTestNodeId).getId();
 
     String lineageEdgeName = "testLineageEdge";
-    long lineageEdgeId = super.factories.getLineageEdgeFactory().create(lineageEdgeName, null,
-        new HashMap<>()).getId();
+    long lineageEdgeId = CassandraTest.createLineageEdge(lineageEdgeName).getId();
 
     String structureName = "testStructure";
-    long structureId = super.factories.getStructureFactory().create(structureName, null,
-        new HashMap<>()).getId();
+    long structureId = CassandraTest.createStructure(structureName).getId();
+    long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
-    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-    structureVersionAttributes.put("intfield", GroundType.INTEGER);
-    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-    structureVersionAttributes.put("strfield", GroundType.STRING);
-
-    long structureVersionId = super.factories.getStructureVersionFactory().create(
-        structureId, structureVersionAttributes, new ArrayList<>()).getId();
-
-    Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    Map<String, Tag> tags = CassandraTest.createTags();
 
     String testReference = "http://www.google.com";
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    long lineageEdgeVersionId = super.factories.getLineageEdgeVersionFactory().create(tags,
-        structureVersionId, testReference, parameters, firstNodeVersionId,
-        secondNodeVersionId, lineageEdgeId, new ArrayList<>()).getId();
+    long lineageEdgeVersionId = CassandraTest.lineageEdgesResource.createLineageEdgeVersion(
+        lineageEdgeId, tags, parameters, structureVersionId, testReference, firstNodeVersionId,
+        secondNodeVersionId, new ArrayList<>()).getId();
 
-    LineageEdgeVersion retrieved = super.factories.getLineageEdgeVersionFactory()
-        .retrieveFromDatabase(lineageEdgeVersionId);
+    LineageEdgeVersion retrieved = CassandraTest.lineageEdgesResource
+        .getLineageEdgeVersion(lineageEdgeVersionId);
 
     assertEquals(lineageEdgeId, retrieved.getLineageEdgeId());
     assertEquals(structureVersionId, retrieved.getStructureVersionId());
@@ -100,6 +84,19 @@ public class CassandraLineageEdgeVersionFactoryTest extends CassandraTest {
     for (String key : tags.keySet()) {
       assert (retrievedTags).containsKey(key);
       assertEquals(tags.get(key), retrievedTags.get(key));
+    }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testBadLineageEdgeVersion() throws GroundException {
+    long id = 1;
+
+    try {
+      CassandraTest.lineageEdgesResource.getLineageEdgeVersion(id);
+    } catch (GroundException e) {
+      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+
+      throw e;
     }
   }
 }

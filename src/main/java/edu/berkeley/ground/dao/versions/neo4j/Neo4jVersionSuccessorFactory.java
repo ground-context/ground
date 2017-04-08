@@ -31,6 +31,8 @@ import java.util.List;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.types.Relationship;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
   private final Neo4jClient dbClient;
   private final IdGenerator idGenerator;
@@ -56,28 +58,19 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
     // check if both IDs exist
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
-    Record record;
 
     try {
-      record = this.dbClient.getVertex(predicates);
+      this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDbException("Id " + fromId + " is not valid.");
-    }
-
-    if (record == null) {
       throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     predicates.clear();
     predicates.add(new DbDataContainer("id", GroundType.LONG, toId));
     try {
-      record = this.dbClient.getVertex(predicates);
+      this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
       throw new GroundDbException("Id " + toId + " is not valid.");
-    }
-
-    if (record == null) {
-      throw new GroundDbException("Id " + fromId + " is not valid.");
     }
 
     long dbId = idGenerator.generateSuccessorId();
@@ -114,14 +107,21 @@ public class Neo4jVersionSuccessorFactory extends VersionSuccessorFactory {
       throw new GroundDbException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    return this.constructFromRelationship(result);
-  }
-
-  private <T extends Version> VersionSuccessor<T> constructFromRelationship(Relationship r) {
-    long id = (r.get("id")).asLong();
-    long fromId = (r.get("fromId")).asLong();
-    long toId = (r.get("toId")).asLong();
+    long id = (result.get("id")).asLong();
+    long fromId = (result.get("fromId")).asLong();
+    long toId = (result.get("toId")).asLong();
 
     return VersionSuccessorFactory.construct(id, fromId, toId);
+  }
+
+  /**
+   * Delete a version successor from the database.
+   *
+   * @param toId the destination version
+   */
+  @Override
+  public void deleteFromDestination(long toId, long itemId) throws GroundException {
+    // this is not currently needed and would require a special case function in the DB client
+    throw new NotImplementedException();
   }
 }

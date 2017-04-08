@@ -40,8 +40,8 @@ public class CassandraTagFactoryTest extends CassandraTest {
     Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
     tagsMap.put("testtag", tag);
 
-    long nodeId1 = CassandraTest.factories.getNodeFactory().create("test1", null, tagsMap).getId();
-    long nodeId2 = CassandraTest.factories.getNodeFactory().create("test2", null, tagsMap).getId();
+    long nodeId1 = CassandraTest.nodesResource.createNode("test1", null, tagsMap).getId();
+    long nodeId2 = CassandraTest.nodesResource.createNode("test2", null, tagsMap).getId();
 
     List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag(tag.getKey());
 
@@ -57,12 +57,12 @@ public class CassandraTagFactoryTest extends CassandraTest {
     Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
     tagsMap.put("testtag", tag);
 
-    long nodeId = CassandraTest.factories.getNodeFactory().create("test1", null, tagsMap).getId();
+    long nodeId = CassandraTest.createNode("testNode").getId();
 
-    long nodeVersionId1 = CassandraTest.factories.getNodeVersionFactory().create(tagsMap,
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
-    long nodeVersionId2 = CassandraTest.factories.getNodeVersionFactory().create(tagsMap,
-        -1, null, new HashMap<>(), nodeId, new ArrayList<>()).getId();
+    long nodeVersionId1 = CassandraTest.nodesResource.createNodeVersion(nodeId, tagsMap,
+        new HashMap<>(), -1, null, new ArrayList<>()).getId();
+    long nodeVersionId2 = CassandraTest.nodesResource.createNodeVersion(nodeId, tagsMap,
+        new HashMap<>(), -1, null, new ArrayList<>()).getId();
 
     List<Long> ids = CassandraTest.tagFactory.getVersionIdsByTag(tag.getKey());
 

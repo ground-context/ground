@@ -16,11 +16,15 @@ package edu.berkeley.ground.dao.models.neo4j;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.VersionHistoryDag;
+import edu.berkeley.ground.model.versions.VersionSuccessor;
 
 import static org.junit.Assert.*;
 
@@ -35,10 +39,8 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     String testName = "test";
     String sourceKey = "testKey";
 
-    Neo4jGraphFactory edgeFactory = (Neo4jGraphFactory) super.factories.getGraphFactory();
-    edgeFactory.create(testName, sourceKey, new HashMap<>());
-
-    Graph graph = edgeFactory.retrieveFromDatabase(testName);
+    Neo4jTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
+    Graph graph = Neo4jTest.graphsResource.getGraph(testName);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -49,11 +51,42 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     String testName = "test";
 
     try {
-      super.factories.getGraphFactory().retrieveFromDatabase(testName);
+      Neo4jTest.graphsResource.getGraph(testName);
     } catch (GroundException e) {
       assertEquals("No Graph found with name " + testName + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test
+  public void testTruncate() throws GroundException {
+    long edgeVersionId = Neo4jTest.createTwoNodesAndEdge();
+
+    List<Long> edgeVersionIds = new ArrayList<>();
+    edgeVersionIds.add(edgeVersionId);
+
+    String graphName = "testGraph";
+    long graphId = Neo4jTest.createGraph(graphName).getId();
+    long graphVersionId = Neo4jTest.createGraphVersion(graphId, edgeVersionIds).getId();
+
+    List<Long> parents = new ArrayList<>();
+    parents.add(graphVersionId);
+    long newGraphVersionId = Neo4jTest.createGraphVersion(graphId, edgeVersionIds, parents).getId();
+
+    Neo4jTest.graphsResource.truncateGraph(graphName, 1);
+
+    VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(graphId);
+
+    assertEquals(1, dag.getEdgeIds().size());
+
+    VersionSuccessor<?> successor = Neo4jTest.versionSuccessorFactory.retrieveFromDatabase(
+        dag.getEdgeIds().get(0));
+
+    Neo4jTest.neo4jClient.commit();
+
+    assertEquals(graphId, successor.getFromId());
+    assertEquals(newGraphVersionId, successor.getToId());
+
   }
 }
