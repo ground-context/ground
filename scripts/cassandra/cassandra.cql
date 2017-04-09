@@ -45,10 +45,9 @@ CREATE TABLE IF NOT EXISTS version_history_dag (
 -- MODELS
 
 CREATE TABLE IF NOT EXISTS structure (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
-    name varchar,
-    PRIMARY KEY (item_id, source_key)
+    name varchar
 );
 
 CREATE TABLE IF NOT EXISTS structure_version (
@@ -85,26 +84,23 @@ CREATE TABLE IF NOT EXISTS rich_version_tag (
 );
 
 CREATE TABLE IF NOT EXISTS edge (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
     from_node_id bigint,
     to_node_id bigint,
-    name varchar,
-    PRIMARY KEY (item_id, source_key)
+    name varchar
 );
 
 CREATE TABLE IF NOT EXISTS node (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
-    name varchar,
-    PRIMARY KEY (item_id, source_key)
+    name varchar
 );
 
 CREATE TABLE IF NOT EXISTS graph (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
-    name varchar,
-    PRIMARY KEY (item_id, source_key)
+    name varchar
 );
 
 CREATE TABLE IF NOT EXISTS node_version (
