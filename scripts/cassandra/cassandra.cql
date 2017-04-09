@@ -21,8 +21,11 @@ CREATE TABLE IF NOT EXISTS version (
 CREATE TABLE IF NOT EXISTS version_successor (
     id bigint PRIMARY KEY,
     from_version_id bigint,
-    to_version_id bigint
+    to_version_id bigint,
+    item_id_set set<bigint>
 );
+
+create index version_successor_ind on version_successor (item_id_set);
 
 CREATE TABLE IF NOT EXISTS item (
     id bigint PRIMARY KEY
@@ -34,12 +37,6 @@ CREATE TABLE IF NOT EXISTS item_tag (
     value varchar,
     type varchar,
     PRIMARY KEY (item_id, key)
-);
-
-CREATE TABLE IF NOT EXISTS version_history_dag (
-    item_id bigint,
-    version_successor_id bigint,
-    PRIMARY KEY(item_id, version_successor_id)
 );
 
 -- MODELS

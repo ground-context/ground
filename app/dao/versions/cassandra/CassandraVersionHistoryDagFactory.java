@@ -61,22 +61,15 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
   @Override
   public <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
       throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    CassandraResults resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
-          predicates);
+    List<VersionSuccessor<T>> edges;
 
-    if (resultSet.isEmpty()) {
-      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
+    try {
+      edges = this.versionSuccessorFactory.retrieveFromDatabaseByItemId(itemId);
+    } catch (EmptyResultException e) {
+      // do nothing, this just means no version have been added yet.
+      return VersionHistoryDagFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
     }
-
-    List<VersionSuccessor<T>> edges = new ArrayList<>();
-    do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
-          .getLong("version_successor_id")));
-    } while (resultSet.next());
-
-    return new VersionHistoryDag(itemId, edges);
+    return VersionHistoryDagFactory.construct(itemId, edges);
   }
 
   /**
@@ -93,12 +86,15 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       throws GroundException {
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
+    // Adding to the entry with id = successor.getId()
+    List<DbDataContainer> predicate = new ArrayList<>();
+    predicate.add(new DbDataContainer("id", GroundType.LONG, successor.getId()));
 
-    this.dbClient.insert("version_history_dag", insertions);
+    // To add to a set column, must pass in a set containing the value(s) to add. See CasandraClient.addToSet
+    Set<Long> setValues = new HashSet<>();
+    setValues.add(itemId);
 
+    this.dbClient.addToSet("version_successor", "item_id_set", setValues, predicate);
     dag.addEdge(parentId, childId, successor.getId());
   }
 
