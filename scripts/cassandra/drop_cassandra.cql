@@ -31,7 +31,6 @@ drop table rich_version;
 drop table structure_version_attribute;
 drop table structure_version;
 drop table structure;
-drop table version_history_dag;
 drop table item_tag;
 drop table item;
 drop table version_successor;

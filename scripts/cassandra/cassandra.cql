@@ -21,8 +21,11 @@ create table version (
 create table version_successor (
     id bigint PRIMARY KEY,
     from_version_id bigint,
-    to_version_id bigint
+    to_version_id bigint,
+    item_id_set set<bigint>
 );
+
+create index version_successor_ind on version_successor (item_id_set);
 
 create table item (
     id bigint PRIMARY KEY
@@ -34,12 +37,6 @@ create table item_tag (
     value varchar,
     type varchar,
     PRIMARY KEY (item_id, key)
-);
-
-create table version_history_dag (
-    item_id bigint,
-    version_successor_id bigint,
-    PRIMARY KEY(item_id, version_successor_id)
 );
 
 /* MODELS */
