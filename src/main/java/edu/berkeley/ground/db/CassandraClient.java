@@ -20,18 +20,17 @@ import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
-
 import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.model.versions.GroundType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CassandraClient extends DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
@@ -72,6 +71,10 @@ public class CassandraClient extends DbClient {
     String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
     String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
+    // Ensure the following tables have unique entries
+    if (table.equals("edge") || table.equals("node") || table.equals("graph") || table.equals("structure")) {
+      insert = insert.substring(0, insert.length() - 1) + "IF NOT EXISTS;";
+    }
     BoundStatement statement = this.prepareStatement(insert);
 
     int index = 0;
@@ -107,6 +110,7 @@ public class CassandraClient extends DbClient {
       select += " where " + predicatesString;
     }
 
+    // This might not be very efficient https://www.datastax.com/dev/blog/allow-filtering-explained-2
     select += " ALLOW FILTERING;";
     BoundStatement statement = this.prepareStatement(select);
 

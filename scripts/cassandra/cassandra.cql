@@ -45,10 +45,9 @@ create table version_history_dag (
 /* MODELS */
 
 create table structure (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
-    name varchar,
-    PRIMARY KEY (item_id, name)
+    name varchar
 );
 
 create table structure_version (
@@ -85,26 +84,23 @@ create table rich_version_tag (
 );
 
 create table edge (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
     from_node_id bigint,
     to_node_id bigint,
-    name varchar,
-    PRIMARY KEY (item_id, name)
+    name varchar
 );
 
 create table node (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
-    name varchar,
-    PRIMARY KEY (item_id, name)
+    name varchar
 );
 
 create table graph (
-    item_id bigint,
+    item_id bigint PRIMARY KEY,
     source_key varchar,
-    name varchar,
-    PRIMARY KEY (item_id, name)
+    name varchar
 );
 
 create table node_version (
