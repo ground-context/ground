@@ -88,6 +88,32 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
+  public void addToSet(String table, String collectionName,
+                       Set<? extends Object> value, List<DbDataContainer> predicates) {
+    String predicatesString =
+      predicates
+        .stream()
+        .map(predicate -> predicate.getField() + " = ?")
+        .collect(Collectors.joining(" and "));
+    String where = " where " + predicatesString + ";";
+    String query = "UPDATE " + table + " SET " + collectionName + " = " + collectionName + " + " + " ? " + where;
+
+    BoundStatement statement = this.prepareStatement(query);
+
+    // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
+    statement.bind(value);
+
+    int index = 1;
+    for (DbDataContainer container : predicates) {
+      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
+
+      index++;
+    }
+
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+    this.session.execute(statement);
+  }
+
   /**
    * Retrieve rows based on a set of predicates.
    *
@@ -120,6 +146,25 @@ public class CassandraClient extends DbClient {
 
       index++;
     }
+
+    LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
+    ResultSet resultSet = this.session.execute(statement);
+
+    if (resultSet == null || resultSet.isExhausted()) {
+      throw new EmptyResultException("No results found for query: " + statement.toString());
+    }
+
+    return new CassandraResults(resultSet);
+  }
+
+  public CassandraResults selectWhereCollectionContains(
+    String table, List<String> projection, String collectionName, DbDataContainer value)
+    throws EmptyResultException {
+    String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + collectionName
+      + " CONTAINS ?;";
+
+    BoundStatement statement = this.prepareStatement(query);
+    CassandraClient.setValue(statement, value.getValue(), value.getGroundType(), 0);
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
