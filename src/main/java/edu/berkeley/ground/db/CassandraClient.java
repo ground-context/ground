@@ -88,20 +88,27 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
-  public void addToSet(String table, String collectionName,
-                       Set<? extends Object> value, List<DbDataContainer> predicates) {
+	/**
+   *
+   * @param table the table to update
+   * @param setName the name of the set (column) being appended to
+   * @param values a set containing all values to be added. Set type must match with column type
+   * @param predicates values specifying which row will be updated
+	 */
+  public void addToSet(String table, String setName,
+                       Set<? extends Object> values, List<DbDataContainer> predicates) {
     String predicatesString =
       predicates
         .stream()
         .map(predicate -> predicate.getField() + " = ?")
         .collect(Collectors.joining(" and "));
-    String where = " where " + predicatesString + ";";
-    String query = "UPDATE " + table + " SET " + collectionName + " = " + collectionName + " + " + " ? " + where;
+    String whereString = " where " + predicatesString + ";";
+    String query = "UPDATE " + table + " SET " + setName + " = " + setName + " + " + " ? " + whereString;
 
     BoundStatement statement = this.prepareStatement(query);
 
     // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
-    statement.bind(value);
+    statement.bind(values);
 
     int index = 1;
     for (DbDataContainer container : predicates) {
@@ -157,10 +164,18 @@ public class CassandraClient extends DbClient {
     return new CassandraResults(resultSet);
   }
 
+	/**
+   *
+   * @param table the table to query
+   * @param projection the set of columns to retrieve
+   * @param setName the name of the set we will search
+   * @param value the value searched for in the set
+   * @throws EmptyResultException
+	 */
   public CassandraResults selectWhereCollectionContains(
-    String table, List<String> projection, String collectionName, DbDataContainer value)
+    String table, List<String> projection, String setName, DbDataContainer value)
     throws EmptyResultException {
-    String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + collectionName
+    String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + setName
       + " CONTAINS ?;";
 
     BoundStatement statement = this.prepareStatement(query);
