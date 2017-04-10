@@ -67,8 +67,20 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
   @Override
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
-    long uniqueId = this.idGenerator.generateItemId();
+    LineageEdge lineageEdge = null;
+    try {
+      lineageEdge = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No LineageEdge found")) {
+        throw e;
+      }
+    }
 
+    if (lineageEdge != null) {
+      throw new GroundException("LineageEdge with source_key " + sourceKey + " already exists.");
+    }
+
+    long uniqueId = this.idGenerator.generateItemId();
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -85,28 +97,28 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
   /**
    * Retrieve a lineage edge from the database.
    *
-   * @param name the name of the lineage edge
+   * @param sourceKey the key of the lineage edge
    * @return the retrieved lineage edge
    * @throws GroundException either the lineage edge doesn't exist or couldn't be retrieved
    */
   @Override
-  public LineageEdge retrieveFromDatabase(String name) throws GroundException {
+  public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     Record record;
     try {
       record = this.dbClient.getVertex(predicates);
     } catch (EmptyResultException e) {
-      throw new GroundDbException("No LineageEdge found with name " + name + ".");
+      throw new GroundDbException("No LineageEdge found with source_key " + sourceKey + ".");
     }
 
     long id = record.get("v").asNode().get("id").asLong();
-    String sourceKey = record.get("v").asNode().get("source_key").asString();
+    String name = record.get("v").asNode().get("name").asString();
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved lineage edge " + name + ".");
+    LOGGER.info("Retrieved lineage edge " + sourceKey + ".");
     return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 

@@ -14,6 +14,8 @@
 
 package edu.berkeley.ground.dao;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -77,6 +79,11 @@ public class PostgresTest extends DaoTest {
         factories.getNodeVersionFactory(), postgresClient);
     structuresResource = new StructuresResource(factories.getStructureFactory(),
         factories.getStructureVersionFactory(), postgresClient);
+  }
+
+  @AfterClass
+  public static void teardownClass() throws GroundDbException {
+    // postgresClient.close();
   }
 
   @Before

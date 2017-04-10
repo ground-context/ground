@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.postgresql.PGStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,6 +270,7 @@ public class PostgresClient extends DbClient {
       // Otherwise, prepare the statement, then cache it.
       PreparedStatement newStatement = this.connection.prepareStatement(sql);
       this.preparedStatements.put(sql, newStatement);
+      ((PGStatement) newStatement).setPrepareThreshold(10);
       return newStatement;
     } catch (SQLException e) {
       throw new GroundDbException(e);

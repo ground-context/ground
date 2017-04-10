@@ -41,7 +41,7 @@ public class CassandraGraphFactoryTest extends CassandraTest {
     String sourceKey = "testKey";
 
     CassandraTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
-    Graph graph = CassandraTest.graphsResource.getGraph(testName);
+    Graph graph = CassandraTest.graphsResource.getGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -49,16 +49,31 @@ public class CassandraGraphFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      CassandraTest.graphsResource.getGraph(testName);
+      CassandraTest.graphsResource.getGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Graph found with name " + testName + ".", e.getMessage());
+      assertEquals("No Graph found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateGraph() throws GroundException {
+    String graphName = "graphName";
+    String graphKey = "graphKey";
+
+    try {
+      CassandraTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+  }
+
 
   @Test
   public void testTruncate() throws GroundException {

@@ -61,11 +61,11 @@ public class GraphsResource {
 
   @GET
   @Timed
-  @Path("/{name}")
-  public Graph getGraph(@PathParam("name") String name) throws GroundException {
+  @Path("/{sourceKey}")
+  public Graph getGraph(@PathParam("sourceKey") String sourceKey) throws GroundException {
     try {
-      LOGGER.info("Retrieving graph " + name + ".");
-      return this.graphFactory.retrieveFromDatabase(name);
+      LOGGER.info("Retrieving graph " + sourceKey + ".");
+      return this.graphFactory.retrieveFromDatabase(sourceKey);
     } finally {
       this.dbClient.commit();
     }

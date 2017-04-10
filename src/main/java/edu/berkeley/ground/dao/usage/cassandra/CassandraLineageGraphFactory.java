@@ -69,6 +69,19 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
   public LineageGraph create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
 
+    LineageGraph lineageGraph = null;
+    try {
+      lineageGraph = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No LineageGraph found")) {
+        throw e;
+      }
+    }
+
+    if (lineageGraph != null) {
+      throw new GroundException("LineageGraph with source_key " + sourceKey + " already exists.");
+    }
+
     long uniqueId = this.idGenerator.generateItemId();
 
     this.itemFactory.insertIntoDatabase(uniqueId, tags);
@@ -87,29 +100,29 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
   /**
    * Retrieve a lineage graph from the database.
    *
-   * @param name the name of the lineage graph
+   * @param sourceKey the key of the lineage graph
    * @return the retrieved lineage graph
    * @throws GroundException either the lineage graph doesn't exist or couldn't be retrieved
    */
   @Override
-  public LineageGraph retrieveFromDatabase(String name) throws GroundException {
+  public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("lineage_graph", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("No LineageGraph found with name " + name + ".");
+      throw new GroundException("No LineageGraph found with source_key " + sourceKey + ".");
     }
 
     long id = resultSet.getLong("item_id");
-    String sourceKey = resultSet.getString("source_key");
+    String name = resultSet.getString("name");
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved lineage_graph " + name + ".");
+    LOGGER.info("Retrieved lineage_graph " + sourceKey + ".");
     return LineageGraphFactory.construct(id, name, sourceKey, tags);
   }
 

@@ -42,7 +42,7 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.structuresResource.createStructure(testName, sourceKey, new HashMap<>());
-    Structure structure = Neo4jTest.structuresResource.getStructure(testName);
+    Structure structure = Neo4jTest.structuresResource.getStructure(sourceKey);
 
     assertEquals(testName, structure.getName());
     assertEquals(sourceKey, structure.getSourceKey());
@@ -50,12 +50,12 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    String structureName = "testStructure1";
-    long structureId = Neo4jTest.createStructure(structureName).getId();
+    String sourceKey = "testStructure";
+    long structureId = Neo4jTest.createStructure(sourceKey).getId();
     long structureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
     long secondStructureVersionId = Neo4jTest.createStructureVersion(structureId).getId();
 
-    List<Long> leaves = Neo4jTest.structuresResource.getLatestVersions(structureName);
+    List<Long> leaves = Neo4jTest.structuresResource.getLatestVersions(sourceKey);
 
     assertTrue(leaves.contains(structureVersionId));
     assertTrue(leaves.contains(secondStructureVersionId));
@@ -63,16 +63,31 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadStructure() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      Neo4jTest.structuresResource.getStructure(testName);
+      Neo4jTest.structuresResource.getStructure(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Structure found with name " + testName + ".", e.getMessage());
+      assertEquals("No Structure found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateStructure() throws GroundException {
+    String structureName = "structureName";
+    String structureKey = "structureKey";
+
+    try {
+      Neo4jTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+  }
+
 
   @Test
   public void testTruncate() throws GroundException {

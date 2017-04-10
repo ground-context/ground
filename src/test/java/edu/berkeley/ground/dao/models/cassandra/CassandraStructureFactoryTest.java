@@ -43,7 +43,7 @@ public class CassandraStructureFactoryTest extends CassandraTest {
     String sourceKey = "testKey";
 
     CassandraTest.structuresResource.createStructure(testName, sourceKey, new HashMap<>());
-    Structure structure = CassandraTest.structuresResource.getStructure(testName);
+    Structure structure = CassandraTest.structuresResource.getStructure(sourceKey);
 
     assertEquals(testName, structure.getName());
     assertEquals(sourceKey, structure.getSourceKey());
@@ -51,13 +51,13 @@ public class CassandraStructureFactoryTest extends CassandraTest {
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    String structureName = "testStructure1";
-    long structureId = CassandraTest.createStructure(structureName).getId();
+    String sourceKey = "testStructure";
+    long structureId = CassandraTest.createStructure(sourceKey).getId();
 
     long structureVersionId = CassandraTest.createStructureVersion(structureId).getId();
     long secondStructureVersionId = CassandraTest.createStructureVersion(structureId).getId();
 
-    List<Long> leaves = CassandraTest.structuresResource.getLatestVersions(structureName);
+    List<Long> leaves = CassandraTest.structuresResource.getLatestVersions(sourceKey);
 
     assertTrue(leaves.contains(structureVersionId));
     assertTrue(leaves.contains(secondStructureVersionId));
@@ -65,15 +65,29 @@ public class CassandraStructureFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadStructure() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      CassandraTest.structuresResource.getStructure(testName);
+      CassandraTest.structuresResource.getStructure(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Structure found with name " + testName + ".", e.getMessage());
+      assertEquals("No Structure found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateStructure() throws GroundException {
+    String structureName = "structureName";
+    String structureKey = "structureKey";
+
+    try {
+      CassandraTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
   }
 
   @Test

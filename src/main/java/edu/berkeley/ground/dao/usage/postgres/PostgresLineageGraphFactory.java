@@ -87,28 +87,28 @@ public class PostgresLineageGraphFactory extends LineageGraphFactory {
   /**
    * Retrieve a lineage graph from the database.
    *
-   * @param name the name of the lineage graph
+   * @param sourceKey the key of the lineage graph
    * @return the retrieved lineage graph
    * @throws GroundException either the lineage graph doesn't exist or couldn't be retrieved
    */
   @Override
-  public LineageGraph retrieveFromDatabase(String name) throws GroundException {
+  public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     PostgresResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("lineage_graph", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("No LineageGraph found with name " + name + ".");
+      throw new GroundException("No LineageGraph found with source_key " + sourceKey + ".");
     }
 
     long id = resultSet.getLong(1);
-    String sourceKey = resultSet.getString(2);
+    String name = resultSet.getString(3);
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved lineage_graph " + name + ".");
+    LOGGER.info("Retrieved lineage_graph " + sourceKey + ".");
 
     return LineageGraphFactory.construct(id, name, sourceKey, tags);
   }

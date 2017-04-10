@@ -50,7 +50,7 @@ public class PostgresNodeFactoryTest extends PostgresTest {
 
     PostgresTest.nodesResource.createNode(testName, sourceKey,tagsMap);
 
-    Node node = PostgresTest.nodesResource.getNode(testName);
+    Node node = PostgresTest.nodesResource.getNode(sourceKey);
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
     assertEquals(sourceKey, node.getSourceKey());
@@ -58,13 +58,13 @@ public class PostgresNodeFactoryTest extends PostgresTest {
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    String nodeName = "testNode1";
-    long nodeId = PostgresTest.createNode(nodeName).getId();
+    String sourceKey = "testNode1";
+    long nodeId = PostgresTest.createNode(sourceKey).getId();
 
     long nodeVersionId = PostgresTest.createNodeVersion(nodeId).getId();
     long secondNodeVersionId = PostgresTest.createNodeVersion(nodeId).getId();
 
-    List<Long> leaves = PostgresTest.nodesResource.getLatestVersions(nodeName);
+    List<Long> leaves = PostgresTest.nodesResource.getLatestVersions(sourceKey);
 
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(leaves.contains(secondNodeVersionId));
@@ -72,15 +72,29 @@ public class PostgresNodeFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadNode() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.nodesResource.getNode(testName);
+      PostgresTest.nodesResource.getNode(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Node found with name " + testName + ".", e.getMessage());
+      assertEquals("No Node found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateNode() throws GroundException {
+    String nodeName = "nodeName";
+    String nodeKey = "nodeKey";
+
+    try {
+      PostgresTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
   }
 
   @Test

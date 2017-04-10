@@ -69,6 +69,20 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
 
+    LineageEdge lineageEdge = null;
+    try {
+      lineageEdge = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No LineageEdge found")) {
+        throw e;
+      }
+    }
+
+    if (lineageEdge != null) {
+      throw new GroundException("LineageEdge with source_key " + sourceKey + " already exists.");
+    }
+
+
     long uniqueId = this.idGenerator.generateItemId();
 
     this.itemFactory.insertIntoDatabase(uniqueId, tags);
@@ -87,28 +101,28 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   /**
    * Retrieve a lineage edge from the database.
    *
-   * @param name the name of the lineage edge
+   * @param sourceKey the key of the lineage edge
    * @return the retrieved lineage edge
    * @throws GroundException either the lineage edge doesn't exist or couldn't be retrieved
    */
   @Override
-  public LineageEdge retrieveFromDatabase(String name) throws GroundException {
+  public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("No LineageEdge found with name " + name + ".");
+      throw new GroundException("No LineageEdge found with source_key " + sourceKey + ".");
     }
 
     long id = resultSet.getLong("item_id");
-    String sourceKey = resultSet.getString("source_key");
+    String name = resultSet.getString("name");
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved lineage edge " + name + ".");
+    LOGGER.info("Retrieved lineage edge " + sourceKey + ".");
     return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 

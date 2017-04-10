@@ -40,7 +40,7 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
     String sourceKey = "testKey";
 
     CassandraTest.lineageEdgesResource.createLineageEdge(testName, sourceKey, new HashMap<>());
-    LineageEdge lineageEdge = CassandraTest.lineageEdgesResource.getLineageEdge(testName);
+    LineageEdge lineageEdge = CassandraTest.lineageEdgesResource.getLineageEdge(sourceKey);
 
     assertEquals(testName, lineageEdge.getName());
     assertEquals(sourceKey, lineageEdge.getSourceKey());
@@ -48,15 +48,29 @@ public class CassandraLineageEdgeFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageEdge() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      CassandraTest.lineageEdgesResource.getLineageEdge(testName);
+      CassandraTest.lineageEdgesResource.getLineageEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageEdge found with name " + testName + ".", e.getMessage());
+      assertEquals("No LineageEdge found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageEdge() throws GroundException {
+    String lineageEdgeName = "lineageEdgeName";
+    String lineageEdgeKey = "lineageEdgeKey";
+
+    try {
+      CassandraTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
   }
 
   @Test

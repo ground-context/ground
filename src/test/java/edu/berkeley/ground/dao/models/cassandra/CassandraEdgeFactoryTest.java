@@ -48,7 +48,7 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
     CassandraTest.edgesResource.createEdge(testName, firstTestNode, secondTestNode, sourceKey,
         new HashMap<>());
 
-    Edge edge = CassandraTest.edgesResource.getEdge(testName);
+    Edge edge = CassandraTest.edgesResource.getEdge(sourceKey);
 
     assertEquals(testName, edge.getName());
     assertEquals(firstTestNodeId, edge.getFromNodeId());
@@ -57,13 +57,33 @@ public class CassandraEdgeFactoryTest extends CassandraTest {
   }
 
   @Test(expected = GroundException.class)
-  public void testRetrieveBadEdge() throws GroundException {
-    String testName = "test";
+  public void testCreateDuplicateEdge() throws GroundException {
+    String edgeName = "edgeName";
+    String edgeKey = "edgeKey";
+    String fromNode = "fromNode";
+    String toNode = "toNode";
 
     try {
-      CassandraTest.edgesResource.getEdge(testName);
+      CassandraTest.createNode(fromNode);
+      CassandraTest.createNode(toNode);
+
+      CassandraTest.edgesResource.createEdge(edgeName, fromNode, toNode, edgeKey, new HashMap<>());
     } catch (GroundException e) {
-      assertEquals("No Edge found with name " + testName + ".", e.getMessage());
+      fail(e.getMessage());
+    }
+
+    CassandraTest.edgesResource.createEdge(edgeName, fromNode, toNode, edgeKey, new HashMap<>());
+  }
+
+
+  @Test(expected = GroundException.class)
+  public void testRetrieveBadEdge() throws GroundException {
+    String sourceKey = "test";
+
+    try {
+      CassandraTest.edgesResource.getEdge(sourceKey);
+    } catch (GroundException e) {
+      assertEquals("No Edge found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }

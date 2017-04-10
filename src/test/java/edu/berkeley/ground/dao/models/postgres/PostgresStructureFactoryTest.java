@@ -43,7 +43,7 @@ public class PostgresStructureFactoryTest extends PostgresTest {
     String sourceKey = "testKey";
 
     PostgresTest.structuresResource.createStructure(testName, sourceKey, new HashMap<>());
-    Structure structure = PostgresTest.structuresResource.getStructure(testName);
+    Structure structure = PostgresTest.structuresResource.getStructure(sourceKey);
 
     assertEquals(testName, structure.getName());
     assertEquals(sourceKey, structure.getSourceKey());
@@ -51,13 +51,13 @@ public class PostgresStructureFactoryTest extends PostgresTest {
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    String structureName = "testStructure1";
-    long structureId = PostgresTest.createStructure(structureName).getId();
+    String sourceKey = "testStructure";
+    long structureId = PostgresTest.createStructure(sourceKey).getId();
 
     long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
     long secondStructureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-    List<Long> leaves = PostgresTest.structuresResource.getLatestVersions(structureName);
+    List<Long> leaves = PostgresTest.structuresResource.getLatestVersions(sourceKey);
 
     assertTrue(leaves.contains(structureVersionId));
     assertTrue(leaves.contains(secondStructureVersionId));
@@ -65,16 +65,31 @@ public class PostgresStructureFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadStructure() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.structuresResource.getStructure(testName);
+      PostgresTest.structuresResource.getStructure(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Structure found with name " + testName + ".", e.getMessage());
+      assertEquals("No Structure found with source_key " + sourceKey + ".", e.getMessage());
 
       throw e;
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateStructure() throws GroundException {
+    String structureName = "structureName";
+    String structureKey = "structureKey";
+
+    try {
+      PostgresTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.structuresResource.createStructure(structureName, structureKey, new HashMap<>());
+  }
+
 
   @Test
   public void testTruncate() throws GroundException {

@@ -68,6 +68,19 @@ public class CassandraNodeFactory extends NodeFactory {
    */
   @Override
   public Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
+    Node node = null;
+    try {
+      node = this.retrieveFromDatabase(sourceKey);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No Node found")) {
+        throw e;
+      }
+    }
+
+    if (node != null) {
+      throw new GroundException("Node with source_key " + sourceKey + " already exists.");
+    }
+
     long uniqueId = this.idGenerator.generateItemId();
 
     this.itemFactory.insertIntoDatabase(uniqueId, tags);
@@ -86,13 +99,13 @@ public class CassandraNodeFactory extends NodeFactory {
   /**
    * Retrieve the DAG leaves for this node.
    *
-   * @param name the name of the node to retrieve leaves for.
+   * @param sourceKey the key of the node to retrieve leaves for.
    * @return the leaves of the node
    * @throws GroundException an error while retrieving the node
    */
   @Override
-  public List<Long> getLeaves(String name) throws GroundException {
-    Node node = this.retrieveFromDatabase(name);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Node node = this.retrieveFromDatabase(sourceKey);
     List<Long> leaves = this.itemFactory.getLeaves(node.getId());
 
     return leaves;
@@ -101,28 +114,28 @@ public class CassandraNodeFactory extends NodeFactory {
   /**
    * Retrieve a node from the database.
    *
-   * @param name the name of the node to retrieve
+   * @param sourceKey the key of the node to retrieve
    * @return the retrieved node
    * @throws GroundException either the node doesn't exist or couldn't be retrieved
    */
   @Override
-  public Node retrieveFromDatabase(String name) throws GroundException {
+  public Node retrieveFromDatabase(String sourceKey) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     CassandraResults resultSet;
     try {
       resultSet = this.dbClient.equalitySelect("node", DbClient.SELECT_STAR, predicates);
     } catch (EmptyResultException e) {
-      throw new GroundException("No Node found with name " + name + ".");
+      throw new GroundException("No Node found with source_key " + sourceKey + ".");
     }
 
     long id = resultSet.getLong("item_id");
-    String sourceKey = resultSet.getString("source_key");
+    String name = resultSet.getString("name");
 
     Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
 
-    LOGGER.info("Retrieved node " + name + ".");
+    LOGGER.info("Retrieved node " + sourceKey + ".");
     return NodeFactory.construct(id, name, sourceKey, tags);
   }
 
