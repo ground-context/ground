@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.model.versions.Version;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
@@ -91,7 +92,7 @@ public class RichVersion extends Version {
     return this.getId() == otherRichVersion.getId()
         && this.tags.equals(otherRichVersion.tags)
         && this.structureVersionId == otherRichVersion.structureVersionId
-        && this.reference.equals(otherRichVersion.reference)
-        && this.parameters.equals(otherRichVersion.parameters);
+        && Objects.equals(this.reference, otherRichVersion.reference)
+        && Objects.equals(this.parameters, otherRichVersion.parameters);
   }
 }
