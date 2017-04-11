@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
@@ -63,7 +64,7 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
     try {
       Neo4jTest.edgesResource.getEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Edge found with source_key " + sourceKey + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }

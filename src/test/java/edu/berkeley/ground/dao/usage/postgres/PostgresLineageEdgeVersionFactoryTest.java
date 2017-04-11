@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -80,7 +81,7 @@ public class PostgresLineageEdgeVersionFactoryTest extends PostgresTest {
     try {
       PostgresTest.lineageEdgesResource.getLineageEdgeVersion(id);
     } catch (GroundException e) {
-      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+      assertEquals(GroundVersionNotFoundException.class, e.getClass());
 
       throw e;
     }

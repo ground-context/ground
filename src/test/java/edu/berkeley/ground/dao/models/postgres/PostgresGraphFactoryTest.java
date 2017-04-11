@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
@@ -54,7 +55,7 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     try {
       PostgresTest.graphsResource.getGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Graph found with source_key " + sourceKey + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }

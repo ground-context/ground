@@ -132,7 +132,10 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
     List<DbDataContainer> predicate = new ArrayList<>();
     predicate.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    if (this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicate).isEmpty()) {
+    CassandraResults resultSet = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR,
+        predicate);
+
+    if (resultSet.isEmpty()) {
       throw new GroundException("Version id " + id + " is not valid.");
     }
   }

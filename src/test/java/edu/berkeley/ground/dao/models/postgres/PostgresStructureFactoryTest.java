@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -70,7 +71,7 @@ public class PostgresStructureFactoryTest extends PostgresTest {
     try {
       PostgresTest.structuresResource.getStructure(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Structure found with source_key " + sourceKey + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }

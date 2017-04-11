@@ -57,7 +57,7 @@ public class CassandraTagFactory implements TagFactory {
         DbClient.SELECT_STAR,
         predicates);
 
-    if (result.isEmpty()) {
+    if (resultSet.isEmpty()) {
       // this means that there are no tags
       return result;
     }
@@ -99,7 +99,7 @@ public class CassandraTagFactory implements TagFactory {
         projections,
         predicates);
 
-    if (result.isEmpty()) {
+    if (resultSet.isEmpty()) {
       // this means that there are no tags
       return result;
     }

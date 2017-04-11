@@ -142,8 +142,9 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       long id = deleteQueue.get(0);
 
       if (id != 0) {
-        String tableNamePrefix = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
-            itemType.getName());
+        String[] splits = itemType.getName().split("\\.");
+        String tableNamePrefix = splits[splits.length - 1];
+        tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
 
         if (itemType.equals(Structure.class)) {
           predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));

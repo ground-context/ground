@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -77,7 +78,7 @@ public class CassandraNodeFactoryTest extends CassandraTest {
     try {
       CassandraTest.nodesResource.getNode(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Node found with source_key " + sourceKey + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }

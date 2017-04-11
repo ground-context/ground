@@ -134,8 +134,10 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
     while (deleteQueue.size() > 0) {
       long id = deleteQueue.get(0);
 
-      String tableNamePrefix = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
-          itemType.getName());
+      String[] splits = itemType.getName().split("\\.");
+      String className = splits[splits.length - 1];
+      String tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,
+          className);
 
       if (itemType.equals(Structure.class)) {
         predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
@@ -145,13 +147,13 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
 
       if (itemType.getName().toLowerCase().contains("graph")) {
         predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
-        this.dbClient.deleteNode(predicates, itemType + "_version_edge");
+        this.dbClient.deleteNode(predicates, tableNamePrefix + "_version_edge");
         predicates.clear();
       }
 
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      this.dbClient.deleteNode(predicates, itemType.getName() + "Version");
+      this.dbClient.deleteNode(predicates, className + "Version");
 
       deleteQueue.remove(0);
       List<Long> parents = dag.getParent(id);

@@ -21,6 +21,7 @@ import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -169,14 +170,12 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
       EdgeVersion parentVersion;
       try {
         parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
-      } catch (GroundDbException dbe) {
-        if (dbe.getMessage().contains("No EdgeVersion found")) {
-          // this means that the parent is an Edge (i.e., this version has no parent), so we can
-          // safely ignore this and return
-          return;
-        } else {
-          throw dbe;
-        }
+      } catch (GroundVersionNotFoundException dbe) {
+        return;
+      }
+
+      catch (GroundException e) {
+        throw e;
       }
 
       Edge edge = this.retrieveFromDatabase(itemId);

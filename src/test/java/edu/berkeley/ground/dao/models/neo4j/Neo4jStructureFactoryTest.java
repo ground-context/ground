@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -68,7 +69,7 @@ public class Neo4jStructureFactoryTest extends Neo4jTest {
     try {
       Neo4jTest.structuresResource.getStructure(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Structure found with source_key " + sourceKey + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }

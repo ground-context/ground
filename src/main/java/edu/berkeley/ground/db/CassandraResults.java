@@ -114,6 +114,6 @@ public class CassandraResults {
   }
 
   public boolean isEmpty() {
-    return (this.resultSet == null || this.resultSet.isExhausted());
+    return (this.resultSet == null || this.resultSet.isExhausted()) && this.currentRow == null;
   }
 }
