@@ -133,9 +133,15 @@ public class PostgresResults {
     }
   }
 
+  /**
+   * Check if the result set is empty before the first call.
+   *
+   * @return true if empty false otherwise
+   * @throws GroundException an unexpected error while checking the emptiness
+   */
   public boolean isEmpty() throws GroundException {
     try {
-      return resultSet.isBeforeFirst() || resultSet.isAfterLast();
+      return !this.resultSet.next();
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 

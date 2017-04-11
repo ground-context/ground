@@ -158,13 +158,13 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
 
         if (itemType.getName().toLowerCase().contains("graph")) {
           predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
-          this.dbClient.delete(predicates, itemType + "_version_edge");
+          this.dbClient.delete(predicates, tableNamePrefix + "_version_edge");
           predicates.clear();
         }
 
         predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-        this.dbClient.delete(predicates, itemType + "_version");
+        this.dbClient.delete(predicates, tableNamePrefix + "_version");
 
         if (!itemType.equals(Structure.class)) {
           this.dbClient.delete(predicates, "rich_version");

@@ -57,7 +57,7 @@ public class PostgresTagFactory implements TagFactory {
     resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
         predicates);
 
-    if (result.isEmpty()) {
+    if (resultSet.isEmpty()) {
       return new HashMap<>();
     }
 

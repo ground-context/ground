@@ -133,8 +133,6 @@ public class PostgresClient extends DbClient {
       ResultSet resultSet = preparedStatement.executeQuery();
 
       // Moves the cursor to the first element so that data can be accessed directly.
-      // TODO: this might cause an issue
-      resultSet.next();
       return new PostgresResults(resultSet);
     } catch (SQLException e) {
       LOGGER.error("Unexpected error in database query: " + e.getMessage());
@@ -264,7 +262,9 @@ public class PostgresClient extends DbClient {
 
     try {
       // Otherwise, prepare the statement, then cache it.
-      PreparedStatement newStatement = this.connection.prepareStatement(sql);
+      PreparedStatement newStatement = this.connection.prepareStatement(sql, ResultSet
+          .TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
       this.preparedStatements.put(sql, newStatement);
       ((PGStatement) newStatement).setPrepareThreshold(10);
       return newStatement;

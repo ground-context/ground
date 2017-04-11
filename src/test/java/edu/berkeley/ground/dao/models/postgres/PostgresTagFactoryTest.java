@@ -39,8 +39,8 @@ public class PostgresTagFactoryTest extends PostgresTest {
     Map<String, Tag> tagsMap = new HashMap<>();
     tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-    long nodeId1 = PostgresTest.nodesResource.createNode("test1", null, tagsMap).getId();
-    long nodeId2 = PostgresTest.nodesResource.createNode("test2", null, tagsMap).getId();
+    long nodeId1 = PostgresTest.nodesResource.createNode(null, "test1", tagsMap).getId();
+    long nodeId2 = PostgresTest.nodesResource.createNode(null, "test2", tagsMap).getId();
 
     List<Long> ids = PostgresTest.tagFactory.getItemIdsByTag("testtag");
 
