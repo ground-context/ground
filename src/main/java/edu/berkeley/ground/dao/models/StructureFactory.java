@@ -14,32 +14,33 @@
 
 package edu.berkeley.ground.dao.models;
 
+import edu.berkeley.ground.dao.versions.ItemFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.model.models.Tag;
+import edu.berkeley.ground.model.versions.Item;
 
 import java.util.List;
 import java.util.Map;
 
-public abstract class StructureFactory {
-  public abstract Structure create(String name,
-                                   String sourceKey,
-                                   Map<String, Tag> tags)
-      throws GroundException;
+public interface StructureFactory extends ItemFactory<Structure> {
 
-  public abstract Structure retrieveFromDatabase(String sourceKey) throws GroundException;
+  Structure create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds)
-      throws GroundException;
-
-  public abstract void truncate(long itemId, int numLevels) throws GroundException;
-
-  public abstract List<Long> getLeaves(String name) throws GroundException;
-
-  protected static Structure construct(long id,
-                                       String name,
-                                       String sourceKey,
-                                       Map<String, Tag> tags) {
-    return new Structure(id, name, sourceKey, tags);
+  @Override
+  default Class<Structure> getType() {
+    return Structure.class;
   }
+
+  @Override
+  Structure retrieveFromDatabase(String sourceKey) throws GroundException;
+
+  @Override
+  Structure retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+
+  @Override
+  List<Long> getLeaves(String name) throws GroundException;
 }

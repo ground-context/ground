@@ -15,7 +15,12 @@
 package edu.berkeley.ground.dao.versions;
 
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.Version;
 
-public abstract class VersionFactory {
-  public abstract void insertIntoDatabase(long id) throws GroundException;
+public interface VersionFactory<T extends Version> {
+  void insertIntoDatabase(long id) throws GroundException;
+
+  Class<T> getType();
+
+  T retrieveFromDatabase(long id) throws GroundException;
 }

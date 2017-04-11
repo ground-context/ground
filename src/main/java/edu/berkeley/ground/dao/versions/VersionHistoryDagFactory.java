@@ -15,6 +15,7 @@
 package edu.berkeley.ground.dao.versions;
 
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.Item;
 import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
@@ -48,8 +49,9 @@ public abstract class VersionHistoryDagFactory {
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
-  public abstract void truncate(VersionHistoryDag dag, int numLevels, String itemType) throws
-      GroundException;
+  public abstract void truncate(VersionHistoryDag dag,
+                                int numLevels,
+                                Class<? extends Item> itemType) throws GroundException;
 
   protected static <T extends Version> VersionHistoryDag<T> construct(long itemId) {
     return new VersionHistoryDag<>(itemId, new ArrayList<>());
