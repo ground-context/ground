@@ -62,7 +62,8 @@ public class RichVersionFactoryTest {
     try {
       RichVersionFactory.checkStructureTags(structureVersion, tags);
     } catch (GroundException e) {
-      assertEquals("Tag with key test did not have a value of the correct type.", e.getMessage());
+      assertEquals("Tag with key test did not have a value of the correct type: expected [string]" +
+          " but found [integer].", e.getMessage());
 
       throw e;
     }

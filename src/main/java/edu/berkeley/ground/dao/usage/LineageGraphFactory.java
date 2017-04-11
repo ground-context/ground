@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao.usage;
 
+import edu.berkeley.ground.dao.versions.ItemFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraph;
@@ -21,23 +22,24 @@ import edu.berkeley.ground.model.usage.LineageGraph;
 import java.util.List;
 import java.util.Map;
 
-public abstract class LineageGraphFactory {
-  public abstract LineageGraph create(String name,
-                                      String sourceKey,
-                                      Map<String, Tag> tags)
-      throws GroundException;
+public interface LineageGraphFactory extends ItemFactory<LineageGraph> {
 
-  public abstract LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException;
+  LineageGraph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds)
-      throws GroundException;
-
-  public abstract void truncate(long itemId, int numLevels) throws GroundException;
-
-  protected static LineageGraph construct(long id,
-                                          String name,
-                                          String sourceKey,
-                                          Map<String, Tag> tags) {
-    return new LineageGraph(id, name, sourceKey, tags);
+  @Override
+  default Class<LineageGraph> getType() {
+    return LineageGraph.class;
   }
+
+  @Override
+  LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException;
+
+  @Override
+  LineageGraph retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+
+  @Override
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

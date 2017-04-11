@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao.usage;
 
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageEdgeVersion;
@@ -21,8 +22,9 @@ import edu.berkeley.ground.model.usage.LineageEdgeVersion;
 import java.util.List;
 import java.util.Map;
 
-public abstract class LineageEdgeVersionFactory {
-  public abstract LineageEdgeVersion create(Map<String, Tag> tags,
+public interface LineageEdgeVersionFactory extends RichVersionFactory<LineageEdgeVersion> {
+
+  LineageEdgeVersion create(Map<String, Tag> tags,
                                             long structureVersionId,
                                             String reference,
                                             Map<String, String> referenceParameters,
@@ -31,17 +33,11 @@ public abstract class LineageEdgeVersionFactory {
                                             long lineageEdgeId,
                                             List<Long> parentIds) throws GroundException;
 
-  public abstract LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException;
-
-  protected static LineageEdgeVersion construct(long id,
-                                                Map<String, Tag> tags,
-                                                long structureVersionId,
-                                                String reference,
-                                                Map<String, String> referenceParameters,
-                                                long fromId,
-                                                long toId,
-                                                long lineageEdgeId) {
-    return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
-        fromId, toId, lineageEdgeId);
+  @Override
+  default Class<LineageEdgeVersion> getType() {
+    return LineageEdgeVersion.class;
   }
+
+  @Override
+  LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException;
 }

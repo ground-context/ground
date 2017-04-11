@@ -17,6 +17,7 @@ package edu.berkeley.ground.dao.versions.postgres;
 import org.junit.Test;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.dao.versions.postgres.mock.TestPostgresVersionFactory;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundException;
 
@@ -24,8 +25,12 @@ import static org.junit.Assert.*;
 
 public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
 
+  private TestPostgresVersionFactory versionFactory;
+
   public PostgresVersionSuccessorFactoryTest() throws GroundException {
     super();
+
+    this.versionFactory = new TestPostgresVersionFactory(PostgresTest.postgresClient);
   }
 
   @Test
@@ -34,8 +39,8 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
       long fromId = 1;
       long toId = 2;
 
-      PostgresTest.versionFactory.insertIntoDatabase(fromId);
-      PostgresTest.versionFactory.insertIntoDatabase(toId);
+      this.versionFactory.insertIntoDatabase(fromId);
+      this.versionFactory.insertIntoDatabase(toId);
 
       VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.create(fromId, toId);
 
@@ -58,7 +63,7 @@ public class PostgresVersionSuccessorFactoryTest extends PostgresTest {
       // Catch exceptions for these two lines because they should not fal
       try {
         // the main difference is that we're not creating a Version for the toId
-        PostgresTest.versionFactory.insertIntoDatabase(fromId);
+        this.versionFactory.insertIntoDatabase(fromId);
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }

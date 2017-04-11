@@ -25,6 +25,7 @@ import java.util.function.ToDoubleBiFunction;
 import javax.ws.rs.POST;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -68,7 +69,7 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
     try {
       PostgresTest.edgesResource.getEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Edge found with source_key " + sourceKey + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }

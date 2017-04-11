@@ -16,11 +16,15 @@ package edu.berkeley.ground.dao.models.neo4j;
 
 import org.junit.Test;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.dao.models.RichVersionFactory;
+import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -30,8 +34,30 @@ import static org.junit.Assert.*;
 
 public class Neo4jRichVersionFactoryTest extends Neo4jTest {
 
+  private TestNeo4jRichVersionFactory richVersionFactory;
+
+  private class TestNeo4jRichVersionFactory extends Neo4jRichVersionFactory<RichVersion> {
+    private TestNeo4jRichVersionFactory(Neo4jClient neo4jClient,
+                                       Neo4jStructureVersionFactory structureVersionFactory,
+                                       Neo4jTagFactory tagFactory) {
+
+      super(neo4jClient, structureVersionFactory, tagFactory);
+    }
+
+    public Class<RichVersion> getType() {
+      return RichVersion.class;
+    }
+
+    public RichVersion retrieveFromDatabase(long id) {
+      throw new NotImplementedException();
+    }
+  }
+
   public Neo4jRichVersionFactoryTest() throws GroundException {
     super();
+
+    this.richVersionFactory = new TestNeo4jRichVersionFactory(Neo4jTest.neo4jClient,
+        Neo4jTest.getStructureVersionFactory(), Neo4jTest.tagFactory);
   }
 
   @Test
@@ -48,10 +74,10 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       parameters.put("http", "GET");
       parameters.put("ftp", "test");
 
-      Neo4jTest.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference,
+      this.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference,
           parameters);
 
-      RichVersion retrieved = Neo4jTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -82,9 +108,9 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      Neo4jTest.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
+      this.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
-      RichVersion retrieved = Neo4jTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -116,10 +142,10 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
 
       Map<String, Tag> tags = Neo4jTest.createTags();
 
-      Neo4jTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = Neo4jTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
 
       Neo4jTest.neo4jClient.commit();
@@ -151,7 +177,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      Neo4jTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
       Neo4jTest.neo4jClient.commit();

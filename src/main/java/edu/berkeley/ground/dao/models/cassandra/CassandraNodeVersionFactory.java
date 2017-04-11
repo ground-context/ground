@@ -15,11 +15,11 @@
 package edu.berkeley.ground.dao.models.cassandra;
 
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.NodeVersion;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -30,17 +30,17 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class CassandraNodeVersionFactory extends NodeVersionFactory {
+public class CassandraNodeVersionFactory
+    extends CassandraRichVersionFactory<NodeVersion>
+    implements NodeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeVersionFactory.class);
   private final CassandraClient dbClient;
   private final CassandraNodeFactory nodeFactory;
-  private final CassandraRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -48,17 +48,19 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
    * Constructor for the Cassandra node version factory.
    *
    * @param nodeFactory the singleton CassandraNodeFactory
-   * @param richVersionFactory the singleton CassandraRichVersionFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
-  public CassandraNodeVersionFactory(CassandraNodeFactory nodeFactory,
-                                     CassandraRichVersionFactory richVersionFactory,
-                                     CassandraClient dbClient,
+  public CassandraNodeVersionFactory(CassandraClient dbClient,
+                                     CassandraNodeFactory nodeFactory,
+                                     CassandraStructureVersionFactory structureVersionFactory,
+                                     CassandraTagFactory tagFactory,
                                      IdGenerator idGenerator) {
+
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.nodeFactory = nodeFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -86,12 +88,8 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     long id = this.idGenerator.generateVersionId();
 
     // add the id of the version to the tag
-    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-    );
-
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    tags = RichVersionFactory.addIdToTags(id, tags);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -102,8 +100,7 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
     this.nodeFactory.update(nodeId, id, parentIds);
 
     LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
-    return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, nodeId);
+    return new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
   }
 
   /**
@@ -115,22 +112,21 @@ public class CassandraNodeVersionFactory extends NodeVersionFactory {
    */
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("node_version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No NodeVersion found with id " + id + ".");
-    }
+    CassandraResults resultSet = this.dbClient.equalitySelect("node_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, id);
+
 
     long nodeId = resultSet.getLong("node_id");
 
     LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
-    return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+    return new NodeVersion(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), nodeId);
   }
 }

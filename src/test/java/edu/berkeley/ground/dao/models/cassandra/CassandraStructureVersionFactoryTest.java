@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -65,8 +66,7 @@ public class CassandraStructureVersionFactoryTest extends CassandraTest {
     try {
       CassandraTest.structuresResource.getStructureVersion(id);
     } catch (GroundException e) {
-      assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
-      CassandraTest.cassandraClient.abort();
+      assertEquals(GroundVersionNotFoundException.class, e.getClass());
 
       throw e;
     }

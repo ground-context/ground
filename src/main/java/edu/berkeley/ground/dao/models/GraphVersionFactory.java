@@ -21,8 +21,8 @@ import edu.berkeley.ground.model.models.Tag;
 import java.util.List;
 import java.util.Map;
 
-public abstract class GraphVersionFactory {
-  public abstract GraphVersion create(Map<String, Tag> tags,
+public interface GraphVersionFactory extends RichVersionFactory<GraphVersion> {
+  GraphVersion create(Map<String, Tag> tags,
                                       long structureVersionId,
                                       String reference,
                                       Map<String, String> referenceParameters,
@@ -30,17 +30,11 @@ public abstract class GraphVersionFactory {
                                       List<Long> edgeVersionIds,
                                       List<Long> parentIds) throws GroundException;
 
-  public abstract GraphVersion retrieveFromDatabase(long id) throws GroundException;
-
-  protected static GraphVersion construct(long id,
-                                          Map<String, Tag> tags,
-                                          long structureVersionId,
-                                          String reference,
-                                          Map<String, String> parameters,
-                                          long graphId,
-                                          List<Long> edgeVersionIds) {
-
-    return new GraphVersion(id, tags, structureVersionId, reference, parameters, graphId,
-        edgeVersionIds);
+  @Override
+  default Class<GraphVersion> getType() {
+    return GraphVersion.class;
   }
+
+  @Override
+  GraphVersion retrieveFromDatabase(long id) throws GroundException;
 }

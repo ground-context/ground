@@ -14,13 +14,14 @@
 
 package edu.berkeley.ground.dao.usage.postgres;
 
+import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraph;
@@ -34,25 +35,29 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresLineageGraphFactory extends LineageGraphFactory {
+public class PostgresLineageGraphFactory
+    extends PostgresItemFactory<LineageGraph>
+    implements LineageGraphFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresLineageGraphFactory.class);
   private final PostgresClient dbClient;
-  private final PostgresItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Postgres lineage graph factory.
    *
-   * @param itemFactory the singleton PostgresItemFactory
    * @param dbClient the Postgres client
    * @param idGenerator a unique id generator
    */
-  public PostgresLineageGraphFactory(PostgresItemFactory itemFactory,
-                                     PostgresClient dbClient,
+  public PostgresLineageGraphFactory(PostgresClient dbClient,
+                                     PostgresVersionHistoryDagFactory versionHistoryDagFactory,
+                                     PostgresTagFactory tagFactory,
                                      IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -68,9 +73,10 @@ public class PostgresLineageGraphFactory extends LineageGraphFactory {
   @Override
   public LineageGraph create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
+    super.verifyItemNotExists(sourceKey);
     long uniqueId = this.idGenerator.generateItemId();
 
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -81,7 +87,20 @@ public class PostgresLineageGraphFactory extends LineageGraphFactory {
 
     LOGGER.info("Created lineage_graph " + name + ".");
 
-    return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
+    return new LineageGraph(uniqueId, name, sourceKey, tags);
+  }
+
+  /**
+   * Retrieve the leaves of this lineage graph's DAG.
+   *
+   * @param sourceKey the key of the lineage graph
+   * @return the list of leaves in this lineage graph's DAG
+   * @throws GroundException an error while retrieving the lineage graph
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    LineageGraph lineageGraph = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(lineageGraph.getId());
   }
 
   /**
@@ -93,33 +112,40 @@ public class PostgresLineageGraphFactory extends LineageGraphFactory {
    */
   @Override
   public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("lineage_graph", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No LineageGraph found with source_key " + sourceKey + ".");
-    }
+  /**
+   * Retrieve a lineage graph from the database.
+   *
+   * @param id the id of the lineage graph
+   * @return the retrieved lineage graph
+   * @throws GroundException either the lineage graph doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public LineageGraph retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.LONG);
+  }
+
+  private LineageGraph retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_graph",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong(1);
+    String sourceKey = resultSet.getString(2);
     String name = resultSet.getString(3);
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved lineage_graph " + sourceKey + ".");
+    LOGGER.info("Retrieved lineage_graph " + value + ".");
 
-    return LineageGraphFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "lineage_graph");
+    return new LineageGraph(id, name, sourceKey, tags);
   }
 }

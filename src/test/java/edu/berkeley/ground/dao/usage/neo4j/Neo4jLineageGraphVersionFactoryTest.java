@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -96,7 +97,7 @@ public class Neo4jLineageGraphVersionFactoryTest extends Neo4jTest {
     try {
       Neo4jTest.lineageGraphsResource.getLineageGraphVersion(id);
     } catch (GroundException e) {
-      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+      assertEquals(GroundVersionNotFoundException.class, e.getClass());
 
       throw e;
     }

@@ -16,11 +16,14 @@ package edu.berkeley.ground.dao.models.postgres;
 
 import org.junit.Test;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -30,8 +33,31 @@ import static org.junit.Assert.*;
 
 public class PostgresRichVersionFactoryTest extends PostgresTest {
 
+  private TestPostgresRichVersionFactory richVersionFactory;
+
+  private class TestPostgresRichVersionFactory extends PostgresRichVersionFactory<RichVersion> {
+    private TestPostgresRichVersionFactory(
+        PostgresClient postgresClient,
+        PostgresStructureVersionFactory structureVersionFactory,
+        PostgresTagFactory tagFactory) {
+
+      super(postgresClient, structureVersionFactory, tagFactory);
+    }
+
+    public Class<RichVersion> getType() {
+      return RichVersion.class;
+    }
+
+    public RichVersion retrieveFromDatabase(long id) {
+      throw new NotImplementedException();
+    }
+  }
+
   public PostgresRichVersionFactoryTest() throws GroundException {
     super();
+
+    this.richVersionFactory = new TestPostgresRichVersionFactory(PostgresTest.postgresClient,
+        PostgresTest.getStructureVersionFactory(), PostgresTest.tagFactory);
   }
 
   @Test
@@ -43,9 +69,10 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       parameters.put("http", "GET");
       parameters.put("ftp", "test");
 
-      PostgresTest.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
+      this.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference,
+          parameters);
 
-      RichVersion retrieved = PostgresTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -71,9 +98,9 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      PostgresTest.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
+      this.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
-      RichVersion retrieved = PostgresTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -100,10 +127,10 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
 
       Map<String, Tag> tags = PostgresTest.createTags();
 
-      PostgresTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = PostgresTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
     } finally {
       PostgresTest.postgresClient.abort();
@@ -133,7 +160,7 @@ public class PostgresRichVersionFactoryTest extends PostgresTest {
       tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      PostgresTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
     } finally {
       PostgresTest.postgresClient.abort();

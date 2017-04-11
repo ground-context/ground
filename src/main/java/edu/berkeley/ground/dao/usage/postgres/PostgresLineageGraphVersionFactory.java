@@ -14,13 +14,15 @@
 
 package edu.berkeley.ground.dao.usage.postgres;
 
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresRichVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresStructureVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -31,19 +33,19 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFactory {
+public class PostgresLineageGraphVersionFactory
+    extends PostgresRichVersionFactory<LineageGraphVersion>
+    implements LineageGraphVersionFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       PostgresLineageGraphVersionFactory.class);
 
   private final PostgresClient dbClient;
   private final PostgresLineageGraphFactory lineageGraphFactory;
-  private final PostgresRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -51,17 +53,19 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
    * Constructor for the Postgres lineage graph factory.
    *
    * @param lineageGraphFactory the singleton PostgresLineageGraphFactory
-   * @param richVersionFactory the singleton PostgresRichVersionFactory
    * @param dbClient the Postgres client
    * @param idGenerator a unique id generator
    */
-  public PostgresLineageGraphVersionFactory(PostgresLineageGraphFactory lineageGraphFactory,
-                                            PostgresRichVersionFactory richVersionFactory,
-                                            PostgresClient dbClient,
+  public PostgresLineageGraphVersionFactory(PostgresClient dbClient,
+                                            PostgresLineageGraphFactory lineageGraphFactory,
+                                            PostgresStructureVersionFactory structureVersionFactory,
+                                            PostgresTagFactory tagFactory,
                                             IdGenerator idGenerator) {
+
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.lineageGraphFactory = lineageGraphFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -88,12 +92,9 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
                                     List<Long> parentIds) throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
+    tags = RichVersionFactory.addIdToTags(id, tags);
 
-    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag -> new Tag(id, tag
-        .getKey(), tag.getValue(), tag.getValueType())));
-
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -116,8 +117,8 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
     LOGGER.info("Created lineage_graph version " + id + " in lineage_graph " + lineageGraphId
         + ".");
 
-    return LineageGraphVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, lineageGraphId, lineageEdgeVersionIds);
+    return new LineageGraphVersion(id, tags, structureVersionId, reference, referenceParameters,
+        lineageGraphId, lineageEdgeVersionIds);
   }
 
   /**
@@ -129,7 +130,7 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
    */
   @Override
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -138,25 +139,20 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
     lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
         id));
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("lineage_graph_version", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No LineageGraphVersion found with id " + id + ".");
-    }
+    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_graph_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, id);
 
     PostgresResults lineageEdgeSet;
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
-    try {
-      lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient
-          .SELECT_STAR, lineageEdgePredicate);
 
+    lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient
+        .SELECT_STAR, lineageEdgePredicate);
+    if (!lineageEdgeSet.isEmpty()) {
       do {
         lineageEdgeVersionIds.add(lineageEdgeSet.getLong(2));
       } while (lineageEdgeSet.next());
-    } catch (EmptyResultException e) {
-      // do nothing; this just means that there are no edges in the LineageGraphVersion
     }
 
     long lineageGraphId = resultSet.getLong(2);
@@ -166,8 +162,7 @@ public class PostgresLineageGraphVersionFactory extends LineageGraphVersionFacto
         + " in lineage_graph "
         + lineageGraphId + ".");
 
-    return LineageGraphVersionFactory.construct(id, version.getTags(), version
-            .getStructureVersionId(), version.getReference(), version.getParameters(),
-        lineageGraphId, lineageEdgeVersionIds);
+    return new LineageGraphVersion(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), lineageGraphId, lineageEdgeVersionIds);
   }
 }

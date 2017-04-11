@@ -14,7 +14,6 @@
 
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.model.versions.GroundType;
 
@@ -105,7 +104,7 @@ public class PostgresClient extends DbClient {
    */
   public PostgresResults equalitySelect(
       String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
-      throws GroundDbException, EmptyResultException {
+      throws GroundDbException {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
 
@@ -132,13 +131,8 @@ public class PostgresClient extends DbClient {
       LOGGER.info("Executing query: " + preparedStatement.toString() + ".");
 
       ResultSet resultSet = preparedStatement.executeQuery();
-      if (!resultSet.isBeforeFirst()) {
-        throw new EmptyResultException(
-            "No results found for query: " + preparedStatement.toString());
-      }
 
       // Moves the cursor to the first element so that data can be accessed directly.
-      resultSet.next();
       return new PostgresResults(resultSet);
     } catch (SQLException e) {
       LOGGER.error("Unexpected error in database query: " + e.getMessage());
@@ -268,7 +262,9 @@ public class PostgresClient extends DbClient {
 
     try {
       // Otherwise, prepare the statement, then cache it.
-      PreparedStatement newStatement = this.connection.prepareStatement(sql);
+      PreparedStatement newStatement = this.connection.prepareStatement(sql, ResultSet
+          .TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
       this.preparedStatements.put(sql, newStatement);
       ((PGStatement) newStatement).setPrepareThreshold(10);
       return newStatement;

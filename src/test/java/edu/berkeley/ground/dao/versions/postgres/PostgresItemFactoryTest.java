@@ -22,9 +22,13 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.dao.versions.postgres.mock.TestPostgresItemFactory;
+import edu.berkeley.ground.dao.versions.postgres.mock.TestPostgresVersionFactory;
+import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
+import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -33,8 +37,16 @@ import static org.junit.Assert.*;
 
 public class PostgresItemFactoryTest extends PostgresTest {
 
+  private TestPostgresItemFactory itemFactory;
+  private TestPostgresVersionFactory versionFactory;
+
   public PostgresItemFactoryTest() throws GroundException {
     super();
+
+    this.itemFactory = new TestPostgresItemFactory(PostgresTest.postgresClient,
+        PostgresTest.versionHistoryDAGFactory, PostgresTest.tagFactory);
+
+    this.versionFactory = new TestPostgresVersionFactory(PostgresTest.postgresClient);
   }
 
   @Test
@@ -42,20 +54,20 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
 
-      PostgresTest.versionFactory.insertIntoDatabase(fromId);
-      PostgresTest.versionFactory.insertIntoDatabase(toId);
+      this.versionFactory.insertIntoDatabase(fromId);
+      this.versionFactory.insertIntoDatabase(toId);
 
       List<Long> parentIds = new ArrayList<>();
-      PostgresTest.itemFactory.update(testId, fromId, parentIds);
+      this.itemFactory.update(testId, fromId, parentIds);
 
       parentIds.clear();
       parentIds.add(fromId);
-      PostgresTest.itemFactory.update(testId, toId, parentIds);
+      this.itemFactory.update(testId, toId, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
@@ -89,15 +101,15 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
       long toId = 2;
-      PostgresTest.versionFactory.insertIntoDatabase(toId);
+      this.versionFactory.insertIntoDatabase(toId);
 
       List<Long> parentIds = new ArrayList<>();
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      PostgresTest.itemFactory.update(testId, toId, parentIds);
+      this.itemFactory.update(testId, toId, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
@@ -119,22 +131,22 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long fromId = 2;
       long toId = 3;
 
-      PostgresTest.versionFactory.insertIntoDatabase(fromId);
-      PostgresTest.versionFactory.insertIntoDatabase(toId);
+      this.versionFactory.insertIntoDatabase(fromId);
+      this.versionFactory.insertIntoDatabase(toId);
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      PostgresTest.itemFactory.update(testId, fromId, parentIds);
+      this.itemFactory.update(testId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(fromId);
-      PostgresTest.itemFactory.update(testId, toId, parentIds);
+      this.itemFactory.update(testId, toId, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
@@ -171,9 +183,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
       long toId = 3;
 
       try {
-        PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+        this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
-        PostgresTest.versionFactory.insertIntoDatabase(toId);
+        this.versionFactory.insertIntoDatabase(toId);
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -182,7 +194,7 @@ public class PostgresItemFactoryTest extends PostgresTest {
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      PostgresTest.itemFactory.update(testId, toId, parentIds);
+      this.itemFactory.update(testId, toId, parentIds);
     } finally {
       PostgresTest.postgresClient.abort();
     }
@@ -193,26 +205,26 @@ public class PostgresItemFactoryTest extends PostgresTest {
     try {
       long testId = 1;
 
-      PostgresTest.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
 
       long parentOne = 2;
       long parentTwo = 3;
       long child = 4;
 
-      PostgresTest.versionFactory.insertIntoDatabase(parentOne);
-      PostgresTest.versionFactory.insertIntoDatabase(parentTwo);
-      PostgresTest.versionFactory.insertIntoDatabase(child);
+      this.versionFactory.insertIntoDatabase(parentOne);
+      this.versionFactory.insertIntoDatabase(parentTwo);
+      this.versionFactory.insertIntoDatabase(child);
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      PostgresTest.itemFactory.update(testId, parentOne, parentIds);
-      PostgresTest.itemFactory.update(testId, parentTwo, parentIds);
+      this.itemFactory.update(testId, parentOne, parentIds);
+      this.itemFactory.update(testId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      PostgresTest.itemFactory.update(testId, child, parentIds);
+      this.itemFactory.update(testId, child, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
 
@@ -259,9 +271,9 @@ public class PostgresItemFactoryTest extends PostgresTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      PostgresTest.itemFactory.insertIntoDatabase(testId, tags);
+      this.itemFactory.insertIntoDatabase(testId, tags);
 
-      Item retrieved = PostgresTest.itemFactory.retrieveFromDatabase(testId);
+      Item retrieved = this.itemFactory.retrieveFromDatabase(testId);
 
       assertEquals(testId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());

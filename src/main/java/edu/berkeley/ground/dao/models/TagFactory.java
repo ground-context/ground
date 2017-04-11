@@ -20,12 +20,12 @@ import edu.berkeley.ground.model.models.Tag;
 import java.util.List;
 import java.util.Map;
 
-public abstract class TagFactory {
-  public abstract Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException;
+public interface TagFactory {
+  Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException;
 
-  public abstract Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException;
+  Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException;
 
-  public abstract List<Long> getVersionIdsByTag(String tag) throws GroundException;
+  List<Long> getVersionIdsByTag(String tag) throws GroundException;
 
-  public abstract List<Long> getItemIdsByTag(String tag) throws GroundException;
+  List<Long> getItemIdsByTag(String tag) throws GroundException;
 }

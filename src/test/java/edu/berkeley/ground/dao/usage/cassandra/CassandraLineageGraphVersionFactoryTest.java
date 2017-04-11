@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -110,7 +111,7 @@ public class CassandraLineageGraphVersionFactoryTest extends CassandraTest {
     try {
       CassandraTest.lineageGraphsResource.getLineageGraphVersion(id);
     } catch (GroundException e) {
-      assertEquals("No RichVersion found with id " + id + ".", e.getMessage());
+      assertEquals(GroundVersionNotFoundException.class, e.getClass());
 
       throw e;
     }

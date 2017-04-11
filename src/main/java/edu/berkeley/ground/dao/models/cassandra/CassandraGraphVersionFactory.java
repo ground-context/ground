@@ -15,11 +15,11 @@
 package edu.berkeley.ground.dao.models.cassandra;
 
 import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.GraphVersion;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -35,11 +35,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraGraphVersionFactory extends GraphVersionFactory {
+public class CassandraGraphVersionFactory
+    extends CassandraRichVersionFactory<GraphVersion>
+    implements GraphVersionFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraGraphVersionFactory.class);
   private final CassandraClient dbClient;
   private final CassandraGraphFactory graphFactory;
-  private final CassandraRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -47,17 +49,18 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
    * Constructor for the Cassandra graph version factory.
    *
    * @param graphFactory the singleton CassandraGraphFactory
-   * @param richVersionFactory the singleton CassandraRichVersionFactory
    * @param dbClient the CassandraClient
    * @param idGenerator a unique ID generator
    */
-  public CassandraGraphVersionFactory(CassandraGraphFactory graphFactory,
-                                      CassandraRichVersionFactory richVersionFactory,
-                                      CassandraClient dbClient,
+  public CassandraGraphVersionFactory(CassandraClient dbClient,
+                                      CassandraGraphFactory graphFactory,
+                                      CassandraStructureVersionFactory structureVersionFactory,
+                                      CassandraTagFactory tagFactory,
                                       IdGenerator idGenerator) {
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.graphFactory = graphFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -84,13 +87,9 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
                              List<Long> parentIds) throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
+    tags = RichVersionFactory.addIdToTags(id, tags);
 
-    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-    );
-
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -109,8 +108,8 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
     this.graphFactory.update(graphId, id, parentIds);
 
     LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
-    return GraphVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, graphId, edgeVersionIds);
+    return new GraphVersion(id, tags, structureVersionId, reference, referenceParameters,
+        graphId, edgeVersionIds);
   }
 
   /**
@@ -122,7 +121,7 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
    */
   @Override
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -130,30 +129,26 @@ public class CassandraGraphVersionFactory extends GraphVersionFactory {
     List<DbDataContainer> edgePredicate = new ArrayList<>();
     edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("graph_version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No GraphVersion found with id " + id + ".");
-    }
+    CassandraResults resultSet = this.dbClient.equalitySelect("graph_version",
+        DbClient.SELECT_STAR,
+        predicates);
+
 
     long graphId = resultSet.getLong("graph_id");
 
     List<Long> edgeVersionIds = new ArrayList<>();
-    try {
-      CassandraResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
-          DbClient.SELECT_STAR, edgePredicate);
+    CassandraResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
+        DbClient.SELECT_STAR,
+        edgePredicate);
 
+    if (!edgeSet.isEmpty()) {
       do {
         edgeVersionIds.add(edgeSet.getLong("edge_version_id"));
       } while (edgeSet.next());
-    } catch (EmptyResultException e) {
-      // do nothing; this means that the graph is empty
     }
 
-
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
-    return GraphVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+    return new GraphVersion(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), graphId, edgeVersionIds);
   }
 }
