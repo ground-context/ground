@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class VersionHistoryDag<T extends Version> {
   // the id of the Version that's at the rootId of this DAG
@@ -41,14 +42,11 @@ public class VersionHistoryDag<T extends Version> {
    */
   public VersionHistoryDag(long itemId, List<VersionSuccessor<T>> edges) {
     this.itemId = itemId;
-    this.edgeIds = new ArrayList<>();
+    this.edgeIds = edges.stream().map(VersionSuccessor::getId)
+        .collect(Collectors.toList());
     this.parentChildMap = new HashMap<>();
 
-    for (VersionSuccessor<T> edge : edges) {
-      edgeIds.add(edge.getId());
-
-      this.addToParentChildMap(edge.getFromId(), edge.getToId());
-    }
+    edges.forEach(edge -> this.addToParentChildMap(edge.getFromId(), edge.getToId()));
   }
 
   @JsonProperty
@@ -78,7 +76,7 @@ public class VersionHistoryDag<T extends Version> {
    * @param childId the id of the "to" of the edge
    */
   public void addEdge(long parentId, long childId, long successorId) {
-    edgeIds.add(successorId);
+    this.edgeIds.add(successorId);
     this.addToParentChildMap(parentId, childId);
   }
 
@@ -89,15 +87,10 @@ public class VersionHistoryDag<T extends Version> {
    * @return the list of parent version(s)
    */
   public List<Long> getParent(long childId) {
-    List<Long> result = new ArrayList<>();
-
-    for (long parentId : parentChildMap.keySet()) {
-      if (parentChildMap.get(parentId).contains(childId)) {
-        result.add(parentId);
-      }
-    }
-
-    return result;
+    return this.parentChildMap.entrySet().stream()
+        .filter(entry -> entry.getValue().contains(childId))
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -107,27 +100,16 @@ public class VersionHistoryDag<T extends Version> {
    * @return the list of the IDs of the leaves of this DAG
    */
   public List<Long> getLeaves() {
-    List<Long> leaves = new ArrayList<>();
-    for (List<Long> values : parentChildMap.values()) {
-      leaves.addAll(values);
-    }
-
+    Set<Long> leaves = new HashSet<>();
+    this.parentChildMap.values().forEach(leaves::addAll);
     leaves.removeAll(this.parentChildMap.keySet());
 
-    Set<Long> leafSet = new HashSet<>(leaves);
-    List<Long> result = new ArrayList<>();
-    result.addAll(leafSet);
-
-    return result;
+    return new ArrayList<>(leaves);
   }
 
   private void addToParentChildMap(long parent, long child) {
-    List<Long> childList = this.parentChildMap.get(parent);
-    if (childList == null) {
-      childList = new ArrayList<>();
-    }
-
+    List<Long> childList = this.parentChildMap.computeIfAbsent(parent,
+        key -> new ArrayList<>());
     childList.add(child);
-    this.parentChildMap.put(parent, childList);
   }
 }
