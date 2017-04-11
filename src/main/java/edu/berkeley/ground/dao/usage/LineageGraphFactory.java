@@ -42,8 +42,4 @@ public interface LineageGraphFactory extends ItemFactory<LineageGraph> {
 
   @Override
   List<Long> getLeaves(String sourceKey) throws GroundException;
-
-  static LineageGraph construct(long id, String name, String sourceKey, Map<String, Tag> tags) {
-    return new LineageGraph(id, name, sourceKey, tags);
-  }
 }

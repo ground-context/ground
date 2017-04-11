@@ -17,13 +17,16 @@ package edu.berkeley.ground.dao.versions.postgres;
 import edu.berkeley.ground.dao.versions.VersionFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
+import edu.berkeley.ground.db.PostgresResults;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.Version;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostgresVersionFactory extends VersionFactory {
+public abstract class PostgresVersionFactory<T extends Version> implements VersionFactory<T> {
   private final PostgresClient dbClient;
 
   public PostgresVersionFactory(PostgresClient dbClient) {
@@ -42,5 +45,21 @@ public class PostgresVersionFactory extends VersionFactory {
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
     this.dbClient.insert("version", insertions);
+  }
+
+
+  /**
+   * Verify that a result set for a version is not empty.
+   *
+   * @param resultSet the result set to check
+   * @param id the id of the version
+   * @throws GroundVersionNotFoundException an exception indicating the item wasn't found
+   */
+  protected void verifyResultSet(PostgresResults resultSet, long id)
+      throws GroundException {
+
+    if (resultSet.isEmpty()) {
+      throw new GroundVersionNotFoundException(this.getType(), id);
+    }
   }
 }

@@ -21,7 +21,6 @@ import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.EdgeVersion;
@@ -38,10 +37,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresEdgeFactory extends EdgeFactory {
+public class PostgresEdgeFactory extends PostgresItemFactory<Edge> implements EdgeFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeFactory.class);
   private final PostgresClient dbClient;
-  private final PostgresItemFactory itemFactory;
   private PostgresEdgeVersionFactory edgeVersionFactory;
   private final PostgresVersionHistoryDagFactory versionHistoryDagFactory;
 
@@ -50,17 +49,18 @@ public class PostgresEdgeFactory extends EdgeFactory {
   /**
    * Constructor for Postgres edge factory.
    *
-   * @param itemFactory a PostgresItemFactory singleton
    * @param dbClient the Postgres client
    * @param idGenerator a unique ID generator
    * @param versionHistoryDagFactory a PostgresVersionHistoryDAGFactory singleton
    */
-  public PostgresEdgeFactory(PostgresItemFactory itemFactory,
-                             PostgresClient dbClient,
-                             IdGenerator idGenerator,
-                             PostgresVersionHistoryDagFactory versionHistoryDagFactory) {
+  public PostgresEdgeFactory(PostgresClient dbClient,
+                             PostgresVersionHistoryDagFactory versionHistoryDagFactory,
+                             PostgresTagFactory tagFactory,
+                             IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
     this.edgeVersionFactory = null;
     this.versionHistoryDagFactory = versionHistoryDagFactory;
@@ -88,9 +88,11 @@ public class PostgresEdgeFactory extends EdgeFactory {
                      long fromNodeId,
                      long toNodeId,
                      Map<String, Tag> tags) throws GroundException {
+
+    super.verifyItemNotExists(sourceKey);
     long uniqueId = this.idGenerator.generateItemId();
 
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -102,7 +104,20 @@ public class PostgresEdgeFactory extends EdgeFactory {
     this.dbClient.insert("edge", insertions);
 
     LOGGER.info("Created edge " + name + ".");
-    return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
+    return new Edge(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
+  }
+
+  /**
+   * Retrieve the DAG leaves for this edge.
+   *
+   * @param sourceKey the key of the edge to retrieve leaves for.
+   * @return the leaves of the edge
+   * @throws GroundException an error while retrieving the edge
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Edge edge = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(edge.getId());
   }
 
   @Override
@@ -121,12 +136,11 @@ public class PostgresEdgeFactory extends EdgeFactory {
 
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
-    }
+    PostgresResults resultSet = this.dbClient.equalitySelect("edge",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
+
 
     long id = resultSet.getLong(1);
     long fromNodeId = resultSet.getLong(3);
@@ -135,10 +149,10 @@ public class PostgresEdgeFactory extends EdgeFactory {
     String name = resultSet.getString(5);
     String sourceKey = resultSet.getString(2);
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
     LOGGER.info("Retrieved edge " + value + ".");
-    return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
+    return new Edge(id, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 
   /**
@@ -151,7 +165,8 @@ public class PostgresEdgeFactory extends EdgeFactory {
    */
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
+    super.update(itemId, childId, parentIds);
+
     parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());
 
     for (long parentId : parentIds) {
@@ -181,10 +196,5 @@ public class PostgresEdgeFactory extends EdgeFactory {
         this.edgeVersionFactory.updatePreviousVersion(parentId, fromEndId, toEndId);
       }
     }
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "edge");
   }
 }

@@ -15,6 +15,7 @@
 package edu.berkeley.ground.db;
 
 import edu.berkeley.ground.exceptions.GroundDbException;
+import edu.berkeley.ground.exceptions.GroundException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -129,6 +130,16 @@ public class PostgresResults {
       LOGGER.error(e.getMessage());
 
       throw new GroundDbException(e);
+    }
+  }
+
+  public boolean isEmpty() throws GroundException {
+    try {
+      return resultSet.isBeforeFirst() || resultSet.isAfterLast();
+    } catch (SQLException e) {
+      LOGGER.error(e.getMessage());
+
+      throw new GroundException(e);
     }
   }
 }

@@ -14,13 +14,15 @@
 
 package edu.berkeley.ground.dao.usage.postgres;
 
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresRichVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresStructureVersionFactory;
+import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -31,17 +33,18 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
+public class PostgresLineageEdgeVersionFactory
+    extends PostgresRichVersionFactory<LineageEdgeVersion>
+    implements LineageEdgeVersionFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(
       PostgresLineageEdgeVersionFactory.class);
   private final PostgresClient dbClient;
   private final PostgresLineageEdgeFactory lineageEdgeFactory;
-  private final PostgresRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -49,17 +52,19 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
    * Constructor for the Postgres lineage edge version factory.
    *
    * @param lineageEdgeFactory the singleton PostgresLineageEdgeFactory
-   * @param richVersionFactory the singleton PostgresRichVersionFactory
    * @param dbClient the Postgres client
    * @param idGenerator a unique id generator
    */
-  public PostgresLineageEdgeVersionFactory(PostgresLineageEdgeFactory lineageEdgeFactory,
-                                           PostgresRichVersionFactory richVersionFactory,
-                                           PostgresClient dbClient,
+  public PostgresLineageEdgeVersionFactory(PostgresClient dbClient,
+                                           PostgresLineageEdgeFactory lineageEdgeFactory,
+                                           PostgresStructureVersionFactory structureVersionFactory,
+                                           PostgresTagFactory tagFactory,
                                            IdGenerator idGenerator) {
+
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.lineageEdgeFactory = lineageEdgeFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -88,13 +93,9 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
                                    List<Long> parentIds) throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
+    tags = RichVersionFactory.addIdToTags(id, tags);
 
-    tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-    );
-
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -108,8 +109,8 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
 
     LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
 
-    return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, fromId, toId, lineageEdgeId);
+    return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
+        fromId, toId, lineageEdgeId);
   }
 
   /**
@@ -121,18 +122,15 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
    */
   @Override
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("lineage_edge_version", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No LineageEdgeVersion found with id " + id + ".");
-    }
+    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, id);
 
     long lineageEdgeId = resultSet.getLong(2);
     long fromId = resultSet.getLong(3);
@@ -141,8 +139,7 @@ public class PostgresLineageEdgeVersionFactory extends LineageEdgeVersionFactory
     LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
         + ".");
 
-    return LineageEdgeVersionFactory.construct(id, version.getTags(),
-        version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId,
-        toId, lineageEdgeId);
+    return new LineageEdgeVersion(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);
   }
 }
