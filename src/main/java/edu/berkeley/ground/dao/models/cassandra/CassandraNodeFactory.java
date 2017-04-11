@@ -142,9 +142,4 @@ public class CassandraNodeFactory extends CassandraItemFactory<Node> implements 
     LOGGER.info("Retrieved node " + value + ".");
     return new Node(id, name, sourceKey, tags);
   }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
-  }
 }

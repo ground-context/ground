@@ -142,9 +142,4 @@ public class Neo4jStructureFactory extends Neo4jItemFactory<Structure> implement
 
     return new Structure(id, name, sourceKey, tags);
   }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
-  }
 }

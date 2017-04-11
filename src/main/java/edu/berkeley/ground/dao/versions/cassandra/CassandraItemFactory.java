@@ -108,7 +108,7 @@ public abstract class CassandraItemFactory<T extends Item> implements ItemFactor
    * @param parentIds the ids of the parents of the child
    * @throws GroundException an error
    */
-  protected void updateItem(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // TODO: Refactor logic for parent into function in ItemFactory
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY,
     // which is version 0.

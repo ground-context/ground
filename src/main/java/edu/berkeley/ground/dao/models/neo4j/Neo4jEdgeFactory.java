@@ -162,7 +162,7 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
    */
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
+    super.update(itemId, childId, parentIds);
 
     for (long parentId : parentIds) {
       EdgeVersion currentVersion = this.edgeVersionFactory.retrieveFromDatabase(childId);

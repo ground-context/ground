@@ -21,7 +21,6 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.model.versions.GroundType;
 
 import java.util.Collections;
@@ -92,9 +91,9 @@ public class CassandraClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public CassandraResults equalitySelect(
-      String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
-      throws EmptyResultException {
+  public CassandraResults equalitySelect(String table,
+                                         List<String> projection,
+                                         List<DbDataContainer> predicatesAndValues) {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
 
@@ -119,10 +118,6 @@ public class CassandraClient extends DbClient {
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
-
-    if (resultSet == null || resultSet.isExhausted()) {
-      throw new EmptyResultException("No results found for query: " + statement.toString());
-    }
 
     return new CassandraResults(resultSet);
   }

@@ -14,7 +14,6 @@
 
 package edu.berkeley.ground.db;
 
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.model.versions.GroundType;
 
@@ -105,7 +104,7 @@ public class PostgresClient extends DbClient {
    */
   public PostgresResults equalitySelect(
       String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
-      throws GroundDbException, EmptyResultException {
+      throws GroundDbException {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
 
@@ -132,12 +131,9 @@ public class PostgresClient extends DbClient {
       LOGGER.info("Executing query: " + preparedStatement.toString() + ".");
 
       ResultSet resultSet = preparedStatement.executeQuery();
-      if (!resultSet.isBeforeFirst()) {
-        throw new EmptyResultException(
-            "No results found for query: " + preparedStatement.toString());
-      }
 
       // Moves the cursor to the first element so that data can be accessed directly.
+      // TODO: this might cause an issue
       resultSet.next();
       return new PostgresResults(resultSet);
     } catch (SQLException e) {

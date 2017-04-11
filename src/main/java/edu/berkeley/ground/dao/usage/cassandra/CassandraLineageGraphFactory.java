@@ -87,7 +87,7 @@ public class CassandraLineageGraphFactory
     this.dbClient.insert("lineage_graph", insertions);
 
     LOGGER.info("Created lineage_graph " + name + ".");
-    return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
+    return new LineageGraph(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -145,11 +145,6 @@ public class CassandraLineageGraphFactory
     Map<String, Tag> tags = super.retrieveItemTags(id);
 
     LOGGER.info("Retrieved lineage_graph " + value + ".");
-    return LineageGraphFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
+    return new LineageGraph(id, name, sourceKey, tags);
   }
 }

@@ -85,7 +85,7 @@ public class Neo4jLineageEdgeFactory
     super.insertIntoDatabase(uniqueId, tags);
 
     LOGGER.info("Created lineage edge " + name + ".");
-    return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
+    return new LineageEdge(uniqueId, name, sourceKey, tags);
   }
 
   /**
@@ -140,11 +140,6 @@ public class Neo4jLineageEdgeFactory
     Map<String, Tag> tags = super.retrieveItemTags(id);
 
     LOGGER.info("Retrieved lineage edge " + value + ".");
-    return LineageEdgeFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
+    return new LineageEdge(id, name, sourceKey, tags);
   }
 }

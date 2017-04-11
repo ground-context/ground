@@ -167,7 +167,7 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
    */
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
+    super.update(itemId, childId, parentIds);
     parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());
 
     for (long parentId : parentIds) {

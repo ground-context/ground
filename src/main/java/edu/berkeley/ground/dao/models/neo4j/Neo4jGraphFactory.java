@@ -141,9 +141,4 @@ public class Neo4jGraphFactory extends Neo4jItemFactory<Graph> implements GraphF
 
     return new Graph(id, name, sourceKey, tags);
   }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
-  }
 }

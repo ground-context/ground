@@ -146,9 +146,4 @@ public class CassandraStructureFactory
     LOGGER.info("Retrieved structure " + value + ".");
     return new Structure(id, name, sourceKey, tags);
   }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
-  }
 }

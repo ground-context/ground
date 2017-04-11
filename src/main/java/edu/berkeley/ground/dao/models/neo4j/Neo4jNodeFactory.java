@@ -140,9 +140,4 @@ public class Neo4jNodeFactory extends Neo4jItemFactory<Node> implements NodeFact
 
     return new Node(id, name, sourceKey, tags);
   }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.updateItem(itemId, childId, parentIds);
-  }
 }
