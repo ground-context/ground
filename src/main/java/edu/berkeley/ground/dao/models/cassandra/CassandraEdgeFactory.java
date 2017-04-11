@@ -21,7 +21,6 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.EdgeVersion;
@@ -39,11 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class CassandraEdgeFactory extends EdgeFactory {
+public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
   private final CassandraClient dbClient;
   private final CassandraVersionHistoryDagFactory versionHistoryDagFactory;
-  private final CassandraItemFactory itemFactory;
   private CassandraEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
@@ -51,17 +49,19 @@ public class CassandraEdgeFactory extends EdgeFactory {
   /**
    * Constructor for Cassandra edge factory.
    *
-   * @param itemFactory a CassandraItemFactory singleton
    * @param dbClient the Cassandra client
    * @param idGenerator a unique ID generator
    * @param versionHistoryDagFactory a CassandraVersionHistoryDAGFactory singleton
+   * @param tagFactory a CassandraTagFactory singleton
    */
-  public CassandraEdgeFactory(CassandraItemFactory itemFactory,
-                              CassandraClient dbClient,
-                              IdGenerator idGenerator,
-                              CassandraVersionHistoryDagFactory versionHistoryDagFactory) {
+  public CassandraEdgeFactory(CassandraClient dbClient,
+                              CassandraVersionHistoryDagFactory versionHistoryDagFactory,
+                              CassandraTagFactory tagFactory,
+                              IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
     this.edgeVersionFactory = null;
     this.versionHistoryDagFactory = versionHistoryDagFactory;
@@ -89,22 +89,11 @@ public class CassandraEdgeFactory extends EdgeFactory {
                      long toNodeId,
                      Map<String, Tag> tags) throws GroundException {
 
-    Edge edge = null;
-    try {
-      edge = this.retrieveFromDatabase(sourceKey);
-    } catch (GroundException e) {
-      if (!e.getMessage().contains("No Edge found")) {
-        throw e;
-      }
-    }
-
-    if (edge != null) {
-      throw new GroundException("Edge with source_key " + sourceKey + " already exists.");
-    }
+    super.verifyItemNotExists(sourceKey);
 
     long uniqueId = this.idGenerator.generateItemId();
 
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -116,8 +105,22 @@ public class CassandraEdgeFactory extends EdgeFactory {
     this.dbClient.insert("edge", insertions);
 
     LOGGER.info("Created edge " + name + ".");
-    return EdgeFactory.construct(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
+    return new Edge(uniqueId, name, sourceKey, fromNodeId, toNodeId, tags);
   }
+
+  /**
+   * Retrieve the DAG leaves for this node.
+   *
+   * @param sourceKey the key of the node to retrieve leaves for.
+   * @return the leaves of the node
+   * @throws GroundException an error while retrieving the node
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Edge edge = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(edge.getId());
+  }
+
 
   @Override
   public Edge retrieveFromDatabase(String sourceKey) throws GroundException {
@@ -135,12 +138,11 @@ public class CassandraEdgeFactory extends EdgeFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No Edge found with " + fieldName + " " + value + ".");
-    }
+    CassandraResults resultSet = this.dbClient.equalitySelect("edge",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
+
 
     long id = resultSet.getLong("item_id");
     long fromNodeId = resultSet.getLong("from_node_id");
@@ -149,10 +151,10 @@ public class CassandraEdgeFactory extends EdgeFactory {
     String name = resultSet.getString("name");
     String sourceKey = resultSet.getString("source_key");
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
     LOGGER.info("Retrieved edge " + value + ".");
-    return EdgeFactory.construct(id, name, sourceKey, fromNodeId, toNodeId, tags);
+    return new Edge(id, name, sourceKey, fromNodeId, toNodeId, tags);
   }
 
   /**
@@ -165,7 +167,7 @@ public class CassandraEdgeFactory extends EdgeFactory {
    */
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
+    super.updateItem(itemId, childId, parentIds);
     parentIds = parentIds.stream().filter(x -> x != 0).collect(Collectors.toList());
 
     for (long parentId : parentIds) {
@@ -195,10 +197,5 @@ public class CassandraEdgeFactory extends EdgeFactory {
         this.edgeVersionFactory.updatePreviousVersion(parentId, fromEndId, toEndId);
       }
     }
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "edge");
   }
 }

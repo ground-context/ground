@@ -14,14 +14,17 @@
 
 package edu.berkeley.ground.dao.versions.cassandra;
 
+import com.google.common.base.CaseFormat;
+
 import edu.berkeley.ground.dao.versions.VersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.Item;
 import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
@@ -60,17 +63,14 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
+    CassandraResults resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
           predicates);
-    } catch (EmptyResultException e) {
-      // do nothing' this just means that no versions have been added yet.
+
+    if (resultSet.isEmpty()) {
       return VersionHistoryDagFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
-
     do {
       edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
           .getLong("version_successor_id")));
@@ -109,7 +109,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
       throws GroundException {
 
     int keptLevels = 1;
@@ -142,22 +142,26 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
       long id = deleteQueue.get(0);
 
       if (id != 0) {
-        if (itemType.equals("structure")) {
+        String tableNamePrefix = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
+            itemType.getName());
+
+        if (itemType.equals(Structure.class)) {
           predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
           this.dbClient.delete(predicates, "structure_version_attribute");
           predicates.clear();
         }
 
-        if (itemType.contains("graph")) {
-          predicates.add(new DbDataContainer(itemType + "_version_id", GroundType.LONG, id));
-          this.dbClient.delete(predicates, itemType + "_version_edge");
+        if (itemType.getName().toLowerCase().contains("graph")) {
+
+          predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
+          this.dbClient.delete(predicates, tableNamePrefix + "_version_edge");
           predicates.clear();
         }
 
         predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-        this.dbClient.delete(predicates, itemType + "_version");
+        this.dbClient.delete(predicates, tableNamePrefix + "_version");
 
-        if (!itemType.equals("structure")) {
+        if (!itemType.equals(Structure.class)) {
           this.dbClient.delete(predicates, "rich_version");
         }
 

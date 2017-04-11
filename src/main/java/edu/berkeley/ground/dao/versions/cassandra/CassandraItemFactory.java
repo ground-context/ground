@@ -17,8 +17,10 @@ package edu.berkeley.ground.dao.versions.cassandra;
 import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
 import edu.berkeley.ground.dao.versions.ItemFactory;
 import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
@@ -31,7 +33,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraItemFactory extends ItemFactory {
+public abstract class CassandraItemFactory<T extends Item> implements ItemFactory<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraItemFactory.class);
 
   private final CassandraClient dbClient;
@@ -60,7 +62,6 @@ public class CassandraItemFactory extends ItemFactory {
    * @param tags the tags associated with the item
    * @throws GroundException an error inserting data into the database
    */
-  @Override
   public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -89,15 +90,14 @@ public class CassandraItemFactory extends ItemFactory {
   }
 
   /**
-   * Retrieve Item information from the database.
+   * Retrieve the tags associated with a particular item id.
    *
    * @param id the id of the item
-   * @return the retrieved item
-   * @throws GroundException either the item doesn't exist or couldn't be retrieved
+   * @return the tags associated with the item
+   * @throws GroundException an error while retrieving the tags
    */
-  @Override
-  public Item retrieveFromDatabase(long id) throws GroundException {
-    return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
+  protected Map<String, Tag> retrieveItemTags(long id) throws GroundException {
+    return this.tagFactory.retrieveFromDatabaseByItemId(id);
   }
 
   /**
@@ -108,8 +108,7 @@ public class CassandraItemFactory extends ItemFactory {
    * @param parentIds the ids of the parents of the child
    * @throws GroundException an error
    */
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  protected void updateItem(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // TODO: Refactor logic for parent into function in ItemFactory
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY,
     // which is version 0.
@@ -165,13 +164,28 @@ public class CassandraItemFactory extends ItemFactory {
    * Truncate the item to only have the most recent levels.
    *
    * @param numLevels the levels to keep
-   * @param itemType the type of the item to truncate
    * @throws GroundException an error while removing versions
    */
   @Override
-  public void truncate(long itemId, int numLevels, String itemType) throws GroundException {
+  public void truncate(long itemId, int numLevels) throws GroundException {
     VersionHistoryDag<?> dag = this.versionHistoryDagFactory.retrieveFromDatabase(itemId);
 
-    this.versionHistoryDagFactory.truncate(dag, numLevels, itemType);
+    this.versionHistoryDagFactory.truncate(dag, numLevels, this.getType());
+  }
+
+  /**
+   * Verify that a result set for an item is not empty.
+   *
+   * @param resultSet the result set to check
+   * @param fieldName the name of the field that was used to retrieve this item
+   * @param value the value used to retrieve the item
+   * @throws GroundItemNotFoundException an exception indicating the item wasn't found
+   */
+  protected void verifyResultSet(CassandraResults resultSet, String fieldName, Object value)
+    throws GroundItemNotFoundException {
+
+    if (resultSet.isEmpty()) {
+      throw new GroundItemNotFoundException(this.getType(), fieldName, value);
+    }
   }
 }

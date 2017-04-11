@@ -14,13 +14,14 @@
 
 package edu.berkeley.ground.dao.usage.cassandra;
 
+import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageEdge;
@@ -34,25 +35,29 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
+public class CassandraLineageEdgeFactory
+    extends CassandraItemFactory<LineageEdge>
+    implements LineageEdgeFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLineageEdgeFactory.class);
   private final CassandraClient dbClient;
-  private final CassandraItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Cassandra lineage edge factory.
    *
-   * @param itemFactory the singleton CassandraItemFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
-  public CassandraLineageEdgeFactory(CassandraItemFactory itemFactory,
-                                     CassandraClient dbClient,
+  public CassandraLineageEdgeFactory(CassandraClient dbClient,
+                                     CassandraTagFactory tagFactory,
+                                     CassandraVersionHistoryDagFactory versionHistoryDagFactory,
                                      IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -69,23 +74,10 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
 
-    LineageEdge lineageEdge = null;
-    try {
-      lineageEdge = this.retrieveFromDatabase(sourceKey);
-    } catch (GroundException e) {
-      if (!e.getMessage().contains("No LineageEdge found")) {
-        throw e;
-      }
-    }
-
-    if (lineageEdge != null) {
-      throw new GroundException("LineageEdge with source_key " + sourceKey + " already exists.");
-    }
-
+    super.verifyItemNotExists(sourceKey);
 
     long uniqueId = this.idGenerator.generateItemId();
-
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -99,6 +91,19 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
   }
 
   /**
+   * Retrieve the leaves of this lineage edge's DAG.
+   *
+   * @param sourceKey the key of the lineage edge
+   * @return the list of leaves in this lineage edge's DAG
+   * @throws GroundException an error while retrieving the lineage edge
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    LineageEdge structure = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(structure.getId());
+  }
+
+  /**
    * Retrieve a lineage edge from the database.
    *
    * @param sourceKey the key of the lineage edge
@@ -107,32 +112,44 @@ public class CassandraLineageEdgeFactory extends LineageEdgeFactory {
    */
   @Override
   public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("lineage_edge", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No LineageEdge found with source_key " + sourceKey + ".");
-    }
+  /**
+   * Retrieves a lineage edge from the database.
+   *
+   * @param id the id of the lineage edge to retrieve
+   * @return the retrieved lineage edge
+   * @throws GroundException either the lineage edge doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public LineageEdge retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.LONG);
+  }
+
+  private LineageEdge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    CassandraResults resultSet = this.dbClient.equalitySelect("lineage_edge",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong("item_id");
     String name = resultSet.getString("name");
+    String sourceKey = resultSet.getString("source_key");
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved lineage edge " + sourceKey + ".");
+    LOGGER.info("Retrieved lineage edge " + value + ".");
     return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "lineage_edge");
+    super.updateItem(itemId, childId, parentIds);
   }
 }

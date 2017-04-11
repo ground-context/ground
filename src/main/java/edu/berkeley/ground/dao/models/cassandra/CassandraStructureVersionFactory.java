@@ -20,7 +20,6 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -34,12 +33,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraStructureVersionFactory extends StructureVersionFactory {
+public class CassandraStructureVersionFactory
+    extends CassandraVersionFactory<StructureVersion>
+    implements StructureVersionFactory {
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CassandraStructureVersionFactory.class);
+
   private final CassandraClient dbClient;
   private final CassandraStructureFactory structureFactory;
-  private final CassandraVersionFactory versionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -47,17 +49,17 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
    * Constructor for the Cassandra structure version factory.
    *
    * @param structureFactory the singleton CassandraStructureFactory
-   * @param versionFactory the singleton CassandraVersionFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
   public CassandraStructureVersionFactory(CassandraStructureFactory structureFactory,
-                                          CassandraVersionFactory versionFactory,
                                           CassandraClient dbClient,
                                           IdGenerator idGenerator) {
+
+    super(dbClient);
+
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
-    this.versionFactory = versionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -77,7 +79,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
 
     long id = this.idGenerator.generateVersionId();
 
-    this.versionFactory.insertIntoDatabase(id);
+    super.insertIntoDatabase(id);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -98,7 +100,7 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
     this.structureFactory.update(structureId, id, parentIds);
 
     LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-    return StructureVersionFactory.construct(id, structureId, attributes);
+    return new StructureVersion(id, structureId, attributes);
   }
 
   /**
@@ -113,33 +115,30 @@ public class CassandraStructureVersionFactory extends StructureVersionFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No StructureVersion found with id " + id + ".");
-    }
+    CassandraResults resultSet = this.dbClient.equalitySelect("structure_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, id);
 
     Map<String, GroundType> attributes = new HashMap<>();
 
-    try {
-      List<DbDataContainer> attributePredicates = new ArrayList<>();
-      attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-      CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
-          DbClient.SELECT_STAR, attributePredicates);
+    List<DbDataContainer> attributePredicates = new ArrayList<>();
+    attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+    CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+        DbClient.SELECT_STAR, attributePredicates);
 
-      do {
-        attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
-            .getString("type")));
-      } while (attributesSet.next());
-    } catch (EmptyResultException e) {
+    if (attributesSet.isEmpty()) {
       throw new GroundException("No StructureVersion attributes found for id " + id + ".");
     }
+
+    do {
+      attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
+          .getString("type")));
+    } while (attributesSet.next());
 
     long structureId = resultSet.getLong("structure_id");
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-    return StructureVersionFactory.construct(id, structureId, attributes);
+    return new StructureVersion(id, structureId, attributes);
   }
 }
