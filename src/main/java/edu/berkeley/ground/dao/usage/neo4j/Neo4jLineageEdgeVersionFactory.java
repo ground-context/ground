@@ -54,8 +54,8 @@ public class Neo4jLineageEdgeVersionFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
-  public Neo4jLineageEdgeVersionFactory(Neo4jLineageEdgeFactory lineageEdgeFactory,
-                                        Neo4jClient dbClient,
+  public Neo4jLineageEdgeVersionFactory(Neo4jClient dbClient,
+                                        Neo4jLineageEdgeFactory lineageEdgeFactory,
                                         Neo4jStructureVersionFactory structureVersionFactory,
                                         Neo4jTagFactory tagFactory,
                                         IdGenerator idGenerator) {

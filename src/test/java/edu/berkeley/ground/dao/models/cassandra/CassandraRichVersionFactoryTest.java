@@ -16,11 +16,14 @@ package edu.berkeley.ground.dao.models.cassandra;
 
 import org.junit.Test;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -30,8 +33,31 @@ import static org.junit.Assert.*;
 
 public class CassandraRichVersionFactoryTest extends CassandraTest {
 
+  private TestCassandraRichVersionFactory richVersionFactory;
+
+  private class TestCassandraRichVersionFactory extends CassandraRichVersionFactory<RichVersion> {
+    private TestCassandraRichVersionFactory(
+        CassandraClient cassandraClient,
+        CassandraStructureVersionFactory structureVersionFactory,
+        CassandraTagFactory tagFactory) {
+
+      super(cassandraClient, structureVersionFactory, tagFactory);
+    }
+
+    public Class<RichVersion> getType() {
+      return RichVersion.class;
+    }
+
+    public RichVersion retrieveFromDatabase(long id) {
+      throw new NotImplementedException();
+    }
+  }
+
   public CassandraRichVersionFactoryTest() throws GroundException {
     super();
+
+    this.richVersionFactory = new TestCassandraRichVersionFactory(CassandraTest.cassandraClient,
+        CassandraTest.getStructureVersionFactory(), CassandraTest.tagFactory);
   }
 
   @Test
@@ -43,9 +69,10 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       parameters.put("http", "GET");
       parameters.put("ftp", "test");
 
-      CassandraTest.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference, parameters);
+      this.richVersionFactory.insertIntoDatabase(id, new HashMap<>(), -1, testReference,
+          parameters);
 
-      RichVersion retrieved = CassandraTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -71,9 +98,9 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
+      this.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
-      RichVersion retrieved = CassandraTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -100,10 +127,10 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
 
       Map<String, Tag> tags = CassandraTest.createTags();
 
-      CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
 
-      RichVersion retrieved = CassandraTest.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionFactory.retrieveRichVersionData(id);
       assertEquals(retrieved.getStructureVersionId(), structureVersionId);
     } finally {
       CassandraTest.cassandraClient.abort();
@@ -133,7 +160,7 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      CassandraTest.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
+      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
           new HashMap<>());
     } finally {
       CassandraTest.cassandraClient.abort();

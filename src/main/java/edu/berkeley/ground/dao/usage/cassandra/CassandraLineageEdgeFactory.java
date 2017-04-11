@@ -51,8 +51,8 @@ public class CassandraLineageEdgeFactory
    * @param idGenerator a unique id generator
    */
   public CassandraLineageEdgeFactory(CassandraClient dbClient,
-                                     CassandraTagFactory tagFactory,
                                      CassandraVersionHistoryDagFactory versionHistoryDagFactory,
+                                     CassandraTagFactory tagFactory,
                                      IdGenerator idGenerator) {
 
     super(dbClient, versionHistoryDagFactory, tagFactory);

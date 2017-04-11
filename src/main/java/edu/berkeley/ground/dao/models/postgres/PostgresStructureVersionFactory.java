@@ -51,8 +51,8 @@ public class PostgresStructureVersionFactory
    * @param dbClient the Postgres client
    * @param idGenerator a unique id generator
    */
-  public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory,
-                                         PostgresClient dbClient,
+  public PostgresStructureVersionFactory(PostgresClient dbClient,
+                                         PostgresStructureFactory structureFactory,
                                          IdGenerator idGenerator) {
 
     super(dbClient);

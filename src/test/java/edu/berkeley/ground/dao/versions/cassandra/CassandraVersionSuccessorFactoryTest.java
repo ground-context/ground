@@ -17,6 +17,7 @@ package edu.berkeley.ground.dao.versions.cassandra;
 import org.junit.Test;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.dao.versions.cassandra.mock.TestCassandraVersionFactory;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -25,8 +26,12 @@ import static org.junit.Assert.*;
 
 public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
 
+  private TestCassandraVersionFactory versionFactory;
+
   public CassandraVersionSuccessorFactoryTest() throws GroundDbException {
     super();
+
+    this.versionFactory = new TestCassandraVersionFactory(CassandraTest.cassandraClient);
   }
 
   @Test
@@ -35,8 +40,8 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
       long fromId = 123;
       long toId = 456;
 
-      CassandraTest.versionFactory.insertIntoDatabase(fromId);
-      CassandraTest.versionFactory.insertIntoDatabase(toId);
+      this.versionFactory.insertIntoDatabase(fromId);
+      this.versionFactory.insertIntoDatabase(toId);
 
       VersionSuccessor<?> successor = CassandraTest.versionSuccessorFactory.create(fromId, toId);
 
@@ -59,7 +64,7 @@ public class CassandraVersionSuccessorFactoryTest extends CassandraTest {
       // Catch exceptions for these two lines because they should not fal
       try {
         // the main difference is that we're not creating a Version for the toId
-        CassandraTest.versionFactory.insertIntoDatabase(fromId);
+        this.versionFactory.insertIntoDatabase(fromId);
       } catch (GroundException ge) {
         CassandraTest.cassandraClient.abort();
 

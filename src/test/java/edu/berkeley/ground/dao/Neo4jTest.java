@@ -19,17 +19,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-import edu.berkeley.ground.dao.models.neo4j.Neo4jRichVersionFactory;
+import edu.berkeley.ground.dao.models.TagFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jStructureVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
-import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionSuccessorFactory;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.resources.EdgesResource;
 import edu.berkeley.ground.resources.GraphsResource;
 import edu.berkeley.ground.resources.LineageEdgesResource;
@@ -40,18 +36,16 @@ import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
 
 public class Neo4jTest extends DaoTest {
-    /* Note: In Neo4j, we don't create explicit (Rich)Versions because all of the logic is wrapped in
-     * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
-     * Versions. */
+  /* Note: In Neo4j, we don't create explicit (Rich)Versions because all of the logic is wrapped in
+   * FooVersions. We are using NodeVersions as stand-ins because they are the most simple kind of
+   * Versions. */
 
   private static Neo4jFactories factories;
 
   protected static Neo4jClient neo4jClient;
   protected static Neo4jVersionSuccessorFactory versionSuccessorFactory;
   protected static Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
-  protected static Neo4jItemFactory itemFactory;
   protected static Neo4jTagFactory tagFactory;
-  protected static Neo4jRichVersionFactory richVersionFactory;
 
   @BeforeClass
   public static void setupClass() {
@@ -60,9 +54,6 @@ public class Neo4jTest extends DaoTest {
     versionSuccessorFactory = new Neo4jVersionSuccessorFactory(neo4jClient, new IdGenerator(0, 1, true));
     versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(neo4jClient, versionSuccessorFactory);
     tagFactory = new Neo4jTagFactory(neo4jClient);
-    itemFactory = new Neo4jItemFactory(neo4jClient, versionHistoryDAGFactory, tagFactory);
-    richVersionFactory = new Neo4jRichVersionFactory(neo4jClient, (Neo4jStructureVersionFactory)
-        factories.getStructureVersionFactory(), tagFactory);
 
     edgesResource = new EdgesResource(factories.getEdgeFactory(),
         factories.getEdgeVersionFactory(), factories.getNodeFactory(), neo4jClient);
@@ -76,6 +67,10 @@ public class Neo4jTest extends DaoTest {
         factories.getNodeVersionFactory(), neo4jClient);
     structuresResource = new StructuresResource(factories.getStructureFactory(),
         factories.getStructureVersionFactory(), neo4jClient);
+  }
+
+  public static Neo4jStructureVersionFactory getStructureVersionFactory() {
+    return (Neo4jStructureVersionFactory) Neo4jTest.factories.getStructureVersionFactory();
   }
 
   @AfterClass

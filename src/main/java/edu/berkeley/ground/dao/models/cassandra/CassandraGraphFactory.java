@@ -47,9 +47,9 @@ public class CassandraGraphFactory extends CassandraItemFactory<Graph> implement
    * @param dbClient the Cassandra client
    * @param idGenerator a unique ID generator
    */
-  public CassandraGraphFactory(CassandraTagFactory tagFactory,
+  public CassandraGraphFactory(CassandraClient dbClient,
                                CassandraVersionHistoryDagFactory versionHistoryDagFactory,
-                               CassandraClient dbClient,
+                               CassandraTagFactory tagFactory,
                                IdGenerator idGenerator) {
     super(dbClient, versionHistoryDagFactory, tagFactory);
 

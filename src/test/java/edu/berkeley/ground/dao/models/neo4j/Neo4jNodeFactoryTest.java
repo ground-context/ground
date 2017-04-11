@@ -77,9 +77,10 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   public void testNodeTagRetrieval() throws GroundException {
     try {
       Map<String, Tag> tags = Neo4jTest.createTags();
+      String sourceKey = "testNode";
 
-      long testNodeId = Neo4jTest.nodesResource.createNode("tesNode", null, tags).getId();
-      Item retrieved = Neo4jTest.itemFactory.retrieveFromDatabase(testNodeId);
+      long testNodeId = Neo4jTest.nodesResource.createNode(sourceKey, null, tags).getId();
+      Item retrieved = Neo4jTest.nodesResource.getNode(sourceKey);
 
       assertEquals(testNodeId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());

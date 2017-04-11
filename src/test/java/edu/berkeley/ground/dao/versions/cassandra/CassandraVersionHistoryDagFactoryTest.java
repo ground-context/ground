@@ -17,6 +17,7 @@ package edu.berkeley.ground.dao.versions.cassandra;
 import org.junit.Test;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.dao.versions.cassandra.mock.TestCassandraVersionFactory;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 import edu.berkeley.ground.exceptions.GroundDbException;
@@ -26,8 +27,12 @@ import static org.junit.Assert.*;
 
 public class CassandraVersionHistoryDagFactoryTest extends CassandraTest {
 
+  private TestCassandraVersionFactory versionFactory;
+
   public CassandraVersionHistoryDagFactoryTest() throws GroundDbException {
     super();
+
+    this.versionFactory = new TestCassandraVersionFactory(CassandraTest.cassandraClient);
   }
 
   @Test
@@ -55,8 +60,8 @@ public class CassandraVersionHistoryDagFactoryTest extends CassandraTest {
       long fromId = 123;
       long toId = 456;
 
-      CassandraTest.versionFactory.insertIntoDatabase(fromId);
-      CassandraTest.versionFactory.insertIntoDatabase(toId);
+      this.versionFactory.insertIntoDatabase(fromId);
+      this.versionFactory.insertIntoDatabase(toId);
 
       CassandraTest.versionHistoryDAGFactory.addEdge(dag, fromId, toId, testId);
 

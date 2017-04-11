@@ -52,8 +52,8 @@ public class CassandraStructureVersionFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
-  public CassandraStructureVersionFactory(CassandraStructureFactory structureFactory,
-                                          CassandraClient dbClient,
+  public CassandraStructureVersionFactory(CassandraClient dbClient,
+                                          CassandraStructureFactory structureFactory,
                                           IdGenerator idGenerator) {
 
     super(dbClient);
