@@ -28,7 +28,7 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
+public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory {
   private final CassandraClient dbClient;
   private final IdGenerator idGenerator;
 
@@ -63,7 +63,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
 
     this.dbClient.insert("version_successor", insertions);
 
-    return VersionSuccessorFactory.construct(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, toId, fromId);
   }
 
   /**
@@ -91,7 +91,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     long fromId = resultSet.getLong("from_version_id");
     long toId = resultSet.getLong("to_version_id");
 
-    return VersionSuccessorFactory.construct(dbId, fromId, toId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -132,7 +132,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> predicate = new ArrayList<>();
     predicate.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    if (dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicate).isEmpty()) {
+    if (this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicate).isEmpty()) {
       throw new GroundException("Version id " + id + " is not valid.");
     }
   }

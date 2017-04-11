@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory {
+public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final CassandraClient dbClient;
   private final CassandraVersionSuccessorFactory versionSuccessorFactory;
 
@@ -47,7 +47,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
 
   @Override
   public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
-    return construct(itemId);
+    return new VersionHistoryDag<T>(itemId, new ArrayList<>());
   }
 
   /**
@@ -67,7 +67,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
           predicates);
 
     if (resultSet.isEmpty()) {
-      return VersionHistoryDagFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
@@ -76,7 +76,7 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
           .getLong("version_successor_id")));
     } while (resultSet.next());
 
-    return VersionHistoryDagFactory.construct(itemId, edges);
+    return new VersionHistoryDag(itemId, edges);
   }
 
   /**
@@ -152,7 +152,6 @@ public class CassandraVersionHistoryDagFactory extends VersionHistoryDagFactory 
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
-
           predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
           this.dbClient.delete(predicates, tableNamePrefix + "_version_edge");
           predicates.clear();

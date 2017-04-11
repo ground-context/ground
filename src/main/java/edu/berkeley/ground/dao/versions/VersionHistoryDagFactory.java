@@ -23,12 +23,10 @@ import edu.berkeley.ground.model.versions.VersionSuccessor;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class VersionHistoryDagFactory {
-  public abstract <T extends Version> VersionHistoryDag<T> create(long itemId)
-      throws GroundException;
+public interface VersionHistoryDagFactory {
+  <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException;
 
-  public abstract <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
-      throws GroundException;
+  <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId) throws GroundException;
 
   /**
    * Add a new edge between parentId and childId in DAG.
@@ -38,7 +36,7 @@ public abstract class VersionHistoryDagFactory {
    * @param childId the child's id
    * @param itemId the id of the Item whose DAG we're updating
    */
-  public abstract void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
+  void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
       throws GroundException;
 
   /**
@@ -49,17 +47,7 @@ public abstract class VersionHistoryDagFactory {
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
-  public abstract void truncate(VersionHistoryDag dag,
-                                int numLevels,
-                                Class<? extends Item> itemType) throws GroundException;
-
-  protected static <T extends Version> VersionHistoryDag<T> construct(long itemId) {
-    return new VersionHistoryDag<>(itemId, new ArrayList<>());
-  }
-
-  protected static <T extends Version> VersionHistoryDag<T> construct(
-      long itemId,
-      List<VersionSuccessor<T>> edges) {
-    return new VersionHistoryDag<>(itemId, edges);
-  }
+  void truncate(VersionHistoryDag dag,
+                int numLevels,
+                Class<? extends Item> itemType) throws GroundException;
 }
