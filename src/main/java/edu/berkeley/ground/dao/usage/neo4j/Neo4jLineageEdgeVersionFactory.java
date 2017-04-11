@@ -14,12 +14,13 @@
 
 package edu.berkeley.ground.dao.usage.neo4j;
 
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jRichVersionFactory;
+import edu.berkeley.ground.dao.models.neo4j.Neo4jStructureVersionFactory;
+import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -30,18 +31,19 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
+public class Neo4jLineageEdgeVersionFactory
+    extends Neo4jRichVersionFactory<LineageEdgeVersion>
+    implements LineageEdgeVersionFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(
       Neo4jLineageEdgeVersionFactory.class);
   private final Neo4jClient dbClient;
   private final Neo4jLineageEdgeFactory lineageEdgeFactory;
-  private final Neo4jRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -49,17 +51,19 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
    * Constructor for the Neo4j lineage edge version factory.
    *
    * @param lineageEdgeFactory the singleton Neo4jLineageEdgeFactory
-   * @param richVersionFactory the singleton Neo4jRichVersionFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
   public Neo4jLineageEdgeVersionFactory(Neo4jLineageEdgeFactory lineageEdgeFactory,
-                                        Neo4jRichVersionFactory richVersionFactory,
                                         Neo4jClient dbClient,
+                                        Neo4jStructureVersionFactory structureVersionFactory,
+                                        Neo4jTagFactory tagFactory,
                                         IdGenerator idGenerator) {
+
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.lineageEdgeFactory = lineageEdgeFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -89,9 +93,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
 
     long id = this.idGenerator.generateVersionId();
 
-    tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-    );
+    tags = RichVersionFactory.addIdToTags(id, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -102,15 +104,14 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
     this.dbClient.addVertex("LineageEdgeVersion", insertions);
 
     this.lineageEdgeFactory.update(lineageEdgeId, id, parentIds);
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     this.dbClient.addEdge("LineageEdgeVersionConnection", fromId, id, new ArrayList<>());
     this.dbClient.addEdge("LineageEdgeVersionConnection", id, toId, new ArrayList<>());
 
     LOGGER.info("Created lineage edge version " + id + " in lineage edge " + lineageEdgeId + ".");
-    return LineageEdgeVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, fromId, toId, lineageEdgeId);
+    return new LineageEdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
+        fromId, toId, lineageEdgeId);
   }
 
   /**
@@ -122,17 +123,13 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
    */
   @Override
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    Record versionRecord;
-    try {
-      versionRecord = this.dbClient.getVertex(predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundDbException("No LineageEdgeVersion found with id " + id + ".");
-    }
+    Record versionRecord = this.dbClient.getVertex(predicates);
+    super.verifyResultSet(versionRecord, id);
 
     long lineageEdgeId = versionRecord. get("v").asNode().get("lineageedge_id").asLong();
     long fromId = versionRecord.get("v").asNode().get("endpoint_one").asLong();
@@ -140,8 +137,7 @@ public class Neo4jLineageEdgeVersionFactory extends LineageEdgeVersionFactory {
 
     LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
         + ".");
-    return LineageEdgeVersionFactory.construct(id, version.getTags(),
-        version.getStructureVersionId(), version.getReference(), version.getParameters(), fromId,
-        toId, lineageEdgeId);
+    return new LineageEdgeVersion(id, version.getTags(), version.getStructureVersionId(),
+        version.getReference(), version.getParameters(), fromId, toId, lineageEdgeId);
   }
 }

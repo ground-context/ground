@@ -14,12 +14,15 @@
 
 package edu.berkeley.ground.dao.versions.neo4j;
 
+import org.neo4j.driver.v1.Record;
+
 import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
 import edu.berkeley.ground.dao.versions.ItemFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Item;
@@ -29,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Neo4jItemFactory extends ItemFactory {
+public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T> {
   private final Neo4jClient dbClient;
   private final Neo4jVersionHistoryDagFactory versionHistoryDagFactory;
   private final Neo4jTagFactory tagFactory;
@@ -56,7 +59,6 @@ public class Neo4jItemFactory extends ItemFactory {
    * @param tags the tags associated with the item
    * @throws GroundDbException an error inserting data into the database
    */
-  @Override
   public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDbException {
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
@@ -82,15 +84,14 @@ public class Neo4jItemFactory extends ItemFactory {
   }
 
   /**
-   * Retrieve Item information from the database.
+   * Retrieve tags associated with a particular item id.
    *
    * @param id the id of the item
-   * @return the retrieved item
+   * @return the tags associated with the item
    * @throws GroundException either the item doesn't exist or couldn't be retrieved
    */
-  @Override
-  public Item retrieveFromDatabase(long id) throws GroundException {
-    return ItemFactory.construct(id, this.tagFactory.retrieveFromDatabaseByItemId(id));
+  protected Map<String, Tag> retrieveItemTags(long id) throws GroundException {
+    return this.tagFactory.retrieveFromDatabaseByItemId(id);
   }
 
   /**
@@ -101,8 +102,9 @@ public class Neo4jItemFactory extends ItemFactory {
    * @param parentIds the ids of the parents of the child
    * @throws GroundException an error
    */
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  protected void updateItem(long itemId, long childId, List<Long> parentIds)
+      throws GroundException {
+
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(itemId);
@@ -155,13 +157,27 @@ public class Neo4jItemFactory extends ItemFactory {
    * Truncate the item to only have the most recent levels.
    *
    * @param numLevels the levels to keep
-   * @param itemType the type of the item to truncate
    * @throws GroundException an error while removing versions
    */
   @Override
-  public void truncate(long itemId, int numLevels, String itemType) throws GroundException {
+  public void truncate(long itemId, int numLevels) throws GroundException {
     VersionHistoryDag<?> dag = this.versionHistoryDagFactory.retrieveFromDatabase(itemId);
 
-    this.versionHistoryDagFactory.truncate(dag, numLevels, itemType);
+    this.versionHistoryDagFactory.truncate(dag, numLevels, this.getType());
+  }
+  /**
+   * Verify that a result for an item is not empty.
+   *
+   * @param result the result to check
+   * @param fieldName the name of the field that was used to retrieve this item
+   * @param value the value used to retrieve the item
+   * @throws GroundItemNotFoundException an exception indicating the item wasn't found
+   */
+  protected void verifyResultSet(Record result, String fieldName, Object value)
+      throws GroundItemNotFoundException {
+
+    if (result == null) {
+      throw new GroundItemNotFoundException(this.getType(), fieldName, value);
+    }
   }
 }

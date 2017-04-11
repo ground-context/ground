@@ -14,11 +14,15 @@
 
 package edu.berkeley.ground.dao.versions.neo4j;
 
+import com.google.common.base.CaseFormat;
+
 import edu.berkeley.ground.dao.versions.VersionHistoryDagFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.model.versions.GroundType;
+import edu.berkeley.ground.model.versions.Item;
 import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
@@ -30,8 +34,7 @@ import java.util.Set;
 
 import org.neo4j.driver.v1.types.Relationship;
 
-public class
-Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
+public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final Neo4jClient dbClient;
   private final Neo4jVersionSuccessorFactory versionSuccessorFactory;
 
@@ -43,7 +46,7 @@ Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
 
   @Override
   public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
-    return construct(itemId);
+    return new VersionHistoryDag<T>(itemId, new ArrayList<>());
   }
 
   /**
@@ -62,7 +65,7 @@ Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
 
     if (result.isEmpty()) {
       // do nothing' this just means that no versions have been added yet.
-      return VersionHistoryDagFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
@@ -71,7 +74,7 @@ Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
       edges.add(this.versionSuccessorFactory.retrieveFromDatabase(relationship.get("id").asLong()));
     }
 
-    return construct(itemId, edges);
+    return new VersionHistoryDag<T>(itemId, edges);
   }
 
   /**
@@ -99,7 +102,7 @@ Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, String itemType)
+  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
       throws GroundException {
 
     int keptLevels = 1;
@@ -131,22 +134,24 @@ Neo4jVersionHistoryDagFactory extends VersionHistoryDagFactory {
     while (deleteQueue.size() > 0) {
       long id = deleteQueue.get(0);
 
-      if (itemType.equals("structure")) {
+      String tableNamePrefix = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
+          itemType.getName());
+
+      if (itemType.equals(Structure.class)) {
         predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
         this.dbClient.deleteNode(predicates, "structure_version_attribute");
         predicates.clear();
       }
 
-      if (itemType.contains("graph")) {
-        predicates.add(new DbDataContainer(itemType + "_version_id", GroundType.LONG, id));
+      if (itemType.getName().toLowerCase().contains("graph")) {
+        predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
         this.dbClient.deleteNode(predicates, itemType + "_version_edge");
         predicates.clear();
       }
 
       predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-      this.dbClient.deleteNode(predicates, itemType.substring(0, 1).toUpperCase() +
-          itemType.substring(1) + "Version");
+      this.dbClient.deleteNode(predicates, itemType.getName() + "Version");
 
       deleteQueue.remove(0);
       List<Long> parents = dag.getParent(id);

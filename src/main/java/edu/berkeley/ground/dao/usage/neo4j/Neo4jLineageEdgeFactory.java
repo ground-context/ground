@@ -14,12 +14,12 @@
 
 package edu.berkeley.ground.dao.usage.neo4j;
 
+import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
 import edu.berkeley.ground.dao.usage.LineageEdgeFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
+import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageEdge;
@@ -34,24 +34,29 @@ import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
+public class Neo4jLineageEdgeFactory
+    extends Neo4jItemFactory<LineageEdge>
+    implements LineageEdgeFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jLineageEdgeFactory.class);
   private final Neo4jClient dbClient;
-  private final Neo4jItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Neo4j lineage edge factory.
    *
-   * @param itemFactory the singleton Neo4jItemFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
-  public Neo4jLineageEdgeFactory(Neo4jItemFactory itemFactory,
-                                 Neo4jClient dbClient, IdGenerator idGenerator) {
+  public Neo4jLineageEdgeFactory(Neo4jClient dbClient,
+                                 Neo4jVersionHistoryDagFactory versionHistoryDagFactory,
+                                 Neo4jTagFactory tagFactory,
+                                 IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -67,19 +72,8 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
   @Override
   public LineageEdge create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
-    LineageEdge lineageEdge = null;
-    try {
-      lineageEdge = this.retrieveFromDatabase(sourceKey);
-    } catch (GroundException e) {
-      if (!e.getMessage().contains("No LineageEdge found")) {
-        throw e;
-      }
-    }
 
-    if (lineageEdge != null) {
-      throw new GroundException("LineageEdge with source_key " + sourceKey + " already exists.");
-    }
-
+    super.verifyItemNotExists(sourceKey);
     long uniqueId = this.idGenerator.generateItemId();
 
     List<DbDataContainer> insertions = new ArrayList<>();
@@ -88,10 +82,23 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
     insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.addVertex("LineageEdges", insertions);
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
     LOGGER.info("Created lineage edge " + name + ".");
     return LineageEdgeFactory.construct(uniqueId, name, sourceKey, tags);
+  }
+
+  /**
+   * Retrieve the leaves of this lineage edge's DAG.
+   *
+   * @param sourceKey the key of the lineage edge
+   * @return the list of leaves in this lineage edge's DAG
+   * @throws GroundException an error while retrieving the lineage edge
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    LineageEdge lineageEdge = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(lineageEdge.getId());
   }
 
   /**
@@ -103,32 +110,41 @@ public class Neo4jLineageEdgeFactory extends LineageEdgeFactory {
    */
   @Override
   public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
 
-    Record record;
-    try {
-      record = this.dbClient.getVertex(predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundDbException("No LineageEdge found with source_key " + sourceKey + ".");
-    }
+  /**
+   * Retrieve a lineage edge from the database.
+   *
+   * @param id the key of the lineage edge
+   * @return the retrieved lineage edge
+   * @throws GroundException either the lineage edge doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public LineageEdge retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.STRING);
+  }
+
+  private LineageEdge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    Record record = this.dbClient.getVertex(predicates);
+    super.verifyResultSet(record, fieldName, value);
 
     long id = record.get("v").asNode().get("id").asLong();
     String name = record.get("v").asNode().get("name").asString();
+    String sourceKey = record.get("v").asNode().get("source_key").asString();
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved lineage edge " + sourceKey + ".");
+    LOGGER.info("Retrieved lineage edge " + value + ".");
     return LineageEdgeFactory.construct(id, name, sourceKey, tags);
   }
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "lineageEdge");
+    super.updateItem(itemId, childId, parentIds);
   }
 }
