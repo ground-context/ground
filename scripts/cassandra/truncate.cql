@@ -11,7 +11,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-
 TRUNCATE lineage_graph_version_edge;
 TRUNCATE lineage_graph_version;
 TRUNCATE lineage_graph;

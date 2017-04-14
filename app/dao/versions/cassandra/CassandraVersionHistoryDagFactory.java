@@ -149,8 +149,8 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
-          predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
-          this.dbClient.delete(predicates, tableNamePrefix + "_version_edge");
+          predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+          this.dbClient.deleteColumn(predicates, "graph_version", "edge_version_set");
           predicates.clear();
         }
 

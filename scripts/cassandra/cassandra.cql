@@ -110,13 +110,8 @@ CREATE TABLE IF NOT EXISTS edge_version (
 
 CREATE TABLE IF NOT EXISTS graph_version (
     id bigint PRIMARY KEY,
-    graph_id bigint
-);
-
-CREATE TABLE IF NOT EXISTS graph_version_edge (
-    graph_version_id bigint,
-    edge_version_id bigint,
-    PRIMARY KEY (graph_version_id, edge_version_id)
+    graph_id bigint,
+    edge_version_set set<bigint>
 );
 
 -- USAGE
