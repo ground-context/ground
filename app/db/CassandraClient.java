@@ -124,6 +124,32 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
+  public void addToMap(String table, String mapName, Map<? extends Object, ? extends Object> keyValues,
+                       List<DbDataContainer> predicates) {
+    String predicatesString =
+      predicates
+        .stream()
+        .map(predicate -> predicate.getField() + " = ?")
+        .collect(Collectors.joining(" and "));
+    String whereString = " where " + predicatesString + ";";
+    String query = "UPDATE " + table + " SET " + mapName + " = " + mapName + " + " + " ? " + whereString;
+
+    BoundStatement statement = this.prepareStatement(query);
+
+    // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
+    statement.bind(keyValues);
+
+    int index = 1;
+    for (DbDataContainer container : predicates) {
+      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
+
+      index++;
+    }
+
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+    this.session.execute(statement);
+  }
+
   /**
    * Retrieve rows based on a set of predicates.
    *
@@ -238,6 +264,61 @@ public class CassandraClient extends DbClient {
       .map(p-> p.getValue()).collect(Collectors.toList());
     boundStatement.bind(values.toArray(new Object[values.size()]));
     return boundStatement;
+  }
+
+  /**
+   * Deletes a column from a table (sets column to null)
+   * @param predicates the predicates used to match row(s) to delete from
+   * @param table the table to delete from
+   * @param columnName the column to delete
+   */
+  public void deleteColumn(List<DbDataContainer> predicates, String table, String columnName) {
+    String deleteString = "delete " + columnName + " from " + table + " ";
+
+    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+      .collect(Collectors.joining(" and "));
+
+    deleteString += "where " + predicateString;
+
+    BoundStatement statement = this.prepareStatement(deleteString);
+
+    int index = 0;
+    for (DbDataContainer predicate : predicates) {
+      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+      index++;
+    }
+
+    this.session.execute(statement);
+  }
+
+  /**
+   * Deletes all keys in the associated map by value
+   * @param predicates the predicates to match by row
+   * @param table the table to be deleted from
+   * @param columnName the column name of the map
+   * @param values the values in the map to be deleted
+   */
+  public void deleteFromMapByValue(List<DbDataContainer> predicates, String table,
+                                   String columnName, List<DbDataContainer> values) {
+    String deleteString = "delete " + columnName + "[?] from " + table;
+    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+      .collect(Collectors.joining(" and "));
+    deleteString += " where " + predicateString;
+
+    for (DbDataContainer val : values) {
+      BoundStatement statement = this.prepareStatement(deleteString);
+
+      // Set the value to be deleted
+      CassandraClient.setValue(statement, val.getValue(), val.getGroundType(), 0);
+
+      int index = 1;
+      for (DbDataContainer predicate : predicates) {
+        CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
+        index++;
+      }
+
+      this.session.execute(statement);
+    }
   }
 
   @Override
