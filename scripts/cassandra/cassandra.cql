@@ -49,14 +49,8 @@ CREATE TABLE IF NOT EXISTS structure (
 
 CREATE TABLE IF NOT EXISTS structure_version (
     id bigint PRIMARY KEY,
-    structure_id bigint
-);
-
-CREATE TABLE IF NOT EXISTS structure_version_attribute (
-    structure_version_id bigint,
-    key varchar,
-    type varchar,
-    PRIMARY KEY (structure_version_id, key)
+    structure_id bigint,
+    key_type_map map<varchar, varchar>
 );
 
 CREATE TABLE IF NOT EXISTS rich_version (

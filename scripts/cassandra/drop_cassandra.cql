@@ -28,7 +28,6 @@ drop table edge;
 drop table rich_version_tag;
 drop table rich_version_external_parameter;
 drop table rich_version;
-drop table structure_version_attribute;
 drop table structure_version;
 drop table structure;
 drop table item_tag;
