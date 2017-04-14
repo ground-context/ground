@@ -31,11 +31,11 @@ import models.versions.GroundType;
 import util.IdGenerator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CassandraLineageGraphVersionFactory
     extends CassandraRichVersionFactory<LineageGraphVersion>
@@ -104,13 +104,12 @@ public class CassandraLineageGraphVersionFactory
     this.dbClient.insert("lineage_graph_version", insertions);
 
     for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
-      List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
-      lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
-          id));
-      lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
-          lineageEdgeVersionId));
+      List<DbDataContainer> predicates = new ArrayList<>();
+      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+      Set<Long> edgeValue = new HashSet<>();
+      edgeValue.add(lineageEdgeVersionId);
 
-      this.dbClient.insert("lineage_graph_version_edge", lineageEdgeInsertion);
+      this.dbClient.addToSet("lineage_graph_version", "lineage_edge_version_id_set", edgeValue, predicates);
     }
 
     this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
@@ -137,8 +136,8 @@ public class CassandraLineageGraphVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
-    lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+    List<DbDataContainer> lineageGraphVersionPredicates = new ArrayList<>();
+    lineageGraphVersionPredicates.add(new DbDataContainer("id", GroundType.LONG,
         id));
 
     CassandraResults resultSet = this.dbClient.equalitySelect("lineage_graph_version",
@@ -148,15 +147,7 @@ public class CassandraLineageGraphVersionFactory
 
     long lineageGraphId = resultSet.getLong("lineage_graph_id");
 
-    List<Long> lineageEdgeVersionIds = new ArrayList<>();
-    CassandraResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
-        DbClient.SELECT_STAR, lineageEdgePredicate);
-
-    if (!lineageEdgeSet.isEmpty()) {
-      do {
-        lineageEdgeVersionIds.add(lineageEdgeSet.getLong("lineage_edge_version_id"));
-      } while (lineageEdgeSet.next());
-    }
+    List<Long> lineageEdgeVersionIds = resultSet.getSet("lineage_edge_version_id_set", Long.class).stream().collect(Collectors.toList());
 
     LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId
         + ".");

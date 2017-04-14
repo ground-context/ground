@@ -147,14 +147,10 @@ CREATE TABLE IF NOT EXISTS lineage_graph (
 
 CREATE TABLE IF NOT EXISTS lineage_graph_version (
     id bigint PRIMARY KEY,
-    lineage_graph_id bigint
+    lineage_graph_id bigint,
+    lineage_edge_version_id_set set<bigint>
 );
 
-CREATE TABLE IF NOT EXISTS lineage_graph_version_edge (
-    lineage_graph_version_id bigint,
-    lineage_edge_version_id bigint,
-    PRIMARY KEY (lineage_graph_version_id, lineage_edge_version_id)
-);
 
 -- CREATE EMPTY VERSION
 
