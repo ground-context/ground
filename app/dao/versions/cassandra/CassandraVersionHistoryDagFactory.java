@@ -65,11 +65,11 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
 
     try {
       edges = this.versionSuccessorFactory.retrieveFromDatabaseByItemId(itemId);
-    } catch (EmptyResultException e) {
+    } catch (GroundException e) {
       // do nothing, this just means no version have been added yet.
-      return VersionHistoryDagFactory.construct(itemId, new ArrayList<VersionSuccessor<T>>());
+      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
     }
-    return VersionHistoryDagFactory.construct(itemId, edges);
+    return new VersionHistoryDag(itemId, edges);
   }
 
   /**

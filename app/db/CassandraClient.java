@@ -161,14 +161,12 @@ public class CassandraClient extends DbClient {
    *
    * @param table the table to query
    * @param projection the set of columns to retrieve
-   * @param setName the name of the set we will search
+   * @param collectionName the name of the set we will search
    * @param value the value searched for in the set
-   * @throws EmptyResultException
 	 */
   public CassandraResults selectWhereCollectionContains(
-    String table, List<String> projection, String setName, DbDataContainer value)
-    throws EmptyResultException {
-    String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + setName
+    String table, List<String> projection, String collectionName, DbDataContainer value) {
+    String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + collectionName
       + " CONTAINS ?;";
 
     BoundStatement statement = this.prepareStatement(query);
@@ -176,10 +174,6 @@ public class CassandraClient extends DbClient {
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
-
-    if (resultSet == null || resultSet.isExhausted()) {
-      throw new EmptyResultException("No results found for query: " + statement.toString());
-    }
 
     return new CassandraResults(resultSet);
   }

@@ -66,7 +66,8 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
     return new VersionSuccessor<>(dbId, toId, fromId);
   }
 
-  public <T extends Version> List<VersionSuccessor<T>> retrieveFromDatabaseByItemId(long itemId) throws GroundException, EmptyResultException {
+  public <T extends Version> List<VersionSuccessor<T>> retrieveFromDatabaseByItemId(long itemId)
+    throws GroundException {
     CassandraResults resultSet;
 
     List<VersionSuccessor<T>> versionSuccessors = new ArrayList<>();
@@ -76,11 +77,15 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
       "item_id_set",
       new DbDataContainer(null, GroundType.LONG, itemId));
 
+    if (resultSet.isEmpty()) {
+      throw new GroundException("No VersionSuccessor found with itemId " + itemId + ".");
+    }
+
     do {
       long id = resultSet.getLong("id");
       long fromId = resultSet.getLong("from_version_id");
       long toId = resultSet.getLong("to_version_id");
-      versionSuccessors.add(VersionSuccessorFactory.construct(id, fromId, toId));
+      versionSuccessors.add(new VersionSuccessor<>(id, fromId, toId));
     } while (resultSet.next());
 
     return versionSuccessors;
