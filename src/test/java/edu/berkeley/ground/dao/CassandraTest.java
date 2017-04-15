@@ -90,14 +90,8 @@ public class CassandraTest extends DaoTest {
   }
 
   @Before
-  public void setupTest() throws IOException {
-    System.out.println("BEFORE TEST **************************************");
-    try (Stream<String> stream = Files.lines(Paths.get(TRUNCATE_SCRIPT))) {
-      stream.filter(line -> line.startsWith("insert") || line.startsWith("truncate"))
-        .forEach(command -> cassandraClient.getSession().execute(command));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+  public void setupTest() {
+    runScript(TRUNCATE_SCRIPT);
   }
 
   public static CassandraStructureVersionFactory getStructureVersionFactory() {
