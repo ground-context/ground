@@ -52,12 +52,34 @@ public class CassandraClient extends DbClient {
     this.cluster =
         Cluster.builder()
             .addContactPoint(host)
+            .withPort(port)
             .withAuthProvider(new PlainTextAuthProvider(username, password))
             .build();
 
     this.session = this.cluster.connect(keyspace);
     this.preparedStatements = new HashMap<>();
   }
+
+  /**
+   * Creates a new Cassandra Client using the provided session
+   * @param cluster an initialized Cluster connection to the target Cassandra instance
+   * @param session an active session to the target cassandra keyspace
+   */
+  public CassandraClient(Cluster cluster, Session session) {
+    this.cluster = cluster;
+    this.session = session;
+    this.preparedStatements = new HashMap<>();
+  }
+
+  /**
+   * Returns the current session in this Cassandra Client
+   * @return session the active Cassandra session used in this CassandraClient
+   */
+
+  public Session getSession() {
+    return this.session;
+  }
+
 
   /**
    * Insert a new row into table with insertValues.
