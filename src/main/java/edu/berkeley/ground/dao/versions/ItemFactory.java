@@ -15,16 +15,22 @@
 package edu.berkeley.ground.dao.versions;
 
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundItemExistsException;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.Item;
 
 import java.util.List;
 import java.util.Map;
 
-public abstract class ItemFactory {
-  public abstract void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException;
+public interface ItemFactory<T extends Item> {
+  T retrieveFromDatabase(long id) throws GroundException;
 
-  public abstract Item retrieveFromDatabase(long id) throws GroundException;
+  T retrieveFromDatabase(String sourceKey) throws GroundException;
+
+  Class<T> getType();
+
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
@@ -35,20 +41,29 @@ public abstract class ItemFactory {
    * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  public abstract void update(long itemId, long childId, List<Long> parentIds)
-      throws GroundException;
+  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   /**
    * Truncate the item to only have the most recent levels.
    *
    * @param numLevels the levels to keep
-   * @param itemType the type of the item to truncate
    * @throws GroundException an error while removing versions
    */
-  public abstract void truncate(long itemId, int numLevels, String itemType)
-      throws GroundException;
+  void truncate(long itemId, int numLevels) throws GroundException;
 
-  public static Item construct(long id, Map<String, Tag> tags) {
-    return new Item(id, tags);
+  default boolean checkIfItemExists(String sourceKey) throws GroundException {
+    try {
+      this.retrieveFromDatabase(sourceKey);
+
+      return true;
+    } catch (GroundItemNotFoundException e) {
+      return false;
+    }
+  }
+
+  default void verifyItemNotExists(String sourceKey ) throws GroundException {
+    if (checkIfItemExists(sourceKey)) {
+      throw new GroundItemExistsException(getType(), sourceKey);
+    }
   }
 }

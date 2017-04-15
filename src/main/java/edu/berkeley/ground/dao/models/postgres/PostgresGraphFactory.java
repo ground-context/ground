@@ -16,11 +16,11 @@ package edu.berkeley.ground.dao.models.postgres;
 
 import edu.berkeley.ground.dao.models.GraphFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
+import edu.berkeley.ground.dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.model.models.Tag;
@@ -34,25 +34,26 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresGraphFactory extends GraphFactory {
+public class PostgresGraphFactory extends PostgresItemFactory<Graph> implements GraphFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphFactory.class);
   private final PostgresClient dbClient;
-  private final PostgresItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Postgres graph factory.
    *
-   * @param itemFactory the PostgresItemFactory singleton
    * @param dbClient the Postgres client
    * @param idGenerator a unique ID generator
    */
-  public PostgresGraphFactory(PostgresItemFactory itemFactory,
-                              PostgresClient dbClient,
+  public PostgresGraphFactory(PostgresClient dbClient,
+                              PostgresVersionHistoryDagFactory versionHistoryDagFactory,
+                              PostgresTagFactory tagFactory,
                               IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -67,9 +68,10 @@ public class PostgresGraphFactory extends GraphFactory {
    */
   @Override
   public Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
+    super.verifyItemNotExists(sourceKey);
     long uniqueId = this.idGenerator.generateItemId();
 
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -79,45 +81,66 @@ public class PostgresGraphFactory extends GraphFactory {
     this.dbClient.insert("graph", insertions);
 
     LOGGER.info("Created graph " + name + ".");
-    return GraphFactory.construct(uniqueId, name, sourceKey, tags);
+    return new Graph(uniqueId, name, sourceKey, tags);
+  }
+
+
+  /**
+   * Retrieve the DAG leaves for this graph.
+   *
+   * @param sourceKey the key of the graph to retrieve leaves for.
+   * @return the leaves of the graph
+   * @throws GroundException an error while retrieving the graph
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Graph graph = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(graph.getId());
   }
 
   /**
-   * Retrieves an edge from the database.
+   * Retrieves a graph from the database.
    *
-   * @param name the name of the graph to retrieve
+   * @param sourceKey the source key of the graph to retrieve
    * @return the retrieved graph
    * @throws GroundException either the graph doesn't exist or couldn't be retrieved
    */
   @Override
-  public Graph retrieveFromDatabase(String name) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+  public Graph retrieveFromDatabase(String sourceKey) throws GroundException {
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("graph", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No Graph found with name " + name + ".");
-    }
+  /**
+   * Retrieves a graph from the database.
+   *
+   * @param id the id of the graph to retrieve
+   * @return the retrieved graph
+   * @throws GroundException either the graph doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public Graph retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.LONG);
+  }
+
+  private Graph retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    PostgresResults resultSet = this.dbClient.equalitySelect("graph",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong(1);
     String sourceKey = resultSet.getString(2);
+    String name = resultSet.getString(3);
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved graph " + name + ".");
+    LOGGER.info("Retrieved graph " + value + ".");
 
-    return GraphFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "graph");
+    return new Graph(id, name, sourceKey, tags);
   }
 }

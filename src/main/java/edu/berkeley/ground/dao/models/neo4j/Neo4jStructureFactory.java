@@ -16,10 +16,9 @@ package edu.berkeley.ground.dao.models.neo4j;
 
 import edu.berkeley.ground.dao.models.StructureFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jItemFactory;
+import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Structure;
 import edu.berkeley.ground.model.models.Tag;
@@ -34,25 +33,27 @@ import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Neo4jStructureFactory extends StructureFactory {
+public class Neo4jStructureFactory extends Neo4jItemFactory<Structure> implements StructureFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureFactory.class);
   private final Neo4jClient dbClient;
-  private final Neo4jItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Neo4j structure factory.
    *
-   * @param itemFactory the singleton Neo4jItemFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
   public Neo4jStructureFactory(Neo4jClient dbClient,
-                               Neo4jItemFactory itemFactory,
+                               Neo4jVersionHistoryDagFactory versionHistoryDagFactory,
+                               Neo4jTagFactory tagFactory,
                                IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -68,6 +69,8 @@ public class Neo4jStructureFactory extends StructureFactory {
   @Override
   public Structure create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
+
+    super.verifyItemNotExists(sourceKey);
     long uniqueId = this.idGenerator.generateItemId();
 
     List<DbDataContainer> insertions = new ArrayList<>();
@@ -78,62 +81,65 @@ public class Neo4jStructureFactory extends StructureFactory {
     this.dbClient.addVertex("Structure", insertions);
 
     LOGGER.info("Created structure " + name + ".");
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.insertIntoDatabase(uniqueId, tags);
 
-    return StructureFactory.construct(uniqueId, name, sourceKey, tags);
+    return new Structure(uniqueId, name, sourceKey, tags);
   }
 
   /**
    * Retrieve the leaves of this structure's DAG.
    *
-   * @param name the name of the structure
+   * @param sourceKey the key of the structure
    * @return the list of leaves in this structure's DAG
    * @throws GroundException an error while retrieving the structure
    */
   @Override
-  public List<Long> getLeaves(String name) throws GroundException {
-    Structure structure = this.retrieveFromDatabase(name);
-    List<Long> leaves = this.itemFactory.getLeaves(structure.getId());
-
-    return leaves;
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Structure structure = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(structure.getId());
   }
 
   /**
    * Retrieve a structure from the database.
    *
-   * @param name the name of the structure
+   * @param sourceKey the key of the structure
    * @return the retrieved structure
    * @throws GroundException either the structure doesn't exist or couldn't be retrieved
    */
   @Override
-  public Structure retrieveFromDatabase(String name) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+  public Structure retrieveFromDatabase(String sourceKey) throws GroundException {
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
 
-    Record record;
-    try {
-      record = this.dbClient.getVertex("Structure", predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundDbException("No Structure found with name " + name + ".");
-    }
+  /**
+   * Retrieve a structure from the database.
+   *
+   * @param id the key of the structure
+   * @return the retrieved structure
+   * @throws GroundException either the structure doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public Structure retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.STRING);
+  }
+
+  private Structure retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    Record record = this.dbClient.getVertex("Structure", predicates);
+    super.verifyResultSet(record, fieldName, value);
 
     long id = record.get("v").asNode().get("id").asLong();
+    String name = record.get("v").asNode().get("name").asString();
     String sourceKey = record.get("v").asNode().get("source_key").asString();
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved structure " + name + ".");
+    LOGGER.info("Retrieved structure " + value + ".");
 
-    return StructureFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "structure");
+    return new Structure(id, name, sourceKey, tags);
   }
 }

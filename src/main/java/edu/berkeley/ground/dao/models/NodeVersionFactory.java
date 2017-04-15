@@ -21,23 +21,19 @@ import edu.berkeley.ground.model.models.Tag;
 import java.util.List;
 import java.util.Map;
 
-public abstract class NodeVersionFactory {
-  public abstract NodeVersion create(Map<String, Tag> tags,
+public interface NodeVersionFactory extends RichVersionFactory<NodeVersion> {
+  NodeVersion create(Map<String, Tag> tags,
                                      long structureVersionId,
                                      String reference,
                                      Map<String, String> referenceParameters,
                                      long nodeId,
                                      List<Long> parentIds) throws GroundException;
 
-  public abstract NodeVersion retrieveFromDatabase(long id) throws GroundException;
-
-  public static NodeVersion construct(long id,
-                                      Map<String, Tag> tags,
-                                      long structureVersionId,
-                                      String reference,
-                                      Map<String, String> parameters,
-                                      long nodeId) {
-
-    return new NodeVersion(id, tags, structureVersionId, reference, parameters, nodeId);
+  @Override
+  default Class<NodeVersion> getType() {
+    return NodeVersion.class;
   }
+
+  @Override
+  NodeVersion retrieveFromDatabase(long id) throws GroundException;
 }

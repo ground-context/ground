@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -50,7 +51,7 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.nodesResource.createNode(testName, sourceKey, tagsMap);
-    Node node = Neo4jTest.nodesResource.getNode(testName);
+    Node node = Neo4jTest.nodesResource.getNode(sourceKey);
 
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
@@ -66,7 +67,7 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.nodesResource.createNode(testName, sourceKey, tagsMap);
-    Node node = Neo4jTest.nodesResource.getNode(testName);
+    Node node = Neo4jTest.nodesResource.getNode(sourceKey);
 
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
@@ -77,9 +78,10 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   public void testNodeTagRetrieval() throws GroundException {
     try {
       Map<String, Tag> tags = Neo4jTest.createTags();
+      String sourceKey = "testNode";
 
-      long testNodeId = Neo4jTest.nodesResource.createNode("tesNode", null, tags).getId();
-      Item retrieved = Neo4jTest.itemFactory.retrieveFromDatabase(testNodeId);
+      long testNodeId = Neo4jTest.nodesResource.createNode(null, sourceKey, tags).getId();
+      Item retrieved = Neo4jTest.nodesResource.getNode(sourceKey);
 
       assertEquals(testNodeId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -98,12 +100,12 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    String nodeName = "testNode1";
-    long nodeId = Neo4jTest.createNode(nodeName).getId();
+    String sourceKey = "testNode1";
+    long nodeId = Neo4jTest.createNode(sourceKey).getId();
     long nodeVersionId = Neo4jTest.createNodeVersion(nodeId).getId();
     long secondNodeVersionId = Neo4jTest.createNodeVersion(nodeId).getId();
 
-    List<Long> leaves = Neo4jTest.nodesResource.getLatestVersions(nodeName);
+    List<Long> leaves = Neo4jTest.nodesResource.getLatestVersions(sourceKey);
 
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(leaves.contains(secondNodeVersionId));
@@ -111,16 +113,31 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadNode() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      Neo4jTest.nodesResource.getNode(testName);
+      Neo4jTest.nodesResource.getNode(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Node found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateNode() throws GroundException {
+    String nodeName = "nodeName";
+    String nodeKey = "nodeKey";
+
+    try {
+      Neo4jTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+  }
+
 
   @Test
   public void testTruncation() throws GroundException {

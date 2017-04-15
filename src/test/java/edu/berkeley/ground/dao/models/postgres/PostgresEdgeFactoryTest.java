@@ -20,8 +20,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.ToDoubleBiFunction;
+
+import javax.ws.rs.POST;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -50,7 +54,7 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
     PostgresTest.edgesResource.createEdge(testName, fromNodeName, toNodeName, sourceKey,
         new HashMap<>());
 
-    Edge edge = PostgresTest.edgesResource.getEdge(testName);
+    Edge edge = PostgresTest.edgesResource.getEdge(sourceKey);
 
     assertEquals(testName, edge.getName());
     assertEquals(fromNodeId, edge.getFromNodeId());
@@ -60,15 +64,34 @@ public class PostgresEdgeFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadEdge() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.edgesResource.getEdge(testName);
+      PostgresTest.edgesResource.getEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Edge found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateEdge() throws GroundException {
+    String edgeName = "edgeName";
+    String edgeKey = "edgeKey";
+    String fromNode = "fromNode";
+    String toNode = "toNode";
+
+    try {
+      PostgresTest.createNode(fromNode);
+      PostgresTest.createNode(toNode);
+
+      PostgresTest.edgesResource.createEdge(edgeName, fromNode, toNode, edgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.edgesResource.createEdge(edgeName, fromNode, toNode, edgeKey, new HashMap<>());
   }
 
   @Test

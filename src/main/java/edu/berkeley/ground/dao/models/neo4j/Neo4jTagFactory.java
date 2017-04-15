@@ -31,7 +31,7 @@ import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 
-public class Neo4jTagFactory extends TagFactory {
+public class Neo4jTagFactory implements TagFactory {
   private final Neo4jClient dbClient;
 
   public Neo4jTagFactory(Neo4jClient dbClient) {

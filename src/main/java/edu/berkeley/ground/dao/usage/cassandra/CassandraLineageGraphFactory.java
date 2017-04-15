@@ -14,13 +14,14 @@
 
 package edu.berkeley.ground.dao.usage.cassandra;
 
+import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
 import edu.berkeley.ground.dao.usage.LineageGraphFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.usage.LineageGraph;
@@ -34,25 +35,29 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraLineageGraphFactory extends LineageGraphFactory {
+public class CassandraLineageGraphFactory
+    extends CassandraItemFactory<LineageGraph>
+    implements LineageGraphFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraLineageGraphFactory.class);
   private final CassandraClient dbClient;
-  private final CassandraItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Cassandra lineage graph factory.
    *
-   * @param itemFactory the singleton CassandraItemFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
-  public CassandraLineageGraphFactory(CassandraItemFactory itemFactory,
-                                      CassandraClient dbClient,
+  public CassandraLineageGraphFactory(CassandraClient dbClient,
+                                      CassandraVersionHistoryDagFactory versionHistoryDagFactory,
+                                      CassandraTagFactory tagFactory,
                                       IdGenerator idGenerator) {
+
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -69,9 +74,10 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
   public LineageGraph create(String name, String sourceKey, Map<String, Tag> tags)
       throws GroundException {
 
-    long uniqueId = this.idGenerator.generateItemId();
+    super.verifyItemNotExists(sourceKey);
 
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    long uniqueId = this.idGenerator.generateItemId();
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -81,45 +87,64 @@ public class CassandraLineageGraphFactory extends LineageGraphFactory {
     this.dbClient.insert("lineage_graph", insertions);
 
     LOGGER.info("Created lineage_graph " + name + ".");
-    return LineageGraphFactory.construct(uniqueId, name, sourceKey, tags);
+    return new LineageGraph(uniqueId, name, sourceKey, tags);
+  }
+
+  /**
+   * Retrieve the leaves of this lineage graph's DAG.
+   *
+   * @param sourceKey the key of the lineage graph
+   * @return the list of leaves in this lineage graph's DAG
+   * @throws GroundException an error while retrieving the lineage graph
+   */
+  @Override
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    LineageGraph structure = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(structure.getId());
   }
 
   /**
    * Retrieve a lineage graph from the database.
    *
-   * @param name the name of the lineage graph
+   * @param sourceKey the key of the lineage graph
    * @return the retrieved lineage graph
    * @throws GroundException either the lineage graph doesn't exist or couldn't be retrieved
    */
   @Override
-  public LineageGraph retrieveFromDatabase(String name) throws GroundException {
+  public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
+
+  /**
+   * Retrieves a lineage graph from the database.
+   *
+   * @param id the id of the lineage graph to retrieve
+   * @return the retrieved lineage graph
+   * @throws GroundException either the lineage graph doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public LineageGraph retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.LONG);
+  }
+
+  private LineageGraph retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
 
     List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("lineage_graph", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No LineageGraph found with name " + name + ".");
-    }
+    CassandraResults resultSet = this.dbClient.equalitySelect("lineage_graph",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong("item_id");
+    String name = resultSet.getString("name");
     String sourceKey = resultSet.getString("source_key");
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved lineage_graph " + name + ".");
-    return LineageGraphFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "lineage_graph");
+    LOGGER.info("Retrieved lineage_graph " + value + ".");
+    return new LineageGraph(id, name, sourceKey, tags);
   }
 }

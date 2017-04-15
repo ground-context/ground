@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
@@ -66,8 +67,7 @@ public class PostgresStructureVersionFactoryTest extends PostgresTest {
     try {
       PostgresTest.structuresResource.getStructureVersion(id);
     } catch (GroundException e) {
-      assertEquals("No StructureVersion found with id " + id + ".", e.getMessage());
-      PostgresTest.postgresClient.abort();
+      assertEquals(GroundVersionNotFoundException.class, e.getClass());
 
       throw e;
     }

@@ -62,10 +62,10 @@ public class StructuresResource {
   @GET
   @Timed
   @Path("/{name}")
-  public Structure getStructure(@PathParam("name") String name) throws GroundException {
+  public Structure getStructure(@PathParam("sourceKey") String sourceKey) throws GroundException {
     try {
-      LOGGER.info("Retrieving structure " + name + ".");
-      return this.structureFactory.retrieveFromDatabase(name);
+      LOGGER.info("Retrieving structure " + sourceKey + ".");
+      return this.structureFactory.retrieveFromDatabase(sourceKey);
     } finally {
       this.dbClient.commit();
     }
@@ -85,11 +85,11 @@ public class StructuresResource {
 
   @GET
   @Timed
-  @Path("/{name}/latest")
-  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
+  @Path("/{sourceKey}/latest")
+  public List<Long> getLatestVersions(@PathParam("sourceKey") String sourceKey) throws GroundException {
     try {
-      LOGGER.info("Retrieving the latest version of node " + name + ".");
-      return this.structureFactory.getLeaves(name);
+      LOGGER.info("Retrieving the latest version of node " + sourceKey + ".");
+      return this.structureFactory.getLeaves(sourceKey);
     } finally {
       this.dbClient.commit();
     }

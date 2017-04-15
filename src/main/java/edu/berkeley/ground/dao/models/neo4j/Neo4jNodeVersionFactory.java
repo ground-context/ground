@@ -15,10 +15,9 @@
 package edu.berkeley.ground.dao.models.neo4j;
 
 import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.EmptyResultException;
-import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.NodeVersion;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -29,35 +28,37 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Neo4jNodeVersionFactory extends NodeVersionFactory {
+public class Neo4jNodeVersionFactory
+    extends Neo4jRichVersionFactory<NodeVersion>
+    implements NodeVersionFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jNodeVersionFactory.class);
   private final Neo4jClient dbClient;
   private final IdGenerator idGenerator;
 
   private final Neo4jNodeFactory nodeFactory;
-  private final Neo4jRichVersionFactory richVersionFactory;
 
   /**
    * Constructor for the Neo4j node version factory.
    *
    * @param nodeFactory the singleton Neo4jNodeFactory
-   * @param richVersionFactory the singleton Neo4jRichVersionFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
-  public Neo4jNodeVersionFactory(Neo4jNodeFactory nodeFactory,
-                                 Neo4jRichVersionFactory richVersionFactory,
-                                 Neo4jClient dbClient,
+  public Neo4jNodeVersionFactory(Neo4jClient dbClient,
+                                 Neo4jNodeFactory nodeFactory,
+                                 Neo4jStructureVersionFactory structureVersionFactory,
+                                 Neo4jTagFactory tagFactory,
                                  IdGenerator idGenerator) {
+
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.nodeFactory = nodeFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -84,23 +85,19 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
     long id = this.idGenerator.generateVersionId();
 
     // add the id of the version to the tag
-    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-    );
+    tags = RichVersionFactory.addIdToTags(id, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
     insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
 
     this.dbClient.addVertex("NodeVersion", insertions);
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     this.nodeFactory.update(nodeId, id, parentIds);
 
     LOGGER.info("Created node version " + id + " in node " + nodeId + ".");
-    return NodeVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, nodeId);
+    return new NodeVersion(id, tags, structureVersionId, reference, referenceParameters, nodeId);
   }
 
   /**
@@ -112,22 +109,18 @@ public class Neo4jNodeVersionFactory extends NodeVersionFactory {
    */
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    Record record;
-    try {
-      record = this.dbClient.getVertex(predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundDbException("No NodeVersion found with id " + id + ".");
-    }
+    Record record = this.dbClient.getVertex(predicates);
+    super.verifyResultSet(record, id);
 
     long nodeId = record.get("v").asNode(). get("node_id").asLong();
     LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
 
-    return NodeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+    return new NodeVersion(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), nodeId);
   }
 }

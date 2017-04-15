@@ -7,12 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.usage.LineageGraph;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class PostgresLineageGraphFactoryTest extends PostgresTest {
 
@@ -26,7 +27,7 @@ public class PostgresLineageGraphFactoryTest extends PostgresTest {
     String sourceKey = "testKey";
 
     PostgresTest.lineageGraphsResource.createLineageGraph(testName, sourceKey, new HashMap<>());
-    LineageGraph graph = PostgresTest.lineageGraphsResource.getLineageGraph(testName);
+    LineageGraph graph = PostgresTest.lineageGraphsResource.getLineageGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -34,15 +35,31 @@ public class PostgresLineageGraphFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.lineageGraphsResource.getLineageGraph(testName);
+      PostgresTest.lineageGraphsResource.getLineageGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageGraph() throws GroundException {
+    String lineageGraphName = "lineageGraphName";
+    String lineageGraphKey = "lineageGraphKey";
+
+    try {
+      PostgresTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+          lineageGraphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+        lineageGraphKey, new HashMap<>());
   }
 
   @Test

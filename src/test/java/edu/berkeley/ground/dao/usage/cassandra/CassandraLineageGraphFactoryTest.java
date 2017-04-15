@@ -21,12 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.usage.LineageGraph;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class CassandraLineageGraphFactoryTest extends CassandraTest {
 
@@ -40,7 +41,7 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
     String sourceKey = "testKey";
 
     CassandraTest.lineageGraphsResource.createLineageGraph(testName, sourceKey, new HashMap<>());
-    LineageGraph graph = CassandraTest.lineageGraphsResource.getLineageGraph(testName);
+    LineageGraph graph = CassandraTest.lineageGraphsResource.getLineageGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -48,15 +49,31 @@ public class CassandraLineageGraphFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      CassandraTest.lineageGraphsResource.getLineageGraph(testName);
+      CassandraTest.lineageGraphsResource.getLineageGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageGraph() throws GroundException {
+    String lineageGraphName = "lineageGraphName";
+    String lineageGraphKey = "lineageGraphKey";
+
+    try {
+      CassandraTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+          lineageGraphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+        lineageGraphKey, new HashMap<>());
   }
 
   @Test

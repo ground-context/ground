@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao.models;
 
+import edu.berkeley.ground.dao.versions.VersionFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -21,16 +22,17 @@ import edu.berkeley.ground.model.versions.GroundType;
 import java.util.List;
 import java.util.Map;
 
-public abstract class StructureVersionFactory {
-  public abstract StructureVersion create(long structureId,
-                                          Map<String, GroundType> attributes,
-                                          List<Long> parentIds) throws GroundException;
+public interface StructureVersionFactory extends VersionFactory<StructureVersion> {
 
-  public abstract StructureVersion retrieveFromDatabase(long id) throws GroundException;
+  StructureVersion create(long structureId,
+                          Map<String, GroundType> attributes,
+                          List<Long> parentIds) throws GroundException;
 
-  protected static StructureVersion construct(long id,
-                                              long structureId,
-                                              Map<String, GroundType> attributes) {
-    return new StructureVersion(id, structureId, attributes);
+  @Override
+  default Class<StructureVersion> getType() {
+    return StructureVersion.class;
   }
+
+  @Override
+  StructureVersion retrieveFromDatabase(long id) throws GroundException;
 }

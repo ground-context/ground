@@ -64,10 +64,10 @@ public class NodesResource {
   @GET
   @Timed
   @Path("/{name}")
-  public Node getNode(@PathParam("name") String name) throws GroundException {
+  public Node getNode(@PathParam("sourceKey") String sourceKey) throws GroundException {
     try {
-      LOGGER.info("Retrieving node " + name + ".");
-      return this.nodeFactory.retrieveFromDatabase(name);
+      LOGGER.info("Retrieving node " + sourceKey + ".");
+      return this.nodeFactory.retrieveFromDatabase(sourceKey);
     } finally {
       this.dbClient.commit();
     }
@@ -87,11 +87,11 @@ public class NodesResource {
 
   @GET
   @Timed
-  @Path("/{name}/latest")
-  public List<Long> getLatestVersions(@PathParam("name") String name) throws GroundException {
+  @Path("/{sourceKey}/latest")
+  public List<Long> getLatestVersions(@PathParam("sourceKey") String sourceKey) throws GroundException {
     try {
-      LOGGER.info("Retrieving the latest version of node " + name + ".");
-      return this.nodeFactory.getLeaves(name);
+      LOGGER.info("Retrieving the latest version of node " + sourceKey + ".");
+      return this.nodeFactory.getLeaves(sourceKey);
     } finally {
       this.dbClient.commit();
     }

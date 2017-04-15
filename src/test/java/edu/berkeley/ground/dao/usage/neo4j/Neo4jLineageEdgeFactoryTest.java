@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.usage.LineageEdge;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
@@ -26,7 +27,7 @@ public class Neo4jLineageEdgeFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.lineageEdgesResource.createLineageEdge(testName, sourceKey, new HashMap<>());
-    LineageEdge lineageEdge = Neo4jTest.lineageEdgesResource.getLineageEdge(testName);
+    LineageEdge lineageEdge = Neo4jTest.lineageEdgesResource.getLineageEdge(sourceKey);
 
     assertEquals(testName, lineageEdge.getName());
     assertEquals(sourceKey, lineageEdge.getSourceKey());
@@ -34,15 +35,29 @@ public class Neo4jLineageEdgeFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageEdge() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      Neo4jTest.lineageEdgesResource.getLineageEdge(testName);
+      Neo4jTest.lineageEdgesResource.getLineageEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageEdge found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageEdge() throws GroundException {
+    String lineageEdgeName = "lineageEdgeName";
+    String lineageEdgeKey = "lineageEdgeKey";
+
+    try {
+      Neo4jTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.lineageEdgesResource.createLineageEdge(lineageEdgeName, lineageEdgeKey, new HashMap<>());
   }
 
   @Test

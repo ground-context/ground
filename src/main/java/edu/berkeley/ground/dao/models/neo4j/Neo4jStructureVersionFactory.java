@@ -15,9 +15,9 @@
 package edu.berkeley.ground.dao.models.neo4j;
 
 import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.StructureVersion;
@@ -34,7 +34,10 @@ import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Neo4jStructureVersionFactory extends StructureVersionFactory {
+public class Neo4jStructureVersionFactory
+    extends Neo4jVersionFactory<StructureVersion>
+    implements StructureVersionFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureVersionFactory.class);
   private final Neo4jClient dbClient;
   private final Neo4jStructureFactory structureFactory;
@@ -92,7 +95,7 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
 
     LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
 
-    return StructureVersionFactory.construct(id, structureId, attributes);
+    return new StructureVersion(id, structureId, attributes);
   }
 
   /**
@@ -107,14 +110,11 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    long structureId;
+    Record record = this.dbClient.getVertex(predicates);
+    super.verifyResultSet(record, id);
 
-    try {
-      structureId = this.dbClient.getVertex(predicates).get("v").asNode()
-          .get("structure_id").asLong();
-    } catch (EmptyResultException e) {
-      throw new GroundDbException("No StructureVersion found with id " + id + ".");
-    }
+    long structureId = record.get("v").asNode().get("structure_id").asLong();
+
     List<String> returnFields = new ArrayList<>();
     returnFields.add("svid");
     returnFields.add("skey");
@@ -125,14 +125,14 @@ public class Neo4jStructureVersionFactory extends StructureVersionFactory {
     Map<String, GroundType> attributes = new HashMap<>();
 
 
-    for (Record record : edges) {
-      attributes.put(Neo4jClient.getStringFromValue((StringValue) record.get("skey")),
-          GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("stype")))
+    for (Record edge : edges) {
+      attributes.put(Neo4jClient.getStringFromValue((StringValue) edge.get("skey")),
+          GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) edge.get("stype")))
       );
     }
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
 
-    return StructureVersionFactory.construct(id, structureId, attributes);
+    return new StructureVersion(id, structureId, attributes);
   }
 }

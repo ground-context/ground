@@ -20,8 +20,8 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -32,9 +32,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CassandraRichVersionFactory extends RichVersionFactory {
+public abstract class CassandraRichVersionFactory<T extends RichVersion>
+    extends CassandraVersionFactory<T>
+    implements RichVersionFactory<T> {
+
   private final CassandraClient dbClient;
-  private final CassandraVersionFactory versionFactory;
   private final CassandraStructureVersionFactory structureVersionFactory;
   private final CassandraTagFactory tagFactory;
 
@@ -42,16 +44,16 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
    * Constructor for the Cassandra rich version factory.
    *
    * @param dbClient the Cassandra client
-   * @param versionFactory the singleton CassandraVersionFactory
    * @param structureVersionFactory the singleton CassandraStructureVerisonFactory
    * @param tagFactory the singleton CassandraTagFactory
    */
   public CassandraRichVersionFactory(CassandraClient dbClient,
-                                     CassandraVersionFactory versionFactory,
                                      CassandraStructureVersionFactory structureVersionFactory,
                                      CassandraTagFactory tagFactory) {
+
+    super(dbClient);
+
     this.dbClient = dbClient;
-    this.versionFactory = versionFactory;
     this.structureVersionFactory = structureVersionFactory;
     this.tagFactory = tagFactory;
   }
@@ -72,7 +74,7 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
                                  long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters) throws GroundException {
-    this.versionFactory.insertIntoDatabase(id);
+    super.insertIntoDatabase(id);
 
     if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory
@@ -127,30 +129,27 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
    * @return the retrieved rich version
    * @throws GroundException either the rich version didn't exist or couldn't be retrieved
    */
-  @Override
-  public RichVersion retrieveFromDatabase(long id) throws GroundException {
+  protected RichVersion retrieveRichVersionData(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("rich_version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No RichVersion found with id " + id + ".");
+    CassandraResults resultSet = this.dbClient.equalitySelect("rich_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    if (resultSet.isEmpty()) {
+      throw new GroundVersionNotFoundException(RichVersion.class, id);
     }
 
     List<DbDataContainer> parameterPredicates = new ArrayList<>();
     parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
-    try {
-      CassandraResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
-          DbClient.SELECT_STAR, parameterPredicates);
+    CassandraResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
+        DbClient.SELECT_STAR, parameterPredicates);
 
+    if (!parameterSet.isEmpty()) {
       do {
         referenceParameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
       } while (parameterSet.next());
-    } catch (EmptyResultException e) {
-      // do nothing; this just means that there are no referenceParameters
     }
 
     Map<String, Tag> tags = this.tagFactory.retrieveFromDatabaseByVersionId(id);
@@ -158,7 +157,6 @@ public class CassandraRichVersionFactory extends RichVersionFactory {
     String reference = resultSet.getString("reference");
     long structureVersionId = resultSet.getLong("structure_version_id");
 
-    return RichVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters);
+    return new RichVersion(id, tags, structureVersionId, reference, referenceParameters);
   }
 }

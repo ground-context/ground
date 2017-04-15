@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.berkeley.ground.dao.CassandraTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -49,8 +50,8 @@ public class CassandraNodeFactoryTest extends CassandraTest {
     String sourceKey = "testKey";
 
     CassandraTest.nodesResource.createNode(testName, sourceKey,tagsMap);
+    Node node = CassandraTest.nodesResource.getNode(sourceKey);
 
-    Node node = CassandraTest.nodesResource.getNode(testName);
     assertEquals(testName, node.getName());
     assertEquals(tagsMap, node.getTags());
     assertEquals(sourceKey, node.getSourceKey());
@@ -58,13 +59,13 @@ public class CassandraNodeFactoryTest extends CassandraTest {
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    String nodeName = "testNode1";
-    long nodeId = CassandraTest.createNode(nodeName).getId();
+    String sourceKey = "testNode1";
+    long nodeId = CassandraTest.createNode(sourceKey).getId();
 
     long nodeVersionId = CassandraTest.createNodeVersion(nodeId).getId();
     long secondNodeVersionId = CassandraTest.createNodeVersion(nodeId).getId();
 
-    List<Long> leaves = CassandraTest.nodesResource.getLatestVersions(nodeName);
+    List<Long> leaves = CassandraTest.nodesResource.getLatestVersions(sourceKey);
 
     assertTrue(leaves.contains(nodeVersionId));
     assertTrue(leaves.contains(secondNodeVersionId));
@@ -72,15 +73,29 @@ public class CassandraNodeFactoryTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadNode() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      CassandraTest.nodesResource.getNode(testName);
+      CassandraTest.nodesResource.getNode(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Node found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateNode() throws GroundException {
+    String nodeName = "nodeName";
+    String nodeKey = "nodeKey";
+
+    try {
+      CassandraTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    CassandraTest.nodesResource.createNode(nodeName, nodeKey, new HashMap<>());
   }
 
   @Test

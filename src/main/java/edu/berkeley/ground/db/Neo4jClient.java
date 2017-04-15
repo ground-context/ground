@@ -16,7 +16,6 @@ package edu.berkeley.ground.db;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.model.versions.GroundType;
 
 import java.util.ArrayList;
@@ -125,6 +124,7 @@ public class Neo4jClient extends DbClient {
       String edgeLabel,
       long fromId,
       List<DbDataContainer> edgeAttributes) {
+
     String insert = "MATCH (f {id: " + fromId + "})";
     insert += "CREATE (t: " + label + "{";
 
@@ -169,7 +169,7 @@ public class Neo4jClient extends DbClient {
    * @param attributes the set of attributes to filter
    * @return the Record of the vertex
    */
-  public Record getVertex(List<DbDataContainer> attributes) throws EmptyResultException {
+  public Record getVertex(List<DbDataContainer> attributes) {
     return this.getVertex(null, attributes);
   }
 
@@ -180,9 +180,9 @@ public class Neo4jClient extends DbClient {
    * @param attributes the attributes to filter by
    * @return the Record with the vertex
    */
-  public Record getVertex(String label, List<DbDataContainer> attributes)
-      throws EmptyResultException {
+  public Record getVertex(String label, List<DbDataContainer> attributes) {
     String query = "MATCH (v";
+
     if (label == null) {
       query += " {";
     } else {
@@ -195,9 +195,9 @@ public class Neo4jClient extends DbClient {
 
     if (result.hasNext()) {
       return result.next();
+    } else {
+      return null;
     }
-
-    throw new EmptyResultException("No results found for query: " + query);
   }
 
   /**
@@ -207,8 +207,7 @@ public class Neo4jClient extends DbClient {
    * @param attributes the attributes to filter by
    * @return the Neo4j Relationship for this edge
    */
-  public Relationship getEdge(String label, List<DbDataContainer> attributes)
-      throws EmptyResultException {
+  public Relationship getEdge(String label, List<DbDataContainer> attributes) {
     String query = "MATCH (v)-[e:" + label + "{";
 
     query = this.addValuesToStatement(query, attributes);
@@ -219,9 +218,9 @@ public class Neo4jClient extends DbClient {
     if (result.hasNext()) {
       Record r = result.next();
       return r.get("e").asRelationship();
+    } else {
+      return null;
     }
-
-    throw new EmptyResultException("No results found for query: " + query);
   }
 
   /**
