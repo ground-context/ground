@@ -21,11 +21,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
-import edu.berkeley.ground.model.versions.GroundType;
-
 import java.util.*;
 import java.util.stream.Collectors;
-import static java.util.stream.Stream.concat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
