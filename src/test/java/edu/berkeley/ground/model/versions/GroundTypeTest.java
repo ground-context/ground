@@ -30,11 +30,12 @@ public class GroundTypeTest {
   }
 
   @Test
-  public void testStringToType() throws GroundException {
-    assertEquals(null, GroundType.stringToType(null, GroundType.STRING));
-    assertEquals("hello", GroundType.stringToType("hello", GroundType.STRING));
-    assertEquals(1, GroundType.stringToType("1", GroundType.INTEGER));
-    assertEquals(1L, GroundType.stringToType("1", GroundType.LONG));
-    assertEquals(true, GroundType.stringToType("true", GroundType.BOOLEAN));
+  public void testParse() throws GroundException {
+    assertThat(GroundType.STRING.parse(null)).isNull();
+    assertThat(GroundType.STRING.parse("hello")).isEqualTo("hello");
+    assertThat(GroundType.INTEGER.parse("1234")).isEqualTo(1234);
+    assertThat(GroundType.LONG.parse("54321")).isEqualTo(54321L);
+    assertThat(GroundType.BOOLEAN.parse("true")).isEqualTo(true);
+    assertThat(GroundType.BOOLEAN.parse("false")).isEqualTo(false);
   }
 }

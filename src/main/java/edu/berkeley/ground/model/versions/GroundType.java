@@ -22,10 +22,26 @@ import edu.berkeley.ground.exceptions.GroundException;
 import java.sql.Types;
 
 public enum GroundType {
-  STRING(String.class, "string", Types.VARCHAR),
-  INTEGER(Integer.class, "integer", Types.INTEGER),
-  BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN),
-  LONG(Long.class, "long", Types.BIGINT);
+  STRING(String.class, "string", Types.VARCHAR){
+    public Object parse(String str){
+      return str;
+    }
+  },
+  INTEGER(Integer.class, "integer", Types.INTEGER){
+    public Object parse(String str){
+      return Integer.parseInt(str);
+    }
+  },
+  BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN){
+    public Object parse(String str){
+      return Boolean.parseBoolean(str);
+    }
+  },
+  LONG(Long.class, "long", Types.BIGINT){
+    public Object parse(String str){
+      return Long.parseLong(str);
+    }
+  };
 
   private final Class<?> klass;
   private final String name;
@@ -44,6 +60,8 @@ public enum GroundType {
   public int getSqlType(){
     return sqlType;
   }
+
+  public abstract Object parse(String str);
 
   public Class<?> getTypeClass() {
     return this.klass;
@@ -65,34 +83,6 @@ public enum GroundType {
       return GroundType.valueOf(str.toUpperCase());
     } catch (IllegalArgumentException iae) {
         throw new GroundException("Invalid type: " + str + ".");
-    }
-  }
-
-  /**
-   * Take a string of type GroundType and return the parsed object.
-   *
-   * @param str the value
-   * @param groundType the type of the value
-   * @return the parsed object
-   */
-  @JsonValue
-  public static Object stringToType(String str, GroundType groundType) {
-    if (str == null) {
-      return null;
-    }
-
-    switch (groundType) {
-      case STRING:
-        return str;
-      case INTEGER:
-        return Integer.parseInt(str);
-      case BOOLEAN:
-        return Boolean.parseBoolean(str);
-      case LONG:
-        return Long.parseLong(str);
-      default:
-        // impossible because we've listed all enum values
-        throw new IllegalStateException("Unhandled enum value: " + groundType);
     }
   }
 

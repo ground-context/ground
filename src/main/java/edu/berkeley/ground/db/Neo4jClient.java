@@ -153,11 +153,7 @@ public class Neo4jClient extends DbClient {
 
     List<Long> result = new ArrayList<>();
     while (queryResult.hasNext()) {
-      result.add(
-          (Long)
-              GroundType.stringToType(
-                  queryResult.next().get("f").asNode().get(idAttribute).toString(),
-                  GroundType.LONG));
+      result.add((Long)GroundType.LONG.parse(queryResult.next().get("f").asNode().get(idAttribute).toString()));
     }
 
     return result;

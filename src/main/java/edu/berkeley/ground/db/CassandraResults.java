@@ -17,6 +17,7 @@ package edu.berkeley.ground.db;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 
+import com.datastax.driver.core.exceptions.CodecNotFoundException;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.model.versions.GroundType;
 
@@ -40,7 +41,7 @@ public class CassandraResults {
   public String getString(String field) throws GroundDbException {
     try {
       return this.currentRow.getString(field);
-    } catch (Exception e) {
+    } catch (IllegalArgumentException | CodecNotFoundException e) {
       throw new GroundDbException(e);
     }
   }
@@ -54,9 +55,8 @@ public class CassandraResults {
    */
   public int getInt(String field) throws GroundDbException {
     try {
-      return (Integer) GroundType.stringToType(this.currentRow.getString(field),
-          GroundType.INTEGER);
-    } catch (Exception e) {
+      return (Integer) GroundType.INTEGER.parse(this.currentRow.getString(field));
+    } catch (IllegalArgumentException | CodecNotFoundException e) {
       throw new GroundDbException(e);
     }
   }
@@ -70,9 +70,8 @@ public class CassandraResults {
    */
   public boolean getBoolean(String field) throws GroundDbException {
     try {
-      return (Boolean) GroundType.stringToType(this.currentRow.getString(field),
-          GroundType.BOOLEAN);
-    } catch (Exception e) {
+      return (Boolean) GroundType.BOOLEAN.parse(this.currentRow.getString(field));
+    } catch (IllegalArgumentException | CodecNotFoundException e) {
       throw new GroundDbException(e);
     }
   }
@@ -86,8 +85,9 @@ public class CassandraResults {
    */
   public long getLong(String field) throws GroundDbException {
     try {
+      //Q: Why Long one does not follow the same logic as the other types?
       return this.currentRow.getLong(field);
-    } catch (Exception e) {
+    } catch (IllegalArgumentException | CodecNotFoundException e) {
       throw new GroundDbException(e);
     }
   }

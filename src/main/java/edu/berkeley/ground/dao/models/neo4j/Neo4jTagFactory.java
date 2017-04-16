@@ -71,16 +71,16 @@ public class Neo4jTagFactory implements TagFactory {
         value = null;
       }
 
-      GroundType type;
+      GroundType gType;
       if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
-        type = GroundType.fromString(
+        gType = GroundType.fromString(
             Neo4jClient.getStringFromValue((StringValue) record.get("type")));
-        value = GroundType.stringToType((String) value, type);
+        value = gType.parse(value.toString());
       } else {
-        type = null;
+        gType = null;
       }
 
-      tags.put(key, new Tag(id, key, value, type));
+      tags.put(key, new Tag(id, key, value, gType));
     }
 
     return tags;
