@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,17 +124,9 @@ public class CassandraTest extends DaoTest {
     return new CassandraClient(cluster, session);
   }
 
-  protected static void runScript(String scriptFile)  {
-    final String CQL_COMMENT_START = "--";
-
-    try (Stream<String> lines = Files.lines(Paths.get(scriptFile))) {
-      String data = lines.filter(line -> !line.startsWith(CQL_COMMENT_START)).collect(Collectors.joining());
-      Arrays.stream(data.split(";"))
-        .map(chunk -> chunk + ";")
-        .forEach(statement -> cassandraClient.getSession().execute(statement));
-    }catch (IOException e) {
-      throw new RuntimeException("Unable to read script file: "+ scriptFile);
-    }
+  protected static void runScript(String script) {
+    DaoTest.runScript(script, cassandraClient.getSession()::execute);
   }
+
 
 }

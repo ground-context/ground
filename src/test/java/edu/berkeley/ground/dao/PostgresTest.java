@@ -14,12 +14,16 @@
 
 package edu.berkeley.ground.dao;
 
+import com.typesafe.config.Config;
+import edu.berkeley.ground.util.TestEnv;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import edu.berkeley.ground.dao.models.postgres.PostgresStructureVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
@@ -35,9 +39,11 @@ import edu.berkeley.ground.resources.NodesResource;
 import edu.berkeley.ground.resources.StructuresResource;
 import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.PostgresFactories;
+import org.junit.Test;
 
 public class PostgresTest extends DaoTest {
-  private static final String TEST_DB_NAME = "test";
+  private static String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
+  private static String CREATE_SCHEMA_SCRIPT = "./scripts/postgres/postgres.sql";
 
   private static PostgresFactories factories;
 
@@ -48,7 +54,8 @@ public class PostgresTest extends DaoTest {
 
   @BeforeClass
   public static void setupClass() throws GroundDbException {
-    postgresClient = new PostgresClient("localhost", 5432, "test", "test", "");
+    postgresClient = setupClient();
+    runScript(CREATE_SCHEMA_SCRIPT);
     factories = new PostgresFactories(postgresClient, 0, 1);
 
     versionSuccessorFactory = new PostgresVersionSuccessorFactory(postgresClient, new IdGenerator(0, 1, false));
@@ -78,12 +85,60 @@ public class PostgresTest extends DaoTest {
     return (PostgresStructureVersionFactory) PostgresTest.factories.getStructureVersionFactory();
   }
 
-  @Before
-  public void setup() throws IOException, InterruptedException {
-    Process p = Runtime.getRuntime().exec("python2.7 postgres_setup.py " + TEST_DB_NAME + " test drop"
-        , null, new File("scripts/postgres/"));
+  @Test
+  public void dummy() {
+    System.out.println("done!");
+  }
 
-    p.waitFor();
-    p.destroy();
+  @Before
+  public void setup() throws IOException, InterruptedException, GroundDbException {
+    System.out.println("setup **************************************");
+    long t0 = System.currentTimeMillis();
+    runScript(DROP_SCRIPT);
+    runScript(CREATE_SCHEMA_SCRIPT);
+    System.out.println("setup took: "+(System.currentTimeMillis()-t0)+" ms.");
+  }
+
+  protected static PostgresClient setupClient() throws GroundDbException {
+    Config postgresConfig = TestEnv.config.getConfig("postgres");
+    String host = postgresConfig.getString("host");
+    int port = postgresConfig.getInt("port");
+    String dbName = postgresConfig.getString("dbName");
+    String username = postgresConfig.getString("username");
+    String password = postgresConfig.getString("password");
+    return new PostgresClient(host, port, dbName, username, password);
+  }
+
+  protected static void runScript(String script)  {
+    try {
+      boolean autoCommitState = postgresClient.getConnection().getAutoCommit();
+      postgresClient.getConnection().setAutoCommit(true);
+      StatementExecutor exec = new StatementExecutor(postgresClient.getConnection());
+      DaoTest.runScript(script, exec::execute);
+      postgresClient.getConnection().setAutoCommit(autoCommitState);
+    } catch (SQLException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  private static class StatementExecutor {
+    private final Connection conn;
+    StatementExecutor(Connection conn) {
+      this.conn = conn;
+    }
+    void execute(String statement)  {
+      try {
+        Statement sqlStatement = conn.createStatement();
+        sqlStatement.execute(statement);
+      } catch (SQLException e) {
+        String message = e.getMessage();
+        if (message.contains("already exists") || message.contains("current transaction is aborted")) {
+          System.out.println("Warn: statement ["+statement+"] causes: "+e.getMessage());
+          // ignore errors caused by type already existing
+        } else {
+          throw new RuntimeException(e);
+        }
+      }
+    }
   }
 }

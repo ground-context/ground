@@ -1,9 +1,12 @@
 package edu.berkeley.ground.dao;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Edge;
@@ -174,4 +177,18 @@ public class DaoTest {
 
     return edgeVersionId;
   }
+
+  protected static void runScript(String scriptFile, Consumer<String> executor)  {
+    final String SQL_COMMENT_START = "--";
+
+    try (Stream<String> lines = Files.lines(Paths.get(scriptFile))) {
+      String data = lines.filter(line -> !line.startsWith(SQL_COMMENT_START)).collect(Collectors.joining());
+      Arrays.stream(data.split(";"))
+        .map(chunk -> chunk + ";")
+        .forEach(statement -> executor.accept(statement));
+    }catch (IOException e) {
+      throw new RuntimeException("Unable to read script file: "+ scriptFile);
+    }
+  }
+
 }
