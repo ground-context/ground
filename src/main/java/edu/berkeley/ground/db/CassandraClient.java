@@ -23,11 +23,9 @@ import com.datastax.driver.core.Session;
 
 import edu.berkeley.ground.model.versions.GroundType;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+import static java.util.stream.Stream.concat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,14 +78,8 @@ public class CassandraClient extends DbClient {
     String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
     String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
-    BoundStatement statement = this.prepareStatement(insert);
 
-    int index = 0;
-    for (DbDataContainer container : insertValues) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
-    }
+    BoundStatement statement = bind(insert, insertValues);
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
@@ -116,14 +108,8 @@ public class CassandraClient extends DbClient {
     }
 
     select += " ALLOW FILTERING;";
-    BoundStatement statement = this.prepareStatement(select);
 
-    int index = 0;
-    for (DbDataContainer container : predicatesAndValues) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
-    }
+    BoundStatement statement = bind(select, predicatesAndValues);
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
@@ -160,19 +146,9 @@ public class CassandraClient extends DbClient {
       updateString += " where " + wherePredicateString;
     }
 
-    BoundStatement statement = this.prepareStatement(updateString);
+    BoundStatement statement = bind(updateString, setPredicates, wherePredicates);
 
-    int index = 0;
-    for (DbDataContainer predicate : setPredicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
-
-    for (DbDataContainer predicate : wherePredicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
-
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
   }
 
@@ -190,15 +166,17 @@ public class CassandraClient extends DbClient {
 
     deleteString += "where " + predicateString;
 
-    BoundStatement statement = this.prepareStatement(deleteString);
-
-    int index = 0;
-    for (DbDataContainer predicate : predicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
+    BoundStatement statement = bind(deleteString, predicates);
 
     this.session.execute(statement);
+  }
+
+  private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
+    BoundStatement boundStatement = this.prepareStatement(statement);
+    List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
+      .map(p-> p.getValue()).collect(Collectors.toList());
+    boundStatement.bind(values.toArray(new Object[values.size()]));
+    return boundStatement;
   }
 
   @Override
@@ -220,34 +198,4 @@ public class CassandraClient extends DbClient {
     return new BoundStatement(statement);
   }
 
-  private static void setValue(BoundStatement statement,
-                               Object value,
-                               GroundType groundType,
-                               int index) {
-    if (value == null) {
-      statement.setToNull(index);
-    } else {
-      switch (groundType) {
-        case STRING:
-            statement.setString(index, (String) value);
-          break;
-        case INTEGER:
-            statement.setInt(index, (Integer) value);
-          break;
-        case BOOLEAN:
-            statement.setBool(index, (Boolean) value);
-          break;
-        case LONG:
-          if ((long) value != -1) { // magic number here!
-            statement.setLong(index, (Long) value);
-          } else {
-            statement.setToNull(index);
-          }
-          break;
-        default:
-          // impossible because we've listed all the enum types
-          break;
-      }
-    }
-  }
 }
