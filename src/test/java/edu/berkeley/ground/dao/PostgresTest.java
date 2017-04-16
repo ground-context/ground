@@ -39,19 +39,16 @@ import edu.berkeley.ground.resources.NodesResource;
 import edu.berkeley.ground.resources.StructuresResource;
 import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.PostgresFactories;
-import org.junit.Test;
 
 public class PostgresTest extends DaoTest {
   private static String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
   private static String CREATE_SCHEMA_SCRIPT = "./scripts/postgres/postgres.sql";
 
   private static PostgresFactories factories;
-
   protected static PostgresClient postgresClient;
   protected static PostgresVersionSuccessorFactory versionSuccessorFactory;
   protected static PostgresVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static PostgresTagFactory tagFactory;
-  private static long totalTime = 0L;
 
   @BeforeClass
   public static void setupClass() throws GroundDbException {
@@ -86,29 +83,21 @@ public class PostgresTest extends DaoTest {
     return (PostgresStructureVersionFactory) PostgresTest.factories.getStructureVersionFactory();
   }
 
-  @Test
-  public void dummy() {
-    System.out.println("done!");
-  }
-
   @Before
   public void setup() throws IOException, InterruptedException, GroundDbException {
-    long t0 = System.currentTimeMillis();
     runScript(DROP_SCRIPT);
     runScript(CREATE_SCHEMA_SCRIPT);
-    long t =System.currentTimeMillis()-t0;
-      totalTime += t;
-    System.out.println("Postgres setup took: "+ t +" ms.");
-    System.out.println("Postgres setup cumulative: "+ totalTime +" ms.");
   }
 
   protected static PostgresClient setupClient() throws GroundDbException {
     Config postgresConfig = TestEnv.config.getConfig("postgres");
+
     String host = postgresConfig.getString("host");
     int port = postgresConfig.getInt("port");
     String dbName = postgresConfig.getString("dbName");
     String username = postgresConfig.getString("username");
     String password = postgresConfig.getString("password");
+
     return new PostgresClient(host, port, dbName, username, password);
   }
 

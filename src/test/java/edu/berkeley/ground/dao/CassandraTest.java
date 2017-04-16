@@ -88,12 +88,7 @@ public class CassandraTest extends DaoTest {
 
   @Before
   public void setupTest() {
-    long t0 = System.currentTimeMillis();
     runScript(TRUNCATE_SCRIPT);
-    long t =System.currentTimeMillis()-t0;
-    totalTime += t;
-    System.out.println("Cassandra setup took: " + t + " ms.");
-    System.out.println("Cassandra setup cumulative: "+ totalTime +" ms.");
   }
 
   public static CassandraStructureVersionFactory getStructureVersionFactory() {
@@ -107,6 +102,7 @@ public class CassandraTest extends DaoTest {
 
   protected static CassandraClient setupClient() {
     Config cassandraConfig = TestEnv.config.getConfig("cassandra");
+
     String host = cassandraConfig.getString("host");
     int port = cassandraConfig.getInt("port");
     String keyspace = cassandraConfig.getString("keyspace");

@@ -22,7 +22,8 @@ For the tests to work, it's required to have a running instance of
 [Apache Cassandra](http://cassandra.apache.org/), [PostgreSQL](https://www.postgresql.org/) 
 and [Neo4J](https://neo4j.com/download/).
 
-The test setup can be local to the development machine or use docker containers. 
+The test setup can be local to the development machine or use docker containers.
+The default configuration assumes that all servers are running in local mode (localhost). 
 
 #### Using a local installation 
 The db servers are installed directly on the development machine.  

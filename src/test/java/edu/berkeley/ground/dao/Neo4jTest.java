@@ -15,7 +15,6 @@
 package edu.berkeley.ground.dao;
 
 import com.typesafe.config.Config;
-import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.util.TestEnv;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -23,7 +22,6 @@ import org.junit.BeforeClass;
 
 import java.io.IOException;
 
-import edu.berkeley.ground.dao.models.TagFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jStructureVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
 import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
@@ -37,7 +35,6 @@ import edu.berkeley.ground.resources.NodesResource;
 import edu.berkeley.ground.resources.StructuresResource;
 import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
-import org.junit.Test;
 
 public class Neo4jTest extends DaoTest {
   /* Note: In Neo4j, we don't create explicit (Rich)Versions because all of the logic is wrapped in
@@ -50,8 +47,6 @@ public class Neo4jTest extends DaoTest {
   protected static Neo4jVersionSuccessorFactory versionSuccessorFactory;
   protected static Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static Neo4jTagFactory tagFactory;
-
-  private static long totalTime = 0L;
 
   @BeforeClass
   public static void setupClass() {
@@ -75,11 +70,6 @@ public class Neo4jTest extends DaoTest {
       factories.getStructureVersionFactory(), neo4jClient);
   }
 
-  @Test
-  public void testDummy() {
-    System.out.println("dummy setup");
-  }
-
   public static Neo4jStructureVersionFactory getStructureVersionFactory() {
     return (Neo4jStructureVersionFactory) Neo4jTest.factories.getStructureVersionFactory();
   }
@@ -91,13 +81,7 @@ public class Neo4jTest extends DaoTest {
 
   @Before
   public void setup() throws IOException, InterruptedException {
-    long t0 = System.currentTimeMillis();
     neo4jClient.dropData();
-    long t =System.currentTimeMillis()-t0;
-    totalTime += t;
-    System.out.println("Neo4J setup took: " + t + " ms.");
-    System.out.println("Neo4J setup cumulative: "+ totalTime +" ms.");
-
   }
 
   protected static Neo4jClient setupClient() {
