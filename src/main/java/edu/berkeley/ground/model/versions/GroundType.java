@@ -19,18 +19,30 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.sql.Types;
+
 public enum GroundType {
-  STRING(String.class, "string"),
-  INTEGER(Integer.class, "integer"),
-  BOOLEAN(Boolean.class, "boolean"),
-  LONG(Long.class, "long");
+  STRING(String.class, "string", Types.VARCHAR),
+  INTEGER(Integer.class, "integer", Types.INTEGER),
+  BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN),
+  LONG(Long.class, "long", Types.BIGINT);
 
   private final Class<?> klass;
   private final String name;
+  private final int sqlType;
 
-  GroundType(Class<?> klass, String name) {
+  GroundType(Class<?> klass, String name, int sqlType) {
     this.klass = klass;
     this.name = name;
+    this.sqlType = sqlType;
+  }
+
+  /**
+   * Returns the SQL type as defined in java.sql.Types corresponding to this GroundType
+   * @return an integer the corresponding SQL Type
+   */
+  public int getSqlType(){
+    return sqlType;
   }
 
   public Class<?> getTypeClass() {
@@ -88,9 +100,9 @@ public enum GroundType {
         return Boolean.parseBoolean(str);
       case LONG:
         return Long.parseLong(str);
-
       default:
-        return null;
+        // impossible because we've listed all enum values
+        throw new IllegalStateException("Unhandled enum value: " + groundType);
     }
   }
 
