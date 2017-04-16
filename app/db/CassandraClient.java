@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraClient extends DbClient {
+public class CassandraClient implements DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
   private final Cluster cluster;

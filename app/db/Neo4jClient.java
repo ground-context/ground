@@ -34,7 +34,7 @@ import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.types.Relationship;
 
-public class Neo4jClient extends DbClient {
+public class Neo4jClient implements DbClient {
   private final Driver driver;
   private final Session session;
   private Transaction transaction;

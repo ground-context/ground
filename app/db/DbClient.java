@@ -19,10 +19,10 @@ import exceptions.GroundDbException;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class DbClient implements AutoCloseable {
-  public static final List<String> SELECT_STAR = Collections.singletonList("*");
+public interface DbClient extends AutoCloseable {
+  List<String> SELECT_STAR = Collections.singletonList("*");
 
-  public abstract void commit() throws GroundDbException;
+  void commit() throws GroundDbException;
 
-  public abstract void abort() throws GroundDbException;
+  void abort() throws GroundDbException;
 }
