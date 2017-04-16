@@ -21,7 +21,7 @@ import com.datastax.driver.core.exceptions.CodecNotFoundException;
 import exceptions.GroundDbException;
 import models.versions.GroundType;
 
-public class CassandraResults {
+public class CassandraResults implements DbResults {
   private final ResultSet resultSet;
   private Row currentRow;
 
@@ -38,6 +38,7 @@ public class CassandraResults {
    * @return the string in the column
    * @throws GroundDbException either the column doesn't exist or it isn't a string
    */
+  @Override
   public String getString(String field) throws GroundDbException {
     try {
       return this.currentRow.getString(field);
@@ -53,6 +54,7 @@ public class CassandraResults {
    * @return the int in the column
    * @throws GroundDbException either column doesn't exist or isn't an int
    */
+  @Override
   public int getInt(String field) throws GroundDbException {
     try {
       return (Integer) GroundType.INTEGER.parse(this.currentRow.getString(field));
@@ -68,6 +70,7 @@ public class CassandraResults {
    * @return the boolean in the column
    * @throws GroundDbException either column doesn't exist or isn't an boolean
    */
+  @Override
   public boolean getBoolean(String field) throws GroundDbException {
     try {
       return (Boolean) GroundType.BOOLEAN.parse(this.currentRow.getString(field));
@@ -83,6 +86,7 @@ public class CassandraResults {
    * @return the long in field
    * @throws GroundDbException either column doesn't exist or isn't a long
    */
+  @Override
   public long getLong(String field) throws GroundDbException {
     try {
       //Q: Why Long one does not follow the same logic as the other types?
@@ -97,6 +101,7 @@ public class CassandraResults {
    *
    * @return false if there are no more rows
    */
+  @Override
   public boolean next() {
     this.currentRow = this.resultSet.one();
 
@@ -109,10 +114,12 @@ public class CassandraResults {
    * @param field the field to check
    * @return true if null, false otherwise
    */
+  @Override
   public boolean isNull(String field) {
     return this.currentRow.isNull(field);
   }
 
+  @Override
   public boolean isEmpty() {
     return (this.resultSet == null || this.resultSet.isExhausted()) && this.currentRow == null;
   }

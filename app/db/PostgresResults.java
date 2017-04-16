@@ -23,8 +23,7 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-public class PostgresResults {
+public class PostgresResults implements DbResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
 
   private final ResultSet resultSet;
@@ -38,6 +37,7 @@ public class PostgresResults {
    *
    * @return false if there are no more rows
    */
+  @Override
   public boolean next() throws GroundDbException {
     try {
       return this.resultSet.next();
@@ -49,13 +49,14 @@ public class PostgresResults {
   /**
    * Retrieve the string at the index.
    *
-   * @param index the index to use
+   * @param field the column to look in
    * @return the string at index
    * @throws GroundDbException either the column doesn't exist or it isn't a string
    */
-  public String getString(int index) throws GroundDbException {
+  @Override
+  public String getString(String field) throws GroundDbException {
     try {
-      return resultSet.getString(index);
+      return resultSet.getString(field);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
@@ -66,13 +67,14 @@ public class PostgresResults {
   /**
    * Retrieve the int at the index.
    *
-   * @param index the index to use
+   * @param field the column to look in
    * @return the int at index
    * @throws GroundDbException either column doesn't exist or isn't an int
    */
-  public int getInt(int index) throws GroundDbException {
+  @Override
+  public int getInt(String field) throws GroundDbException {
     try {
-      return resultSet.getInt(index);
+      return resultSet.getInt(field);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
@@ -83,13 +85,14 @@ public class PostgresResults {
   /**
    * Retrieve the long at the index.
    *
-   * @param index the index to use
+   * @param field the column to look in
    * @return the long at the index
    * @throws GroundDbException either the column doesn't exist or isn't a long
    */
-  public long getLong(int index) throws GroundDbException {
+  @Override
+  public long getLong(String field) throws GroundDbException {
     try {
-      return resultSet.getLong(index);
+      return resultSet.getLong(field);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
@@ -101,13 +104,14 @@ public class PostgresResults {
   /**
    * Retrieve the boolean at the index.
    *
-   * @param index the index to use
+   * @param field the index to use
    * @return the boolean at index
    * @throws GroundDbException either column doesn't exist or isn't an boolean
    */
-  public boolean getBoolean(int index) throws GroundDbException {
+  @Override
+  public boolean getBoolean(String field) throws GroundDbException {
     try {
-      return resultSet.getBoolean(index);
+      return resultSet.getBoolean(field);
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
@@ -118,12 +122,13 @@ public class PostgresResults {
   /**
    * Determine if the index of current row is null.
    *
-   * @param index the index to use
+   * @param field the column to look in
    * @return true if null, false otherwise
    */
-  public boolean isNull(int index) throws GroundDbException {
+  @Override
+  public boolean isNull(String field) throws GroundDbException {
     try {
-      resultSet.getBlob(index);
+      resultSet.getBlob(field);
       return resultSet.wasNull();
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
@@ -136,15 +141,16 @@ public class PostgresResults {
    * Check if the result set is empty before the first call.
    *
    * @return true if empty false otherwise
-   * @throws GroundException an unexpected error while checking the emptiness
+   * @throws GroundDbException an unexpected error while checking the emptiness
    */
-  public boolean isEmpty() throws GroundException {
+  @Override
+  public boolean isEmpty() throws GroundDbException {
     try {
       return !this.resultSet.next();
     } catch (SQLException e) {
       LOGGER.error(e.getMessage());
 
-      throw new GroundException(e);
+      throw new GroundDbException(e);
     }
   }
 }
