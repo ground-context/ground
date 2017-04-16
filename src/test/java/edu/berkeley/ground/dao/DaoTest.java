@@ -190,5 +190,4 @@ public class DaoTest {
       throw new RuntimeException("Unable to read script file: "+ scriptFile);
     }
   }
-
 }

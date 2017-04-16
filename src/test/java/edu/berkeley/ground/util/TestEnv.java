@@ -11,7 +11,6 @@ public class TestEnv {
 
   private TestEnv() {
     // NOOP Constructor - static class
-    System.out.println(config);
   }
 
 }

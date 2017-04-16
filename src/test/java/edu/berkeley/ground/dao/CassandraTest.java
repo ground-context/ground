@@ -124,6 +124,4 @@ public class CassandraTest extends DaoTest {
   protected static void runScript(String script) {
     DaoTest.runScript(script, cassandraClient.getSession()::execute);
   }
-
-
 }
