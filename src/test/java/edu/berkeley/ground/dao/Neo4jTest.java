@@ -14,6 +14,9 @@
 
 package edu.berkeley.ground.dao;
 
+import com.typesafe.config.Config;
+import edu.berkeley.ground.db.CassandraClient;
+import edu.berkeley.ground.util.TestEnv;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +37,7 @@ import edu.berkeley.ground.resources.NodesResource;
 import edu.berkeley.ground.resources.StructuresResource;
 import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.Neo4jFactories;
+import org.junit.Test;
 
 public class Neo4jTest extends DaoTest {
   /* Note: In Neo4j, we don't create explicit (Rich)Versions because all of the logic is wrapped in
@@ -47,26 +51,33 @@ public class Neo4jTest extends DaoTest {
   protected static Neo4jVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static Neo4jTagFactory tagFactory;
 
+  private static long totalTime = 0L;
+
   @BeforeClass
   public static void setupClass() {
-    neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
+    neo4jClient = setupClient();
     factories = new Neo4jFactories(neo4jClient, 0, 1);
     versionSuccessorFactory = new Neo4jVersionSuccessorFactory(neo4jClient, new IdGenerator(0, 1, true));
     versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(neo4jClient, versionSuccessorFactory);
     tagFactory = new Neo4jTagFactory(neo4jClient);
 
     edgesResource = new EdgesResource(factories.getEdgeFactory(),
-        factories.getEdgeVersionFactory(), factories.getNodeFactory(), neo4jClient);
+      factories.getEdgeVersionFactory(), factories.getNodeFactory(), neo4jClient);
     graphsResource = new GraphsResource(factories.getGraphFactory(),
-        factories.getGraphVersionFactory(), neo4jClient);
+      factories.getGraphVersionFactory(), neo4jClient);
     lineageEdgesResource = new LineageEdgesResource(factories.getLineageEdgeFactory(),
-        factories.getLineageEdgeVersionFactory(), neo4jClient);
+      factories.getLineageEdgeVersionFactory(), neo4jClient);
     lineageGraphsResource = new LineageGraphsResource(factories.getLineageGraphFactory(),
-        factories.getLineageGraphVersionFactory(), neo4jClient);
+      factories.getLineageGraphVersionFactory(), neo4jClient);
     nodesResource = new NodesResource(factories.getNodeFactory(),
-        factories.getNodeVersionFactory(), neo4jClient);
+      factories.getNodeVersionFactory(), neo4jClient);
     structuresResource = new StructuresResource(factories.getStructureFactory(),
-        factories.getStructureVersionFactory(), neo4jClient);
+      factories.getStructureVersionFactory(), neo4jClient);
+  }
+
+  @Test
+  public void testDummy() {
+    System.out.println("dummy setup");
   }
 
   public static Neo4jStructureVersionFactory getStructureVersionFactory() {
@@ -80,6 +91,20 @@ public class Neo4jTest extends DaoTest {
 
   @Before
   public void setup() throws IOException, InterruptedException {
+    long t0 = System.currentTimeMillis();
     neo4jClient.dropData();
+    long t =System.currentTimeMillis()-t0;
+    totalTime += t;
+    System.out.println("Neo4J setup took: " + t + " ms.");
+    System.out.println("Neo4J setup cumulative: "+ totalTime +" ms.");
+
+  }
+
+  protected static Neo4jClient setupClient() {
+    Config config = TestEnv.config.getConfig("neo4j");
+    String host = config.getString("host");
+    String username = config.getString("username");
+    String password = config.getString("password");
+    return new Neo4jClient(host, username, password);
   }
 }

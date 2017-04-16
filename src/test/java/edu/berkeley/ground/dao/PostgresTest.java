@@ -51,6 +51,7 @@ public class PostgresTest extends DaoTest {
   protected static PostgresVersionSuccessorFactory versionSuccessorFactory;
   protected static PostgresVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static PostgresTagFactory tagFactory;
+  private static long totalTime = 0L;
 
   @BeforeClass
   public static void setupClass() throws GroundDbException {
@@ -92,11 +93,13 @@ public class PostgresTest extends DaoTest {
 
   @Before
   public void setup() throws IOException, InterruptedException, GroundDbException {
-    System.out.println("setup **************************************");
     long t0 = System.currentTimeMillis();
     runScript(DROP_SCRIPT);
     runScript(CREATE_SCHEMA_SCRIPT);
-    System.out.println("setup took: "+(System.currentTimeMillis()-t0)+" ms.");
+    long t =System.currentTimeMillis()-t0;
+      totalTime += t;
+    System.out.println("Postgres setup took: "+ t +" ms.");
+    System.out.println("Postgres setup cumulative: "+ totalTime +" ms.");
   }
 
   protected static PostgresClient setupClient() throws GroundDbException {

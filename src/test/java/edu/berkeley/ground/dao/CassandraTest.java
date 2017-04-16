@@ -24,13 +24,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import edu.berkeley.ground.dao.models.cassandra.CassandraStructureVersionFactory;
 import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
@@ -62,9 +56,11 @@ public class CassandraTest extends DaoTest {
   protected static CassandraVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static CassandraTagFactory tagFactory;
 
+  private static long totalTime = 0L;
+
   @BeforeClass
   public static void setup() throws GroundDbException {
-    cassandraClient = setupCassandraClient();
+    cassandraClient = setupClient();
 
     runScript(CREATE_SCHEMA_SCRIPT);
 
@@ -92,7 +88,12 @@ public class CassandraTest extends DaoTest {
 
   @Before
   public void setupTest() {
+    long t0 = System.currentTimeMillis();
     runScript(TRUNCATE_SCRIPT);
+    long t =System.currentTimeMillis()-t0;
+    totalTime += t;
+    System.out.println("Cassandra setup took: " + t + " ms.");
+    System.out.println("Cassandra setup cumulative: "+ totalTime +" ms.");
   }
 
   public static CassandraStructureVersionFactory getStructureVersionFactory() {
@@ -104,7 +105,7 @@ public class CassandraTest extends DaoTest {
     cassandraClient.close();
   }
 
-  protected static CassandraClient setupCassandraClient() {
+  protected static CassandraClient setupClient() {
     Config cassandraConfig = TestEnv.config.getConfig("cassandra");
     String host = cassandraConfig.getString("host");
     int port = cassandraConfig.getInt("port");
