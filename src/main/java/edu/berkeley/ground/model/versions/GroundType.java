@@ -61,20 +61,10 @@ public enum GroundType {
     if (str == null) {
       return null;
     }
-
-    switch (str.toLowerCase()) {
-      case "string":
-        return STRING;
-      case "integer":
-        return INTEGER;
-      case "boolean":
-        return BOOLEAN;
-      case "long":
-        return LONG;
-
-      default: {
+    try {
+      return GroundType.valueOf(str.toUpperCase());
+    } catch (IllegalArgumentException iae) {
         throw new GroundException("Invalid type: " + str + ".");
-      }
     }
   }
 

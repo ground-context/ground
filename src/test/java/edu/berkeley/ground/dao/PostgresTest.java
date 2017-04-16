@@ -76,7 +76,7 @@ public class PostgresTest extends DaoTest {
 
   @AfterClass
   public static void teardownClass() throws GroundDbException {
-    // postgresClient.close();
+    postgresClient.close();
   }
 
   public static PostgresStructureVersionFactory getStructureVersionFactory() {

@@ -4,7 +4,8 @@ import org.junit.Test;
 
 import edu.berkeley.ground.exceptions.GroundException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GroundTypeTest {
 
@@ -14,6 +15,13 @@ public class GroundTypeTest {
     assertEquals(GroundType.INTEGER, GroundType.fromString("integer"));
     assertEquals(GroundType.LONG, GroundType.fromString("long"));
     assertEquals(GroundType.STRING, GroundType.fromString("string"));
+  }
+
+  @Test
+  public void eachGroundTypeHasASqlType() {
+    for (GroundType type:GroundType.values()){
+      assertThat(type.getSqlType()).isNotEqualTo(java.sql.Types.NULL);
+    }
   }
 
   @Test(expected = GroundException.class)

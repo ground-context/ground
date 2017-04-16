@@ -61,25 +61,12 @@ public class CassandraClient extends DbClient {
   }
 
   /**
-   * Creates a new Cassandra Client using the provided session
-   * @param cluster an initialized Cluster connection to the target Cassandra instance
-   * @param session an active session to the target cassandra keyspace
-   */
-  public CassandraClient(Cluster cluster, Session session) {
-    this.cluster = cluster;
-    this.session = session;
-    this.preparedStatements = new HashMap<>();
-  }
-
-  /**
    * Returns the current session in this Cassandra Client
    * @return session the active Cassandra session used in this CassandraClient
    */
-
   public Session getSession() {
     return this.session;
   }
-
 
   /**
    * Insert a new row into table with insertValues.
@@ -237,39 +224,30 @@ public class CassandraClient extends DbClient {
                                Object value,
                                GroundType groundType,
                                int index) {
-    switch (groundType) {
-      case STRING:
-        if (value != null) {
-          statement.setString(index, (String) value);
-        } else {
-          statement.setToNull(index);
-        }
-
-        break;
-      case INTEGER:
-        if (value != null) {
-          statement.setInt(index, (Integer) value);
-        } else {
-          statement.setToNull(index);
-        }
-        break;
-      case BOOLEAN:
-        if (value != null) {
-          statement.setBool(index, (Boolean) value);
-        } else {
-          statement.setToNull(index);
-        }
-        break;
-      case LONG:
-        if (value != null && (long) value != -1) {
-          statement.setLong(index, (Long) value);
-        } else {
-          statement.setToNull(index);
-        }
-        break;
-      default:
-        // impossible because we've listed all the enum types
-        break;
+    if (value == null) {
+      statement.setToNull(index);
+    } else {
+      switch (groundType) {
+        case STRING:
+            statement.setString(index, (String) value);
+          break;
+        case INTEGER:
+            statement.setInt(index, (Integer) value);
+          break;
+        case BOOLEAN:
+            statement.setBool(index, (Boolean) value);
+          break;
+        case LONG:
+          if ((long) value != -1) { // magic number here!
+            statement.setLong(index, (Long) value);
+          } else {
+            statement.setToNull(index);
+          }
+          break;
+        default:
+          // impossible because we've listed all the enum types
+          break;
+      }
     }
   }
 }

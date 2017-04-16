@@ -117,8 +117,8 @@ public class CassandraTest extends DaoTest {
         .build();
     Session baseSession = cluster.connect();
     baseSession.execute(CREATE_KEYSPACE_CQL.apply(keyspace));
-    Session session = cluster.connect(keyspace);
-    return new CassandraClient(cluster, session);
+    baseSession.close();
+    return new CassandraClient(host, port, keyspace, username, password);
   }
 
   protected static void runScript(String script) {
