@@ -281,33 +281,14 @@ public class PostgresClient extends DbClient {
     }
   }
 
-  private static void setValue(
-      PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
-      throws SQLException {
-      if (value == null) {
-        preparedStatement.setNull(index, groundType.getSqlType());
-      } else {
-        switch (groundType) {
-          case STRING:
-            preparedStatement.setString(index, (String) value);
-            break;
-          case INTEGER:
-            preparedStatement.setInt(index, (Integer) value);
-            break;
-          case BOOLEAN:
-            preparedStatement.setBoolean(index, (Boolean) value);
-            break;
-          case LONG:
-            if ((long) value == -1) {  // What is this magic number? Is -1 not allowed as a value? anywhere!?
-              preparedStatement.setNull(index, groundType.getSqlType());
-            } else {
-              preparedStatement.setLong(index, (Long) value);
-            }
-            break;
-          default:
-            // impossible because we've listed all enum values
-            throw new IllegalStateException("Unhandled enum value: " + groundType);
-        }
-      }
+  private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
+    throws SQLException {
+    if (value == null) {
+      preparedStatement.setNull(index, groundType.getSqlType());
+    } else if (groundType == GroundType.LONG && (long) value == -1) {// What is this magic number? Is -1L not allowed as a value?
+      preparedStatement.setNull(index, GroundType.LONG.getSqlType());
+    } else {
+      preparedStatement.setObject(index, value, groundType.getSqlType());
+    }
   }
 }
