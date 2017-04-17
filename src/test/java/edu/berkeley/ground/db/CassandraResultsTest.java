@@ -118,6 +118,15 @@ public class CassandraResultsTest {
     new CassandraResults(rs).getLong("field");
   }
 
+  @Test(expected = GroundDbException.class)
+  public void shouldFailWhenIllegalArgumentForLong() throws GroundDbException {
+    ResultSet rs = mock(ResultSet.class);
+    Row row = mock(Row.class);
+    when(row.getLong("field")).thenThrow(new IllegalArgumentException("invalid field"));
+    when(rs.one()).thenReturn(row);
+    new CassandraResults(rs).getLong("field");
+  }
+
   @Test
   public void shouldMoveToNextRecord() throws GroundDbException {
     ResultSet rs = mock(ResultSet.class);
@@ -141,6 +150,17 @@ public class CassandraResultsTest {
     assertThat(results.next()).isFalse();
   }
 
+  @Test
+  public void shouldCheckANullField() throws GroundDbException {
+    ResultSet rs = mock(ResultSet.class);
+    Row row = mock(Row.class);
+    when(row.isNull("trueField")).thenReturn(true);
+    when(row.isNull("falseField")).thenReturn(false);
+    when(rs.one()).thenReturn(row);
+    CassandraResults results = new CassandraResults(rs);
+    assertThat(results.isNull("trueField")).isTrue();
+    assertThat(results.isNull("falseField")).isFalse();
+  }
 
   private CassandraResults setupInvalidField(String fieldName) {
     ResultSet rs = mock(ResultSet.class);
