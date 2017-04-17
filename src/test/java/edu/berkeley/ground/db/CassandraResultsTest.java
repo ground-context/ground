@@ -1,7 +1,10 @@
 package edu.berkeley.ground.db;
 
+import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.CodecNotFoundException;
+import com.google.common.reflect.TypeToken;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +27,11 @@ public class CassandraResultsTest {
     setupInvalidField("field").getString("field");
   }
 
+  @Test(expected = GroundDbException.class)
+  public void shouldFailWhenCodecNotFoundForString() throws GroundDbException {
+    setupCodecNotFoundForField("field").getString("field");
+  }
+
   @Test
   public void shouldGetBooleanFromValidResultSet() throws GroundDbException {
     ResultSet rs = mock(ResultSet.class);
@@ -38,6 +46,16 @@ public class CassandraResultsTest {
     assertThat(results.getBoolean("falseField")).isEqualTo(false);
     assertThat(results.getBoolean("trueCapitalizedField")).isEqualTo(true);
     assertThat(results.getBoolean("falseCapitalField")).isEqualTo(false);
+  }
+
+  @Test(expected = GroundDbException.class)
+  public void shouldFailWhenCodecNotFoundForBoolean() throws GroundDbException {
+    setupCodecNotFoundForField("field").getBoolean("field");
+  }
+
+  @Test(expected = GroundDbException.class)
+  public void shouldFailWhenFieldInvalidForBoolean() throws GroundDbException {
+    setupInvalidField("field").getBoolean("field");
   }
 
   // Should this be expected to fail? - it does not!
@@ -61,6 +79,25 @@ public class CassandraResultsTest {
     assertThat(results.getInt("field")).isEqualTo(42);
   }
 
+  @Test(expected = GroundDbException.class)
+  public void shouldFailGetIntegerFromInvalidContent() throws GroundDbException {
+    ResultSet rs = mock(ResultSet.class);
+    Row row = mock(Row.class);
+    when(row.getString("field")).thenReturn("not-int");
+    when(rs.one()).thenReturn(row);
+    new CassandraResults(rs).getInt("field");
+  }
+
+  @Test(expected = GroundDbException.class)
+  public void shouldFailGetIntegerFromInvalidField() throws GroundDbException {
+    setupInvalidField("field").getInt("field");
+  }
+
+  @Test(expected = GroundDbException.class)
+  public void shouldFailWhenCodecNotFoundForInteger() throws GroundDbException {
+    setupCodecNotFoundForField("field").getInt("field");
+  }
+
   @Test
   public void shouldGetLongFromValidResultSet() throws GroundDbException {
     ResultSet rs = mock(ResultSet.class);
@@ -70,19 +107,15 @@ public class CassandraResultsTest {
     CassandraResults results = new CassandraResults(rs);
     assertThat(results.getLong("field")).isEqualTo(120L);
   }
-  
-  @Test(expected = GroundDbException.class)
-  public void shouldFailGetIntegerFromInvalidField() throws GroundDbException {
-    setupInvalidField("field").getInt("field");
-  }
 
   @Test(expected = GroundDbException.class)
-  public void shouldFailGetIntegerFromInvalidContent() throws GroundDbException {
+  public void shouldFailWhenCodecNotFoundForLong() throws GroundDbException {
     ResultSet rs = mock(ResultSet.class);
     Row row = mock(Row.class);
-    when(row.getString("field")).thenReturn("not-int");
+    CodecNotFoundException codecNotFound = new CodecNotFoundException("mock exception", DataType.blob(), TypeToken.of(Integer.class));
+    when(row.getLong("field")).thenThrow(codecNotFound );
     when(rs.one()).thenReturn(row);
-    new CassandraResults(rs).getInt("field");
+    new CassandraResults(rs).getLong("field");
   }
 
   @Test
@@ -113,6 +146,15 @@ public class CassandraResultsTest {
     ResultSet rs = mock(ResultSet.class);
     Row row = mock(Row.class);
     when(row.getString(fieldName)).thenThrow(new IllegalArgumentException("invalid field"));
+    when(rs.one()).thenReturn(row);
+    return new CassandraResults(rs);
+  }
+
+  private CassandraResults setupCodecNotFoundForField(String fieldName) {
+    ResultSet rs = mock(ResultSet.class);
+    Row row = mock(Row.class);
+    CodecNotFoundException codecNotFound = new CodecNotFoundException("mock exception", DataType.blob(), TypeToken.of(Integer.class));
+    when(row.getString(fieldName)).thenThrow(codecNotFound );
     when(rs.one()).thenReturn(row);
     return new CassandraResults(rs);
   }
