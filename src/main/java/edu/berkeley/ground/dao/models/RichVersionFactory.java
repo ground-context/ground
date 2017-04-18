@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao.models;
 
+import edu.berkeley.ground.dao.versions.VersionFactory;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -22,32 +23,30 @@ import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public abstract class RichVersionFactory {
-  public abstract void insertIntoDatabase(long id,
-                                          Map<String, Tag> tags,
-                                          long structureVersionId,
-                                          String reference,
-                                          Map<String, String> referenceParameters)
+public interface RichVersionFactory<T extends RichVersion> extends VersionFactory<T> {
+
+  void insertIntoDatabase(long id,
+                          Map<String, Tag> tags,
+                          long structureVersionId,
+                          String reference,
+                          Map<String, String> referenceParameters)
       throws GroundException;
 
-  public abstract RichVersion retrieveFromDatabase(long id) throws GroundException;
-
-  protected static RichVersion construct(long id,
-                                         Map<String, Tag> tags,
-                                         long structureVersionId,
-                                         String reference,
-                                         Map<String, String> parameters) {
-    return new RichVersion(id, tags, structureVersionId, reference, parameters);
+  static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) {
+    return tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
+        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
+    );
   }
 
   /**
    * Validate that the given Tags satisfy the StructureVersion's requirements.
    *
    * @param structureVersion the StructureVersion to check against
-   * @param tags             the provided tags
+   * @param tags the provided tags
    */
-  protected static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags)
+  static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags)
       throws GroundException {
 
     Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
@@ -57,8 +56,8 @@ public abstract class RichVersionFactory {
     }
 
     for (String key : structureVersionAttributes.keySet()) {
-      // check if such a tag exists
       if (!tags.keySet().contains(key)) {
+        // check if such a tag exists
         throw new GroundDbException("No tag with key " + key + " was specified.");
       } else if (tags.get(key).getValueType() == null) {
         // check that value type is specified
@@ -67,7 +66,11 @@ public abstract class RichVersionFactory {
         // check that the value type is the same
         throw new GroundDbException("Tag with key "
             + key
-            + " did not have a value of the correct type.");
+            + " did not have a value of the correct type: expected [" +
+            structureVersionAttributes.get(key) +
+            "] but found [" +
+            tags.get(key).getValueType() +
+            "].");
       }
     }
   }

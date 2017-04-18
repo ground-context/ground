@@ -40,8 +40,8 @@ public class CassandraTagFactoryTest extends CassandraTest {
     Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
     tagsMap.put("testtag", tag);
 
-    long nodeId1 = CassandraTest.nodesResource.createNode("test1", null, tagsMap).getId();
-    long nodeId2 = CassandraTest.nodesResource.createNode("test2", null, tagsMap).getId();
+    long nodeId1 = CassandraTest.nodesResource.createNode(null, "test1", tagsMap).getId();
+    long nodeId2 = CassandraTest.nodesResource.createNode(null, "test2", tagsMap).getId();
 
     List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag(tag.getKey());
 

@@ -20,7 +20,6 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -31,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CassandraTagFactory extends TagFactory {
+public class CassandraTagFactory implements TagFactory {
   private final CassandraClient dbClient;
 
   public CassandraTagFactory(CassandraClient dbClient) {
@@ -56,11 +55,11 @@ public class CassandraTagFactory extends TagFactory {
 
     Map<String, Tag> result = new HashMap<>();
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
+    CassandraResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
+        DbClient.SELECT_STAR,
+        predicates);
+
+    if (resultSet.isEmpty()) {
       // this means that there are no tags
       return result;
     }
@@ -99,10 +98,11 @@ public class CassandraTagFactory extends TagFactory {
     String idColumn = keyPrefix + "_id";
     projections.add(idColumn);
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", projections, predicates);
-    } catch (EmptyResultException e) {
+    CassandraResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
+        projections,
+        predicates);
+
+    if (resultSet.isEmpty()) {
       // this means that there are no tags
       return result;
     }

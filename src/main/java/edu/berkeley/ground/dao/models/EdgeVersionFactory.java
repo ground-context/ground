@@ -21,36 +21,26 @@ import edu.berkeley.ground.model.models.Tag;
 import java.util.List;
 import java.util.Map;
 
-public abstract class EdgeVersionFactory {
-  public abstract EdgeVersion create(Map<String, Tag> tags,
-                                     long structureVersionId,
-                                     String reference,
-                                     Map<String, String> referenceParameters,
-                                     long edgeId,
-                                     long fromNodeVersionStartId,
-                                     long fromNodeVersionEndId,
-                                     long toNodeVersionStartId,
-                                     long toNodeVersionEndId,
-                                     List<Long> parentIds) throws GroundException;
+public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
 
+  EdgeVersion create(Map<String, Tag> tags,
+                     long structureVersionId,
+                     String reference,
+                     Map<String, String> referenceParameters,
+                     long edgeId,
+                     long fromNodeVersionStartId,
+                     long fromNodeVersionEndId,
+                     long toNodeVersionStartId,
+                     long toNodeVersionEndId,
+                     List<Long> parentIds) throws GroundException;
 
-  public abstract EdgeVersion retrieveFromDatabase(long id) throws GroundException;
-
-  protected abstract void updatePreviousVersion(long id, long fromEndId, long toEndId)
-      throws GroundException;
-
-  protected static EdgeVersion construct(long id,
-                                         Map<String, Tag> tags,
-                                         long structureVersionId,
-                                         String reference,
-                                         Map<String, String> referenceParameters,
-                                         long edgeId,
-                                         long fromNodeVersionStartId,
-                                         long fromNodeVersionEndId,
-                                         long toNodeVersionStartId,
-                                         long toNodeVersionEndId) {
-
-    return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters, edgeId,
-        fromNodeVersionStartId, fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
+  @Override
+  default Class<EdgeVersion> getType() {
+    return EdgeVersion.class;
   }
+
+  @Override
+  EdgeVersion retrieveFromDatabase(long id) throws GroundException;
+
+  void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException;
 }

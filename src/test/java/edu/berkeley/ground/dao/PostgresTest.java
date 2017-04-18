@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao;
 
+
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.util.ElasticSearch;
 import org.junit.AfterClass;
@@ -23,11 +24,8 @@ import org.junit.BeforeClass;
 import java.io.File;
 import java.io.IOException;
 
-import edu.berkeley.ground.dao.models.postgres.PostgresRichVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresStructureVersionFactory;
 import edu.berkeley.ground.dao.models.postgres.PostgresTagFactory;
-import edu.berkeley.ground.dao.versions.postgres.PostgresItemFactory;
-import edu.berkeley.ground.dao.versions.postgres.PostgresVersionFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.postgres.PostgresVersionSuccessorFactory;
 import edu.berkeley.ground.db.PostgresClient;
@@ -47,11 +45,8 @@ public class PostgresTest extends DaoTest {
   private static PostgresFactories factories;
 
   protected static PostgresClient postgresClient;
-  protected static PostgresVersionFactory versionFactory;
   protected static PostgresVersionSuccessorFactory versionSuccessorFactory;
   protected static PostgresVersionHistoryDagFactory versionHistoryDAGFactory;
-  protected static PostgresItemFactory itemFactory;
-  protected static PostgresRichVersionFactory richVersionFactory;
   protected static PostgresTagFactory tagFactory;
 
   @BeforeClass
@@ -59,14 +54,9 @@ public class PostgresTest extends DaoTest {
     postgresClient = new PostgresClient("localhost", 5432, "test", "test", "");
     factories = new PostgresFactories(postgresClient, 0, 1);
 
-    versionFactory = new PostgresVersionFactory(postgresClient);
     versionSuccessorFactory = new PostgresVersionSuccessorFactory(postgresClient, new IdGenerator(0, 1, false));
     versionHistoryDAGFactory = new PostgresVersionHistoryDagFactory(postgresClient, versionSuccessorFactory);
     tagFactory = new PostgresTagFactory(postgresClient);
-    itemFactory = new PostgresItemFactory(postgresClient, versionHistoryDAGFactory, tagFactory);
-
-    richVersionFactory = new PostgresRichVersionFactory(postgresClient, versionFactory,
-        (PostgresStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);
     ElasticSearch.connectElasticSearch();
     edgesResource = new EdgesResource(factories.getEdgeFactory(),
         factories.getEdgeVersionFactory(), factories.getNodeFactory(), postgresClient);
@@ -80,6 +70,15 @@ public class PostgresTest extends DaoTest {
         factories.getNodeVersionFactory(), postgresClient);
     structuresResource = new StructuresResource(factories.getStructureFactory(),
         factories.getStructureVersionFactory(), postgresClient);
+  }
+
+  @AfterClass
+  public static void teardownClass() throws GroundDbException {
+    // postgresClient.close();
+  }
+
+  public static PostgresStructureVersionFactory getStructureVersionFactory() {
+    return (PostgresStructureVersionFactory) PostgresTest.factories.getStructureVersionFactory();
   }
 
   @Before

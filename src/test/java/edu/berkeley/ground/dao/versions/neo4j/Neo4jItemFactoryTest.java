@@ -1,7 +1,12 @@
 package edu.berkeley.ground.dao.versions.neo4j;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.dao.models.neo4j.Neo4jTagFactory;
+import edu.berkeley.ground.dao.versions.neo4j.mock.TestNeo4jItemFactory;
+import edu.berkeley.ground.db.Neo4jClient;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.model.versions.Item;
+import edu.berkeley.ground.model.versions.Version;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
@@ -14,11 +19,19 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import static org.junit.Assert.*;
 
 public class Neo4jItemFactoryTest extends Neo4jTest {
+
+  private TestNeo4jItemFactory itemFactory;
+
   public Neo4jItemFactoryTest() throws GroundException {
     super();
+
+    this.itemFactory = new TestNeo4jItemFactory(Neo4jTest.neo4jClient,
+        Neo4jTest.versionHistoryDAGFactory, Neo4jTest.tagFactory);
   }
 
   @Test
@@ -32,11 +45,11 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       long toId = Neo4jTest.createNodeVersion(toNodeId).getId();
 
       List<Long> parentIds = new ArrayList<>();
-      Neo4jTest.itemFactory.update(testNodeId, fromId, parentIds);
+      this.itemFactory.update(testNodeId, fromId, parentIds);
 
       parentIds.clear();
       parentIds.add(fromId);
-      Neo4jTest.itemFactory.update(testNodeId, toId, parentIds);
+      this.itemFactory.update(testNodeId, toId, parentIds);
 
       VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 
@@ -76,7 +89,7 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      Neo4jTest.itemFactory.update(testFromNode, toId, parentIds);
+      this.itemFactory.update(testFromNode, toId, parentIds);
       Neo4jTest.neo4jClient.commit();
 
       VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory
@@ -111,12 +124,12 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      Neo4jTest.itemFactory.update(testNodeId, fromId, parentIds);
+      this.itemFactory.update(testNodeId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(fromId);
-      Neo4jTest.itemFactory.update(testNodeId, toId, parentIds);
+      this.itemFactory.update(testNodeId, toId, parentIds);
 
       VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory.retrieveFromDatabase(testNodeId);
 
@@ -160,7 +173,7 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      Neo4jTest.itemFactory.update(fromNodeId, toId, parentIds);
+      this.itemFactory.update(fromNodeId, toId, parentIds);
 
       Neo4jTest.neo4jClient.commit();
     } finally {
@@ -186,14 +199,14 @@ public class Neo4jItemFactoryTest extends Neo4jTest {
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      Neo4jTest.itemFactory.update(testNodeId, parentOne, parentIds);
-      Neo4jTest.itemFactory.update(testNodeId, parentTwo, parentIds);
+      this.itemFactory.update(testNodeId, parentOne, parentIds);
+      this.itemFactory.update(testNodeId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      Neo4jTest.itemFactory.update(testNodeId, child, parentIds);
+      this.itemFactory.update(testNodeId, child, parentIds);
 
       VersionHistoryDag<?> dag = Neo4jTest.versionHistoryDAGFactory
           .retrieveFromDatabase(testNodeId);

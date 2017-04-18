@@ -60,6 +60,7 @@ public class NodeVersion extends RichVersion {
 
     NodeVersion otherNodeVersion = (NodeVersion) other;
 
-    return this.nodeId == otherNodeVersion.nodeId && super.equals(other);
+    return this.nodeId == otherNodeVersion.nodeId
+        && super.equals(other);
   }
 }

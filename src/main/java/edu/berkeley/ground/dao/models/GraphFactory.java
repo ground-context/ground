@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao.models;
 
+import edu.berkeley.ground.dao.versions.ItemFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.model.models.Tag;
@@ -21,19 +22,24 @@ import edu.berkeley.ground.model.models.Tag;
 import java.util.List;
 import java.util.Map;
 
-public abstract class GraphFactory {
-  public abstract Graph create(String name,
-                               String sourceKey,
-                               Map<String, Tag> tags) throws GroundException;
+public interface GraphFactory extends ItemFactory<Graph> {
 
-  public abstract Graph retrieveFromDatabase(String name) throws GroundException;
+  Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds)
-      throws GroundException;
-
-  public abstract void truncate(long itemId, int numLevels) throws GroundException;
-
-  protected static Graph construct(long id, String name, String sourceKey, Map<String, Tag> tags) {
-    return new Graph(id, name, sourceKey, tags);
+  @Override
+  default Class<Graph> getType() {
+    return Graph.class;
   }
+
+  @Override
+  Graph retrieveFromDatabase(String sourceKey) throws GroundException;
+
+  @Override
+  Graph retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+
+  @Override
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

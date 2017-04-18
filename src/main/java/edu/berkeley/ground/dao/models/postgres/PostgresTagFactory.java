@@ -19,7 +19,6 @@ import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Tag;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -30,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PostgresTagFactory extends TagFactory {
+public class PostgresTagFactory implements TagFactory {
   private final PostgresClient dbClient;
 
   public PostgresTagFactory(PostgresClient dbClient) {
@@ -56,10 +55,10 @@ public class PostgresTagFactory extends TagFactory {
     Map<String, Tag> result = new HashMap<>();
 
     PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
+    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
+        predicates);
+
+    if (resultSet.isEmpty()) {
       return new HashMap<>();
     }
 
@@ -92,10 +91,10 @@ public class PostgresTagFactory extends TagFactory {
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
     PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
+    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
+        predicates);
+
+    if (resultSet.isEmpty()) {
       return new ArrayList<>();
     }
 

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
@@ -40,7 +41,7 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
-    Graph graph = Neo4jTest.graphsResource.getGraph(testName);
+    Graph graph = Neo4jTest.graphsResource.getGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -48,15 +49,29 @@ public class Neo4jGraphFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      Neo4jTest.graphsResource.getGraph(testName);
+      Neo4jTest.graphsResource.getGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Graph found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateGraph() throws GroundException {
+    String graphName = "graphName";
+    String graphKey = "graphKey";
+
+    try {
+      Neo4jTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
   }
 
   @Test

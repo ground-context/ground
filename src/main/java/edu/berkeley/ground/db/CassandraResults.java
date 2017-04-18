@@ -112,4 +112,8 @@ public class CassandraResults {
   public boolean isNull(String field) {
     return this.currentRow.isNull(field);
   }
+
+  public boolean isEmpty() {
+    return (this.resultSet == null || this.resultSet.isExhausted()) && this.currentRow == null;
+  }
 }

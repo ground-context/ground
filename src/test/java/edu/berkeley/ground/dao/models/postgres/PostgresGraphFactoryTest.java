@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.PostgresTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Graph;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
@@ -41,7 +42,7 @@ public class PostgresGraphFactoryTest extends PostgresTest {
     String sourceKey = "testKey";
 
     PostgresTest.graphsResource.createGraph(testName, sourceKey, new HashMap<>());
-    Graph graph = PostgresTest.graphsResource.getGraph(testName);
+    Graph graph = PostgresTest.graphsResource.getGraph(sourceKey);
 
     assertEquals(testName, graph.getName());
     assertEquals(sourceKey, graph.getSourceKey());
@@ -49,15 +50,29 @@ public class PostgresGraphFactoryTest extends PostgresTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      PostgresTest.graphsResource.getGraph(testName);
+      PostgresTest.graphsResource.getGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Graph found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateGraph() throws GroundException {
+    String graphName = "graphName";
+    String graphKey = "graphKey";
+
+    try {
+      PostgresTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    PostgresTest.graphsResource.createGraph(graphName, graphKey, new HashMap<>());
   }
 
   @Test

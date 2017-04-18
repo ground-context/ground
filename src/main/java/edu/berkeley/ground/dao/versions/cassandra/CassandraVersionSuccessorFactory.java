@@ -19,7 +19,6 @@ import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.model.versions.Version;
@@ -29,7 +28,7 @@ import edu.berkeley.ground.util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
+public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory {
   private final CassandraClient dbClient;
   private final IdGenerator idGenerator;
 
@@ -51,23 +50,8 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
   public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
       throws GroundException {
     // check to see if both are valid ids since we don't have foreign key constraints
-    List<DbDataContainer> predicates = new ArrayList<>();
-
-    predicates.add(new DbDataContainer("id", GroundType.LONG, fromId));
-    try {
-      this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("Id " + fromId + " is not valid.");
-    }
-
-    predicates.clear();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, toId));
-
-    try {
-      this.dbClient.equalitySelect("version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("Id " + toId + " is not valid.");
-    }
+    verifyVersion(fromId);
+    verifyVersion(toId);
 
     List<DbDataContainer> insertions = new ArrayList<>();
 
@@ -79,7 +63,7 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
 
     this.dbClient.insert("version_successor", insertions);
 
-    return VersionSuccessorFactory.construct(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, toId, fromId);
   }
 
   /**
@@ -96,18 +80,18 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
+    CassandraResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR,
+        predicates);
+
+    if (resultSet.isEmpty()) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
     long fromId = resultSet.getLong("from_version_id");
     long toId = resultSet.getLong("to_version_id");
 
-    return VersionSuccessorFactory.construct(dbId, fromId, toId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -120,11 +104,11 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
+    CassandraResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR,
+        predicates);
+
+    if (resultSet.isEmpty()) {
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
@@ -142,5 +126,17 @@ public class CassandraVersionSuccessorFactory extends VersionSuccessorFactory {
 
       this.dbClient.delete(predicates, "version_successor");
     } while (resultSet.next());
+  }
+
+  private void verifyVersion(long id) throws GroundException {
+    List<DbDataContainer> predicate = new ArrayList<>();
+    predicate.add(new DbDataContainer("id", GroundType.LONG, id));
+
+    CassandraResults resultSet = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR,
+        predicate);
+
+    if (resultSet.isEmpty()) {
+      throw new GroundException("Version id " + id + " is not valid.");
+    }
   }
 }

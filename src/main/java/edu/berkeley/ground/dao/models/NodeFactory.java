@@ -14,6 +14,7 @@
 
 package edu.berkeley.ground.dao.models;
 
+import edu.berkeley.ground.dao.versions.ItemFactory;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.Tag;
@@ -21,22 +22,24 @@ import edu.berkeley.ground.model.models.Tag;
 import java.util.List;
 import java.util.Map;
 
-public abstract class NodeFactory {
-  public abstract Node create(String name,
-                              String sourceKey,
-                              Map<String, Tag> tags)
-      throws GroundException;
+public interface NodeFactory extends ItemFactory<Node> {
 
-  public abstract Node retrieveFromDatabase(String name) throws GroundException;
+  Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
 
-  public abstract void update(long itemId, long childId, List<Long> parentIds)
-      throws GroundException;
-
-  public abstract void truncate(long itemId, int numLevels) throws GroundException;
-
-  public abstract List<Long> getLeaves(String name) throws GroundException;
-
-  protected static Node construct(long id, String name, String sourceKey, Map<String, Tag> tags) {
-    return new Node(id, name, sourceKey, tags);
+  @Override
+  default Class<Node> getType() {
+    return Node.class;
   }
+
+  @Override
+  Node retrieveFromDatabase(String sourceKey) throws GroundException;
+
+  @Override
+  Node retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+
+  @Override
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

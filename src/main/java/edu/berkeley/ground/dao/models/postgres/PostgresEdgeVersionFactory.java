@@ -15,11 +15,11 @@
 package edu.berkeley.ground.dao.models.postgres;
 
 import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.dao.models.RichVersionFactory;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.EdgeVersion;
 import edu.berkeley.ground.model.models.RichVersion;
@@ -35,11 +35,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
+public class PostgresEdgeVersionFactory
+    extends PostgresRichVersionFactory<EdgeVersion>
+    implements EdgeVersionFactory {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresEdgeVersionFactory.class);
   private final PostgresClient dbClient;
   private final PostgresEdgeFactory edgeFactory;
-  private final PostgresRichVersionFactory richVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -47,17 +49,19 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
    * Constructor for the Postgres edge version factory.
    *
    * @param edgeFactory the PostgresEdgeFactory singleton
-   * @param richVersionFactory the PostgresRichVersionFactory singleton
    * @param dbClient the Postgres client
    * @param idGenerator a unique ID generator
    */
-  public PostgresEdgeVersionFactory(PostgresEdgeFactory edgeFactory,
-                                    PostgresRichVersionFactory richVersionFactory,
-                                    PostgresClient dbClient,
+  public PostgresEdgeVersionFactory(PostgresClient dbClient,
+                                    PostgresEdgeFactory edgeFactory,
+                                    PostgresStructureVersionFactory structureVersionFactory,
+                                    PostgresTagFactory tagFactory,
                                     IdGenerator idGenerator) {
+
+    super(dbClient, structureVersionFactory, tagFactory);
+
     this.dbClient = dbClient;
     this.edgeFactory = edgeFactory;
-    this.richVersionFactory = richVersionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -91,12 +95,9 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
 
     long id = this.idGenerator.generateVersionId();
 
-    tags = tags.values().stream().collect(Collectors.toMap(Tag::getKey, tag ->
-        new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()))
-    );
+    tags = RichVersionFactory.addIdToTags(id, tags);
 
-    this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, reference,
-        referenceParameters);
+    super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -115,9 +116,9 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
 
     LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-    return EdgeVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
-        toNodeVersionStartId, toNodeVersionEndId);
+    return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
+        edgeId, fromNodeVersionStartId, fromNodeVersionEndId, toNodeVersionStartId,
+        toNodeVersionEndId);
   }
 
   /**
@@ -129,17 +130,16 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
    */
   @Override
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    final RichVersion version = this.richVersionFactory.retrieveFromDatabase(id);
+    final RichVersion version = super.retrieveRichVersionData(id);
 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("edge_version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No EdgeVersion found with id " + id + ".");
-    }
+    PostgresResults resultSet = this.dbClient.equalitySelect("edge_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, id);
+
     long edgeId = resultSet.getLong(2);
 
     long fromNodeVersionStartId = resultSet.getLong(3);
@@ -148,13 +148,13 @@ public class PostgresEdgeVersionFactory extends EdgeVersionFactory {
     long toNodeVersionEndId = resultSet.isNull(6) ? -1 : resultSet.getLong(6);
 
     LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
-    return EdgeVersionFactory.construct(id, version.getTags(), version.getStructureVersionId(),
+    return new EdgeVersion(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
         fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
   }
 
   @Override
-  protected void updatePreviousVersion(long id, long fromEndId, long toEndId)
+  public void updatePreviousVersion(long id, long fromEndId, long toEndId)
       throws GroundException {
 
     List<DbDataContainer> setPredicates = new ArrayList<>();

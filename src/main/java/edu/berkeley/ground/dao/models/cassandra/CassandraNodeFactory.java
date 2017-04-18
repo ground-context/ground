@@ -16,11 +16,11 @@ package edu.berkeley.ground.dao.models.cassandra;
 
 import edu.berkeley.ground.dao.models.NodeFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
+import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.db.CassandraClient;
 import edu.berkeley.ground.db.CassandraResults;
 import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.Node;
 import edu.berkeley.ground.model.models.Tag;
@@ -35,25 +35,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class CassandraNodeFactory extends NodeFactory {
+public class CassandraNodeFactory extends CassandraItemFactory<Node> implements NodeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraNodeFactory.class);
   private final CassandraClient dbClient;
-  private final CassandraItemFactory itemFactory;
 
   private final IdGenerator idGenerator;
 
   /**
    * Constructor for the Cassandra node factory.
    *
-   * @param itemFactory the singleton CassandraItemFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
-  public CassandraNodeFactory(CassandraItemFactory itemFactory,
-                              CassandraClient dbClient,
+  public CassandraNodeFactory(CassandraClient dbClient,
+                              CassandraVersionHistoryDagFactory versionHistoryDagFactory,
+                              CassandraTagFactory tagFactory,
                               IdGenerator idGenerator) {
+    super(dbClient, versionHistoryDagFactory, tagFactory);
+
     this.dbClient = dbClient;
-    this.itemFactory = itemFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -68,9 +68,11 @@ public class CassandraNodeFactory extends NodeFactory {
    */
   @Override
   public Node create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException {
-    long uniqueId = this.idGenerator.generateItemId();
 
-    this.itemFactory.insertIntoDatabase(uniqueId, tags);
+    super.verifyItemNotExists(sourceKey);
+
+    long uniqueId = this.idGenerator.generateItemId();
+    super.insertIntoDatabase(uniqueId, tags);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("name", GroundType.STRING, name));
@@ -80,59 +82,64 @@ public class CassandraNodeFactory extends NodeFactory {
     this.dbClient.insert("node", insertions);
 
     LOGGER.info("Created node " + name + ".");
-    return NodeFactory.construct(uniqueId, name, sourceKey, tags);
+    return new Node(uniqueId, name, sourceKey, tags);
   }
 
   /**
    * Retrieve the DAG leaves for this node.
    *
-   * @param name the name of the node to retrieve leaves for.
+   * @param sourceKey the key of the node to retrieve leaves for.
    * @return the leaves of the node
    * @throws GroundException an error while retrieving the node
    */
   @Override
-  public List<Long> getLeaves(String name) throws GroundException {
-    Node node = this.retrieveFromDatabase(name);
-    List<Long> leaves = this.itemFactory.getLeaves(node.getId());
-
-    return leaves;
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Node node = this.retrieveFromDatabase(sourceKey);
+    return super.getLeaves(node.getId());
   }
 
   /**
    * Retrieve a node from the database.
    *
-   * @param name the name of the node to retrieve
+   * @param sourceKey the key of the node to retrieve
    * @return the retrieved node
    * @throws GroundException either the node doesn't exist or couldn't be retrieved
    */
   @Override
-  public Node retrieveFromDatabase(String name) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("name", GroundType.STRING, name));
+  public Node retrieveFromDatabase(String sourceKey) throws GroundException {
+    return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
+  }
 
-    CassandraResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("node", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No Node found with name " + name + ".");
-    }
+  /**
+   * Retrieves a node from the database.
+   *
+   * @param id the id of the node to retrieve
+   * @return the retrieved node
+   * @throws GroundException either the node doesn't exist or couldn't be retrieved
+   */
+  @Override
+  public Node retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieveByPredicate("id", id, GroundType.LONG);
+  }
+
+  private Node retrieveByPredicate(String fieldName, Object value, GroundType valueType)
+      throws GroundException {
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer(fieldName, valueType, value));
+
+    CassandraResults resultSet = this.dbClient.equalitySelect("node",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong("item_id");
+    String name = resultSet.getString("name");
     String sourceKey = resultSet.getString("source_key");
 
-    Map<String, Tag> tags = this.itemFactory.retrieveFromDatabase(id).getTags();
+    Map<String, Tag> tags = super.retrieveItemTags(id);
 
-    LOGGER.info("Retrieved node " + name + ".");
-    return NodeFactory.construct(id, name, sourceKey, tags);
-  }
-
-  @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    this.itemFactory.update(itemId, childId, parentIds);
-  }
-
-  @Override
-  public void truncate(long itemId, int numLevels) throws GroundException {
-    this.itemFactory.truncate(itemId, numLevels, "node");
+    LOGGER.info("Retrieved node " + value + ".");
+    return new Node(id, name, sourceKey, tags);
   }
 }

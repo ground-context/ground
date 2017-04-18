@@ -16,11 +16,12 @@ package edu.berkeley.ground.dao.models.neo4j;
 
 
 import edu.berkeley.ground.dao.models.RichVersionFactory;
+import edu.berkeley.ground.dao.versions.neo4j.Neo4jVersionFactory;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.Neo4jClient;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundDbException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -36,7 +37,9 @@ import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 
-public class Neo4jRichVersionFactory extends RichVersionFactory {
+public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
+    extends Neo4jVersionFactory<T>
+    implements RichVersionFactory<T> {
   private final Neo4jClient dbClient;
   private final Neo4jStructureVersionFactory structureVersionFactory;
   private final Neo4jTagFactory tagFactory;
@@ -131,16 +134,14 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
    * @return the retrieved rich version
    * @throws GroundException either the rich version didn't exist or couldn't be retrieved
    */
-  @Override
-  public RichVersion retrieveFromDatabase(long id) throws GroundException {
+  public RichVersion retrieveRichVersionData(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-    Record record;
 
-    try {
-      record = this.dbClient.getVertex(predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundDbException("No RichVersion found with id " + id + ".");
+    Record record = this.dbClient.getVertex(predicates);
+
+    if (record == null) {
+      throw new GroundVersionNotFoundException(this.getType(), id);
     }
 
     List<String> returnFields = new ArrayList<>();
@@ -175,7 +176,6 @@ public class Neo4jRichVersionFactory extends RichVersionFactory {
       structureVersionId = record.get("v").asNode().get("structure_id").asLong();
     }
 
-    return RichVersionFactory.construct(id, tags, structureVersionId, reference,
-        referenceParameters);
+    return new RichVersion(id, tags, structureVersionId, reference, referenceParameters);
   }
 }

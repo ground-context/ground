@@ -7,12 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.usage.LineageGraph;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
 import edu.berkeley.ground.model.versions.VersionSuccessor;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class Neo4jLineageGraphFactoryTest extends Neo4jTest {
 
@@ -26,7 +27,7 @@ public class Neo4jLineageGraphFactoryTest extends Neo4jTest {
     String sourceKey = "testKey";
 
     Neo4jTest.lineageGraphsResource.createLineageGraph(testName, sourceKey, new HashMap<>());
-    LineageGraph lineageGraph = Neo4jTest.lineageGraphsResource.getLineageGraph(testName);
+    LineageGraph lineageGraph = Neo4jTest.lineageGraphsResource.getLineageGraph(sourceKey);
 
     assertEquals(testName, lineageGraph.getName());
     assertEquals(sourceKey, lineageGraph.getSourceKey());
@@ -34,15 +35,31 @@ public class Neo4jLineageGraphFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadLineageGraph() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      Neo4jTest.lineageGraphsResource.getLineageGraph(testName);
+      Neo4jTest.lineageGraphsResource.getLineageGraph(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No LineageGraph found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
+  }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateLineageGraph() throws GroundException {
+    String lineageGraphName = "lineageGraphName";
+    String lineageGraphKey = "lineageGraphKey";
+
+    try {
+      Neo4jTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+          lineageGraphKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.lineageGraphsResource.createLineageGraph(lineageGraphName,
+        lineageGraphKey, new HashMap<>());
   }
 
   @Test

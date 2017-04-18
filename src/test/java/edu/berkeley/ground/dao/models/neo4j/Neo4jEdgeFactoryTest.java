@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import edu.berkeley.ground.dao.Neo4jTest;
+import edu.berkeley.ground.exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.models.Edge;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.versions.VersionHistoryDag;
@@ -48,7 +49,7 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
     Neo4jTest.edgesResource.createEdge(testName, firstNodeName, secondNodeName, sourceKey,
         new HashMap<>());
 
-    Edge edge = Neo4jTest.edgesResource.getEdge(testName);
+    Edge edge = Neo4jTest.edgesResource.getEdge(sourceKey);
 
     assertEquals(testName, edge.getName());
     assertEquals(firstNodeId, edge.getFromNodeId());
@@ -58,16 +59,36 @@ public class Neo4jEdgeFactoryTest extends Neo4jTest {
 
   @Test(expected = GroundException.class)
   public void testRetrieveBadEdge() throws GroundException {
-    String testName = "test";
+    String sourceKey = "test";
 
     try {
-      super.edgesResource.getEdge(testName);
+      Neo4jTest.edgesResource.getEdge(sourceKey);
     } catch (GroundException e) {
-      assertEquals("No Edge found with name " + testName + ".", e.getMessage());
+      assertEquals(GroundItemNotFoundException.class, e.getClass());
 
       throw e;
     }
   }
+
+  @Test(expected = GroundException.class)
+  public void testCreateDuplicateEdge() throws GroundException {
+    String edgeName = "edgeName";
+    String edgeKey = "edgeKey";
+    String fromNode = "fromNode";
+    String toNode = "toNode";
+
+    try {
+      Neo4jTest.createNode(fromNode);
+      Neo4jTest.createNode(toNode);
+
+      Neo4jTest.edgesResource.createEdge(edgeName, fromNode, toNode, edgeKey, new HashMap<>());
+    } catch (GroundException e) {
+      fail(e.getMessage());
+    }
+
+    Neo4jTest.edgesResource.createEdge(edgeName, fromNode, toNode, edgeKey, new HashMap<>());
+  }
+
 
   @Test
   public void testTruncation() throws GroundException {

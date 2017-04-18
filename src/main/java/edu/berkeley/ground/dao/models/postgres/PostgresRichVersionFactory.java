@@ -21,8 +21,8 @@ import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
+import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.models.RichVersion;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.models.Tag;
@@ -34,9 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PostgresRichVersionFactory extends RichVersionFactory {
+public abstract class PostgresRichVersionFactory<T extends RichVersion>
+    extends PostgresVersionFactory<T>
+    implements RichVersionFactory<T> {
+
   private final PostgresClient dbClient;
-  private final PostgresVersionFactory versionFactory;
   private final PostgresStructureVersionFactory structureVersionFactory;
   private final PostgresTagFactory tagFactory;
 
@@ -44,17 +46,16 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
    * Constructor for the Postgres rich version factory.
    *
    * @param dbClient the Postgres client
-   * @param versionFactory the singleton PostgresVersionFactory
    * @param structureVersionFactory the singleton PostgresStructureVerisonFactory
    * @param tagFactory the singleton PostgresTagFactory
    */
   public PostgresRichVersionFactory(PostgresClient dbClient,
-                                    PostgresVersionFactory versionFactory,
                                     PostgresStructureVersionFactory structureVersionFactory,
                                     PostgresTagFactory tagFactory) {
 
+    super(dbClient);
+
     this.dbClient = dbClient;
-    this.versionFactory = versionFactory;
     this.structureVersionFactory = structureVersionFactory;
     this.tagFactory = tagFactory;
   }
@@ -75,7 +76,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
                                  long structureVersionId,
                                  String reference,
                                  Map<String, String> referenceParameters) throws GroundException {
-    this.versionFactory.insertIntoDatabase(id);
+    super.insertIntoDatabase(id);
 
     if (structureVersionId != -1) {
       StructureVersion structureVersion = this.structureVersionFactory
@@ -130,31 +131,29 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
    * @return the retrieved rich version
    * @throws GroundException either the rich version didn't exist or couldn't be retrieved
    */
-  @Override
-  public RichVersion retrieveFromDatabase(long id) throws GroundException {
+  public RichVersion retrieveRichVersionData(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("rich_version", DbClient.SELECT_STAR, predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No RichVersion found with id " + id + ".");
+    PostgresResults resultSet = this.dbClient.equalitySelect("rich_version",
+        DbClient.SELECT_STAR,
+        predicates);
+
+    if (resultSet.isEmpty()) {
+      throw new GroundVersionNotFoundException(RichVersion.class, id);
     }
 
     List<DbDataContainer> parameterPredicates = new ArrayList<>();
     parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
 
-    try {
-      PostgresResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
-          DbClient.SELECT_STAR, parameterPredicates);
+    PostgresResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
+        DbClient.SELECT_STAR, parameterPredicates);
 
+    if (!parameterSet.isEmpty()) {
       do {
         referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
       } while (parameterSet.next());
-    } catch (EmptyResultException e) {
-      // do nothing; there are no referenceParameters
     }
 
     Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(id);
@@ -163,7 +162,7 @@ public class PostgresRichVersionFactory extends RichVersionFactory {
     long structureVersionId = resultSet.getLong(2);
     structureVersionId = structureVersionId == 0 ? -1 : structureVersionId;
 
-    return RichVersionFactory.construct(id, tags, structureVersionId, reference,
+    return new RichVersion(id, tags, structureVersionId, reference,
         referenceParameters);
   }
 }

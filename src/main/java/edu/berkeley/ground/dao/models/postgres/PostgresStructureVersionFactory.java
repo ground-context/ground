@@ -20,7 +20,6 @@ import edu.berkeley.ground.db.DbClient;
 import edu.berkeley.ground.db.DbDataContainer;
 import edu.berkeley.ground.db.PostgresClient;
 import edu.berkeley.ground.db.PostgresResults;
-import edu.berkeley.ground.exceptions.EmptyResultException;
 import edu.berkeley.ground.exceptions.GroundException;
 import edu.berkeley.ground.model.models.StructureVersion;
 import edu.berkeley.ground.model.versions.GroundType;
@@ -34,12 +33,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresStructureVersionFactory extends StructureVersionFactory {
+public class PostgresStructureVersionFactory
+    extends PostgresVersionFactory<StructureVersion>
+    implements StructureVersionFactory {
+
   private static final Logger LOGGER =
       LoggerFactory.getLogger(PostgresStructureVersionFactory.class);
   private final PostgresClient dbClient;
   private final PostgresStructureFactory structureFactory;
-  private final PostgresVersionFactory versionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -47,17 +48,17 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
    * Constructor for the Postgres structure version factory.
    *
    * @param structureFactory the singleton PostgresStructureFactory
-   * @param versionFactory the singleton PostgresVersionFactory
    * @param dbClient the Postgres client
    * @param idGenerator a unique id generator
    */
-  public PostgresStructureVersionFactory(PostgresStructureFactory structureFactory,
-                                         PostgresVersionFactory versionFactory,
-                                         PostgresClient dbClient,
+  public PostgresStructureVersionFactory(PostgresClient dbClient,
+                                         PostgresStructureFactory structureFactory,
                                          IdGenerator idGenerator) {
+
+    super(dbClient);
+
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
-    this.versionFactory = versionFactory;
     this.idGenerator = idGenerator;
   }
 
@@ -77,7 +78,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
 
     long id = this.idGenerator.generateVersionId();
 
-    this.versionFactory.insertIntoDatabase(id);
+    super.insertIntoDatabase(id);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
@@ -98,7 +99,7 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     this.structureFactory.update(structureId, id, parentIds);
 
     LOGGER.info("Created structure version " + id + " in structure " + structureId + ".");
-    return StructureVersionFactory.construct(id, structureId, attributes);
+    return new StructureVersion(id, structureId, attributes);
   }
 
   /**
@@ -112,22 +113,20 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-    PostgresResults resultSet;
-    try {
-      resultSet = this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR,
-          predicates);
-    } catch (EmptyResultException e) {
-      throw new GroundException("No StructureVersion found with id " + id + ".");
-    }
+
+    PostgresResults resultSet = this.dbClient.equalitySelect("structure_version",
+        DbClient.SELECT_STAR,
+        predicates);
+    super.verifyResultSet(resultSet, id);
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
 
     PostgresResults attributesSet;
-    try {
-      attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
-          DbClient.SELECT_STAR, attributePredicates);
-    } catch (EmptyResultException e) {
+    attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+        DbClient.SELECT_STAR, attributePredicates);
+
+    if (attributesSet.isEmpty()) {
       throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
     }
 
@@ -140,6 +139,6 @@ public class PostgresStructureVersionFactory extends StructureVersionFactory {
     long structureId = resultSet.getLong(2);
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
-    return StructureVersionFactory.construct(id, structureId, attributes);
+    return new StructureVersion(id, structureId, attributes);
   }
 }

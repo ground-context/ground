@@ -77,11 +77,11 @@ public class EdgesResource {
   @GET
   @Timed
   @ApiOperation(value = "Get an edge")
-  @Path("/{name}/{key}")
-  public Edge getEdge(@PathParam("name") String name) throws GroundException {
+  @Path("/{sourceKey}/{key}")
+  public Edge getEdge(@PathParam("sourceKey") String sourceKey) throws GroundException {
     try {
-      LOGGER.info("Retrieving edge " + name + ".");
-      return this.edgeFactory.retrieveFromDatabase(name);
+      LOGGER.info("Retrieving edge " + sourceKey + ".");
+      return this.edgeFactory.retrieveFromDatabase(sourceKey);
     } finally {
       this.dbClient.commit();
     }
@@ -193,20 +193,20 @@ public class EdgesResource {
   /**
    * Truncate an edge's history to be of a certain height, only keeping the most recent levels.
    *
-   * @param name the name of the edge to truncate
+   * @param sourceKey the name of the edge to truncate
    * @param height the number of levels to keep
    * @throws GroundException an error while truncating this edge
    */
   @POST
   @Timed
-  @Path("/truncate/{name}/{height}")
-  public void truncateEdge(@PathParam("name") String name, @PathParam("height") int height)
+  @Path("/truncate/{sourceKey}/{height}")
+  public void truncateEdge(@PathParam("sourceKey") String sourceKey, @PathParam("height") int height)
       throws GroundException {
 
     try {
-      LOGGER.info("Truncating edge " + name + " to height " + height + ".");
+      LOGGER.info("Truncating edge " + sourceKey + " to height " + height + ".");
 
-      long id = this.edgeFactory.retrieveFromDatabase(name).getId();
+      long id = this.edgeFactory.retrieveFromDatabase(sourceKey).getId();
       this.edgeFactory.truncate(id, height);
       this.dbClient.commit();
 

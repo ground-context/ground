@@ -23,11 +23,8 @@ import org.junit.BeforeClass;
 import java.io.File;
 import java.io.IOException;
 
-import edu.berkeley.ground.dao.models.cassandra.CassandraRichVersionFactory;
 import edu.berkeley.ground.dao.models.cassandra.CassandraStructureVersionFactory;
 import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
-import edu.berkeley.ground.dao.versions.cassandra.CassandraItemFactory;
-import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import edu.berkeley.ground.dao.versions.cassandra.CassandraVersionSuccessorFactory;
 import edu.berkeley.ground.db.CassandraClient;
@@ -46,11 +43,8 @@ public class CassandraTest extends DaoTest {
   private static CassandraFactories factories;
 
   protected static CassandraClient cassandraClient;
-  protected static CassandraVersionFactory versionFactory;
   protected static CassandraVersionSuccessorFactory versionSuccessorFactory;
   protected static CassandraVersionHistoryDagFactory versionHistoryDAGFactory;
-  protected static CassandraItemFactory itemFactory;
-  protected static CassandraRichVersionFactory richVersionFactory;
   protected static CassandraTagFactory tagFactory;
 
   @BeforeClass
@@ -58,19 +52,12 @@ public class CassandraTest extends DaoTest {
     cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
     factories = new CassandraFactories(cassandraClient, 0, 1);
 
-    versionFactory = new CassandraVersionFactory(cassandraClient);
     versionSuccessorFactory = new CassandraVersionSuccessorFactory(cassandraClient,
         new IdGenerator(0, 1, false));
     versionHistoryDAGFactory = new CassandraVersionHistoryDagFactory(cassandraClient,
         versionSuccessorFactory);
     tagFactory = new CassandraTagFactory(cassandraClient);
-    itemFactory = new CassandraItemFactory(cassandraClient, versionHistoryDAGFactory, tagFactory);
-
-    richVersionFactory = new CassandraRichVersionFactory(cassandraClient, versionFactory,
-        (CassandraStructureVersionFactory) factories.getStructureVersionFactory(), tagFactory);
-    ElasticSearch.connectElasticSearch();
-
-
+    ElasticSearch.connectElasticSearch();=
     edgesResource = new EdgesResource(factories.getEdgeFactory(),
         factories.getEdgeVersionFactory(), factories.getNodeFactory(), cassandraClient);
     graphsResource = new GraphsResource(factories.getGraphFactory(),
@@ -92,6 +79,10 @@ public class CassandraTest extends DaoTest {
     p.waitFor();
 
     p.destroy();
+  }
+
+  public static CassandraStructureVersionFactory getStructureVersionFactory() {
+    return (CassandraStructureVersionFactory) CassandraTest.factories.getStructureVersionFactory();
   }
 
   @AfterClass
