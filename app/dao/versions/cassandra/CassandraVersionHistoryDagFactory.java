@@ -29,10 +29,15 @@ import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final CassandraClient dbClient;
@@ -114,23 +119,18 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
                                            Class<? extends Item> itemType)
       throws GroundException {
 
-    int keptLevels = 1;
-    List<Long> previousLevel = dag.getLeaves();
-    List<Long> lastLevel = new ArrayList<>();
-    while (keptLevels <= numLevels) {
-      List<Long> currentLevel = new ArrayList<>();
+    Set<Long> level = new HashSet<>(dag.getLeaves());
+    Set<Long> lastLevel = Collections.emptySet();
+    for (int keptLevels = 0; keptLevels < numLevels; keptLevels++) {
+      Set<Long> newLevel = level.stream()
+          .flatMap(id -> dag.getParent(id).stream())
+          .collect(Collectors.toSet());
 
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
-
-      lastLevel = previousLevel;
-      previousLevel = currentLevel;
-
-      keptLevels++;
+      lastLevel = level;
+      level = newLevel;
     }
 
-    List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
+    Queue<Long> deleteQueue = new ArrayDeque<>(level);
     Set<Long> deleted = new HashSet<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -139,9 +139,8 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       this.addEdge(dag, 0, id, dag.getItemId());
     }
 
-
-    while (deleteQueue.size() > 0) {
-      long id = deleteQueue.get(0);
+    while (!deleteQueue.isEmpty()) {
+      long id = deleteQueue.remove();
 
       if (id != 0) {
         String[] splits = itemType.getName().split("\\.");
@@ -177,7 +176,7 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
 
         deleted.add(id);
 
-        List<Long> parents = dag.getParent(id);
+        Collection<Long> parents = dag.getParent(id);
 
         parents.forEach(parentId -> {
           if (!deleted.contains(parentId)) {
@@ -187,8 +186,6 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
 
         predicates.clear();
       }
-
-      deleteQueue.remove(0);
     }
   }
 }

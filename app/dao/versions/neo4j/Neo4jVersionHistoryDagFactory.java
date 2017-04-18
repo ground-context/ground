@@ -27,10 +27,15 @@ import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.neo4j.driver.v1.types.Relationship;
 
@@ -107,24 +112,18 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
                                            Class<? extends Item> itemType)
       throws GroundException {
 
-    int keptLevels = 1;
-    List<Long> lastLevel = new ArrayList<>();
-    List<Long> previousLevel = dag.getLeaves();
+    Set<Long> level = new HashSet<>(dag.getLeaves());
+    Set<Long> lastLevel = Collections.emptySet();
+    for (int keptLevels = 0; keptLevels < numLevels; keptLevels++) {
+      Set<Long> newLevel = level.stream()
+          .flatMap(id -> dag.getParent(id).stream())
+          .collect(Collectors.toSet());
 
-    while (keptLevels <= numLevels) {
-      List<Long> currentLevel = new ArrayList<>();
-
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
-
-      lastLevel = previousLevel;
-      previousLevel = currentLevel;
-
-      keptLevels++;
+      lastLevel = level;
+      level = newLevel;
     }
 
-    List<Long> deleteQueue = previousLevel;
+    Queue<Long> deleteQueue = new ArrayDeque<>(level);
     Set<Long> deleted = new HashSet<>();
 
     for (long id : lastLevel) {
@@ -133,8 +132,8 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
 
     List<DbDataContainer> predicates = new ArrayList<>();
 
-    while (deleteQueue.size() > 0) {
-      long id = deleteQueue.get(0);
+    while (!deleteQueue.isEmpty()) {
+      long id = deleteQueue.remove();
 
       String[] splits = itemType.getName().split("\\.");
       String className = splits[splits.length - 1];
@@ -158,7 +157,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
       this.dbClient.deleteNode(predicates, className + "Version");
 
       deleteQueue.remove(0);
-      List<Long> parents = dag.getParent(id);
+      Collection<Long> parents = dag.getParent(id);
 
       predicates.clear();
       predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));

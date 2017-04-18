@@ -29,10 +29,15 @@ import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final PostgresClient dbClient;
@@ -118,24 +123,18 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
                                            Class<? extends Item> itemType)
       throws GroundException {
 
-    int keptLevels = 1;
-    List<Long> lastLevel = new ArrayList<>();
-    List<Long> previousLevel = dag.getLeaves();
+    Set<Long> level = new HashSet<>(dag.getLeaves());
+    Set<Long> lastLevel = Collections.emptySet();
+    for (int keptLevels = 0; keptLevels < numLevels; keptLevels++) {
+      Set<Long> newLevel = level.stream()
+          .flatMap(id -> dag.getParent(id).stream())
+          .collect(Collectors.toSet());
 
-    while (keptLevels <= numLevels) {
-      List<Long> currentLevel = new ArrayList<>();
-
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
-
-      lastLevel = previousLevel;
-      previousLevel = currentLevel;
-
-      keptLevels++;
+      lastLevel = level;
+      level = newLevel;
     }
 
-    List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
+    Queue<Long> deleteQueue = new ArrayDeque<>(level);
     Set<Long> deleted = new HashSet<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -144,8 +143,8 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
       this.addEdge(dag, 0, id, dag.getItemId());
     }
 
-    while (deleteQueue.size() > 0) {
-      long id = deleteQueue.get(0);
+    while (!deleteQueue.isEmpty()) {
+      long id = deleteQueue.remove();
 
       if (id != 0) {
         String[] splits = itemType.getName().split("\\.");
@@ -184,7 +183,7 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
 
         deleted.add(id);
 
-        List<Long> parents = dag.getParent(id);
+        Collection<Long> parents = dag.getParent(id);
 
         parents.forEach(parentId -> {
           if (!deleted.contains(parentId)) {
@@ -193,8 +192,6 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
         });
         predicates.clear();
       }
-
-      deleteQueue.remove(0);
     }
   }
 }
