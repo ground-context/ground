@@ -40,12 +40,15 @@ public class CassandraResultsTest {
     when(row.getString("falseField")).thenReturn("false");
     when(row.getString("trueCapitalizedField")).thenReturn("True");
     when(row.getString("falseCapitalField")).thenReturn("FALSE");
+    when(row.getString("fooField")).thenReturn("foo");
+
     when(rs.one()).thenReturn(row);
     CassandraResults results = new CassandraResults(rs);
     assertThat(results.getBoolean("trueField")).isEqualTo(true);
     assertThat(results.getBoolean("falseField")).isEqualTo(false);
     assertThat(results.getBoolean("trueCapitalizedField")).isEqualTo(true);
     assertThat(results.getBoolean("falseCapitalField")).isEqualTo(false);
+    assertThat(results.getBoolean("fooField")).isEqualTo(false);
   }
 
   @Test(expected = GroundDbException.class)
@@ -57,17 +60,6 @@ public class CassandraResultsTest {
   public void shouldFailWhenFieldInvalidForBoolean() throws GroundDbException {
     setupInvalidField("field").getBoolean("field");
   }
-
-  // Should this be expected to fail? - it does not!
-//  @Test(expected = GroundDbException.class)
-//  public void shouldFailFromInvalidValue() throws GroundDbException {
-//    ResultSet rs = mock(ResultSet.class);
-//    Row row = mock(Row.class);
-//    when(row.getString("newsField")).thenReturn("alternativeFalse");
-//    when(rs.one()).thenReturn(row);
-//    CassandraResults results = new CassandraResults(rs);
-//    results.getBoolean("newsField");
-//  }
 
   @Test
   public void shouldGetIntegerFromValidResultSet() throws GroundDbException {

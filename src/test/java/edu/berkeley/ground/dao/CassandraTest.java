@@ -43,8 +43,8 @@ import edu.berkeley.ground.util.IdGenerator;
 
 public class CassandraTest extends DaoTest {
 
-  private static String TRUNCATE_SCRIPT = "./scripts/cassandra/truncate.cql";
-  private static String CREATE_SCHEMA_SCRIPT = "./scripts/cassandra/cassandra.cql";
+  private static final String TRUNCATE_SCRIPT = "./scripts/cassandra/truncate.cql";
+  private static final String CREATE_SCHEMA_SCRIPT = "./scripts/cassandra/cassandra.cql";
 
   private static final Function<String,String> CREATE_KEYSPACE_CQL = keyspace-> "create keyspace IF NOT EXISTS "+
     keyspace + " with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };";

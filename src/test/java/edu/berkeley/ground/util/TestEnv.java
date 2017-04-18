@@ -3,7 +3,7 @@ package edu.berkeley.ground.util;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-public class TestEnv {
+public final class TestEnv {
 
   private static final String TEST_CONFIG = "test.conf";
 

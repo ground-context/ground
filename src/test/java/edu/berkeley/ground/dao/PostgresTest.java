@@ -41,8 +41,8 @@ import edu.berkeley.ground.util.IdGenerator;
 import edu.berkeley.ground.util.PostgresFactories;
 
 public class PostgresTest extends DaoTest {
-  private static String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
-  private static String CREATE_SCHEMA_SCRIPT = "./scripts/postgres/postgres.sql";
+  private static final String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
+  private static final String CREATE_SCHEMA_SCRIPT = "./scripts/postgres/postgres.sql";
 
   private static PostgresFactories factories;
   protected static PostgresClient postgresClient;
