@@ -64,6 +64,14 @@ public class PostgresClient extends DbClient {
   }
 
   /**
+   * returns the connection underlying this Client
+   * @return an initialized connection.
+   */
+  public Connection getConnection() {
+    return connection;
+  }
+
+  /**
    * Insert a new row into table with insertValues.
    *
    * @param table the table to update
@@ -273,41 +281,14 @@ public class PostgresClient extends DbClient {
     }
   }
 
-  private static void setValue(
-      PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
-      throws SQLException {
-    switch (groundType) {
-      case STRING:
-        if (value == null) {
-          preparedStatement.setNull(index, Types.VARCHAR);
-        } else {
-          preparedStatement.setString(index, (String) value);
-        }
-        break;
-      case INTEGER:
-        if (value == null) {
-          preparedStatement.setNull(index, Types.INTEGER);
-        } else {
-          preparedStatement.setInt(index, (Integer) value);
-        }
-        break;
-      case BOOLEAN:
-        if (value == null) {
-          preparedStatement.setNull(index, Types.BOOLEAN);
-        } else {
-          preparedStatement.setBoolean(index, (Boolean) value);
-        }
-        break;
-      case LONG:
-        if (value == null || (long) value == -1) {
-          preparedStatement.setNull(index, Types.BIGINT);
-        } else {
-          preparedStatement.setLong(index, (Long) value);
-        }
-        break;
-      default:
-        // impossible because we've listed all enum values
-        break;
+  private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
+    throws SQLException {
+    if (value == null) {
+      preparedStatement.setNull(index, groundType.getSqlType());
+    } else if (groundType == GroundType.LONG && (long) value == -1) {// What is this magic number? Is -1L not allowed as a value?
+      preparedStatement.setNull(index, GroundType.LONG.getSqlType());
+    } else {
+      preparedStatement.setObject(index, value, groundType.getSqlType());
     }
   }
 }

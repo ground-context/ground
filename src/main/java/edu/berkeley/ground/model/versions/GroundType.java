@@ -19,19 +19,49 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import edu.berkeley.ground.exceptions.GroundException;
 
+import java.sql.Types;
+
 public enum GroundType {
-  STRING(String.class, "string"),
-  INTEGER(Integer.class, "integer"),
-  BOOLEAN(Boolean.class, "boolean"),
-  LONG(Long.class, "long");
+  STRING(String.class, "string", Types.VARCHAR){
+    public Object parse(String str){
+      return str;
+    }
+  },
+  INTEGER(Integer.class, "integer", Types.INTEGER){
+    public Object parse(String str){
+      return Integer.parseInt(str);
+    }
+  },
+  BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN){
+    public Object parse(String str){
+      return Boolean.parseBoolean(str);
+    }
+  },
+  LONG(Long.class, "long", Types.BIGINT){
+    public Object parse(String str){
+      return Long.parseLong(str);
+    }
+  };
 
   private final Class<?> klass;
   private final String name;
+  private final int sqlType;
 
-  GroundType(Class<?> klass, String name) {
+  GroundType(Class<?> klass, String name, int sqlType) {
     this.klass = klass;
     this.name = name;
+    this.sqlType = sqlType;
   }
+
+  /**
+   * Returns the SQL type as defined in java.sql.Types corresponding to this GroundType
+   * @return an integer the corresponding SQL Type
+   */
+  public int getSqlType(){
+    return sqlType;
+  }
+
+  public abstract Object parse(String str);
 
   public Class<?> getTypeClass() {
     return this.klass;
@@ -49,48 +79,10 @@ public enum GroundType {
     if (str == null) {
       return null;
     }
-
-    switch (str.toLowerCase()) {
-      case "string":
-        return STRING;
-      case "integer":
-        return INTEGER;
-      case "boolean":
-        return BOOLEAN;
-      case "long":
-        return LONG;
-
-      default: {
+    try {
+      return GroundType.valueOf(str.toUpperCase());
+    } catch (IllegalArgumentException iae) {
         throw new GroundException("Invalid type: " + str + ".");
-      }
-    }
-  }
-
-  /**
-   * Take a string of type GroundType and return the parsed object.
-   *
-   * @param str the value
-   * @param groundType the type of the value
-   * @return the parsed object
-   */
-  @JsonValue
-  public static Object stringToType(String str, GroundType groundType) {
-    if (str == null) {
-      return null;
-    }
-
-    switch (groundType) {
-      case STRING:
-        return str;
-      case INTEGER:
-        return Integer.parseInt(str);
-      case BOOLEAN:
-        return Boolean.parseBoolean(str);
-      case LONG:
-        return Long.parseLong(str);
-
-      default:
-        return null;
     }
   }
 

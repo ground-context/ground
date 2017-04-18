@@ -1,34 +1,34 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
-/* VERSIONS */
+-- Licensed under the Apache License, Version 2.0 (the "License");
+-- you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+--
+--    http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
 
-create table version (
+
+-- VERSIONS
+
+CREATE TABLE IF NOT EXISTS version (
     id bigint PRIMARY KEY
 );
 
-create table version_successor (
+CREATE TABLE IF NOT EXISTS version_successor (
     id bigint PRIMARY KEY,
     from_version_id bigint,
     to_version_id bigint
 );
 
-create table item (
+CREATE TABLE IF NOT EXISTS item (
     id bigint PRIMARY KEY
 );
 
-create table item_tag (
+CREATE TABLE IF NOT EXISTS item_tag (
     item_id bigint,
     key varchar,
     value varchar,
@@ -36,47 +36,47 @@ create table item_tag (
     PRIMARY KEY (item_id, key)
 );
 
-create table version_history_dag (
+CREATE TABLE IF NOT EXISTS version_history_dag (
     item_id bigint,
     version_successor_id bigint,
     PRIMARY KEY(item_id, version_successor_id)
 );
 
-/* MODELS */
+-- MODELS
 
-create table structure (
+CREATE TABLE IF NOT EXISTS structure (
     item_id bigint,
     source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, source_key)
 );
 
-create table structure_version (
+CREATE TABLE IF NOT EXISTS structure_version (
     id bigint PRIMARY KEY,
     structure_id bigint
 );
 
-create table structure_version_attribute (
+CREATE TABLE IF NOT EXISTS structure_version_attribute (
     structure_version_id bigint,
     key varchar,
     type varchar,
     PRIMARY KEY (structure_version_id, key)
 );
 
-create table rich_version (
+CREATE TABLE IF NOT EXISTS rich_version (
     id bigint PRIMARY KEY,
     structure_version_id bigint,
     reference varchar
 );
 
-create table rich_version_external_parameter (
+CREATE TABLE IF NOT EXISTS rich_version_external_parameter (
     rich_version_id bigint,
     key varchar,
     value varchar,
     PRIMARY KEY (rich_version_id, key)
 );
 
-create table rich_version_tag (
+CREATE TABLE IF NOT EXISTS rich_version_tag (
     rich_version_id bigint,
     key varchar,
     value varchar,
@@ -84,7 +84,7 @@ create table rich_version_tag (
     PRIMARY KEY (rich_version_id, key)
 );
 
-create table edge (
+CREATE TABLE IF NOT EXISTS edge (
     item_id bigint,
     source_key varchar,
     from_node_id bigint,
@@ -93,26 +93,26 @@ create table edge (
     PRIMARY KEY (item_id, source_key)
 );
 
-create table node (
+CREATE TABLE IF NOT EXISTS node (
     item_id bigint,
     source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, source_key)
 );
 
-create table graph (
+CREATE TABLE IF NOT EXISTS graph (
     item_id bigint,
     source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, source_key)
 );
 
-create table node_version (
+CREATE TABLE IF NOT EXISTS node_version (
     id bigint PRIMARY KEY,
     node_id bigint
 );
 
-create table edge_version (
+CREATE TABLE IF NOT EXISTS edge_version (
     id bigint PRIMARY KEY,
     edge_id bigint,
     from_node_start_id bigint,
@@ -121,34 +121,34 @@ create table edge_version (
     to_node_end_id bigint
 );
 
-create table graph_version (
+CREATE TABLE IF NOT EXISTS graph_version (
     id bigint PRIMARY KEY,
     graph_id bigint
 );
 
-create table graph_version_edge (
+CREATE TABLE IF NOT EXISTS graph_version_edge (
     graph_version_id bigint,
     edge_version_id bigint,
     PRIMARY KEY (graph_version_id, edge_version_id)
 );
 
-/* USAGE */
+-- USAGE
 
-create table principal (
+CREATE TABLE IF NOT EXISTS principal (
     node_id bigint,
     source_key varchar,
     name varchar,
     PRIMARY KEY (node_id, source_key)
 );
 
-create table lineage_edge (
+CREATE TABLE IF NOT EXISTS lineage_edge (
     item_id bigint,
     source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, source_key)
 );
 
-create table lineage_edge_version (
+CREATE TABLE IF NOT EXISTS lineage_edge_version (
     id bigint PRIMARY KEY,
     lineage_edge_id bigint,
     from_rich_version_id bigint,
@@ -156,24 +156,24 @@ create table lineage_edge_version (
     principal_id bigint,
 );
 
-create table lineage_graph (
+CREATE TABLE IF NOT EXISTS lineage_graph (
     item_id bigint,
     source_key varchar,
     name varchar,
     PRIMARY KEY (item_id, source_key)
 );
 
-create table lineage_graph_version (
+CREATE TABLE IF NOT EXISTS lineage_graph_version (
     id bigint PRIMARY KEY,
     lineage_graph_id bigint
 );
 
-create table lineage_graph_version_edge (
+CREATE TABLE IF NOT EXISTS lineage_graph_version_edge (
     lineage_graph_version_id bigint,
     lineage_edge_version_id bigint,
     PRIMARY KEY (lineage_graph_version_id, lineage_edge_version_id)
 );
 
-/* CREATE EMPTY VERSION */
+-- CREATE EMPTY VERSION
 
-insert into version(id) values (0);
+INSERT INTO version(id) values (0);

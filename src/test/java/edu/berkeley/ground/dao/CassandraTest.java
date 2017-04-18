@@ -14,12 +14,17 @@
 
 package edu.berkeley.ground.dao;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PlainTextAuthProvider;
+import com.datastax.driver.core.Session;
+import com.typesafe.config.Config;
+import edu.berkeley.ground.util.TestEnv;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.function.Function;
 
 import edu.berkeley.ground.dao.models.cassandra.CassandraStructureVersionFactory;
 import edu.berkeley.ground.dao.models.cassandra.CassandraTagFactory;
@@ -37,7 +42,13 @@ import edu.berkeley.ground.util.CassandraFactories;
 import edu.berkeley.ground.util.IdGenerator;
 
 public class CassandraTest extends DaoTest {
-  private static final String TEST_DB_NAME = "test";
+
+  private static final String TRUNCATE_SCRIPT = "./scripts/cassandra/truncate.cql";
+  private static final String CREATE_SCHEMA_SCRIPT = "./scripts/cassandra/cassandra.cql";
+
+  private static final Function<String,String> CREATE_KEYSPACE_CQL = keyspace-> "create keyspace IF NOT EXISTS "+
+    keyspace + " with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
+
   private static CassandraFactories factories;
 
   protected static CassandraClient cassandraClient;
@@ -45,9 +56,14 @@ public class CassandraTest extends DaoTest {
   protected static CassandraVersionHistoryDagFactory versionHistoryDAGFactory;
   protected static CassandraTagFactory tagFactory;
 
+  private static long totalTime = 0L;
+
   @BeforeClass
   public static void setup() throws GroundDbException {
-    cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
+    cassandraClient = setupClient();
+
+    runScript(CREATE_SCHEMA_SCRIPT);
+
     factories = new CassandraFactories(cassandraClient, 0, 1);
 
     versionSuccessorFactory = new CassandraVersionSuccessorFactory(cassandraClient,
@@ -71,11 +87,8 @@ public class CassandraTest extends DaoTest {
   }
 
   @Before
-  public void setupTest() throws IOException, InterruptedException {
-    Process p = Runtime.getRuntime().exec("cqlsh -k " + TEST_DB_NAME + " -f truncate.cql", null, new File("scripts/cassandra/"));
-    p.waitFor();
-
-    p.destroy();
+  public void setupTest() {
+    runScript(TRUNCATE_SCRIPT);
   }
 
   public static CassandraStructureVersionFactory getStructureVersionFactory() {
@@ -85,5 +98,30 @@ public class CassandraTest extends DaoTest {
   @AfterClass
   public static void tearDown() throws IOException, InterruptedException {
     cassandraClient.close();
+  }
+
+  protected static CassandraClient setupClient() {
+    Config cassandraConfig = TestEnv.config.getConfig("cassandra");
+
+    String host = cassandraConfig.getString("host");
+    int port = cassandraConfig.getInt("port");
+    String keyspace = cassandraConfig.getString("keyspace");
+    String username = cassandraConfig.getString("username");
+    String password = cassandraConfig.getString("password");
+
+    Cluster cluster =
+      Cluster.builder()
+        .addContactPoint(host)
+        .withPort(port)
+        .withAuthProvider(new PlainTextAuthProvider(username, password))
+        .build();
+    Session baseSession = cluster.connect();
+    baseSession.execute(CREATE_KEYSPACE_CQL.apply(keyspace));
+    baseSession.close();
+    return new CassandraClient(host, port, keyspace, username, password);
+  }
+
+  protected static void runScript(String script) {
+    DaoTest.runScript(script, cassandraClient.getSession()::execute);
   }
 }

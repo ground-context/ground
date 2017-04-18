@@ -21,8 +21,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
-import edu.berkeley.ground.model.versions.GroundType;
-
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,11 +52,20 @@ public class CassandraClient extends DbClient {
     this.cluster =
         Cluster.builder()
             .addContactPoint(host)
+            .withPort(port)
             .withAuthProvider(new PlainTextAuthProvider(username, password))
             .build();
 
     this.session = this.cluster.connect(keyspace);
     this.preparedStatements = new HashMap<>();
+  }
+
+  /**
+   * Returns the current session in this Cassandra Client
+   * @return session the active Cassandra session used in this CassandraClient
+   */
+  public Session getSession() {
+    return this.session;
   }
 
   /**
@@ -71,14 +80,8 @@ public class CassandraClient extends DbClient {
     String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
     String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
-    BoundStatement statement = this.prepareStatement(insert);
 
-    int index = 0;
-    for (DbDataContainer container : insertValues) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
-    }
+    BoundStatement statement = bind(insert, insertValues);
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
@@ -107,14 +110,8 @@ public class CassandraClient extends DbClient {
     }
 
     select += " ALLOW FILTERING;";
-    BoundStatement statement = this.prepareStatement(select);
 
-    int index = 0;
-    for (DbDataContainer container : predicatesAndValues) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
-    }
+    BoundStatement statement = bind(select, predicatesAndValues);
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
@@ -151,19 +148,9 @@ public class CassandraClient extends DbClient {
       updateString += " where " + wherePredicateString;
     }
 
-    BoundStatement statement = this.prepareStatement(updateString);
+    BoundStatement statement = bind(updateString, setPredicates, wherePredicates);
 
-    int index = 0;
-    for (DbDataContainer predicate : setPredicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
-
-    for (DbDataContainer predicate : wherePredicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
-
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
   }
 
@@ -181,15 +168,17 @@ public class CassandraClient extends DbClient {
 
     deleteString += "where " + predicateString;
 
-    BoundStatement statement = this.prepareStatement(deleteString);
-
-    int index = 0;
-    for (DbDataContainer predicate : predicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
+    BoundStatement statement = bind(deleteString, predicates);
 
     this.session.execute(statement);
+  }
+
+  private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
+    BoundStatement boundStatement = this.prepareStatement(statement);
+    List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
+      .map(p-> p.getValue()).collect(Collectors.toList());
+    boundStatement.bind(values.toArray(new Object[values.size()]));
+    return boundStatement;
   }
 
   @Override
@@ -211,43 +200,4 @@ public class CassandraClient extends DbClient {
     return new BoundStatement(statement);
   }
 
-  private static void setValue(BoundStatement statement,
-                               Object value,
-                               GroundType groundType,
-                               int index) {
-    switch (groundType) {
-      case STRING:
-        if (value != null) {
-          statement.setString(index, (String) value);
-        } else {
-          statement.setToNull(index);
-        }
-
-        break;
-      case INTEGER:
-        if (value != null) {
-          statement.setInt(index, (Integer) value);
-        } else {
-          statement.setToNull(index);
-        }
-        break;
-      case BOOLEAN:
-        if (value != null) {
-          statement.setBool(index, (Boolean) value);
-        } else {
-          statement.setToNull(index);
-        }
-        break;
-      case LONG:
-        if (value != null && (long) value != -1) {
-          statement.setLong(index, (Long) value);
-        } else {
-          statement.setToNull(index);
-        }
-        break;
-      default:
-        // impossible because we've listed all the enum types
-        break;
-    }
-  }
 }

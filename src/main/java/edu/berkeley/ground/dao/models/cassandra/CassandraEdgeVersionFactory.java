@@ -139,11 +139,10 @@ public class CassandraEdgeVersionFactory
     long edgeId = resultSet.getLong("edge_id");
 
     long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
-    long fromNodeVersionEndId = resultSet.isNull("from_node_end_id") ? -1 : resultSet.getLong(
-        "from_node_end_id");
+
+    long fromNodeVersionEndId =  resultSet.getLong("from_node_end_id");
     long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
-    long toNodeVersionEndId = resultSet.isNull("to_node_end_id") ? -1 : resultSet.getLong(
-        "to_node_end_id");
+    long toNodeVersionEndId = resultSet.getLong("to_node_end_id");
 
     LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 

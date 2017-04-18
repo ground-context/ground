@@ -10,7 +10,6 @@ import edu.berkeley.ground.dao.Neo4jTest;
 import edu.berkeley.ground.exceptions.GroundVersionNotFoundException;
 import edu.berkeley.ground.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.model.models.Tag;
-import edu.berkeley.ground.model.versions.GroundType;
 import edu.berkeley.ground.exceptions.GroundException;
 
 import static org.junit.Assert.*;
