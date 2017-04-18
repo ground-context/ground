@@ -21,6 +21,7 @@ import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
 import exceptions.GroundException;
+import exceptions.GroundVersionNotFoundException;
 import models.models.StructureVersion;
 import models.versions.GroundType;
 import util.IdGenerator;
@@ -126,7 +127,7 @@ public class CassandraStructureVersionFactory
         DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
-      throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
+      throw new GroundVersionNotFoundException(StructureVersion.class, id);
     }
 
     Map<String, GroundType> attributes = new HashMap<>();
