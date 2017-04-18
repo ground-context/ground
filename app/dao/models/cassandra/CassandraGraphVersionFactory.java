@@ -17,9 +17,9 @@ package dao.models.cassandra;
 import dao.models.GraphVersionFactory;
 import dao.models.RichVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.GraphVersion;
 import models.models.RichVersion;
@@ -30,7 +30,6 @@ import util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,17 +128,15 @@ public class CassandraGraphVersionFactory
     List<DbDataContainer> edgePredicate = new ArrayList<>();
     edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("graph_version",
-        DbClient.SELECT_STAR,
-        predicates);
-
+    DbResults resultSet = this.dbClient.equalitySelect("graph_version",
+        DbClient.SELECT_STAR, predicates);
+    super.verifyResultSet(resultSet, id);
 
     long graphId = resultSet.getLong("graph_id");
 
     List<Long> edgeVersionIds = new ArrayList<>();
-    CassandraResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
-        DbClient.SELECT_STAR,
-        edgePredicate);
+    DbResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
+        DbClient.SELECT_STAR, edgePredicate);
 
     if (!edgeSet.isEmpty()) {
       do {

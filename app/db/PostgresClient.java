@@ -109,7 +109,8 @@ public class PostgresClient implements DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public PostgresResults equalitySelect(
+  @Override
+  public DbResults equalitySelect(
       String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
       throws GroundDbException {
     String items = String.join(", ", projection);
@@ -204,6 +205,7 @@ public class PostgresClient implements DbClient {
    * @param predicates the delete predicates
    * @param table the table to delete from
    */
+  @Override
   public void delete(List<DbDataContainer> predicates, String table) throws GroundDbException {
     String deleteString = "delete from " + table + " ";
 

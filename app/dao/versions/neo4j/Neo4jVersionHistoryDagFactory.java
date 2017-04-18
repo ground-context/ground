@@ -46,7 +46,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
 
   @Override
   public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
-    return new VersionHistoryDag<T>(itemId, new ArrayList<>());
+    return new VersionHistoryDag<>(itemId, new ArrayList<>());
   }
 
   /**
@@ -65,7 +65,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
 
     if (result.isEmpty()) {
       // do nothing' this just means that no versions have been added yet.
-      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
+      return new VersionHistoryDag<>(itemId, new ArrayList<>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
@@ -74,7 +74,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
       edges.add(this.versionSuccessorFactory.retrieveFromDatabase(relationship.get("id").asLong()));
     }
 
-    return new VersionHistoryDag<T>(itemId, edges);
+    return new VersionHistoryDag<>(itemId, edges);
   }
 
   /**
@@ -87,10 +87,11 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
    * @throws GroundException an error adding the edge
    */
   @Override
-  public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
+  public <T extends Version> void addEdge(VersionHistoryDag<T> dag, long parentId,
+                                          long childId, long itemId)
       throws GroundException {
 
-    VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
+    VersionSuccessor<T> successor = this.versionSuccessorFactory.create(parentId, childId);
 
     dag.addEdge(parentId, childId, successor.getId());
   }
@@ -102,7 +103,8 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
+  public <T extends Version> void truncate(VersionHistoryDag<T> dag, int numLevels,
+                                           Class<? extends Item> itemType)
       throws GroundException {
 
     int keptLevels = 1;

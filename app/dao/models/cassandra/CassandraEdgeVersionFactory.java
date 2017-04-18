@@ -17,9 +17,9 @@ package dao.models.cassandra;
 import dao.models.EdgeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.EdgeVersion;
 import models.models.RichVersion;
@@ -30,7 +30,6 @@ import util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,9 +130,8 @@ public class CassandraEdgeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("edge_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     long edgeId = resultSet.getLong("edge_id");

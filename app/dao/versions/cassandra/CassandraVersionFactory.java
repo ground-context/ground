@@ -16,10 +16,8 @@ package dao.versions.cassandra;
 
 import dao.versions.VersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbDataContainer;
 import exceptions.GroundException;
-import exceptions.GroundVersionNotFoundException;
 import models.versions.GroundType;
 import models.versions.Version;
 
@@ -45,20 +43,5 @@ public abstract class CassandraVersionFactory<T extends Version> implements Vers
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
 
     this.dbClient.insert("version", insertions);
-  }
-
-  /**
-   * Verify that a result set for a version is not empty.
-   *
-   * @param resultSet the result set to check
-   * @param id the id of the version
-   * @throws GroundVersionNotFoundException an exception indicating the item wasn't found
-   */
-  protected void verifyResultSet(CassandraResults resultSet, long id)
-      throws GroundVersionNotFoundException {
-
-    if (resultSet.isEmpty()) {
-      throw new GroundVersionNotFoundException(this.getType(), id);
-    }
   }
 }

@@ -18,9 +18,9 @@ import dao.models.StructureFactory;
 import dao.versions.cassandra.CassandraItemFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.Structure;
 import models.models.Tag;
@@ -33,7 +33,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class CassandraStructureFactory
     extends CassandraItemFactory<Structure>
@@ -132,9 +131,8 @@ public class CassandraStructureFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("structure",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("structure",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong("item_id");

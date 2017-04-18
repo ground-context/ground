@@ -17,10 +17,8 @@ package dao.versions.cassandra;
 import dao.models.cassandra.CassandraTagFactory;
 import dao.versions.ItemFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbDataContainer;
 import exceptions.GroundException;
-import exceptions.GroundItemNotFoundException;
 import models.models.Tag;
 import models.versions.GroundType;
 import models.versions.Item;
@@ -171,21 +169,5 @@ public abstract class CassandraItemFactory<T extends Item> implements ItemFactor
     VersionHistoryDag<?> dag = this.versionHistoryDagFactory.retrieveFromDatabase(itemId);
 
     this.versionHistoryDagFactory.truncate(dag, numLevels, this.getType());
-  }
-
-  /**
-   * Verify that a result set for an item is not empty.
-   *
-   * @param resultSet the result set to check
-   * @param fieldName the name of the field that was used to retrieve this item
-   * @param value the value used to retrieve the item
-   * @throws GroundItemNotFoundException an exception indicating the item wasn't found
-   */
-  protected void verifyResultSet(CassandraResults resultSet, String fieldName, Object value)
-    throws GroundItemNotFoundException {
-
-    if (resultSet.isEmpty()) {
-      throw new GroundItemNotFoundException(this.getType(), fieldName, value);
-    }
   }
 }

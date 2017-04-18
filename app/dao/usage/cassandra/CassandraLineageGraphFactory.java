@@ -19,9 +19,9 @@ import dao.usage.LineageGraphFactory;
 import dao.versions.cassandra.CassandraItemFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.usage.LineageGraph;
@@ -133,9 +133,8 @@ public class CassandraLineageGraphFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("lineage_graph",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("lineage_graph",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong("item_id");

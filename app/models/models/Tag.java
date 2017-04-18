@@ -65,7 +65,6 @@ public class Tag {
       assert (value.getClass().equals(valueType.getTypeClass()));
     }
 
-
     this.id = id;
     this.key = key;
     this.value = value;

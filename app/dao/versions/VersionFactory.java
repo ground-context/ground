@@ -14,8 +14,10 @@
 
 package dao.versions;
 
+import db.DbResults;
 import exceptions.GroundException;
 import exceptions.GroundUnsupportedOperationException;
+import exceptions.GroundVersionNotFoundException;
 import models.versions.Version;
 
 public interface VersionFactory<T extends Version> {
@@ -47,5 +49,20 @@ public interface VersionFactory<T extends Version> {
 
   default void deleteStructureVersion() throws GroundException {
     throw new GroundUnsupportedOperationException(this.getType(), "deleteStructureVersion");
+  }
+
+  /**
+   * Verify that a result set for a version is not empty.
+   *
+   * @param resultSet the result set to check
+   * @param id the id of the version
+   * @throws GroundVersionNotFoundException an exception indicating the version wasn't found
+   */
+  default void verifyResultSet(DbResults resultSet, long id)
+    throws GroundException {
+
+    if (resultSet.isEmpty()) {
+      throw new GroundVersionNotFoundException(this.getType(), id);
+    }
   }
 }

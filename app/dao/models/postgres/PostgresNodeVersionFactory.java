@@ -18,8 +18,8 @@ import dao.models.NodeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.NodeVersion;
 import models.models.RichVersion;
@@ -30,7 +30,6 @@ import util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,12 +116,11 @@ public class PostgresNodeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("node_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("node_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long nodeId = resultSet.getLong(2);
+    long nodeId = resultSet.getLong("node_id");
 
     LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
     return new NodeVersion(id, version.getTags(), version.getStructureVersionId(),

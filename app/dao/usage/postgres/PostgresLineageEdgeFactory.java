@@ -20,8 +20,8 @@ import dao.versions.postgres.PostgresItemFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.usage.LineageEdge;
@@ -134,14 +134,13 @@ public class PostgresLineageEdgeFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_edge",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("lineage_edge",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
-    long id = resultSet.getLong(1);
-    String sourceKey = resultSet.getString(2);
-    String name = resultSet.getString(3);
+    long id = resultSet.getLong("item_id");
+    String name = resultSet.getString("name");
+    String sourceKey = resultSet.getString("source_key");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

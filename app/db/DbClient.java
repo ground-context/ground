@@ -23,6 +23,10 @@ public interface DbClient extends AutoCloseable {
   List<String> SELECT_STAR = Collections.singletonList("*");
 
   void commit() throws GroundDbException;
-
   void abort() throws GroundDbException;
+
+  DbResults equalitySelect(String table, List<String> projection,
+                           List<DbDataContainer> predicatesAndValues) throws GroundDbException;
+  void insert(String table, List<DbDataContainer> insertValues) throws GroundDbException;
+  void delete(List<DbDataContainer> predicates, String table) throws GroundDbException;
 }

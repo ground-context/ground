@@ -94,9 +94,10 @@ public class CassandraClient implements DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public CassandraResults equalitySelect(String table,
-                                         List<String> projection,
-                                         List<DbDataContainer> predicatesAndValues) {
+  @Override
+  public DbResults equalitySelect(String table,
+                                  List<String> projection,
+                                  List<DbDataContainer> predicatesAndValues) {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
 
@@ -160,6 +161,7 @@ public class CassandraClient implements DbClient {
    * @param predicates the delete predicates
    * @param table the table to delete from
    */
+  @Override
   public void delete(List<DbDataContainer> predicates, String table) {
     String deleteString = "delete from " + table + " ";
 

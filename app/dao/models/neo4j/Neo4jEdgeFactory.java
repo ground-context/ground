@@ -19,7 +19,6 @@ import dao.versions.neo4j.Neo4jItemFactory;
 import dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
 import models.models.Edge;

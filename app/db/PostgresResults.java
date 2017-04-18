@@ -15,7 +15,6 @@
 package db;
 
 import exceptions.GroundDbException;
-import exceptions.GroundException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

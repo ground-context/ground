@@ -17,9 +17,9 @@ package dao.models.cassandra;
 import dao.models.StructureVersionFactory;
 import dao.versions.cassandra.CassandraVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.StructureVersion;
 import models.versions.GroundType;
@@ -115,25 +115,25 @@ public class CassandraStructureVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("structure_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("structure_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
-
-    Map<String, GroundType> attributes = new HashMap<>();
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-    CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+
+    DbResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
         DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
-      throw new GroundException("No StructureVersion attributes found for id " + id + ".");
+      throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
     }
 
+    Map<String, GroundType> attributes = new HashMap<>();
+
     do {
-      attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
-          .getString("type")));
+      attributes.put(attributesSet.getString("key"),
+          GroundType.fromString(attributesSet.getString("type")));
     } while (attributesSet.next());
 
     long structureId = resultSet.getLong("structure_id");

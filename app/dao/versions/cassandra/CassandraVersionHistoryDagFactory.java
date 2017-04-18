@@ -18,9 +18,9 @@ import com.google.common.base.CaseFormat;
 
 import dao.versions.VersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.Structure;
 import models.versions.GroundType;
@@ -47,7 +47,7 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
 
   @Override
   public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
-    return new VersionHistoryDag<T>(itemId, new ArrayList<>());
+    return new VersionHistoryDag<>(itemId, new ArrayList<>());
   }
 
   /**
@@ -63,17 +63,17 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    CassandraResults resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
-          predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_history_dag",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
-      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
+      return new VersionHistoryDag<>(itemId, new ArrayList<>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
     do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
-          .getLong("version_successor_id")));
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(
+          resultSet.getLong("version_successor_id")));
     } while (resultSet.next());
 
     return new VersionHistoryDag(itemId, edges);
@@ -89,9 +89,10 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
    * @throws GroundException an error adding the edge
    */
   @Override
-  public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
+  public <T extends Version> void addEdge(VersionHistoryDag<T> dag, long parentId,
+                                          long childId, long itemId)
       throws GroundException {
-    VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
+    VersionSuccessor<T> successor = this.versionSuccessorFactory.create(parentId, childId);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
@@ -109,7 +110,8 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
+  public <T extends Version> void truncate(VersionHistoryDag<T> dag, int numLevels,
+                                           Class<? extends Item> itemType)
       throws GroundException {
 
     int keptLevels = 1;

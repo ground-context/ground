@@ -18,9 +18,9 @@ import dao.models.NodeFactory;
 import dao.versions.cassandra.CassandraItemFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.Node;
 import models.models.Tag;
@@ -128,9 +128,8 @@ public class CassandraNodeFactory extends CassandraItemFactory<Node> implements 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("node",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("node",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong("item_id");

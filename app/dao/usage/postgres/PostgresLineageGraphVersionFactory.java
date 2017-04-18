@@ -21,8 +21,8 @@ import dao.models.postgres.PostgresTagFactory;
 import dao.usage.LineageGraphVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.RichVersion;
 import models.models.Tag;
@@ -139,23 +139,21 @@ public class PostgresLineageGraphVersionFactory
     lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
         id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_graph_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("lineage_graph_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    PostgresResults lineageEdgeSet;
-    List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    long lineageGraphId = resultSet.getLong("lineage_graph_id");
 
-    lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient
-        .SELECT_STAR, lineageEdgePredicate);
+    List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    DbResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
+      DbClient.SELECT_STAR, lineageEdgePredicate);
+
     if (!lineageEdgeSet.isEmpty()) {
       do {
-        lineageEdgeVersionIds.add(lineageEdgeSet.getLong(2));
+        lineageEdgeVersionIds.add(lineageEdgeSet.getLong("lineage_edge_version_id"));
       } while (lineageEdgeSet.next());
     }
-
-    long lineageGraphId = resultSet.getLong(2);
 
     LOGGER.info("Retrieved lineage_graph version "
         + id

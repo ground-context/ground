@@ -16,7 +16,6 @@ package dao.models.cassandra;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,10 +41,12 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       super(cassandraClient, structureVersionFactory, tagFactory);
     }
 
+    @Override
     public Class<RichVersion> getType() {
       return RichVersion.class;
     }
 
+    @Override
     public RichVersion retrieveFromDatabase(long id) throws GroundException {
       throw new GroundException("This operation should never be called.");
     }

@@ -16,8 +16,8 @@ package db;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-
 import com.datastax.driver.core.exceptions.CodecNotFoundException;
+
 import exceptions.GroundDbException;
 import models.versions.GroundType;
 

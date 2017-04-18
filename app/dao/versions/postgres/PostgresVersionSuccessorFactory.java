@@ -17,8 +17,8 @@ package dao.versions.postgres;
 import dao.versions.VersionSuccessorFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.versions.GroundType;
 import models.versions.Version;
@@ -77,16 +77,15 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long toId = resultSet.getLong(2);
-    long fromId = resultSet.getLong(3);
+    long fromId = resultSet.getLong("from_version_id");
+    long toId = resultSet.getLong("to_version_id");
 
     return new VersionSuccessor<>(dbId, toId, fromId);
   }
@@ -101,16 +100,15 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
     do {
-      long dbId = resultSet.getLong(1);
+      long dbId = resultSet.getLong("id");
 
       predicates.clear();
       predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));

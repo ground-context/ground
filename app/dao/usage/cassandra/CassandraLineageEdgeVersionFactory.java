@@ -20,9 +20,9 @@ import dao.models.cassandra.CassandraStructureVersionFactory;
 import dao.models.cassandra.CassandraTagFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import exceptions.GroundException;
 import models.models.RichVersion;
 import models.models.Tag;
@@ -129,9 +129,8 @@ public class CassandraLineageEdgeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     long lineageEdgeId = resultSet.getLong("lineage_edge_id");

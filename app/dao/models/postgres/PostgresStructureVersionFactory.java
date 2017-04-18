@@ -18,8 +18,8 @@ import dao.models.StructureVersionFactory;
 import dao.versions.postgres.PostgresVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.StructureVersion;
 import models.versions.GroundType;
@@ -114,16 +114,14 @@ public class PostgresStructureVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("structure_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("structure_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
 
-    PostgresResults attributesSet;
-    attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+    DbResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
         DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
@@ -133,10 +131,11 @@ public class PostgresStructureVersionFactory
     Map<String, GroundType> attributes = new HashMap<>();
 
     do {
-      attributes.put(attributesSet.getString(2), GroundType.fromString(attributesSet.getString(3)));
+      attributes.put(attributesSet.getString("key"),
+          GroundType.fromString(attributesSet.getString("type")));
     } while (attributesSet.next());
 
-    long structureId = resultSet.getLong(2);
+    long structureId = resultSet.getLong("structure_id");
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
     return new StructureVersion(id, structureId, attributes);
