@@ -39,6 +39,9 @@
 
         <!-- slf4j version -->
         <slf4j.version>1.7.21</slf4j.version>
+
+        <!-- elasticsearch version -->
+        <elasticsearch.version>1.5.1</elasticsearch.version>
     </properties>
 
     <repositories>
@@ -127,7 +130,7 @@
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>1.5.1</version>
+            <version>${elasticsearch.version}$</version>
         </dependency>
 
     </dependencies>
