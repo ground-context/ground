@@ -12,29 +12,29 @@
 -- limitations under the License.
 
 
-truncate lineage_graph_version_edge;
-truncate lineage_graph_version;
-truncate lineage_graph;
-truncate lineage_edge_version;
-truncate lineage_edge;
-truncate principal;
-truncate graph_version_edge;
-truncate graph_version;
-truncate edge_version;
-truncate node_version;
-truncate graph;
-truncate node;
-truncate edge;
-truncate rich_version_tag;
-truncate rich_version_external_parameter;
-truncate rich_version;
-truncate structure_version_attribute;
-truncate structure_version;
-truncate structure;
-truncate version_history_dag;
-truncate item_tag;
-truncate item;
-truncate version_successor;
-truncate version;
+TRUNCATE lineage_graph_version_edge;
+TRUNCATE lineage_graph_version;
+TRUNCATE lineage_graph;
+TRUNCATE lineage_edge_version;
+TRUNCATE lineage_edge;
+TRUNCATE principal;
+TRUNCATE graph_version_edge;
+TRUNCATE graph_version;
+TRUNCATE edge_version;
+TRUNCATE node_version;
+TRUNCATE graph;
+TRUNCATE node;
+TRUNCATE edge;
+TRUNCATE rich_version_tag;
+TRUNCATE rich_version_external_parameter;
+TRUNCATE rich_version;
+TRUNCATE structure_version_attribute;
+TRUNCATE structure_version;
+TRUNCATE structure;
+TRUNCATE version_history_dag;
+TRUNCATE item_tag;
+TRUNCATE item;
+TRUNCATE version_successor;
+TRUNCATE version;
 
-insert into version(id) values (0);
+INSERT into version(id) values (0);
