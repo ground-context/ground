@@ -46,7 +46,7 @@ public class ElasticSearch {
       String json = mapper.writeValueAsString(tag);
       IndexResponse response = client.prepareIndex(clusterName, table, Long.toString(tag.getId()))
         .setSource(json).get();
-      client.admin().indices().prepareRefresh().execute().actionGet(); // need to refresh index with new inserted item
+
 
       return response.isCreated();
 
@@ -60,6 +60,7 @@ public class ElasticSearch {
   }
 
   public static List<Long> getSearchResponse(String type, String searchQuery) throws GroundException {
+    client.admin().indices().prepareRefresh().execute().actionGet(); // need to refresh index with new inserted item
     SearchResponse response = client.prepareSearch().setTypes(type).setQuery(QueryBuilders.matchQuery("key", searchQuery)).get();
     SearchHit[] hits = response.getHits().hits();
 
