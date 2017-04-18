@@ -57,7 +57,7 @@ public class CassandraTest extends DaoTest {
     versionHistoryDAGFactory = new CassandraVersionHistoryDagFactory(cassandraClient,
         versionSuccessorFactory);
     tagFactory = new CassandraTagFactory(cassandraClient);
-    ElasticSearch.connectElasticSearch();=
+    ElasticSearch.connectElasticSearch();
     edgesResource = new EdgesResource(factories.getEdgeFactory(),
         factories.getEdgeVersionFactory(), factories.getNodeFactory(), cassandraClient);
     graphsResource = new GraphsResource(factories.getGraphFactory(),
