@@ -55,7 +55,7 @@ public class Neo4jTest extends DaoTest {
 
   @BeforeClass
   public static void setupClass() throws GroundException {
-    neo4jClient = new Neo4jClient("localhost", "neo4j", "password");
+    neo4jClient = new Neo4jClient("localhost", "neo4j", "Na18891rk!");
     factories = new Neo4jFactories(neo4jClient, 0, 1);
     versionSuccessorFactory = new Neo4jVersionSuccessorFactory(neo4jClient, new IdGenerator(0, 1, true));
     versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(neo4jClient, versionSuccessorFactory);

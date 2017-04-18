@@ -58,8 +58,4 @@ public class TagsResource {
     LOGGER.info("Retrieving all item ids with tag: " + tag + ".");
     return this.tagFactory.getItemIdsByTag(tag);
   }
-
-
-
-
 }

@@ -28,5 +28,4 @@ public abstract class TagFactory {
   public abstract List<Long> getVersionIdsByTag(String tag) throws GroundException;
 
   public abstract List<Long> getItemIdsByTag(String tag) throws GroundException;
-
 }

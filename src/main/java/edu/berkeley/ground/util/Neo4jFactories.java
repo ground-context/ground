@@ -14,7 +14,15 @@
 
 package edu.berkeley.ground.util;
 
-import edu.berkeley.ground.dao.models.*;
+import edu.berkeley.ground.dao.models.EdgeFactory;
+import edu.berkeley.ground.dao.models.EdgeVersionFactory;
+import edu.berkeley.ground.dao.models.GraphFactory;
+import edu.berkeley.ground.dao.models.GraphVersionFactory;
+import edu.berkeley.ground.dao.models.NodeFactory;
+import edu.berkeley.ground.dao.models.NodeVersionFactory;
+import edu.berkeley.ground.dao.models.StructureFactory;
+import edu.berkeley.ground.dao.models.StructureVersionFactory;
+import edu.berkeley.ground.dao.models.TagFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jEdgeFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jEdgeVersionFactory;
 import edu.berkeley.ground.dao.models.neo4j.Neo4jGraphFactory;

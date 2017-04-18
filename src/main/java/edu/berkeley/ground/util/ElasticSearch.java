@@ -10,13 +10,13 @@ import edu.berkeley.ground.model.models.Tag;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.node.Node;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 
 public class ElasticSearch {
@@ -61,7 +61,7 @@ public class ElasticSearch {
 
   public static List<Long> getSearchResponse(String type, String searchQuery) throws GroundException {
     SearchResponse response = client.prepareSearch().setTypes(type).setQuery(QueryBuilders.matchQuery("key", searchQuery)).get();
-    SearchHit[] hits = response.getHits().getHits();
+    SearchHit[] hits = response.getHits().hits();
 
     ObjectMapper mapper = new ObjectMapper();
     List<Long> tagIds = new ArrayList<>();
@@ -89,15 +89,4 @@ public class ElasticSearch {
     node.close();
     client.close();
   }
-
-
-
-
-
-
-
-
-
-
-
 }

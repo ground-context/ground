@@ -54,7 +54,7 @@ public class CassandraTest extends DaoTest {
   protected static CassandraTagFactory tagFactory;
 
   @BeforeClass
-  public static void setup() throws GroundDbException, GroundException {
+  public static void setup() throws GroundException {
     cassandraClient = new CassandraClient("localhost", 9160, "test", "test", "");
     factories = new CassandraFactories(cassandraClient, 0, 1);
 
