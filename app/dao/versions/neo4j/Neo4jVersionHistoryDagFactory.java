@@ -156,7 +156,6 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
 
       this.dbClient.deleteNode(predicates, className + "Version");
 
-      deleteQueue.remove(0);
       Collection<Long> parents = dag.getParent(id);
 
       predicates.clear();
