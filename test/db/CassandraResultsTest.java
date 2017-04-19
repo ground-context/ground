@@ -129,8 +129,9 @@ public class CassandraResultsTest {
     Row row2 = mock(Row.class);
     when(row2.getString("field")).thenReturn("2");
     when(rs.one()).thenReturn(row1).thenReturn(row2);
-    DbRow results = new CassandraResults(rs).one();
-    assertThat(results.getInt("field")).isEqualTo(2);
+    DbResults results = new CassandraResults(rs);
+    assertThat(results.one()).isNotNull();
+    assertThat(results.one().getInt("field")).isEqualTo(2);
   }
 
   @Test
@@ -139,9 +140,10 @@ public class CassandraResultsTest {
     Row row1 = mock(Row.class);
     Row row2 = mock(Row.class);
     when(rs.one()).thenReturn(row1).thenReturn(row2).thenReturn(null);
-    Iterator<DbRow> results = new CassandraResults(rs).iterator();
-    assertThat(results.next()).isNotNull();
-    assertThat(results.next()).isNull();
+    DbResults results = new CassandraResults(rs);
+    assertThat(results.one()).isNotNull();
+    assertThat(results.one()).isNotNull();
+    assertThat(results.one()).isNull();
   }
 
   @Test

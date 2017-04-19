@@ -53,7 +53,11 @@ public class PostgresResults implements DbResults {
 
   @Override
   public DbRow one() {
-    return new PostgresRow(this.resultSet);
+    try {
+      return this.resultSet.isAfterLast() ? null : new PostgresRow(this.resultSet);
+    } catch (SQLException e) {
+      return null;
+    }
   }
 
   @Override

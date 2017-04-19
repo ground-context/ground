@@ -44,7 +44,8 @@ public class CassandraResults implements DbResults {
 
   @Override
   public DbRow one() {
-    return new CassandraRow(this.resultSet.one());
+    Row row = this.resultSet.one();
+    return (row == null) ? null : new CassandraRow(row);
   }
 
   @Override
