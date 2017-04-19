@@ -85,12 +85,16 @@ public class PostgresTagFactory implements TagFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
+    List<String> projections = new ArrayList<>();
+    String idColumn = keyPrefix + "_id";
+    projections.add(idColumn);
+
     List<Long> result = new ArrayList<>();
     DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
-        DbClient.SELECT_STAR, predicates);
+        projections, predicates);
 
     for (DbRow row : resultSet) {
-      result.add(row.getLong(keyPrefix + "id"));
+      result.add(row.getLong(idColumn));
     }
 
     return result;

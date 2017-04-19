@@ -64,7 +64,7 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
 
     this.dbClient.insert("version_successor", insertions);
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**

@@ -140,8 +140,8 @@ public class CassandraLineageGraphFactory
 
     DbRow row = resultSet.one();
     long id = row.getLong("item_id");
-    String name = row.getString("name");
     String sourceKey = row.getString("source_key");
+    String name = row.getString("name");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

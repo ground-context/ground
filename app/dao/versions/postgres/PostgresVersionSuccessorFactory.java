@@ -60,7 +60,7 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
 
     this.dbClient.insert("version_successor", insertions);
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -89,7 +89,7 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
     long fromId = row.getLong("from_version_id");
     long toId = row.getLong("to_version_id");
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**

@@ -142,11 +142,10 @@ public class PostgresEdgeFactory extends PostgresItemFactory<Edge> implements Ed
 
     DbRow row = resultSet.one();
     long id = row.getLong("item_id");
+    String sourceKey = row.getString("source_key");
     long fromNodeId = row.getLong("from_node_id");
     long toNodeId = row.getLong("to_node_id");
-
     String name = row.getString("name");
-    String sourceKey = row.getString("source_key");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 
