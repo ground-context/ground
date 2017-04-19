@@ -45,7 +45,7 @@ public class PostgresNodeFactoryTest extends PostgresTest {
   public void testNodeCreation() throws GroundException {
     try {
       Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+      tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
       String testName = "test";
       String sourceKey = "testKey";

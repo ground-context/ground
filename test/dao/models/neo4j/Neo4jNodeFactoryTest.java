@@ -46,7 +46,7 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   public void testNodeCreation() throws GroundException {
     try {
       Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+      tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
       String testName = "test";
       String sourceKey = "testKey";
@@ -66,7 +66,7 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
   public void testNodeCreationWithoutTagValues() throws GroundException {
     try {
       Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", null, null));
+      tagsMap.put("testtag", new Tag(1, -1, "testtag", null, null));
 
       String testName = "test";
       String sourceKey = "testKey";
@@ -96,9 +96,12 @@ public class Neo4jNodeFactoryTest extends Neo4jTest {
 
       Map<String, Tag> retrievedTags = retrieved.getTags();
       for (String key : tags.keySet()) {
-        assert(retrievedTags).containsKey(key);
-        assertEquals(tags.get(key), retrievedTags.get(key));
-        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
+        assertTrue(retrievedTags.containsKey(key));
+
+        Tag tag = retrievedTags.get(key);
+        assertEquals(tags.get(key), tag);
+        assertTrue(tag.getStartId() <= retrieved.getId());
+        assertTrue(tag.getEndId() == -1 || retrieved.getId() <= tag.getEndId());
       }
     } finally {
       Neo4jTest.neo4jClient.commit();

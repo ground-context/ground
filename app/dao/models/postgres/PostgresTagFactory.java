@@ -58,13 +58,15 @@ public class PostgresTagFactory implements TagFactory {
         DbClient.SELECT_STAR, predicates);
 
     for (DbRow row : resultSet) {
+      long fromId = row.getLong("from_rich_version_id");
+      long toId = row.getLong("to_rich_version_id");
       String key = row.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
       GroundType type = GroundType.fromString(row.getString("type"));
       Object value = row.getValue(type, "value");
 
-      result.put(key, new Tag(id, key, value, type));
+      result.put(key, new Tag(fromId, toId, key, value, type));
     }
 
     return result;

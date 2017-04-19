@@ -171,9 +171,9 @@ public class DaoTest {
 
   public static Map<String, Tag> createTags() throws GroundException {
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("intfield", new Tag(-1, "intfield", 1, GroundType.INTEGER));
-    tags.put("strfield", new Tag(-1, "strfield", "1", GroundType.STRING));
-    tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+    tags.put("intfield", new Tag(-1, -1, "intfield", 1, GroundType.INTEGER));
+    tags.put("strfield", new Tag(-1, -1, "strfield", "1", GroundType.STRING));
+    tags.put("boolfield", new Tag(-1, -1, "boolfield", true, GroundType.BOOLEAN));
 
     return tags;
   }

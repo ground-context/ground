@@ -2,7 +2,8 @@
   "id": 1,
   "tags": {
     "testtag": {
-      "id": 1,
+      "fromRichVersionId": 1,
+      "toRichVersionId": -1,
       "key": "testtag",
       "value": "tag",
       "type": "string"

@@ -33,7 +33,7 @@ public class LineageGraphVersionTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
@@ -53,7 +53,7 @@ public class LineageGraphVersionTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
@@ -81,7 +81,7 @@ public class LineageGraphVersionTest {
     assertFalse(truth.equals(differentId));
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    tags.put("test", new Tag(1, -1, "test", 1L, GroundType.LONG));
     LineageGraphVersion differentTags = new LineageGraphVersion(1, tags, 2, "http://www.google.com",
         new HashMap<>(), 3, new ArrayList<>());
     assertFalse(truth.equals(differentTags));

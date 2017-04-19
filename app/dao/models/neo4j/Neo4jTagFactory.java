@@ -62,6 +62,9 @@ public class Neo4jTagFactory implements TagFactory {
     Map<String, Tag> tags = new HashMap<>();
 
     for (Record record : tagsRecords) {
+      long fromId = record.get("from_rich_version_id").asLong();
+      long toId = record.get("to_rich_version_id").asLong();
+
       String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
 
       Object value;
@@ -80,7 +83,7 @@ public class Neo4jTagFactory implements TagFactory {
         gType = null;
       }
 
-      tags.put(key, new Tag(id, key, value, gType));
+      tags.put(key, new Tag(fromId, toId, key, value, gType));
     }
 
     return tags;

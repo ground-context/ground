@@ -37,7 +37,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
   @Test
   public void testGetItemIdsByTag() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     long nodeId1 = CassandraTest.nodeFactory.create(null, "test1", tagsMap).getId();
     long nodeId2 = CassandraTest.nodeFactory.create(null, "test2", tagsMap).getId();
@@ -53,7 +53,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
   @Test
   public void testGetVersionIdsByTag() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     long nodeId = CassandraTest.createNode("testNode").getId();
 

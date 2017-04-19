@@ -31,7 +31,7 @@ public class LineageGraphTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     LineageGraph lineageGraph = new LineageGraph(1, "test", "testKey", tagsMap);
 
@@ -43,7 +43,7 @@ public class LineageGraphTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     LineageGraph lineageGraph = new LineageGraph(1, "test", "testKey", tagsMap);
     assertEquals(convertFromStringToClass(
@@ -66,7 +66,7 @@ public class LineageGraphTest {
     assertFalse(truth.equals(differentKey));
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    tags.put("test", new Tag(1, -1, "test", 1L, GroundType.LONG));
     LineageGraph differentTags = new LineageGraph(1, "name", "sourceKey", tags);
     assertFalse(truth.equals(differentTags));
   }

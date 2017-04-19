@@ -76,11 +76,12 @@ CREATE TABLE IF NOT EXISTS rich_version_external_parameter (
 );
 
 CREATE TABLE IF NOT EXISTS rich_version_tag (
-    rich_version_id bigint REFERENCES rich_version(id),
+    from_rich_version_id bigint REFERENCES rich_version(id),
+    to_rich_version_id bigint REFERENCES rich_version(id),
     key varchar NOT NULL,
     type data_type,
     value varchar,
-    CONSTRAINT rich_version_tag_pkey PRIMARY KEY (rich_version_id, key)
+    CONSTRAINT rich_version_tag_pkey PRIMARY KEY (from_rich_version_id, to_rich_version_id, key)
 );
 
 CREATE TABLE IF NOT EXISTS node (

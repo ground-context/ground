@@ -106,7 +106,8 @@ public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
       Tag tag = tags.get(key);
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+      tagInsertion.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, tag.getStartId()));
+      tagInsertion.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, tag.getEndId()));
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
