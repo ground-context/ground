@@ -23,6 +23,9 @@ import models.versions.GroundType;
 
 import java.util.Iterator;
 
+/**
+ * A wrapper for Cassandra's result queries.
+ */
 public class CassandraResults implements DbResults {
   private final ResultSet resultSet;
   private final boolean isEmpty;

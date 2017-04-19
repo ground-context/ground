@@ -22,6 +22,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 
+/**
+ * A wrapper for Postgres's result queries.
+ *
+ * WARNING: Due to how Java implements ResultSet, an instance of this
+ * class can only be iterated through once. In addition, columns must be
+ * queried in the same order they exist in the database.
+ */
 public class PostgresResults implements DbResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
   private final ResultSet resultSet;

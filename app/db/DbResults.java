@@ -14,6 +14,9 @@
 
 package db;
 
+/**
+ * An interface for results from a SQL-like database.
+ */
 public interface DbResults extends AutoCloseable, Iterable<DbRow> {
   DbRow one();
   boolean isEmpty();

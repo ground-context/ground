@@ -19,6 +19,9 @@ import exceptions.GroundDbException;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * An interface for clients that communicate with a particular database system.
+ */
 public interface DbClient extends AutoCloseable {
   List<String> SELECT_STAR = Collections.singletonList("*");
 
