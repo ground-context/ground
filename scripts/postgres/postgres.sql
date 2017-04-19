@@ -11,7 +11,7 @@
 -- limitations under the License.
 
 -- VERSIONS
-CREATE TYPE data_type as enum ('integer', 'string', 'boolean');
+CREATE TYPE data_type AS ENUM ('integer', 'string', 'boolean');
 
 CREATE TABLE IF NOT EXISTS version (
     id bigint NOT NULL PRIMARY KEY
@@ -170,4 +170,4 @@ CREATE TABLE IF NOT EXISTS lineage_graph_version_edge (
 
 -- CREATE EMPTY VERSION
 
-INSERT INTO version(id) values (0);
+INSERT INTO version(id) VALUES (0);

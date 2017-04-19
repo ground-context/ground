@@ -176,4 +176,4 @@ CREATE TABLE IF NOT EXISTS lineage_graph_version_edge (
 
 -- CREATE EMPTY VERSION
 
-INSERT INTO version(id) values (0);
+INSERT INTO version(id) VALUES (0);
