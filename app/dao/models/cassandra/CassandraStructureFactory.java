@@ -21,6 +21,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Structure;
 import models.models.Tag;
@@ -135,9 +136,10 @@ public class CassandraStructureFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
-    long id = resultSet.getLong("item_id");
-    String name = resultSet.getString("name");
-    String sourceKey = resultSet.getString("source_key");
+    DbRow row = resultSet.one();
+    long id = row.getLong("item_id");
+    String name = row.getString("name");
+    String sourceKey = row.getString("source_key");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

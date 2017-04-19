@@ -20,6 +20,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.EdgeVersion;
 import models.models.RichVersion;
@@ -134,13 +135,14 @@ public class CassandraEdgeVersionFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long edgeId = resultSet.getLong("edge_id");
+    DbRow row = resultSet.one();
+    long edgeId = row.getLong("edge_id");
 
-    long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
+    long fromNodeVersionStartId = row.getLong("from_node_start_id");
 
-    long fromNodeVersionEndId =  resultSet.getLong("from_node_end_id");
-    long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
-    long toNodeVersionEndId = resultSet.getLong("to_node_end_id");
+    long fromNodeVersionEndId =  row.getLong("from_node_end_id");
+    long toNodeVersionStartId = row.getLong("to_node_start_id");
+    long toNodeVersionEndId = row.getLong("to_node_end_id");
 
     LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 

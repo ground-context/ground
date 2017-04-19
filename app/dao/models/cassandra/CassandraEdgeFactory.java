@@ -21,6 +21,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Edge;
 import models.models.EdgeVersion;
@@ -142,12 +143,13 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
-    long id = resultSet.getLong("item_id");
-    long fromNodeId = resultSet.getLong("from_node_id");
-    long toNodeId = resultSet.getLong("to_node_id");
+    DbRow row = resultSet.one();
+    long id = row.getLong("item_id");
+    long fromNodeId = row.getLong("from_node_id");
+    long toNodeId = row.getLong("to_node_id");
 
-    String name = resultSet.getString("name");
-    String sourceKey = resultSet.getString("source_key");
+    String name = row.getString("name");
+    String sourceKey = row.getString("source_key");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

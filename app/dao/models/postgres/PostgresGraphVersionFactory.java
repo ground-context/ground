@@ -19,6 +19,7 @@ import dao.models.RichVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.models.GraphVersion;
@@ -134,16 +135,15 @@ public class PostgresGraphVersionFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long graphId = resultSet.getLong("graph_id");
+    DbRow row = resultSet.one();
+    long graphId = row.getLong("graph_id");
 
     List<Long> edgeVersionIds = new ArrayList<>();
     DbResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
         DbClient.SELECT_STAR, edgePredicate);
 
-    if (!edgeSet.isEmpty()) {
-      do {
-        edgeVersionIds.add(edgeSet.getLong("edge_version_id"));
-      } while (edgeSet.next());
+    for (DbRow edgeRow : edgeSet) {
+      edgeVersionIds.add(edgeRow.getLong("edge_version_id"));
     }
 
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

@@ -22,6 +22,7 @@ import dao.usage.LineageGraphVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.models.RichVersion;
@@ -143,16 +144,15 @@ public class PostgresLineageGraphVersionFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long lineageGraphId = resultSet.getLong("lineage_graph_id");
+    DbRow row = resultSet.one();
+    long lineageGraphId = row.getLong("lineage_graph_id");
 
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
     DbResults lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge",
-      DbClient.SELECT_STAR, lineageEdgePredicate);
+        DbClient.SELECT_STAR, lineageEdgePredicate);
 
-    if (!lineageEdgeSet.isEmpty()) {
-      do {
-        lineageEdgeVersionIds.add(lineageEdgeSet.getLong("lineage_edge_version_id"));
-      } while (lineageEdgeSet.next());
+    for (DbRow lineageEdgeRow : lineageEdgeSet) {
+      lineageEdgeVersionIds.add(lineageEdgeRow.getLong("lineage_edge_version_id"));
     }
 
     LOGGER.info("Retrieved lineage_graph version "

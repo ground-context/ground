@@ -19,6 +19,7 @@ import dao.versions.postgres.PostgresVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
@@ -131,12 +132,13 @@ public class PostgresStructureVersionFactory
 
     Map<String, GroundType> attributes = new HashMap<>();
 
-    do {
-      attributes.put(attributesSet.getString("key"),
-          GroundType.fromString(attributesSet.getString("type")));
-    } while (attributesSet.next());
+    for (DbRow attributesRow : attributesSet) {
+      attributes.put(attributesRow.getString("key"),
+          GroundType.fromString(attributesRow.getString("type")));
+    }
 
-    long structureId = resultSet.getLong("structure_id");
+    DbRow row = resultSet.one();
+    long structureId = row.getLong("structure_id");
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
     return new StructureVersion(id, structureId, attributes);

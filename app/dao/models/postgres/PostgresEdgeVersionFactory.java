@@ -19,6 +19,7 @@ import dao.models.RichVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.models.EdgeVersion;
@@ -138,13 +139,14 @@ public class PostgresEdgeVersionFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long edgeId = resultSet.getLong("edge_id");
+    DbRow row = resultSet.one();
+    long edgeId = row.getLong("edge_id");
 
-    long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
-    long fromNodeVersionEndId = resultSet.isNull("from_node_end_id") ? -1 : resultSet.getLong(
+    long fromNodeVersionStartId = row.getLong("from_node_start_id");
+    long fromNodeVersionEndId = row.isNull("from_node_end_id") ? -1 : row.getLong(
         "from_node_end_id");
-    long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
-    long toNodeVersionEndId = resultSet.isNull("to_node_end_id") ? -1 : resultSet.getLong(
+    long toNodeVersionStartId = row.getLong("to_node_start_id");
+    long toNodeVersionEndId = row.isNull("to_node_end_id") ? -1 : row.getLong(
         "to_node_end_id");
 
     LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");

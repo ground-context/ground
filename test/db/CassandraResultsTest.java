@@ -8,6 +8,8 @@ import com.google.common.reflect.TypeToken;
 import exceptions.GroundDbException;
 import org.junit.Test;
 
+import java.util.Iterator;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static org.mockito.Mockito.*;
@@ -19,7 +21,7 @@ public class CassandraResultsTest {
     Row row = mock(Row.class);
     when(row.getString("field")).thenReturn("value");
     when(rs.one()).thenReturn(row);
-    CassandraResults results = new CassandraResults(rs);
+    DbRow results = new CassandraResults(rs).one();
     assertThat(results.getString("field")).isEqualTo("value");
   }
 
@@ -44,7 +46,7 @@ public class CassandraResultsTest {
     when(row.getString("fooField")).thenReturn("foo");
 
     when(rs.one()).thenReturn(row);
-    CassandraResults results = new CassandraResults(rs);
+    DbRow results = new CassandraResults(rs).one();
     assertThat(results.getBoolean("trueField")).isEqualTo(true);
     assertThat(results.getBoolean("falseField")).isEqualTo(false);
     assertThat(results.getBoolean("trueCapitalizedField")).isEqualTo(true);
@@ -68,7 +70,7 @@ public class CassandraResultsTest {
     Row row = mock(Row.class);
     when(row.getString("field")).thenReturn("42");
     when(rs.one()).thenReturn(row);
-    CassandraResults results = new CassandraResults(rs);
+    DbRow results = new CassandraResults(rs).one();
     assertThat(results.getInt("field")).isEqualTo(42);
   }
 
@@ -78,7 +80,7 @@ public class CassandraResultsTest {
     Row row = mock(Row.class);
     when(row.getString("field")).thenReturn("not-int");
     when(rs.one()).thenReturn(row);
-    new CassandraResults(rs).getInt("field");
+    new CassandraResults(rs).one().getInt("field");
   }
 
   @Test(expected = GroundDbException.class)
@@ -97,7 +99,7 @@ public class CassandraResultsTest {
     Row row = mock(Row.class);
     when(row.getLong("field")).thenReturn(120L);
     when(rs.one()).thenReturn(row);
-    CassandraResults results = new CassandraResults(rs);
+    DbRow results = new CassandraResults(rs).one();
     assertThat(results.getLong("field")).isEqualTo(120L);
   }
 
@@ -108,7 +110,7 @@ public class CassandraResultsTest {
     CodecNotFoundException codecNotFound = new CodecNotFoundException("mock exception", DataType.blob(), TypeToken.of(Integer.class));
     when(row.getLong("field")).thenThrow(codecNotFound );
     when(rs.one()).thenReturn(row);
-    new CassandraResults(rs).getLong("field");
+    new CassandraResults(rs).one().getLong("field");
   }
 
   @Test(expected = GroundDbException.class)
@@ -117,7 +119,7 @@ public class CassandraResultsTest {
     Row row = mock(Row.class);
     when(row.getLong("field")).thenThrow(new IllegalArgumentException("invalid field"));
     when(rs.one()).thenReturn(row);
-    new CassandraResults(rs).getLong("field");
+    new CassandraResults(rs).one().getLong("field");
   }
 
   @Test
@@ -127,8 +129,7 @@ public class CassandraResultsTest {
     Row row2 = mock(Row.class);
     when(row2.getString("field")).thenReturn("2");
     when(rs.one()).thenReturn(row1).thenReturn(row2);
-    CassandraResults results = new CassandraResults(rs);
-    assertThat(results.next()).isTrue();
+    DbRow results = new CassandraResults(rs).one();
     assertThat(results.getInt("field")).isEqualTo(2);
   }
 
@@ -138,9 +139,9 @@ public class CassandraResultsTest {
     Row row1 = mock(Row.class);
     Row row2 = mock(Row.class);
     when(rs.one()).thenReturn(row1).thenReturn(row2).thenReturn(null);
-    CassandraResults results = new CassandraResults(rs);
-    assertThat(results.next()).isTrue();
-    assertThat(results.next()).isFalse();
+    Iterator<DbRow> results = new CassandraResults(rs).iterator();
+    assertThat(results.next()).isNotNull();
+    assertThat(results.next()).isNull();
   }
 
   @Test
@@ -150,28 +151,25 @@ public class CassandraResultsTest {
     when(row.isNull("trueField")).thenReturn(true);
     when(row.isNull("falseField")).thenReturn(false);
     when(rs.one()).thenReturn(row);
-    CassandraResults results = new CassandraResults(rs);
+    DbRow results = new CassandraResults(rs).one();
     assertThat(results.isNull("trueField")).isTrue();
     assertThat(results.isNull("falseField")).isFalse();
   }
 
-  private CassandraResults setupInvalidField(String fieldName) {
+  private DbRow setupInvalidField(String fieldName) {
     ResultSet rs = mock(ResultSet.class);
     Row row = mock(Row.class);
     when(row.getString(fieldName)).thenThrow(new IllegalArgumentException("invalid field"));
     when(rs.one()).thenReturn(row);
-    return new CassandraResults(rs);
+    return new CassandraResults(rs).one();
   }
 
-  private CassandraResults setupCodecNotFoundForField(String fieldName) {
+  private DbRow setupCodecNotFoundForField(String fieldName) {
     ResultSet rs = mock(ResultSet.class);
     Row row = mock(Row.class);
     CodecNotFoundException codecNotFound = new CodecNotFoundException("mock exception", DataType.blob(), TypeToken.of(Integer.class));
     when(row.getString(fieldName)).thenThrow(codecNotFound );
     when(rs.one()).thenReturn(row);
-    return new CassandraResults(rs);
+    return new CassandraResults(rs).one();
   }
-
-
-
 }

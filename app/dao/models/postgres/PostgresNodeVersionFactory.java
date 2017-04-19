@@ -19,6 +19,7 @@ import dao.models.RichVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.models.NodeVersion;
@@ -120,7 +121,8 @@ public class PostgresNodeVersionFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long nodeId = resultSet.getLong("node_id");
+    DbRow row = resultSet.one();
+    long nodeId = row.getLong("node_id");
 
     LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
     return new NodeVersion(id, version.getTags(), version.getStructureVersionId(),

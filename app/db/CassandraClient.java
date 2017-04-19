@@ -74,6 +74,7 @@ public class CassandraClient implements DbClient {
    * @param table the table to update
    * @param insertValues the values to put into table
    */
+  @Override
   public void insert(String table, List<DbDataContainer> insertValues) {
     String fields =
         insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
@@ -178,7 +179,7 @@ public class CassandraClient implements DbClient {
   private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
     BoundStatement boundStatement = this.prepareStatement(statement);
     List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
-      .map(p-> p.getValue()).collect(Collectors.toList());
+        .map(p-> p.getValue()).collect(Collectors.toList());
     boundStatement.bind(values.toArray(new Object[values.size()]));
     return boundStatement;
   }

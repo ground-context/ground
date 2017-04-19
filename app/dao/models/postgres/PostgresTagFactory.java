@@ -18,6 +18,7 @@ import dao.models.TagFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.models.Tag;
@@ -56,19 +57,15 @@ public class PostgresTagFactory implements TagFactory {
     DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
         DbClient.SELECT_STAR, predicates);
 
-    if (resultSet.isEmpty()) {
-      return result;
-    }
-
-    do {
-      String key = resultSet.getString("key");
+    for (DbRow row : resultSet) {
+      String key = row.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
-      GroundType type = GroundType.fromString(resultSet.getString("type"));
-      Object value = resultSet.getValue(type, "value");
+      GroundType type = GroundType.fromString(row.getString("type"));
+      Object value = row.getValue(type, "value");
 
       result.put(key, new Tag(id, key, value, type));
-    } while (resultSet.next());
+    }
 
     return result;
   }
@@ -92,13 +89,9 @@ public class PostgresTagFactory implements TagFactory {
     DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
         DbClient.SELECT_STAR, predicates);
 
-    if (resultSet.isEmpty()) {
-      return result;
+    for (DbRow row : resultSet) {
+      result.add(row.getLong(keyPrefix + "id"));
     }
-
-    do {
-      result.add(resultSet.getLong(keyPrefix + "id"));
-    } while (resultSet.next());
 
     return result;
   }

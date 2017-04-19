@@ -23,6 +23,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.RichVersion;
 import models.models.Tag;
@@ -133,9 +134,10 @@ public class CassandraLineageEdgeVersionFactory
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long lineageEdgeId = resultSet.getLong("lineage_edge_id");
-    long fromId = resultSet.getLong("from_rich_version_id");
-    long toId = resultSet.getLong("to_rich_version_id");
+    DbRow row = resultSet.one();
+    long lineageEdgeId = row.getLong("lineage_edge_id");
+    long fromId = row.getLong("from_rich_version_id");
+    long toId = row.getLong("to_rich_version_id");
 
     LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
         + ".");

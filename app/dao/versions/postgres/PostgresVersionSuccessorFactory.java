@@ -18,6 +18,7 @@ import dao.versions.VersionSuccessorFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.versions.GroundType;
@@ -84,8 +85,9 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long fromId = resultSet.getLong("from_version_id");
-    long toId = resultSet.getLong("to_version_id");
+    DbRow row = resultSet.one();
+    long fromId = row.getLong("from_version_id");
+    long toId = row.getLong("to_version_id");
 
     return new VersionSuccessor<>(dbId, toId, fromId);
   }
@@ -107,8 +109,8 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
-    do {
-      long dbId = resultSet.getLong("id");
+    for (DbRow row : resultSet) {
+      long dbId = row.getLong("id");
 
       predicates.clear();
       predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
@@ -119,6 +121,6 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_successor");
-    } while (resultSet.next());
+    }
   }
 }

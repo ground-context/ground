@@ -19,6 +19,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.versions.GroundType;
 import models.versions.Version;
@@ -87,8 +88,9 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long fromId = resultSet.getLong("from_version_id");
-    long toId = resultSet.getLong("to_version_id");
+    DbRow row = resultSet.one();
+    long fromId = row.getLong("from_version_id");
+    long toId = row.getLong("to_version_id");
 
     return new VersionSuccessor<>(dbId, fromId, toId);
   }
@@ -110,8 +112,8 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
-    do {
-      long dbId = resultSet.getLong("id");
+    for (DbRow row : resultSet) {
+      long dbId = row.getLong("id");
 
       predicates.clear();
       predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
@@ -123,7 +125,7 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_successor");
-    } while (resultSet.next());
+    }
   }
 
   private void verifyVersion(long id) throws GroundException {

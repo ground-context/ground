@@ -19,6 +19,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.versions.GroundType;
@@ -52,23 +53,18 @@ public class CassandraTagFactory implements TagFactory {
     predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
 
     Map<String, Tag> result = new HashMap<>();
-
     DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
         DbClient.SELECT_STAR, predicates);
 
-    if (resultSet.isEmpty()) {
-      return result;
-    }
-
-    do {
-      String key = resultSet.getString("key");
+    for (DbRow row : resultSet) {
+      String key = row.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
-      GroundType type = GroundType.fromString(resultSet.getString("type"));
-      Object value = resultSet.getValue(type, "value");
+      GroundType type = GroundType.fromString(row.getString("type"));
+      Object value = row.getValue(type, "value");
 
       result.put(key, new Tag(id, key, value, type));
-    } while (resultSet.next());
+    }
 
     return result;
   }
@@ -95,13 +91,9 @@ public class CassandraTagFactory implements TagFactory {
     DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
         projections, predicates);
 
-    if (resultSet.isEmpty()) {
-      return result;
+    for (DbRow row : resultSet) {
+      result.add(row.getLong(idColumn));
     }
-
-    do {
-      result.add(resultSet.getLong(idColumn));
-    } while (resultSet.next());
 
     return result;
   }

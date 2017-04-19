@@ -21,6 +21,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Structure;
 import models.versions.GroundType;
@@ -76,10 +77,10 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
-    do {
+    for (DbRow row : resultSet) {
       edges.add(this.versionSuccessorFactory.retrieveFromDatabase(
-          resultSet.getLong("version_successor_id")));
-    } while (resultSet.next());
+          row.getLong("version_successor_id")));
+    }
 
     return new VersionHistoryDag(itemId, edges);
   }

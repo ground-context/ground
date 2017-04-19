@@ -20,6 +20,7 @@ import db.CassandraClient;
 import db.DbClient;
 import db.DbDataContainer;
 import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
 import models.models.RichVersion;
@@ -146,16 +147,15 @@ public abstract class CassandraRichVersionFactory<T extends RichVersion>
     DbResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
         DbClient.SELECT_STAR, parameterPredicates);
 
-    if (!parameterSet.isEmpty()) {
-      do {
-        referenceParameters.put(parameterSet.getString("key"), parameterSet.getString("value"));
-      } while (parameterSet.next());
+    for (DbRow parameterRow : parameterSet) {
+      referenceParameters.put(parameterRow.getString("key"), parameterRow.getString("value"));
     }
 
     Map<String, Tag> tags = this.tagFactory.retrieveFromDatabaseByVersionId(id);
 
-    String reference = resultSet.getString("reference");
-    long structureVersionId = resultSet.getLong("structure_version_id");
+    DbRow row = resultSet.one();
+    String reference = row.getString("reference");
+    long structureVersionId = row.getLong("structure_version_id");
 
     return new RichVersion(id, tags, structureVersionId, reference, referenceParameters);
   }

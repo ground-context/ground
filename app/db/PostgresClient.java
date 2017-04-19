@@ -76,6 +76,7 @@ public class PostgresClient implements DbClient {
    * @param table the table to update
    * @param insertValues the values to put into table
    */
+  @Override
   public void insert(String table, List<DbDataContainer> insertValues) throws GroundDbException {
     String fields =
         insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
@@ -283,7 +284,7 @@ public class PostgresClient implements DbClient {
   }
 
   private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
-    throws SQLException {
+      throws SQLException {
     if (value == null) {
       preparedStatement.setNull(index, groundType.getSqlType());
     } else if (groundType == GroundType.LONG && (long) value == -1) {// What is this magic number? Is -1L not allowed as a value?
