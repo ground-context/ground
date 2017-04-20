@@ -26,7 +26,9 @@ import models.versions.VersionSuccessor;
 import util.IdGenerator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory {
   private final CassandraClient dbClient;
@@ -141,10 +143,11 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
       long dbId = resultSet.getLong("id");
 
       predicates.clear();
-      predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
+      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+      Set<Long> value = new HashSet<>();
+      value.add(itemId);
 
-      this.dbClient.delete(predicates, "version_history_dag");
+      this.dbClient.deleteFromSet("version_successor", "item_id_set", value, predicates);
 
       predicates.clear();
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));

@@ -32,7 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CassandraGraphVersionFactory
     extends CassandraRichVersionFactory<GraphVersion>
@@ -99,7 +100,7 @@ public class CassandraGraphVersionFactory
     List<DbDataContainer> predicate = new ArrayList<>();
     predicate.add(new DbDataContainer("id", GroundType.LONG, id));
     for (long edgeVersionId : edgeVersionIds) {
-      Set<Long> edge = new HashSet<Long>();
+      Set<Long> edge = new HashSet<>();
       edge.add(edgeVersionId);
       this.dbClient.addToSet("graph_version", "edge_version_set", edge, predicate);
     }
@@ -130,7 +131,7 @@ public class CassandraGraphVersionFactory
         predicates);
 
     long graphId = resultSet.getLong("graph_id");
-    List<Long> edgeVersionIds = resultSet.getSet("edge_version_set", Long.class).stream().collect(Collectors.toList());
+    List<Long> edgeVersionIds = new ArrayList<>(resultSet.getSet("edge_version_set", Long.class));
 
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
     return new GraphVersion(id, version.getTags(), version.getStructureVersionId(),

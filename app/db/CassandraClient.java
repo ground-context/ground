@@ -91,7 +91,7 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
-	/**
+  /**
    *
    * @param table the table to update
    * @param setName the name of the set (column) being appended to
@@ -162,7 +162,7 @@ public class CassandraClient extends DbClient {
     return new CassandraResults(resultSet);
   }
 
-	/**
+  /**
    *
    * @param table the table to query
    * @param projection the set of columns to retrieve

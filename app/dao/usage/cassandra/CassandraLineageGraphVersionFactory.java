@@ -35,7 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CassandraLineageGraphVersionFactory
     extends CassandraRichVersionFactory<LineageGraphVersion>
@@ -147,7 +148,7 @@ public class CassandraLineageGraphVersionFactory
 
     long lineageGraphId = resultSet.getLong("lineage_graph_id");
 
-    List<Long> lineageEdgeVersionIds = resultSet.getSet("lineage_edge_version_id_set", Long.class).stream().collect(Collectors.toList());
+    List<Long> lineageEdgeVersionIds = new ArrayList<>(resultSet.getSet("lineage_edge_version_id_set", Long.class));
 
     LOGGER.info("Retrieved lineage_graph version " + id + " in lineage_graph " + lineageGraphId
         + ".");
