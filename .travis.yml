@@ -10,8 +10,9 @@ before_script:
   - sh -e ci/init.sh 
 
 script:
-  - mvn clean test
+  - sbt test
 
 after_success:
+  - sbt jacoco:test
   - bash <(curl -s https://codecov.io/bash)
   - sh -e ci/server.sh

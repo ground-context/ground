@@ -1,0 +1,105 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package dao.models.neo4j;
+
+import dao.models.TagFactory;
+import db.DbDataContainer;
+import db.Neo4jClient;
+import exceptions.GroundDbException;
+import exceptions.GroundException;
+import models.models.Tag;
+import models.versions.GroundType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.neo4j.driver.internal.value.NullValue;
+import org.neo4j.driver.internal.value.StringValue;
+import org.neo4j.driver.v1.Record;
+
+public class Neo4jTagFactory implements TagFactory {
+  private final Neo4jClient dbClient;
+
+  public Neo4jTagFactory(Neo4jClient dbClient) {
+    this.dbClient = dbClient;
+  }
+
+  @Override
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "RichVersion");
+  }
+
+  @Override
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "Item");
+  }
+
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix)
+      throws GroundException {
+
+    List<String> returnFields = new ArrayList<>();
+    returnFields.add("tkey");
+    returnFields.add("value");
+    returnFields.add("type");
+
+    List<Record> tagsRecords = this.dbClient.getAdjacentVerticesByEdgeLabel(keyPrefix
+        + "TagConnection", id, returnFields);
+
+    Map<String, Tag> tags = new HashMap<>();
+
+    for (Record record : tagsRecords) {
+      String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
+
+      Object value;
+      if (record.containsKey("value") && !(record.get("value") instanceof NullValue)) {
+        value = Neo4jClient.getStringFromValue((StringValue) record.get("value"));
+      } else {
+        value = null;
+      }
+
+      GroundType gType;
+      if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
+        gType = GroundType.fromString(
+            Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+        value = gType.parse(value.toString());
+      } else {
+        gType = null;
+      }
+
+      tags.put(key, new Tag(id, key, value, gType));
+    }
+
+    return tags;
+  }
+
+  @Override
+  public List<Long> getVersionIdsByTag(String tag) throws GroundDbException {
+    return this.getIdsByTag(tag, "rich_version_id");
+  }
+
+  @Override
+  public List<Long> getItemIdsByTag(String tag) throws GroundDbException {
+    return this.getIdsByTag(tag, "item_id");
+  }
+
+  private List<Long> getIdsByTag(String tag, String idAttribute) throws GroundDbException {
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
+
+    return this.dbClient.getVerticesByAttributes(predicates, idAttribute);
+  }
+}

@@ -1,5 +1,6 @@
 # ignore compiled byte code
 target
+project/target
 
 # ignore output files from testing
 output*
@@ -16,13 +17,10 @@ output*
 *.iws
 *.ipr
 
-# ignore standard Vim and Emacs temp files
-*.swp
-*~
-
 # miscellaneous
 *.log
 infer-out/
+logs/
 
 # ignore standard Mac OS X files/dirs
 .DS_Store
@@ -30,14 +28,14 @@ infer-out/
 ################################################################################
 # vim
 ################################################################################
+
 # swap
 [._]*.s[a-w][a-z]
 [._]s[a-w][a-z]
+
 # session
 Session.vim
-# temporary
-.netrwhist
-*~
+
 # auto-generated tag files
 tags
 # syntastic
@@ -47,8 +45,15 @@ tags
 ################################################################################
 # Java
 ################################################################################
+
 dependency-reduced-pom.xml
 .settings/
 .classpath
 .project
 
+# Play
+logs/
+.g8/
+project/project
+modules/
+lib/
