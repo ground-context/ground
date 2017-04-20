@@ -16,8 +16,6 @@ package dao.versions.cassandra;
 
 import org.junit.Test;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

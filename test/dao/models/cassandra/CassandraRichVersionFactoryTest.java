@@ -16,8 +16,6 @@ package dao.models.cassandra;
 
 import org.junit.Test;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,8 +46,8 @@ public class CassandraRichVersionFactoryTest extends CassandraTest {
       return RichVersion.class;
     }
 
-    public RichVersion retrieveFromDatabase(long id) {
-      throw new NotImplementedException();
+    public RichVersion retrieveFromDatabase(long id) throws GroundException {
+      throw new GroundException("This operation should never be called.");
     }
   }
 

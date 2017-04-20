@@ -30,8 +30,6 @@ import java.util.List;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.types.Relationship;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
   private final Neo4jClient dbClient;
   private final IdGenerator idGenerator;
@@ -107,7 +105,7 @@ public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
   @Override
   public void deleteFromDestination(long toId, long itemId) throws GroundException {
     // this is not currently needed and would require a special case function in the DB client
-    throw new NotImplementedException();
+    throw new GroundException("This operation should never be called.");
   }
 
   private void verifyVersion(long id) throws GroundException {

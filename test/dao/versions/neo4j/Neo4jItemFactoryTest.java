@@ -14,8 +14,6 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import static org.junit.Assert.*;
 
 public class Neo4jItemFactoryTest extends Neo4jTest {
