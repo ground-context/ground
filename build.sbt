@@ -1,3 +1,5 @@
+import de.johoop.jacoco4sbt.XMLReport
+
 name := """ground"""
 organization := "edu.berkeley"
 
@@ -19,3 +21,6 @@ parallelExecution in Test := false
 
 jacoco.settings
 parallelExecution in jacoco.Config := false
+
+jacoco.reportFormats in jacoco.Config := Seq(
+  XMLReport(encoding = "utf-8"))
