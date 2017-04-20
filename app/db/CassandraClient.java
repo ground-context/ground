@@ -100,28 +100,7 @@ public class CassandraClient extends DbClient {
 	 */
   public void addToSet(String table, String setName,
                        Set<? extends Object> values, List<DbDataContainer> predicates) {
-    String predicatesString =
-      predicates
-        .stream()
-        .map(predicate -> predicate.getField() + " = ?")
-        .collect(Collectors.joining(" and "));
-    String whereString = " where " + predicatesString + ";";
-    String query = "UPDATE " + table + " SET " + setName + " = " + setName + " + " + " ? " + whereString;
-
-    BoundStatement statement = this.prepareStatement(query);
-
-    // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
-    statement.bind(values);
-
-    int index = 1;
-    for (DbDataContainer container : predicates) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
-    }
-
-    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
-    this.session.execute(statement);
+    this.modifySet(table, setName, values, predicates, true);
   }
 
   public void addToMap(String table, String mapName, Map<? extends Object, ? extends Object> keyValues,
@@ -267,6 +246,18 @@ public class CassandraClient extends DbClient {
   }
 
   /**
+   * Deletes values from a set
+   * @param table the table to update
+   * @param setName the name of the set (column) being updated
+   * @param values a set containing all values to be deleted. Set type must match with column type
+   * @param predicates values specifying which row will be updated
+   */
+  public void deleteFromSet(String table, String setName,
+                            Set<? extends Object> values, List<DbDataContainer> predicates) {
+    this.modifySet(table, setName, values, predicates, false);
+  }
+
+  /**
    * Deletes a column from a table (sets column to null)
    * @param predicates the predicates used to match row(s) to delete from
    * @param table the table to delete from
@@ -331,6 +322,47 @@ public class CassandraClient extends DbClient {
   public void close() {
     this.session.close();
     this.cluster.close();
+  }
+
+  /**
+   * Adds or subtracts the specified elements from a set
+   * @param table the table to update
+   * @param setName the name of the set (column) being added to or subtracted from
+   * @param values a set containing all relevant values. Set type must match with column type
+   * @param predicates values specifying which row will be updated
+   * @param add true if adding false if subtracting
+   */
+  private void modifySet(String table, String setName,
+    Set<? extends Object> values, List<DbDataContainer> predicates, boolean add) {
+    String symbol;
+    if (add) {
+      symbol = " + ";
+    } else {
+      symbol = " - ";
+    }
+
+    String predicatesString =
+      predicates
+        .stream()
+        .map(predicate -> predicate.getField() + " = ?")
+        .collect(Collectors.joining(" and "));
+    String whereString = " where " + predicatesString + ";";
+    String query = "UPDATE " + table + " SET " + setName + " = " + setName + symbol + " ? " + whereString;
+
+    BoundStatement statement = this.prepareStatement(query);
+
+    // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
+    statement.bind(values);
+
+    int index = 1;
+    for (DbDataContainer container : predicates) {
+      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
+
+      index++;
+    }
+
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+    this.session.execute(statement);
   }
 
   private BoundStatement prepareStatement(String sql) {
