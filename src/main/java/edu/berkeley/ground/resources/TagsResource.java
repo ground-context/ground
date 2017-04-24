@@ -45,17 +45,17 @@ public class TagsResource {
 
   @GET
   @Timed
-  @Path("/versions/{name}")
-  public List<Long> getVersionIdsByTag(@PathParam("name") String tag) throws GroundException {
+  @Path("/versions/{name}/{elasticSearchOn}")
+  public List<Long> getVersionIdsByTag(@PathParam("name") String tag, @PathParam("elasticSearchOn") boolean elasticSearchOn) throws GroundException {
     LOGGER.info("Retrieving all version ids with tag: " + tag + ".");
-    return this.tagFactory.getVersionIdsByTag(tag);
+    return this.tagFactory.getVersionIdsByTag(tag, elasticSearchOn);
   }
 
   @GET
   @Timed
   @Path("/items/{name}")
-  public List<Long> getItemIdsByTag(@PathParam("name") String tag) throws GroundException {
+  public List<Long> getItemIdsByTag(@PathParam("name") String tag, @PathParam("elasticSearchOn") boolean elasticSearchOn) throws GroundException {
     LOGGER.info("Retrieving all item ids with tag: " + tag + ".");
-    return this.tagFactory.getItemIdsByTag(tag);
+    return this.tagFactory.getItemIdsByTag(tag, elasticSearchOn);
   }
 }

@@ -58,6 +58,9 @@ public class GroundServerConfiguration extends Configuration {
   @NotNull
   private Integer machineId;
 
+  @NotNull
+  private Boolean elasticSearchOn;
+
   @JsonProperty
   public String getDbType() {
     return this.dbType;
@@ -156,5 +159,15 @@ public class GroundServerConfiguration extends Configuration {
   @JsonProperty
   public void setMachineId(Integer machineId) {
     this.machineId = machineId;
+  }
+
+  @JsonProperty
+  public Boolean getElasticSearchOn() {
+    return this.elasticSearchOn;
+  }
+
+  @JsonProperty
+  public void setElasticSearchOn(Boolean elasticSearchOn) {
+    this.elasticSearchOn = elasticSearchOn;
   }
 }

@@ -43,7 +43,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
     long nodeId1 = CassandraTest.nodesResource.createNode(null, "test1", tagsMap).getId();
     long nodeId2 = CassandraTest.nodesResource.createNode(null, "test2", tagsMap).getId();
 
-    List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag(tag.getKey());
+    List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag(tag.getKey(), true);
 
     CassandraTest.cassandraClient.commit();
 
@@ -64,7 +64,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
     long nodeVersionId2 = CassandraTest.nodesResource.createNodeVersion(nodeId, tagsMap,
         new HashMap<>(), -1, null, new ArrayList<>()).getId();
 
-    List<Long> ids = CassandraTest.tagFactory.getVersionIdsByTag(tag.getKey());
+    List<Long> ids = CassandraTest.tagFactory.getVersionIdsByTag(tag.getKey(), true);
 
     CassandraTest.cassandraClient.commit();
 

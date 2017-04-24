@@ -77,13 +77,20 @@ public class CassandraTagFactory implements TagFactory {
     return result;
   }
 
-  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
-    return ElasticSearch.getSearchResponse("rich_version", tag);
+  public List<Long> getVersionIdsByTag(String tag, boolean elasticSearchOn) throws GroundException {
+    if (elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("rich_version", tag);
+    } else {
+      return this.getIdsByTag(tag, "rich_version");
+    }
   }
 
-  public List<Long> getItemIdsByTag(String tag) throws GroundException {
-    return ElasticSearch.getSearchResponse("item", tag);
-
+  public List<Long> getItemIdsByTag(String tag, boolean elasticSearchOn) throws GroundException {
+    if (elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("item", tag);
+    } else {
+      return this.getIdsByTag(tag, "item");
+    }
   }
 
 

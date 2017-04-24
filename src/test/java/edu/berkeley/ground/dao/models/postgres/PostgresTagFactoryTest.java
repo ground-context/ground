@@ -43,7 +43,7 @@ public class PostgresTagFactoryTest extends PostgresTest {
     long nodeId1 = PostgresTest.nodesResource.createNode(null, "test1", tagsMap).getId();
     long nodeId2 = PostgresTest.nodesResource.createNode(null, "test2", tagsMap).getId();
 
-    List<Long> ids = PostgresTest.tagFactory.getItemIdsByTag("testtag");
+    List<Long> ids = PostgresTest.tagFactory.getItemIdsByTag("testtag", true);
 
     PostgresTest.postgresClient.commit();
 
@@ -65,7 +65,7 @@ public class PostgresTagFactoryTest extends PostgresTest {
         new HashMap<>(), -1, null, new ArrayList<>()).getId();
 
 
-    List<Long> ids = PostgresTest.tagFactory.getVersionIdsByTag("testtag");
+    List<Long> ids = PostgresTest.tagFactory.getVersionIdsByTag("testtag", true);
 
     PostgresTest.postgresClient.commit();
 

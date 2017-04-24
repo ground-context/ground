@@ -25,7 +25,7 @@ public interface TagFactory {
 
   Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException;
 
-  List<Long> getVersionIdsByTag(String tag) throws GroundException;
+  List<Long> getVersionIdsByTag(String tag, boolean elasticSearchOn) throws GroundException;
 
-  List<Long> getItemIdsByTag(String tag) throws GroundException;
+  List<Long> getItemIdsByTag(String tag, boolean elasticSearchOn) throws GroundException;
 }

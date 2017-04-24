@@ -44,7 +44,7 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
     long nodeId2 = Neo4jTest.nodesResource.createNode(null, "test2", tagsMap).getId();
 
 
-    List<Long> ids = Neo4jTest.tagFactory.getItemIdsByTag("testtag");
+    List<Long> ids = Neo4jTest.tagFactory.getItemIdsByTag("testtag", true);
 
     Neo4jTest.neo4jClient.commit();
 
@@ -65,7 +65,7 @@ public class Neo4jTagFactoryTest extends Neo4jTest {
     long nodeVersionId2 = Neo4jTest.nodesResource.createNodeVersion(nodeId, tagsMap,
         new HashMap<>(), -1, null, new ArrayList<>()).getId();
 
-    List<Long> ids = Neo4jTest.tagFactory.getVersionIdsByTag("testtag");
+    List<Long> ids = Neo4jTest.tagFactory.getVersionIdsByTag("testtag", true);
 
     Neo4jTest.neo4jClient.commit();
 
