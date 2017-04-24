@@ -34,7 +34,7 @@ public class PostgresResults implements DbResults {
   private final ResultSet resultSet;
   private final boolean isEmpty;
 
-  public PostgresResults(ResultSet resultSet) {
+  public PostgresResults(ResultSet resultSet) throws GroundDbException {
     this.resultSet = resultSet;
 
     boolean isEmpty = true;
@@ -42,7 +42,7 @@ public class PostgresResults implements DbResults {
       // Move cursor to row 1.
       isEmpty = !this.resultSet.next();
     } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
+      throw new GroundDbException(e);
     }
 
     this.isEmpty = isEmpty;
