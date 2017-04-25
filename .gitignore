@@ -6,7 +6,6 @@ project/target
 output*
 
 # ignore standard Eclipse files
-.project
 .classpath
 .settings
 .checkstyle
@@ -49,11 +48,10 @@ tags
 dependency-reduced-pom.xml
 .settings/
 .classpath
-.project
 
 # Play
 logs/
 .g8/
 project/project
-modules/
 lib/
+/bin/
