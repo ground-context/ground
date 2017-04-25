@@ -14,7 +14,6 @@
 
 package dao;
 
-import com.typesafe.config.Config;
 import exceptions.GroundException;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +52,6 @@ public class Neo4jTest extends DaoTest {
     versionSuccessorFactory = new Neo4jVersionSuccessorFactory(neo4jClient, new IdGenerator(0, 1, true));
     versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(neo4jClient, versionSuccessorFactory);
     tagFactory = new Neo4jTagFactory(neo4jClient);
-
 
     edgeFactory = factories.getEdgeFactory();
     graphFactory = factories.getGraphFactory();
