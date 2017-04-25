@@ -19,8 +19,9 @@ import dao.versions.postgres.PostgresItemFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.Node;
 import models.models.Tag;
@@ -128,14 +129,14 @@ public class PostgresNodeFactory extends PostgresItemFactory<Node> implements No
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("node",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("node",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
-    long id = resultSet.getLong(1);
-    String sourceKey = resultSet.getString(2);
-    String name = resultSet.getString(3);
+    DbRow row = resultSet.one();
+    long id = row.getLong("item_id");
+    String sourceKey = row.getString("source_key");
+    String name = row.getString("name");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

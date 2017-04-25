@@ -18,8 +18,9 @@ import dao.models.EdgeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.EdgeVersion;
 import models.models.RichVersion;
@@ -30,7 +31,6 @@ import util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,28 +135,29 @@ public class PostgresEdgeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("edge_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long edgeId = resultSet.getLong(2);
+    DbRow row = resultSet.one();
+    long edgeId = row.getLong("edge_id");
 
-    long fromNodeVersionStartId = resultSet.getLong(3);
-    long fromNodeVersionEndId = resultSet.isNull(4) ? -1 : resultSet.getLong(4);
-    long toNodeVersionStartId = resultSet.getLong(5);
-    long toNodeVersionEndId = resultSet.isNull(6) ? -1 : resultSet.getLong(6);
+    long fromNodeVersionStartId = row.getLong("from_node_start_id");
+    long fromNodeVersionEndId = row.isNull("from_node_end_id") ? -1 : row.getLong(
+        "from_node_end_id");
+    long toNodeVersionStartId = row.getLong("to_node_start_id");
+    long toNodeVersionEndId = row.isNull("to_node_end_id") ? -1 : row.getLong(
+        "to_node_end_id");
 
-    LOGGER.info("Retrieved edge version " + id + " in edge " + edgeId + ".");
+    LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
+
     return new EdgeVersion(id, version.getTags(), version.getStructureVersionId(),
         version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
         fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
   }
 
   @Override
-  public void updatePreviousVersion(long id, long fromEndId, long toEndId)
-      throws GroundException {
-
+  public void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException {
     List<DbDataContainer> setPredicates = new ArrayList<>();
     List<DbDataContainer> wherePredicates = new ArrayList<>();
 

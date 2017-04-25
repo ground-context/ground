@@ -17,8 +17,9 @@ package dao.models.postgres;
 import dao.models.TagFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.versions.GroundType;
@@ -53,23 +54,18 @@ public class PostgresTagFactory implements TagFactory {
 
     Map<String, Tag> result = new HashMap<>();
 
-    PostgresResults resultSet;
-    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
+        DbClient.SELECT_STAR, predicates);
 
-    if (resultSet.isEmpty()) {
-      return new HashMap<>();
-    }
-
-    do {
-      String key = resultSet.getString(2);
+    for (DbRow row : resultSet) {
+      String key = row.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
-      GroundType type = GroundType.fromString(resultSet.getString(4));
-      Object value = this.getValue(type, resultSet, 3);
+      GroundType type = GroundType.fromString(row.getString("type"));
+      Object value = row.getValue(type, "value");
 
       result.put(key, new Tag(id, key, value, type));
-    } while (resultSet.next());
+    }
 
     return result;
   }
@@ -89,42 +85,18 @@ public class PostgresTagFactory implements TagFactory {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
-    PostgresResults resultSet;
-    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-        predicates);
-
-    if (resultSet.isEmpty()) {
-      return new ArrayList<>();
-    }
+    List<String> projections = new ArrayList<>();
+    String idColumn = keyPrefix + "_id";
+    projections.add(idColumn);
 
     List<Long> result = new ArrayList<>();
+    DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
+        projections, predicates);
 
-    do {
-      result.add(resultSet.getLong(1));
-    } while (resultSet.next());
+    for (DbRow row : resultSet) {
+      result.add(row.getLong(idColumn));
+    }
 
     return result;
-  }
-
-  private Object getValue(GroundType type, PostgresResults resultSet, int index)
-      throws GroundException {
-
-    if (type == null) {
-      return null;
-    }
-
-    switch (type) {
-      case STRING:
-        return resultSet.getString(index);
-      case INTEGER:
-        return resultSet.getInt(index);
-      case LONG:
-        return resultSet.getLong(index);
-      case BOOLEAN:
-        return resultSet.getBoolean(index);
-      default:
-        // this should never happen because we've listed all types
-        throw new GroundException("Unidentified type: " + type);
-    }
   }
 }

@@ -201,12 +201,13 @@ public class DaoTest {
     final String SQL_COMMENT_START = "--";
 
     try (Stream<String> lines = Files.lines(Paths.get(scriptFile))) {
-      String data = lines.filter(line -> !line.startsWith(SQL_COMMENT_START)).collect(Collectors.joining());
+      String data = lines.filter(line -> !line.startsWith(SQL_COMMENT_START))
+          .collect(Collectors.joining());
       Arrays.stream(data.split(";"))
-        .map(chunk -> chunk + ";")
-        .forEach(statement -> executor.accept(statement));
-    }catch (IOException e) {
-      throw new RuntimeException("Unable to read script file: "+ scriptFile);
+          .map(chunk -> chunk + ";")
+          .forEach(executor);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to read script file: " + scriptFile);
     }
   }
 }

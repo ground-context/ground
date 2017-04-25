@@ -37,4 +37,4 @@ TRUNCATE item;
 TRUNCATE version_successor;
 TRUNCATE version;
 
-INSERT into version(id) values (0);
+INSERT INTO version(id) VALUES (0);

@@ -18,9 +18,10 @@ import dao.models.EdgeFactory;
 import dao.versions.cassandra.CassandraItemFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Edge;
 import models.models.EdgeVersion;
@@ -138,18 +139,16 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("edge",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("edge",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
-
-    long id = resultSet.getLong("item_id");
-    long fromNodeId = resultSet.getLong("from_node_id");
-    long toNodeId = resultSet.getLong("to_node_id");
-
-    String name = resultSet.getString("name");
-    String sourceKey = resultSet.getString("source_key");
+    DbRow row = resultSet.one();
+    long id = row.getLong("item_id");
+    String sourceKey = row.getString("source_key");
+    long fromNodeId = row.getLong("from_node_id");
+    long toNodeId = row.getLong("to_node_id");
+    String name = row.getString("name");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

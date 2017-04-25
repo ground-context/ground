@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraClient extends DbClient {
+public class CassandraClient implements DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
   private final Cluster cluster;
@@ -74,6 +74,7 @@ public class CassandraClient extends DbClient {
    * @param table the table to update
    * @param insertValues the values to put into table
    */
+  @Override
   public void insert(String table, List<DbDataContainer> insertValues) {
     String fields =
         insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
@@ -94,9 +95,10 @@ public class CassandraClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public CassandraResults equalitySelect(String table,
-                                         List<String> projection,
-                                         List<DbDataContainer> predicatesAndValues) {
+  @Override
+  public DbResults equalitySelect(String table,
+                                  List<String> projection,
+                                  List<DbDataContainer> predicatesAndValues) {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
 
@@ -160,6 +162,7 @@ public class CassandraClient extends DbClient {
    * @param predicates the delete predicates
    * @param table the table to delete from
    */
+  @Override
   public void delete(List<DbDataContainer> predicates, String table) {
     String deleteString = "delete from " + table + " ";
 
@@ -176,7 +179,7 @@ public class CassandraClient extends DbClient {
   private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
     BoundStatement boundStatement = this.prepareStatement(statement);
     List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
-      .map(p-> p.getValue()).collect(Collectors.toList());
+        .map(p-> p.getValue()).collect(Collectors.toList());
     boundStatement.bind(values.toArray(new Object[values.size()]));
     return boundStatement;
   }

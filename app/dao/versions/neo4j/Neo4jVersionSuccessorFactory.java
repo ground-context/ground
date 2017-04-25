@@ -66,7 +66,7 @@ public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
 
     this.dbClient.addEdge("VersionSuccessor", fromId, toId, predicates);
 
-    return new VersionSuccessor<T>(dbId, fromId, toId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -90,11 +90,11 @@ public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
       throw new GroundDbException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long id = (result.get("id")).asLong();
-    long fromId = (result.get("fromId")).asLong();
-    long toId = (result.get("toId")).asLong();
+    long id = result.get("id").asLong();
+    long fromId = result.get("fromId").asLong();
+    long toId = result.get("toId").asLong();
 
-    return new VersionSuccessor<T>(id, fromId, toId);
+    return new VersionSuccessor<>(id, fromId, toId);
   }
 
   /**

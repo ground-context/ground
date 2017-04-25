@@ -21,8 +21,9 @@ import dao.models.postgres.PostgresTagFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.RichVersion;
 import models.models.Tag;
@@ -127,14 +128,14 @@ public class PostgresLineageEdgeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long lineageEdgeId = resultSet.getLong(2);
-    long fromId = resultSet.getLong(3);
-    long toId = resultSet.getLong(4);
+    DbRow row = resultSet.one();
+    long lineageEdgeId = row.getLong("lineage_edge_id");
+    long fromId = row.getLong("from_rich_version_id");
+    long toId = row.getLong("to_rich_version_id");
 
     LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
         + ".");

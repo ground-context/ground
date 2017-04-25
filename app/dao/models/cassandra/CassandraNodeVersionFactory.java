@@ -17,9 +17,10 @@ package dao.models.cassandra;
 import dao.models.NodeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.NodeVersion;
 import models.models.RichVersion;
@@ -33,7 +34,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class CassandraNodeVersionFactory
     extends CassandraRichVersionFactory<NodeVersion>
@@ -117,13 +117,12 @@ public class CassandraNodeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("node_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("node_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-
-    long nodeId = resultSet.getLong("node_id");
+    DbRow row = resultSet.one();
+    long nodeId = row.getLong("node_id");
 
     LOGGER.info("Retrieved node version " + id + " in node " + nodeId + ".");
     return new NodeVersion(id, version.getTags(), version.getStructureVersionId(),

@@ -17,8 +17,9 @@ package dao.versions.postgres;
 import dao.versions.VersionSuccessorFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.versions.GroundType;
 import models.versions.Version;
@@ -59,7 +60,7 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
 
     this.dbClient.insert("version_successor", insertions);
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -77,18 +78,18 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long toId = resultSet.getLong(2);
-    long fromId = resultSet.getLong(3);
+    DbRow row = resultSet.one();
+    long fromId = row.getLong("from_version_id");
+    long toId = row.getLong("to_version_id");
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -101,16 +102,15 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
-    do {
-      long dbId = resultSet.getLong(1);
+    for (DbRow row : resultSet) {
+      long dbId = row.getLong("id");
 
       predicates.clear();
       predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
@@ -121,6 +121,6 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_successor");
-    } while (resultSet.next());
+    }
   }
 }

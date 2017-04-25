@@ -16,9 +16,10 @@ package dao.versions.cassandra;
 
 import dao.versions.VersionSuccessorFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.versions.GroundType;
 import models.versions.Version;
@@ -63,7 +64,7 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
 
     this.dbClient.insert("version_successor", insertions);
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -80,16 +81,16 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long fromId = resultSet.getLong("from_version_id");
-    long toId = resultSet.getLong("to_version_id");
+    DbRow row = resultSet.one();
+    long fromId = row.getLong("from_version_id");
+    long toId = row.getLong("to_version_id");
 
     return new VersionSuccessor<>(dbId, fromId, toId);
   }
@@ -104,16 +105,15 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
-    do {
-      long dbId = resultSet.getLong("id");
+    for (DbRow row : resultSet) {
+      long dbId = row.getLong("id");
 
       predicates.clear();
       predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
@@ -125,14 +125,14 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_successor");
-    } while (resultSet.next());
+    }
   }
 
   private void verifyVersion(long id) throws GroundException {
     List<DbDataContainer> predicate = new ArrayList<>();
     predicate.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR,
+    DbResults resultSet = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR,
         predicate);
 
     if (resultSet.isEmpty()) {

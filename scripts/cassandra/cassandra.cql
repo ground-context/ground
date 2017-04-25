@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS item (
 CREATE TABLE IF NOT EXISTS item_tag (
     item_id bigint,
     key varchar,
-    value varchar,
     type varchar,
+    value varchar,
     PRIMARY KEY (item_id, key)
 );
 
@@ -79,8 +79,8 @@ CREATE TABLE IF NOT EXISTS rich_version_external_parameter (
 CREATE TABLE IF NOT EXISTS rich_version_tag (
     rich_version_id bigint,
     key varchar,
-    value varchar,
     type varchar,
+    value varchar,
     PRIMARY KEY (rich_version_id, key)
 );
 
@@ -176,4 +176,4 @@ CREATE TABLE IF NOT EXISTS lineage_graph_version_edge (
 
 -- CREATE EMPTY VERSION
 
-INSERT INTO version(id) values (0);
+INSERT INTO version(id) VALUES (0);

@@ -15,136 +15,194 @@
 package db;
 
 import exceptions.GroundDbException;
-import exceptions.GroundException;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
 
-public class PostgresResults {
+/**
+ * A wrapper for Postgres's result queries.
+ *
+ * WARNING: Due to how Java implements ResultSet, an instance of this
+ * class can only be iterated through once. In addition, columns must be
+ * queried in the same order they exist in the database.
+ */
+public class PostgresResults implements DbResults {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresResults.class);
-
   private final ResultSet resultSet;
+  private final boolean isEmpty;
 
-  public PostgresResults(ResultSet resultSet) {
+  public PostgresResults(ResultSet resultSet) throws GroundDbException {
     this.resultSet = resultSet;
+
+    boolean isEmpty = true;
+    try {
+      // Move cursor to row 1.
+      isEmpty = !this.resultSet.next();
+    } catch (SQLException e) {
+      throw new GroundDbException(e);
+    }
+
+    this.isEmpty = isEmpty;
   }
 
-  /**
-   * Move on to the next column in the result set.
-   *
-   * @return false if there are no more rows
-   */
-  public boolean next() throws GroundDbException {
+  @Override
+  public Iterator<DbRow> iterator() {
+    return new PostgresIterator(this.resultSet);
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return this.isEmpty;
+  }
+
+  @Override
+  public DbRow one() {
     try {
-      return this.resultSet.next();
+      return this.resultSet.isAfterLast() ? null : new PostgresRow(this.resultSet);
+    } catch (SQLException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public void close() throws GroundDbException {
+    try {
+      this.resultSet.close();
     } catch (SQLException e) {
       throw new GroundDbException(e);
     }
   }
 
-  /**
-   * Retrieve the string at the index.
-   *
-   * @param index the index to use
-   * @return the string at index
-   * @throws GroundDbException either the column doesn't exist or it isn't a string
-   */
-  public String getString(int index) throws GroundDbException {
-    try {
-      return resultSet.getString(index);
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
+  private class PostgresIterator implements Iterator<DbRow> {
+    private final ResultSet resultSet;
+    private boolean didNext;
+    private boolean hasNext;
 
-      throw new GroundDbException(e);
+    public PostgresIterator(ResultSet resultSet) {
+      this.resultSet = resultSet;
+      this.didNext = true;
+      this.hasNext = !PostgresResults.this.isEmpty;
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (!this.didNext) {
+        try {
+          this.hasNext = this.resultSet.next();
+        } catch (SQLException e) {
+          LOGGER.error(e.getMessage());
+        }
+
+        this.didNext = true;
+      }
+
+      return this.hasNext;
+    }
+
+    @Override
+    public DbRow next() {
+      if (!this.didNext) {
+        try {
+          this.resultSet.next();
+        } catch (SQLException e) {
+          LOGGER.error(e.getMessage());
+        }
+      }
+
+      this.didNext = false;
+      return new PostgresRow(this.resultSet);
     }
   }
 
-  /**
-   * Retrieve the int at the index.
-   *
-   * @param index the index to use
-   * @return the int at index
-   * @throws GroundDbException either column doesn't exist or isn't an int
-   */
-  public int getInt(int index) throws GroundDbException {
-    try {
-      return resultSet.getInt(index);
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
+  private class PostgresRow implements DbRow {
+    private final ResultSet resultSet;
 
-      throw new GroundDbException(e);
+    public PostgresRow(ResultSet resultSet) {
+      this.resultSet = resultSet;
     }
-  }
 
-  /**
-   * Retrieve the long at the index.
-   *
-   * @param index the index to use
-   * @return the long at the index
-   * @throws GroundDbException either the column doesn't exist or isn't a long
-   */
-  public long getLong(int index) throws GroundDbException {
-    try {
-      return resultSet.getLong(index);
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
-
-      throw new GroundDbException(e);
+    /**
+     * Retrieve the string at the index.
+     *
+     * @param field the column to look in
+     * @return the string at index
+     * @throws GroundDbException either the column doesn't exist or it isn't a string
+     */
+    @Override
+    public String getString(String field) throws GroundDbException {
+      try {
+        return this.resultSet.getString(field);
+      } catch (SQLException e) {
+        throw new GroundDbException(e);
+      }
     }
-  }
 
-
-  /**
-   * Retrieve the boolean at the index.
-   *
-   * @param index the index to use
-   * @return the boolean at index
-   * @throws GroundDbException either column doesn't exist or isn't an boolean
-   */
-  public boolean getBoolean(int index) throws GroundDbException {
-    try {
-      return resultSet.getBoolean(index);
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
-
-      throw new GroundDbException(e);
+    /**
+     * Retrieve the int at the index.
+     *
+     * @param field the column to look in
+     * @return the int at index
+     * @throws GroundDbException either column doesn't exist or isn't an int
+     */
+    @Override
+    public int getInt(String field) throws GroundDbException {
+      try {
+        return this.resultSet.getInt(field);
+      } catch (SQLException e) {
+        throw new GroundDbException(e);
+      }
     }
-  }
 
-  /**
-   * Determine if the index of current row is null.
-   *
-   * @param index the index to use
-   * @return true if null, false otherwise
-   */
-  public boolean isNull(int index) throws GroundDbException {
-    try {
-      resultSet.getBlob(index);
-      return resultSet.wasNull();
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
-
-      throw new GroundDbException(e);
+    /**
+     * Retrieve the long at the index.
+     *
+     * @param field the column to look in
+     * @return the long at the index
+     * @throws GroundDbException either the column doesn't exist or isn't a long
+     */
+    @Override
+    public long getLong(String field) throws GroundDbException {
+      try {
+        return this.resultSet.getLong(field);
+      } catch (SQLException e) {
+        throw new GroundDbException(e);
+      }
     }
-  }
 
-  /**
-   * Check if the result set is empty before the first call.
-   *
-   * @return true if empty false otherwise
-   * @throws GroundException an unexpected error while checking the emptiness
-   */
-  public boolean isEmpty() throws GroundException {
-    try {
-      return !this.resultSet.next();
-    } catch (SQLException e) {
-      LOGGER.error(e.getMessage());
 
-      throw new GroundException(e);
+    /**
+     * Retrieve the boolean at the index.
+     *
+     * @param field the index to use
+     * @return the boolean at index
+     * @throws GroundDbException either column doesn't exist or isn't an boolean
+     */
+    @Override
+    public boolean getBoolean(String field) throws GroundDbException {
+      try {
+        return this.resultSet.getBoolean(field);
+      } catch (SQLException e) {
+        throw new GroundDbException(e);
+      }
+    }
+
+    /**
+     * Determine if the index of current row is null.
+     *
+     * @param field the column to look in
+     * @return true if null, false otherwise
+     */
+    @Override
+    public boolean isNull(String field) throws GroundDbException {
+      try {
+        this.resultSet.getBlob(field);
+        return this.resultSet.wasNull();
+      } catch (SQLException e) {
+        throw new GroundDbException(e);
+      }
     }
   }
 }

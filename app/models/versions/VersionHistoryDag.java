@@ -17,6 +17,7 @@ package models.versions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,7 @@ public class VersionHistoryDag<T extends Version> {
   private final List<Long> edgeIds;
 
   // map of parents to children
-  private final Map<Long, List<Long>> parentChildMap;
+  private final Map<Long, Set<Long>> parentChildMap;
 
   /**
    * Create a new version history DAG.
@@ -94,6 +95,16 @@ public class VersionHistoryDag<T extends Version> {
   }
 
   /**
+   * Return the children of a particular version.
+   *
+   * @param parentId the query id
+   * @return the list of child version(s)
+   */
+  public List<Long> getChildren(long parentId) {
+    return new ArrayList<>(this.parentChildMap.getOrDefault(parentId, Collections.emptySet()));
+  }
+
+  /**
    * Returns the leaves of the DAG (i.e., any version id that is not a parent of another version
    * id).
    *
@@ -103,13 +114,12 @@ public class VersionHistoryDag<T extends Version> {
     Set<Long> leaves = new HashSet<>();
     this.parentChildMap.values().forEach(leaves::addAll);
     leaves.removeAll(this.parentChildMap.keySet());
-
     return new ArrayList<>(leaves);
   }
 
   private void addToParentChildMap(long parent, long child) {
-    List<Long> childList = this.parentChildMap.computeIfAbsent(parent,
-        key -> new ArrayList<>());
+    Set<Long> childList = this.parentChildMap.computeIfAbsent(parent,
+        key -> new HashSet<>());
     childList.add(child);
   }
 }

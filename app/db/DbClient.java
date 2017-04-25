@@ -19,10 +19,17 @@ import exceptions.GroundDbException;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class DbClient implements AutoCloseable {
-  public static final List<String> SELECT_STAR = Collections.singletonList("*");
+/**
+ * An interface for clients that communicate with a particular database system.
+ */
+public interface DbClient extends AutoCloseable {
+  List<String> SELECT_STAR = Collections.singletonList("*");
 
-  public abstract void commit() throws GroundDbException;
+  void commit() throws GroundDbException;
+  void abort() throws GroundDbException;
 
-  public abstract void abort() throws GroundDbException;
+  DbResults equalitySelect(String table, List<String> projection,
+                           List<DbDataContainer> predicatesAndValues) throws GroundDbException;
+  void insert(String table, List<DbDataContainer> insertValues) throws GroundDbException;
+  void delete(List<DbDataContainer> predicates, String table) throws GroundDbException;
 }

@@ -34,7 +34,7 @@ import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.types.Relationship;
 
-public class Neo4jClient extends DbClient {
+public class Neo4jClient implements DbClient {
   private final Driver driver;
   private final Session session;
   private Transaction transaction;
@@ -317,6 +317,23 @@ public class Neo4jClient extends DbClient {
     this.driver.close();
   }
 
+  @Override
+  public DbResults equalitySelect(String table, List<String> projection,
+                                  List<DbDataContainer> predicatesAndValues) {
+    throw new UnsupportedOperationException("Invalid method for Neo4j.");
+  }
+
+  @Override
+  public void insert(String table, List<DbDataContainer> insertValues) {
+    throw new UnsupportedOperationException("Invalid method for Neo4j.");
+  }
+
+  @Override
+  public void delete(List<DbDataContainer> predicates, String table) {
+    throw new UnsupportedOperationException("Invalid method for Neo4j.");
+  }
+
+
   /**
    * Extract a Java String for a Neo4j StringValue.
    *
@@ -324,6 +341,7 @@ public class Neo4jClient extends DbClient {
    * @return the extracted Java String
    */
   public static String getStringFromValue(StringValue value) {
+    // TODO: Check if .asString() works (with a Value).
     String stringWithQuotes = value.toString();
     return stringWithQuotes.substring(1, stringWithQuotes.length() - 1);
   }

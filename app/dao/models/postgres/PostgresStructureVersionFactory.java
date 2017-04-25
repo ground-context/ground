@@ -18,9 +18,11 @@ import dao.models.StructureVersionFactory;
 import dao.versions.postgres.PostgresVersionFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
+import exceptions.GroundVersionNotFoundException;
 import models.models.StructureVersion;
 import models.versions.GroundType;
 import util.IdGenerator;
@@ -114,29 +116,29 @@ public class PostgresStructureVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("structure_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("structure_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
 
-    PostgresResults attributesSet;
-    attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+    DbResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
         DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
-      throw new GroundException("No attributes found for StructureVersion with id " + id + ".");
+      throw new GroundVersionNotFoundException(StructureVersion.class, id);
     }
 
     Map<String, GroundType> attributes = new HashMap<>();
 
-    do {
-      attributes.put(attributesSet.getString(2), GroundType.fromString(attributesSet.getString(3)));
-    } while (attributesSet.next());
+    for (DbRow attributesRow : attributesSet) {
+      attributes.put(attributesRow.getString("key"),
+          GroundType.fromString(attributesRow.getString("type")));
+    }
 
-    long structureId = resultSet.getLong(2);
+    DbRow row = resultSet.one();
+    long structureId = row.getLong("structure_id");
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
     return new StructureVersion(id, structureId, attributes);

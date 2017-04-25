@@ -19,8 +19,9 @@ import com.google.common.base.CaseFormat;
 import dao.versions.VersionHistoryDagFactory;
 import db.DbClient;
 import db.DbDataContainer;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.Structure;
 import models.versions.GroundType;
@@ -29,10 +30,15 @@ import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final PostgresClient dbClient;
@@ -64,18 +70,18 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_history_dag",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.equalitySelect("version_history_dag",
+        DbClient.SELECT_STAR, predicates);
     if (resultSet.isEmpty()) {
       // do nothing' this just means that no versions have been added yet.
-      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
+      return new VersionHistoryDag<>(itemId, new ArrayList<>());
     }
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
-    do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet.getLong(2)));
-    } while (resultSet.next());
+    for (DbRow row : resultSet) {
+      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(
+          row.getLong("version_successor_id")));
+    }
 
     return new VersionHistoryDag<>(itemId, edges);
   }
@@ -90,10 +96,11 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
    * @throws GroundException an error adding the edge
    */
   @Override
-  public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
+  public <T extends Version> void addEdge(VersionHistoryDag<T> dag, long parentId,
+                                          long childId, long itemId)
       throws GroundException {
 
-    VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
+    VersionSuccessor<T> successor = this.versionSuccessorFactory.create(parentId, childId);
 
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
@@ -113,27 +120,22 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
+  public <T extends Version> void truncate(VersionHistoryDag<T> dag, int numLevels,
+                                           Class<? extends Item> itemType)
       throws GroundException {
 
-    int keptLevels = 1;
-    List<Long> lastLevel = new ArrayList<>();
-    List<Long> previousLevel = dag.getLeaves();
+    Set<Long> level = new HashSet<>(dag.getLeaves());
+    Set<Long> lastLevel = Collections.emptySet();
+    for (int keptLevels = 0; keptLevels < numLevels; keptLevels++) {
+      Set<Long> newLevel = level.stream()
+          .flatMap(id -> dag.getParent(id).stream())
+          .collect(Collectors.toSet());
 
-    while (keptLevels <= numLevels) {
-      List<Long> currentLevel = new ArrayList<>();
-
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
-
-      lastLevel = previousLevel;
-      previousLevel = currentLevel;
-
-      keptLevels++;
+      lastLevel = level;
+      level = newLevel;
     }
 
-    List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
+    Queue<Long> deleteQueue = new ArrayDeque<>(level);
     Set<Long> deleted = new HashSet<>();
 
     List<DbDataContainer> predicates = new ArrayList<>();
@@ -142,8 +144,8 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
       this.addEdge(dag, 0, id, dag.getItemId());
     }
 
-    while (deleteQueue.size() > 0) {
-      long id = deleteQueue.get(0);
+    while (!deleteQueue.isEmpty()) {
+      long id = deleteQueue.remove();
 
       if (id != 0) {
         String[] splits = itemType.getName().split("\\.");
@@ -182,7 +184,7 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
 
         deleted.add(id);
 
-        List<Long> parents = dag.getParent(id);
+        Collection<Long> parents = dag.getParent(id);
 
         parents.forEach(parentId -> {
           if (!deleted.contains(parentId)) {
@@ -191,8 +193,6 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
         });
         predicates.clear();
       }
-
-      deleteQueue.remove(0);
     }
   }
 }

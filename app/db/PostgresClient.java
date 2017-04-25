@@ -32,7 +32,7 @@ import org.postgresql.PGStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresClient extends DbClient {
+public class PostgresClient implements DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
   private static final String JDBCString = "jdbc:postgresql://%s:%d/%s?stringtype=unspecified";
 
@@ -76,6 +76,7 @@ public class PostgresClient extends DbClient {
    * @param table the table to update
    * @param insertValues the values to put into table
    */
+  @Override
   public void insert(String table, List<DbDataContainer> insertValues) throws GroundDbException {
     String fields =
         insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
@@ -109,7 +110,8 @@ public class PostgresClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public PostgresResults equalitySelect(
+  @Override
+  public DbResults equalitySelect(
       String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
       throws GroundDbException {
     String items = String.join(", ", projection);
@@ -204,6 +206,7 @@ public class PostgresClient extends DbClient {
    * @param predicates the delete predicates
    * @param table the table to delete from
    */
+  @Override
   public void delete(List<DbDataContainer> predicates, String table) throws GroundDbException {
     String deleteString = "delete from " + table + " ";
 
@@ -281,7 +284,7 @@ public class PostgresClient extends DbClient {
   }
 
   private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
-    throws SQLException {
+      throws SQLException {
     if (value == null) {
       preparedStatement.setNull(index, groundType.getSqlType());
     } else if (groundType == GroundType.LONG && (long) value == -1) {// What is this magic number? Is -1L not allowed as a value?

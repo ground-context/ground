@@ -18,10 +18,6 @@ import exceptions.GroundException;
 import models.versions.Item;
 import models.versions.Version;
 import models.versions.VersionHistoryDag;
-import models.versions.VersionSuccessor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public interface VersionHistoryDagFactory {
   <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException;
@@ -36,7 +32,7 @@ public interface VersionHistoryDagFactory {
    * @param childId the child's id
    * @param itemId the id of the Item whose DAG we're updating
    */
-  void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
+  <T extends Version> void addEdge(VersionHistoryDag<T> dag, long parentId, long childId, long itemId)
       throws GroundException;
 
   /**
@@ -47,7 +43,7 @@ public interface VersionHistoryDagFactory {
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
-  void truncate(VersionHistoryDag dag,
-                int numLevels,
-                Class<? extends Item> itemType) throws GroundException;
+  <T extends Version> void truncate(VersionHistoryDag<T> dag,
+                                    int numLevels,
+                                    Class<? extends Item> itemType) throws GroundException;
 }
