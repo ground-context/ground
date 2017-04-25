@@ -1,8 +1,0 @@
-{
-  "id": 1,
-  "structureId": 1,
-  "attributes": {
-    "tag1": "integer",
-    "tag2": "string"
-  }
-}
