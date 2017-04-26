@@ -11,10 +11,9 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
-
-import edu.berkeley.ground.lib.model.version.Tag;
 
 public class GraphVersion extends RichVersion {
   // the id of the Graph that contains this Version

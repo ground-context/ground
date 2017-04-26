@@ -11,9 +11,8 @@
  */
 package edu.berkeley.ground.lib.model.version;
 
-import java.util.Objects;
-
 import edu.berkeley.ground.lib.exception.GroundException;
+import java.util.Objects;
 
 public class Tag {
   private final long id;

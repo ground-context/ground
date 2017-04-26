@@ -1,8 +1,6 @@
 import com.google.inject.AbstractModule;
-
-import java.time.Clock;
-
 import edu.berkeley.ground.postgres.start.ApplicationStart;
+import java.time.Clock;
 
 public class Module extends AbstractModule {
 

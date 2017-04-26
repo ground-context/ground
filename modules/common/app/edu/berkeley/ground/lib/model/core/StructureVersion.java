@@ -11,10 +11,9 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
-import java.util.Map;
-
 import edu.berkeley.ground.lib.model.version.GroundType;
 import edu.berkeley.ground.lib.model.version.Version;
+import java.util.Map;
 
 public class StructureVersion extends Version {
   // the id of the Structure containing this Version

@@ -11,10 +11,9 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
-import java.util.Map;
-
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.Map;
 
 public class Structure extends Item<StructureVersion> {
   // the name of this Structure

@@ -11,11 +11,10 @@
  */
 package edu.berkeley.ground.lib.factory.version;
 
-import java.util.List;
-import java.util.Map;
-
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.List;
+import java.util.Map;
 
 public interface TagFactory {
   Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException;
