@@ -1,11 +1,10 @@
 package dao.versions.neo4j;
 
-import edu.berkeley.ground.exception.GroundException;
-import org.neo4j.driver.v1.Record;
-
 import dao.versions.VersionFactory;
+import edu.berkeley.ground.exception.GroundException;
 import exceptions.GroundVersionNotFoundException;
 import models.versions.Version;
+import org.neo4j.driver.v1.Record;
 
 public abstract class Neo4jVersionFactory<T extends Version> implements VersionFactory<T> {
   public void insertIntoDatabase(long id) throws GroundException {

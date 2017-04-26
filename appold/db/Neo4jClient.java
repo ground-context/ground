@@ -1,29 +1,23 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package db;
 
 import com.google.common.annotations.VisibleForTesting;
-
-import models.versions.GroundType;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import models.versions.GroundType;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
@@ -53,17 +47,20 @@ public class Neo4jClient extends DbClient {
   }
 
   private String addValuesToStatement(String statement, List<DbDataContainer> values) {
-    return statement + values.stream()
-        .filter(container -> container.getValue() != null)
-        .map(container -> {
-          String stmt = container.getField() + " : ";
-          if (container.getGroundType() == GroundType.STRING) {
-            return stmt + "'" + container.getValue() + "'";
-          } else {
-            return stmt + container.getValue();
-          }
-        })
-        .collect(Collectors.joining(", "));
+    return statement
+        + values
+            .stream()
+            .filter(container -> container.getValue() != null)
+            .map(
+                container -> {
+                  String stmt = container.getField() + " : ";
+                  if (container.getGroundType() == GroundType.STRING) {
+                    return stmt + "'" + container.getValue() + "'";
+                  } else {
+                    return stmt + container.getValue();
+                  }
+                })
+            .collect(Collectors.joining(", "));
   }
 
   /**
@@ -153,7 +150,10 @@ public class Neo4jClient extends DbClient {
 
     List<Long> result = new ArrayList<>();
     while (queryResult.hasNext()) {
-      result.add((Long)GroundType.LONG.parse(queryResult.next().get("f").asNode().get(idAttribute).toString()));
+      result.add(
+          (Long)
+              GroundType.LONG.parse(
+                  queryResult.next().get("f").asNode().get(idAttribute).toString()));
     }
 
     return result;
@@ -288,10 +288,7 @@ public class Neo4jClient extends DbClient {
 
     delete = this.addValuesToStatement(delete, predicates);
 
-    delete += "})" +
-        "MATCH (n)-[e]-()" +
-        "DELETE e " +
-        "DELETE n;";
+    delete += "})" + "MATCH (n)-[e]-()" + "DELETE e " + "DELETE n;";
 
     this.transaction.run(delete);
   }
@@ -328,9 +325,7 @@ public class Neo4jClient extends DbClient {
     return stringWithQuotes.substring(1, stringWithQuotes.length() - 1);
   }
 
-  /**
-   * Drop all the data in the Neo4j instance. Only should be used for test purposes.
-   */
+  /** Drop all the data in the Neo4j instance. Only should be used for test purposes. */
   @VisibleForTesting
   public void dropData() {
     Session session = this.driver.session();

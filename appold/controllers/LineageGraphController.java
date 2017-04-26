@@ -5,12 +5,12 @@ import dao.usage.LineageGraphFactory;
 import dao.usage.LineageGraphVersionFactory;
 import db.DbClient;
 import edu.berkeley.ground.exception.GroundException;
+import edu.berkeley.ground.model.version.Tag;
 import exceptions.GroundItemNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
-import edu.berkeley.ground.model.version.Tag;
 import models.usage.LineageGraph;
 import models.usage.LineageGraphVersion;
 import play.libs.Json;
@@ -80,7 +80,8 @@ public class LineageGraphController extends Controller {
 
       } catch (GroundException e) {
         if (e instanceof GroundItemNotFoundException) {
-          lineageGraphId = this.lineageGraphFactory.create(null, sourceKey, new HashMap<>()).getId();
+          lineageGraphId =
+              this.lineageGraphFactory.create(null, sourceKey, new HashMap<>()).getId();
         } else {
           throw e;
         }
@@ -93,12 +94,18 @@ public class LineageGraphController extends Controller {
       long structureVersionId = ControllerUtils.getLongFromJson(requestBody, "structureVersionId");
       String reference = ControllerUtils.getStringFromJson(requestBody, "reference");
 
-      List<Long> lineageEdgeVersionIds = ControllerUtils.getListFromJson(requestBody,
-          "lineageEdgeVersionIds");
+      List<Long> lineageEdgeVersionIds =
+          ControllerUtils.getListFromJson(requestBody, "lineageEdgeVersionIds");
 
-
-      LineageGraphVersion created = this.lineageGraphVersionFactory.create(tags, structureVersionId,
-          reference, referenceParameters, lineageGraphId, lineageEdgeVersionIds, parents);
+      LineageGraphVersion created =
+          this.lineageGraphVersionFactory.create(
+              tags,
+              structureVersionId,
+              reference,
+              referenceParameters,
+              lineageGraphId,
+              lineageEdgeVersionIds,
+              parents);
 
       this.dbClient.commit();
       return ok(Json.toJson(created));

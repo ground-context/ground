@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.neo4j;
 
 import dao.models.EdgeFactory;
@@ -19,30 +16,26 @@ import dao.versions.neo4j.Neo4jItemFactory;
 import dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import edu.berkeley.ground.exception.GroundException;
-import exceptions.GroundVersionNotFoundException;
-import models.models.Edge;
-import models.models.EdgeVersion;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import models.versions.VersionHistoryDag;
-import util.IdGenerator;
-
+import exceptions.GroundVersionNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import models.models.Edge;
+import models.models.EdgeVersion;
+import models.versions.GroundType;
+import models.versions.VersionHistoryDag;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import util.IdGenerator;
 
 public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jEdgeFactory.class);
   private final Neo4jClient dbClient;
   private final Neo4jVersionHistoryDagFactory versionHistoryDagFactory;
-  private  Neo4jEdgeVersionFactory edgeVersionFactory;
+  private Neo4jEdgeVersionFactory edgeVersionFactory;
 
   private final IdGenerator idGenerator;
 
@@ -53,10 +46,11 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
    * @param idGenerator a unique ID generator
    * @param versionHistoryDagFactory a Neo4jVersionHistoryDAGFactory singleton
    */
-  public Neo4jEdgeFactory(Neo4jClient dbClient,
-                          Neo4jVersionHistoryDagFactory versionHistoryDagFactory,
-                          Neo4jTagFactory tagFactory,
-                          IdGenerator idGenerator) {
+  public Neo4jEdgeFactory(
+      Neo4jClient dbClient,
+      Neo4jVersionHistoryDagFactory versionHistoryDagFactory,
+      Neo4jTagFactory tagFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient, versionHistoryDagFactory, tagFactory);
 
@@ -82,11 +76,9 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
    * @throws GroundException an error while creating or persisting the edge
    */
   @Override
-  public Edge create(String name,
-                     String sourceKey,
-                     long fromNodeId,
-                     long toNodeId,
-                     Map<String, Tag> tags) throws GroundException {
+  public Edge create(
+      String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
+      throws GroundException {
 
     super.verifyItemNotExists(sourceKey);
     long uniqueId = idGenerator.generateItemId();
@@ -146,12 +138,10 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 
-
     LOGGER.info("Retrieved edge " + name + ".");
 
     return new Edge(id, name, sourceKey, fromNodeId, toNodeId, tags);
   }
-
 
   /**
    * Update this edge with a new version.
@@ -172,9 +162,7 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
         parentVersion = this.edgeVersionFactory.retrieveFromDatabase(parentId);
       } catch (GroundVersionNotFoundException dbe) {
         return;
-      }
-
-      catch (GroundException e) {
+      } catch (GroundException e) {
         throw e;
       }
 

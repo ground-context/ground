@@ -7,14 +7,12 @@ import util.Neo4jFactories;
 import util.PostgresFactories;
 
 /**
- * This class is a Guice module that tells Guice how to bind several
- * different types. This Guice module is created when the Play
- * application starts.
+ * This class is a Guice module that tells Guice how to bind several different types. This Guice
+ * module is created when the Play application starts.
  *
- * Play will automatically use any class called `Module` that is in
- * the root package. You can create modules in other locations by
- * adding `play.modules.enabled` settings to the `application.conf`
- * configuration file.
+ * <p>Play will automatically use any class called `Module` that is in the root package. You can
+ * create modules in other locations by adding `play.modules.enabled` settings to the
+ * `application.conf` configuration file.
  */
 public class Module extends AbstractModule {
 
@@ -40,7 +38,5 @@ public class Module extends AbstractModule {
       default:
         throw new RuntimeException("Unexpected database type " + dbConf.getString("type"));
     }
-
-
   }
 }

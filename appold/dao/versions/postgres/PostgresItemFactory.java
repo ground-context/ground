@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions.postgres;
 
 import dao.models.postgres.PostgresTagFactory;
@@ -20,16 +17,14 @@ import db.DbDataContainer;
 import db.PostgresClient;
 import db.PostgresResults;
 import edu.berkeley.ground.exception.GroundException;
-import exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import models.versions.Item;
-import models.versions.VersionHistoryDag;
-
+import exceptions.GroundItemNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import models.versions.GroundType;
+import models.versions.Item;
+import models.versions.VersionHistoryDag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +42,10 @@ public abstract class PostgresItemFactory<T extends Item> implements ItemFactory
    * @param versionHistoryDagFactory the singleton PostgresVersionHistoryDagFactory
    * @param tagFactory the singleton PostgresTagFactory
    */
-  public PostgresItemFactory(PostgresClient dbClient,
-                             PostgresVersionHistoryDagFactory versionHistoryDagFactory,
-                             PostgresTagFactory tagFactory) {
+  public PostgresItemFactory(
+      PostgresClient dbClient,
+      PostgresVersionHistoryDagFactory versionHistoryDagFactory,
+      PostgresTagFactory tagFactory) {
     this.dbClient = dbClient;
     this.versionHistoryDagFactory = versionHistoryDagFactory;
     this.tagFactory = tagFactory;
@@ -76,10 +72,10 @@ public abstract class PostgresItemFactory<T extends Item> implements ItemFactory
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
-            tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
-            tag.getValueType().toString()));
+        tagInsertion.add(
+            new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+        tagInsertion.add(
+            new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
       } else {
         tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
@@ -171,7 +167,6 @@ public abstract class PostgresItemFactory<T extends Item> implements ItemFactory
 
     this.versionHistoryDagFactory.truncate(dag, numLevels, this.getType());
   }
-
 
   /**
    * Verify that a result set for an item is not empty.

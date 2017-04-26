@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.usage.neo4j;
 
 import dao.models.RichVersionFactory;
@@ -22,25 +19,22 @@ import dao.usage.LineageGraphVersionFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.RichVersion;
 import edu.berkeley.ground.model.version.Tag;
-import models.usage.LineageGraphVersion;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import models.models.RichVersion;
+import models.usage.LineageGraphVersion;
+import models.versions.GroundType;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
-public class Neo4jLineageGraphVersionFactory
-    extends Neo4jRichVersionFactory<LineageGraphVersion>
+public class Neo4jLineageGraphVersionFactory extends Neo4jRichVersionFactory<LineageGraphVersion>
     implements LineageGraphVersionFactory {
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      Neo4jLineageGraphVersionFactory.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(Neo4jLineageGraphVersionFactory.class);
   private final Neo4jClient dbClient;
   private final IdGenerator idGenerator;
 
@@ -53,11 +47,12 @@ public class Neo4jLineageGraphVersionFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
-  public Neo4jLineageGraphVersionFactory(Neo4jClient dbClient,
-                                         Neo4jLineageGraphFactory lineageGraphFactory,
-                                         Neo4jStructureVersionFactory structureVersionFactory,
-                                         Neo4jTagFactory tagFactory,
-                                         IdGenerator idGenerator) {
+  public Neo4jLineageGraphVersionFactory(
+      Neo4jClient dbClient,
+      Neo4jLineageGraphFactory lineageGraphFactory,
+      Neo4jStructureVersionFactory structureVersionFactory,
+      Neo4jTagFactory tagFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient, structureVersionFactory, tagFactory);
 
@@ -80,13 +75,15 @@ public class Neo4jLineageGraphVersionFactory
    * @throws GroundException an error while creating or persisting this version
    */
   @Override
-  public LineageGraphVersion create(Map<String, Tag> tags,
-                                    long structureVersionId,
-                                    String reference,
-                                    Map<String, String> referenceParameters,
-                                    long lineageGraphId,
-                                    List<Long> lineageEdgeVersionIds,
-                                    List<Long> parentIds) throws GroundException {
+  public LineageGraphVersion create(
+      Map<String, Tag> tags,
+      long structureVersionId,
+      String reference,
+      Map<String, String> referenceParameters,
+      long lineageGraphId,
+      List<Long> lineageEdgeVersionIds,
+      List<Long> parentIds)
+      throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
 
@@ -100,17 +97,21 @@ public class Neo4jLineageGraphVersionFactory
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
     for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
-      this.dbClient.addEdge("LineageGraphVersionEdge", id, lineageEdgeVersionId,
-          new ArrayList<>());
+      this.dbClient.addEdge("LineageGraphVersionEdge", id, lineageEdgeVersionId, new ArrayList<>());
     }
 
     this.lineageGraphFactory.update(lineageGraphId, id, parentIds);
 
-
     LOGGER.info("Created graph version " + id + " in graph " + lineageGraphId + ".");
 
-    return new LineageGraphVersion(id, tags, structureVersionId, reference, referenceParameters,
-        lineageGraphId, lineageEdgeVersionIds);
+    return new LineageGraphVersion(
+        id,
+        tags,
+        structureVersionId,
+        reference,
+        referenceParameters,
+        lineageGraphId,
+        lineageEdgeVersionIds);
   }
 
   /**
@@ -133,18 +134,24 @@ public class Neo4jLineageGraphVersionFactory
     List<String> returnFields = new ArrayList<>();
     returnFields.add("id");
 
-    List<Record> lineageEdgeVersionVertices = this.dbClient.getAdjacentVerticesByEdgeLabel(
-        "LineageGraphVersionEdge", id, returnFields);
+    List<Record> lineageEdgeVersionVertices =
+        this.dbClient.getAdjacentVerticesByEdgeLabel("LineageGraphVersionEdge", id, returnFields);
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
 
-    lineageEdgeVersionVertices.forEach(edgeVersionVertex -> lineageEdgeVersionIds.add(
-        edgeVersionVertex.get("id").asLong()));
+    lineageEdgeVersionVertices.forEach(
+        edgeVersionVertex -> lineageEdgeVersionIds.add(edgeVersionVertex.get("id").asLong()));
 
-    long lineageGraphId = versionRecord.get("v") .asNode().get("lineage_graph_id").asLong();
+    long lineageGraphId = versionRecord.get("v").asNode().get("lineage_graph_id").asLong();
 
-    LOGGER.info("Retrieved lineage graph version " + id + " in lineage graph " + lineageGraphId
-        + ".");
-    return new LineageGraphVersion(id, version.getTags(), version.getStructureVersionId(),
-        version.getReference(), version.getParameters(), lineageGraphId, lineageEdgeVersionIds);
+    LOGGER.info(
+        "Retrieved lineage graph version " + id + " in lineage graph " + lineageGraphId + ".");
+    return new LineageGraphVersion(
+        id,
+        version.getTags(),
+        version.getStructureVersionId(),
+        version.getReference(),
+        version.getParameters(),
+        lineageGraphId,
+        lineageEdgeVersionIds);
   }
 }

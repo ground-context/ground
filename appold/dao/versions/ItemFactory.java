@@ -1,27 +1,21 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions;
 
 import edu.berkeley.ground.exception.GroundException;
 import exceptions.GroundItemExistsException;
 import exceptions.GroundItemNotFoundException;
-import edu.berkeley.ground.model.version.Tag;
-import models.versions.Item;
-
 import java.util.List;
-import java.util.Map;
+import models.versions.Item;
 
 public interface ItemFactory<T extends Item> {
   T retrieveFromDatabase(long id) throws GroundException;
@@ -61,7 +55,7 @@ public interface ItemFactory<T extends Item> {
     }
   }
 
-  default void verifyItemNotExists(String sourceKey ) throws GroundException {
+  default void verifyItemNotExists(String sourceKey) throws GroundException {
     if (checkIfItemExists(sourceKey)) {
       throw new GroundItemExistsException(getType(), sourceKey);
     }

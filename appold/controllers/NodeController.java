@@ -6,18 +6,17 @@ import dao.models.NodeFactory;
 import dao.models.NodeVersionFactory;
 import db.DbClient;
 import edu.berkeley.ground.exception.GroundException;
+import edu.berkeley.ground.model.version.Tag;
 import exceptions.GroundItemNotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import models.models.Node;
 import models.models.NodeVersion;
-import edu.berkeley.ground.model.version.Tag;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-
-import java.util.HashMap;
 import util.ControllerUtils;
 import util.FactoryGenerator;
 
@@ -95,8 +94,9 @@ public class NodeController extends Controller {
       long structureVersionId = ControllerUtils.getLongFromJson(requestBody, "structureVersionId");
       String reference = ControllerUtils.getStringFromJson(requestBody, "reference");
 
-      NodeVersion created = this.nodeVersionFactory.create(tags, structureVersionId, reference,
-          referenceParameters, nodeId, parents);
+      NodeVersion created =
+          this.nodeVersionFactory.create(
+              tags, structureVersionId, reference, referenceParameters, nodeId, parents);
 
       this.dbClient.commit();
       return ok(Json.toJson(created));

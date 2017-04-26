@@ -1,22 +1,17 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package db;
 
 import exceptions.GroundDbException;
-import models.versions.GroundType;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import models.versions.GroundType;
 import org.postgresql.PGStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +59,7 @@ public class PostgresClient extends DbClient {
 
   /**
    * returns the connection underlying this Client
+   *
    * @return an initialized connection.
    */
   public Connection getConnection() {
@@ -156,23 +152,28 @@ public class PostgresClient extends DbClient {
    * @param table the table to update
    * @throws GroundDbException an error while executing the update
    */
-  public void update(List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates,
-                     String table) throws GroundDbException {
+  public void update(
+      List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates, String table)
+      throws GroundDbException {
 
     String updateString = "update " + table + " set ";
 
     if (setPredicates.size() > 0) {
-      String setPredicateString = setPredicates.stream()
-          .map(predicate -> predicate.getField() + " = ?")
-          .collect(Collectors.joining(", "));
+      String setPredicateString =
+          setPredicates
+              .stream()
+              .map(predicate -> predicate.getField() + " = ?")
+              .collect(Collectors.joining(", "));
 
       updateString += setPredicateString;
     }
 
     if (wherePredicates.size() > 0) {
-      String wherePredicateString = wherePredicates.stream()
-          .map(predicate -> predicate.getField() + " = ?")
-          .collect(Collectors.joining(" and "));
+      String wherePredicateString =
+          wherePredicates
+              .stream()
+              .map(predicate -> predicate.getField() + " = ?")
+              .collect(Collectors.joining(" and "));
 
       updateString += " where " + wherePredicateString;
     }
@@ -185,7 +186,6 @@ public class PostgresClient extends DbClient {
         PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
         index++;
       }
-
 
       for (DbDataContainer predicate : wherePredicates) {
         PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
@@ -207,8 +207,11 @@ public class PostgresClient extends DbClient {
   public void delete(List<DbDataContainer> predicates, String table) throws GroundDbException {
     String deleteString = "delete from " + table + " ";
 
-    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
-        .collect(Collectors.joining(", "));
+    String predicateString =
+        predicates
+            .stream()
+            .map(predicate -> predicate.getField() + " = ? ")
+            .collect(Collectors.joining(", "));
 
     deleteString += "where " + predicateString;
 
@@ -269,8 +272,9 @@ public class PostgresClient extends DbClient {
 
     try {
       // Otherwise, prepare the statement, then cache it.
-      PreparedStatement newStatement = this.connection.prepareStatement(sql, ResultSet
-          .TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+      PreparedStatement newStatement =
+          this.connection.prepareStatement(
+              sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
       this.preparedStatements.put(sql, newStatement);
       ((PGStatement) newStatement).setPrepareThreshold(10);
@@ -280,11 +284,13 @@ public class PostgresClient extends DbClient {
     }
   }
 
-  private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
-    throws SQLException {
+  private static void setValue(
+      PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
+      throws SQLException {
     if (value == null) {
       preparedStatement.setNull(index, groundType.getSqlType());
-    } else if (groundType == GroundType.LONG && (long) value == -1) {// What is this magic number? Is -1L not allowed as a value?
+    } else if (groundType == GroundType.LONG
+        && (long) value == -1) { // What is this magic number? Is -1L not allowed as a value?
       preparedStatement.setNull(index, GroundType.LONG.getSqlType());
     } else {
       preparedStatement.setObject(index, value, groundType.getSqlType());

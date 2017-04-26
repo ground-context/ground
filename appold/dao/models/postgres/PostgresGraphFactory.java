@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.postgres;
 
 import dao.models.GraphFactory;
@@ -22,17 +19,15 @@ import db.DbDataContainer;
 import db.PostgresClient;
 import db.PostgresResults;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.Graph;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import models.models.Graph;
+import models.versions.GroundType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
 public class PostgresGraphFactory extends PostgresItemFactory<Graph> implements GraphFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresGraphFactory.class);
@@ -46,10 +41,11 @@ public class PostgresGraphFactory extends PostgresItemFactory<Graph> implements 
    * @param dbClient the Postgres client
    * @param idGenerator a unique ID generator
    */
-  public PostgresGraphFactory(PostgresClient dbClient,
-                              PostgresVersionHistoryDagFactory versionHistoryDagFactory,
-                              PostgresTagFactory tagFactory,
-                              IdGenerator idGenerator) {
+  public PostgresGraphFactory(
+      PostgresClient dbClient,
+      PostgresVersionHistoryDagFactory versionHistoryDagFactory,
+      PostgresTagFactory tagFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient, versionHistoryDagFactory, tagFactory);
 
@@ -83,7 +79,6 @@ public class PostgresGraphFactory extends PostgresItemFactory<Graph> implements 
     LOGGER.info("Created graph " + name + ".");
     return new Graph(uniqueId, name, sourceKey, tags);
   }
-
 
   /**
    * Retrieve the DAG leaves for this graph.
@@ -128,9 +123,8 @@ public class PostgresGraphFactory extends PostgresItemFactory<Graph> implements 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("graph",
-        DbClient.SELECT_STAR,
-        predicates);
+    PostgresResults resultSet =
+        this.dbClient.equalitySelect("graph", DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
     long id = resultSet.getLong(1);

@@ -1,45 +1,39 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions.neo4j;
 
 import com.google.common.base.CaseFormat;
-
 import dao.versions.VersionHistoryDagFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
 import edu.berkeley.ground.exception.GroundException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import models.models.Structure;
 import models.versions.GroundType;
 import models.versions.Item;
 import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.neo4j.driver.v1.types.Relationship;
 
 public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final Neo4jClient dbClient;
   private final Neo4jVersionSuccessorFactory versionSuccessorFactory;
 
-  public Neo4jVersionHistoryDagFactory(Neo4jClient dbClient,
-                                       Neo4jVersionSuccessorFactory versionSuccessorFactory) {
+  public Neo4jVersionHistoryDagFactory(
+      Neo4jClient dbClient, Neo4jVersionSuccessorFactory versionSuccessorFactory) {
     this.dbClient = dbClient;
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
@@ -112,9 +106,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
     while (keptLevels <= numLevels) {
       List<Long> currentLevel = new ArrayList<>();
 
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
+      previousLevel.forEach(id -> currentLevel.addAll(dag.getParent(id)));
 
       lastLevel = previousLevel;
       previousLevel = currentLevel;
@@ -136,8 +128,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
 
       String[] splits = itemType.getName().split("\\.");
       String className = splits[splits.length - 1];
-      String tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,
-          className);
+      String tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, className);
 
       if (itemType.equals(Structure.class)) {
         predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
@@ -163,11 +154,12 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
       this.dbClient.deleteNode(predicates, "RichVersionTag");
       deleted.add(id);
 
-      parents.forEach(parentId -> {
-        if (!deleted.contains(parentId)) {
-          deleteQueue.add(parentId);
-        }
-      });
+      parents.forEach(
+          parentId -> {
+            if (!deleted.contains(parentId)) {
+              deleteQueue.add(parentId);
+            }
+          });
     }
   }
 }

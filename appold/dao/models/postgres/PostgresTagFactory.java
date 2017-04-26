@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.postgres;
 
 import dao.models.TagFactory;
@@ -21,12 +18,11 @@ import db.PostgresClient;
 import db.PostgresResults;
 import edu.berkeley.ground.exception.GroundException;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import models.versions.GroundType;
 
 public class PostgresTagFactory implements TagFactory {
   private final PostgresClient dbClient;
@@ -54,8 +50,7 @@ public class PostgresTagFactory implements TagFactory {
     Map<String, Tag> result = new HashMap<>();
 
     PostgresResults resultSet;
-    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-        predicates);
+    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       return new HashMap<>();
@@ -79,7 +74,6 @@ public class PostgresTagFactory implements TagFactory {
     return this.getIdsByTag(tag, "rich_version");
   }
 
-
   @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
     return this.getIdsByTag(tag, "item");
@@ -90,8 +84,7 @@ public class PostgresTagFactory implements TagFactory {
     predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
 
     PostgresResults resultSet;
-    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR,
-        predicates);
+    resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag", DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       return new ArrayList<>();

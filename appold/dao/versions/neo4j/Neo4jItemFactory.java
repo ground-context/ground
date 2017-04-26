@@ -1,36 +1,31 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions.neo4j;
-
-import org.neo4j.driver.v1.Record;
 
 import dao.models.neo4j.Neo4jTagFactory;
 import dao.versions.ItemFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import edu.berkeley.ground.exception.GroundException;
-import exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import models.versions.Item;
-import models.versions.VersionHistoryDag;
-
+import exceptions.GroundDbException;
+import exceptions.GroundItemNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import models.versions.GroundType;
+import models.versions.Item;
+import models.versions.VersionHistoryDag;
+import org.neo4j.driver.v1.Record;
 
 public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T> {
   private final Neo4jClient dbClient;
@@ -44,9 +39,10 @@ public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T>
    * @param versionHistoryDagFactory the singleton Neo4jVersionHistoryDagFactory
    * @param tagFactory the singleton Neo4jTagFactory
    */
-  public Neo4jItemFactory(Neo4jClient dbClient,
-                          Neo4jVersionHistoryDagFactory versionHistoryDagFactory,
-                          Neo4jTagFactory tagFactory) {
+  public Neo4jItemFactory(
+      Neo4jClient dbClient,
+      Neo4jVersionHistoryDagFactory versionHistoryDagFactory,
+      Neo4jTagFactory tagFactory) {
     this.dbClient = dbClient;
     this.versionHistoryDagFactory = versionHistoryDagFactory;
     this.tagFactory = tagFactory;
@@ -68,17 +64,17 @@ public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T>
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
-            tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
-            tag.getValueType().toString()));
+        tagInsertion.add(
+            new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+        tagInsertion.add(
+            new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
       } else {
         tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
       }
 
-      this.dbClient.addVertexAndEdge("ItemTag", tagInsertion, "ItemTagConnection", id,
-          new ArrayList<>());
+      this.dbClient.addVertexAndEdge(
+          "ItemTag", tagInsertion, "ItemTagConnection", id, new ArrayList<>());
       tagInsertion.clear();
     }
   }
@@ -102,8 +98,7 @@ public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T>
    * @param parentIds the ids of the parents of the child
    * @throws GroundException an error
    */
-  public void update(long itemId, long childId, List<Long> parentIds)
-      throws GroundException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
 
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {

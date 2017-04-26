@@ -1,27 +1,27 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions.postgres;
 
 import com.google.common.base.CaseFormat;
-
 import dao.versions.VersionHistoryDagFactory;
 import db.DbClient;
 import db.DbDataContainer;
 import db.PostgresClient;
 import db.PostgresResults;
 import edu.berkeley.ground.exception.GroundException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import models.models.Structure;
 import models.versions.GroundType;
 import models.versions.Item;
@@ -29,17 +29,12 @@ import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final PostgresClient dbClient;
   private final PostgresVersionSuccessorFactory versionSuccessorFactory;
 
-  public PostgresVersionHistoryDagFactory(PostgresClient dbClient,
-                                          PostgresVersionSuccessorFactory versionSuccessorFactory) {
+  public PostgresVersionHistoryDagFactory(
+      PostgresClient dbClient, PostgresVersionSuccessorFactory versionSuccessorFactory) {
     this.dbClient = dbClient;
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
@@ -64,9 +59,8 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_history_dag",
-        DbClient.SELECT_STAR,
-        predicates);
+    PostgresResults resultSet =
+        this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR, predicates);
     if (resultSet.isEmpty()) {
       // do nothing' this just means that no versions have been added yet.
       return new VersionHistoryDag<T>(itemId, new ArrayList<>());
@@ -107,7 +101,7 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
   /**
    * Truncate the DAG to only have a certain number of levels, removing everything before that.
    *
-   * TODO: refactor to move specific logic into those classes.
+   * <p>TODO: refactor to move specific logic into those classes.
    *
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
@@ -123,9 +117,7 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
     while (keptLevels <= numLevels) {
       List<Long> currentLevel = new ArrayList<>();
 
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
+      previousLevel.forEach(id -> currentLevel.addAll(dag.getParent(id)));
 
       lastLevel = previousLevel;
       previousLevel = currentLevel;
@@ -184,11 +176,12 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
 
         List<Long> parents = dag.getParent(id);
 
-        parents.forEach(parentId -> {
-          if (!deleted.contains(parentId)) {
-            deleteQueue.add(parentId);
-          }
-        });
+        parents.forEach(
+            parentId -> {
+              if (!deleted.contains(parentId)) {
+                deleteQueue.add(parentId);
+              }
+            });
         predicates.clear();
       }
 

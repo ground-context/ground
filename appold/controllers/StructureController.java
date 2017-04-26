@@ -5,6 +5,7 @@ import dao.models.StructureFactory;
 import dao.models.StructureVersionFactory;
 import db.DbClient;
 import edu.berkeley.ground.exception.GroundException;
+import edu.berkeley.ground.model.version.Tag;
 import exceptions.GroundItemNotFoundException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,7 +14,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import models.models.Structure;
 import models.models.StructureVersion;
-import edu.berkeley.ground.model.version.Tag;
 import models.versions.GroundType;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -103,8 +103,8 @@ public class StructureController extends Controller {
         }
       }
 
-      StructureVersion created = this.structureVersionFactory.create(structureId, attributes,
-          parents);
+      StructureVersion created =
+          this.structureVersionFactory.create(structureId, attributes, parents);
 
       this.dbClient.commit();
       return ok(Json.toJson(created));

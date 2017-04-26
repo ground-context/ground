@@ -5,14 +5,12 @@ import dao.models.EdgeFactory;
 import dao.models.EdgeVersionFactory;
 import db.DbClient;
 import edu.berkeley.ground.exception.GroundException;
-import exceptions.GroundItemNotFoundException;
-import java.util.HashMap;
+import edu.berkeley.ground.model.version.Tag;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import models.models.Edge;
 import models.models.EdgeVersion;
-import edu.berkeley.ground.model.version.Tag;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -74,12 +72,10 @@ public class EdgeController extends Controller {
     return ok(json);
   }
 
-
   public Result createEdgeVersion(String sourceKey) throws GroundException {
     try {
       long edgeId;
       edgeId = this.edgeFactory.retrieveFromDatabase(sourceKey).getId();
-
 
       JsonNode requestBody = request().body().asJson();
       Map<String, Tag> tags = ControllerUtils.getTagsFromJson(requestBody);
@@ -88,17 +84,26 @@ public class EdgeController extends Controller {
       long structureVersionId = ControllerUtils.getLongFromJson(requestBody, "structureVersionId");
       String reference = ControllerUtils.getStringFromJson(requestBody, "reference");
 
-      long fromNodeVersionStartId = ControllerUtils.getLongFromJson(requestBody,
-          "fromNodeVersionStartId");
-      long fromNodeVersionEndId = ControllerUtils.getLongFromJson(requestBody,
-          "fromNodeVersionEndId");
-      long toNodeVersionStartId = ControllerUtils.getLongFromJson(requestBody,
-          "toNodeVersionStartId");
+      long fromNodeVersionStartId =
+          ControllerUtils.getLongFromJson(requestBody, "fromNodeVersionStartId");
+      long fromNodeVersionEndId =
+          ControllerUtils.getLongFromJson(requestBody, "fromNodeVersionEndId");
+      long toNodeVersionStartId =
+          ControllerUtils.getLongFromJson(requestBody, "toNodeVersionStartId");
       long toNodeVersionEndId = ControllerUtils.getLongFromJson(requestBody, "toNodeVersionEndId");
 
-      EdgeVersion created = this.edgeVersionFactory.create(tags, structureVersionId, reference,
-          referenceParameters, edgeId, fromNodeVersionStartId, fromNodeVersionEndId,
-          toNodeVersionStartId, toNodeVersionEndId, parents);
+      EdgeVersion created =
+          this.edgeVersionFactory.create(
+              tags,
+              structureVersionId,
+              reference,
+              referenceParameters,
+              edgeId,
+              fromNodeVersionStartId,
+              fromNodeVersionEndId,
+              toNodeVersionStartId,
+              toNodeVersionEndId,
+              parents);
 
       this.dbClient.commit();
       return ok(Json.toJson(created));

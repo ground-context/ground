@@ -1,32 +1,27 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.neo4j;
 
 import dao.models.TagFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import edu.berkeley.ground.exception.GroundException;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-
+import exceptions.GroundDbException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import models.versions.GroundType;
 import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
@@ -56,8 +51,8 @@ public class Neo4jTagFactory implements TagFactory {
     returnFields.add("value");
     returnFields.add("type");
 
-    List<Record> tagsRecords = this.dbClient.getAdjacentVerticesByEdgeLabel(keyPrefix
-        + "TagConnection", id, returnFields);
+    List<Record> tagsRecords =
+        this.dbClient.getAdjacentVerticesByEdgeLabel(keyPrefix + "TagConnection", id, returnFields);
 
     Map<String, Tag> tags = new HashMap<>();
 
@@ -73,8 +68,8 @@ public class Neo4jTagFactory implements TagFactory {
 
       GroundType gType;
       if (record.containsKey("type") && !(record.get("type") instanceof NullValue)) {
-        gType = GroundType.fromString(
-            Neo4jClient.getStringFromValue((StringValue) record.get("type")));
+        gType =
+            GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) record.get("type")));
         value = gType.parse(value.toString());
       } else {
         gType = null;

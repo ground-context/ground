@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.cassandra;
 
 import dao.models.StructureVersionFactory;
@@ -21,24 +18,21 @@ import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.StructureVersion;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import models.models.StructureVersion;
+import models.versions.GroundType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
-public class CassandraStructureVersionFactory
-    extends CassandraVersionFactory<StructureVersion>
+public class CassandraStructureVersionFactory extends CassandraVersionFactory<StructureVersion>
     implements StructureVersionFactory {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(CassandraStructureVersionFactory.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(CassandraStructureVersionFactory.class);
 
   private final CassandraClient dbClient;
   private final CassandraStructureFactory structureFactory;
@@ -52,9 +46,10 @@ public class CassandraStructureVersionFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique id generator
    */
-  public CassandraStructureVersionFactory(CassandraClient dbClient,
-                                          CassandraStructureFactory structureFactory,
-                                          IdGenerator idGenerator) {
+  public CassandraStructureVersionFactory(
+      CassandraClient dbClient,
+      CassandraStructureFactory structureFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient);
 
@@ -73,9 +68,9 @@ public class CassandraStructureVersionFactory
    * @throws GroundException an error while creating or persisting this version
    */
   @Override
-  public StructureVersion create(long structureId,
-                                 Map<String, GroundType> attributes,
-                                 List<Long> parentIds) throws GroundException {
+  public StructureVersion create(
+      long structureId, Map<String, GroundType> attributes, List<Long> parentIds)
+      throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
 
@@ -91,8 +86,8 @@ public class CassandraStructureVersionFactory
       List<DbDataContainer> itemInsertions = new ArrayList<>();
       itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
       itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING,
-          attributes.get(key).toString()));
+      itemInsertions.add(
+          new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
 
       this.dbClient.insert("structure_version_attribute", itemInsertions);
     }
@@ -115,25 +110,25 @@ public class CassandraStructureVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("structure_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    CassandraResults resultSet =
+        this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     Map<String, GroundType> attributes = new HashMap<>();
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-    CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
-        DbClient.SELECT_STAR, attributePredicates);
+    CassandraResults attributesSet =
+        this.dbClient.equalitySelect(
+            "structure_version_attribute", DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
       throw new GroundException("No StructureVersion attributes found for id " + id + ".");
     }
 
     do {
-      attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
-          .getString("type")));
+      attributes.put(
+          attributesSet.getString("key"), GroundType.fromString(attributesSet.getString("type")));
     } while (attributesSet.next());
 
     long structureId = resultSet.getLong("structure_id");

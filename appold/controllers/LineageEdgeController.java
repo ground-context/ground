@@ -5,12 +5,12 @@ import dao.usage.LineageEdgeFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import db.DbClient;
 import edu.berkeley.ground.exception.GroundException;
+import edu.berkeley.ground.model.version.Tag;
 import exceptions.GroundItemNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
-import edu.berkeley.ground.model.version.Tag;
 import models.usage.LineageEdge;
 import models.usage.LineageEdgeVersion;
 import play.libs.Json;
@@ -94,12 +94,18 @@ public class LineageEdgeController extends Controller {
       String reference = ControllerUtils.getStringFromJson(requestBody, "reference");
 
       long fromRichVersionId = ControllerUtils.getLongFromJson(requestBody, "fromId");
-      long toRichVersionId = ControllerUtils.getLongFromJson(requestBody, "toId") ;
+      long toRichVersionId = ControllerUtils.getLongFromJson(requestBody, "toId");
 
-
-      LineageEdgeVersion created = this.lineageEdgeVersionFactory.create(tags, structureVersionId,
-          reference, referenceParameters, fromRichVersionId, toRichVersionId, lineageEdgeId,
-          parents);
+      LineageEdgeVersion created =
+          this.lineageEdgeVersionFactory.create(
+              tags,
+              structureVersionId,
+              reference,
+              referenceParameters,
+              fromRichVersionId,
+              toRichVersionId,
+              lineageEdgeId,
+              parents);
 
       this.dbClient.commit();
       return ok(Json.toJson(created));

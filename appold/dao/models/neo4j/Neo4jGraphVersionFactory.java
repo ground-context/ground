@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.neo4j;
 
 import dao.models.GraphVersionFactory;
@@ -19,22 +16,19 @@ import dao.models.RichVersionFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.GraphVersion;
-import models.models.RichVersion;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import models.models.GraphVersion;
+import models.models.RichVersion;
+import models.versions.GroundType;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
-public class Neo4jGraphVersionFactory
-    extends Neo4jRichVersionFactory<GraphVersion>
+public class Neo4jGraphVersionFactory extends Neo4jRichVersionFactory<GraphVersion>
     implements GraphVersionFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jGraphVersionFactory.class);
@@ -50,11 +44,12 @@ public class Neo4jGraphVersionFactory
    * @param dbClient the Neo4jClient
    * @param idGenerator a unique ID generator
    */
-  public Neo4jGraphVersionFactory(Neo4jClient dbClient,
-                                  Neo4jGraphFactory graphFactory,
-                                  Neo4jStructureVersionFactory structureVersionFactory,
-                                  Neo4jTagFactory tagFactory,
-                                  IdGenerator idGenerator) {
+  public Neo4jGraphVersionFactory(
+      Neo4jClient dbClient,
+      Neo4jGraphFactory graphFactory,
+      Neo4jStructureVersionFactory structureVersionFactory,
+      Neo4jTagFactory tagFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient, structureVersionFactory, tagFactory);
 
@@ -77,13 +72,15 @@ public class Neo4jGraphVersionFactory
    * @throws GroundException an error while creating or persisting the graph
    */
   @Override
-  public GraphVersion create(Map<String, Tag> tags,
-                             long structureVersionId,
-                             String reference,
-                             Map<String, String> referenceParameters,
-                             long graphId,
-                             List<Long> edgeVersionIds,
-                             List<Long> parentIds) throws GroundException {
+  public GraphVersion create(
+      Map<String, Tag> tags,
+      long structureVersionId,
+      String reference,
+      Map<String, String> referenceParameters,
+      long graphId,
+      List<Long> edgeVersionIds,
+      List<Long> parentIds)
+      throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
 
@@ -102,11 +99,10 @@ public class Neo4jGraphVersionFactory
 
     this.graphFactory.update(graphId, id, parentIds);
 
-
     LOGGER.info("Created graph version " + id + " in graph " + graphId + ".");
 
-    return new GraphVersion(id, tags, structureVersionId, reference, referenceParameters, graphId,
-        edgeVersionIds);
+    return new GraphVersion(
+        id, tags, structureVersionId, reference, referenceParameters, graphId, edgeVersionIds);
   }
 
   /**
@@ -129,18 +125,23 @@ public class Neo4jGraphVersionFactory
     List<String> returnFields = new ArrayList<>();
     returnFields.add("id");
 
-    List<Record> edgeVersionVertices = this.dbClient
-        .getAdjacentVerticesByEdgeLabel("GraphVersionEdge", id, returnFields);
+    List<Record> edgeVersionVertices =
+        this.dbClient.getAdjacentVerticesByEdgeLabel("GraphVersionEdge", id, returnFields);
     List<Long> edgeVersionIds = new ArrayList<>();
 
-    edgeVersionVertices.forEach(edgeVersionVertex ->
-        edgeVersionIds.add(edgeVersionVertex.get("id").asLong())
-    );
+    edgeVersionVertices.forEach(
+        edgeVersionVertex -> edgeVersionIds.add(edgeVersionVertex.get("id").asLong()));
 
-    long graphId = versionRecord.get("v") .asNode().get("graph_id").asLong();
+    long graphId = versionRecord.get("v").asNode().get("graph_id").asLong();
 
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
-    return new GraphVersion(id, version.getTags(), version.getStructureVersionId(),
-        version.getReference(), version.getParameters(), graphId, edgeVersionIds);
+    return new GraphVersion(
+        id,
+        version.getTags(),
+        version.getStructureVersionId(),
+        version.getReference(),
+        version.getParameters(),
+        graphId,
+        edgeVersionIds);
   }
 }

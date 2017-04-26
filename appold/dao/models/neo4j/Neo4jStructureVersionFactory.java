@@ -1,41 +1,34 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.neo4j;
 
 import dao.models.StructureVersionFactory;
 import dao.versions.neo4j.Neo4jVersionFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.StructureVersion;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import models.models.StructureVersion;
+import models.versions.GroundType;
 import org.neo4j.driver.internal.value.StringValue;
 import org.neo4j.driver.v1.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
-public class Neo4jStructureVersionFactory
-    extends Neo4jVersionFactory<StructureVersion>
+public class Neo4jStructureVersionFactory extends Neo4jVersionFactory<StructureVersion>
     implements StructureVersionFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jStructureVersionFactory.class);
@@ -51,9 +44,8 @@ public class Neo4jStructureVersionFactory
    * @param dbClient the Neo4j client
    * @param idGenerator a unique id generator
    */
-  public Neo4jStructureVersionFactory(Neo4jClient dbClient,
-                                      Neo4jStructureFactory structureFactory,
-                                      IdGenerator idGenerator) {
+  public Neo4jStructureVersionFactory(
+      Neo4jClient dbClient, Neo4jStructureFactory structureFactory, IdGenerator idGenerator) {
     this.dbClient = dbClient;
     this.structureFactory = structureFactory;
     this.idGenerator = idGenerator;
@@ -69,9 +61,9 @@ public class Neo4jStructureVersionFactory
    * @throws GroundException an error while creating or persisting this version
    */
   @Override
-  public StructureVersion create(long structureId,
-                                 Map<String, GroundType> attributes,
-                                 List<Long> parentIds) throws GroundException {
+  public StructureVersion create(
+      long structureId, Map<String, GroundType> attributes, List<Long> parentIds)
+      throws GroundException {
     long id = this.idGenerator.generateVersionId();
 
     List<DbDataContainer> insertions = new ArrayList<>();
@@ -84,11 +76,15 @@ public class Neo4jStructureVersionFactory
       List<DbDataContainer> itemInsertions = new ArrayList<>();
       itemInsertions.add(new DbDataContainer("svid", GroundType.LONG, id));
       itemInsertions.add(new DbDataContainer("skey", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("stype", GroundType.STRING,
-          attributes.get(key).toString()));
+      itemInsertions.add(
+          new DbDataContainer("stype", GroundType.STRING, attributes.get(key).toString()));
 
-      this.dbClient.addVertexAndEdge("StructureVersionItem", itemInsertions,
-          "StructureVersionItemConnection", id, new ArrayList<>());
+      this.dbClient.addVertexAndEdge(
+          "StructureVersionItem",
+          itemInsertions,
+          "StructureVersionItemConnection",
+          id,
+          new ArrayList<>());
     }
 
     this.structureFactory.update(structureId, id, parentIds);
@@ -120,15 +116,15 @@ public class Neo4jStructureVersionFactory
     returnFields.add("skey");
     returnFields.add("stype");
 
-    List<Record> edges = this.dbClient.getAdjacentVerticesByEdgeLabel(
-        "StructureVersionItemConnection", id, returnFields);
+    List<Record> edges =
+        this.dbClient.getAdjacentVerticesByEdgeLabel(
+            "StructureVersionItemConnection", id, returnFields);
     Map<String, GroundType> attributes = new HashMap<>();
 
-
     for (Record edge : edges) {
-      attributes.put(Neo4jClient.getStringFromValue((StringValue) edge.get("skey")),
-          GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) edge.get("stype")))
-      );
+      attributes.put(
+          Neo4jClient.getStringFromValue((StringValue) edge.get("skey")),
+          GroundType.fromString(Neo4jClient.getStringFromValue((StringValue) edge.get("stype"))));
     }
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");

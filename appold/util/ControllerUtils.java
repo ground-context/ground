@@ -1,11 +1,11 @@
 package util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import edu.berkeley.ground.model.version.Tag;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import edu.berkeley.ground.model.version.Tag;
 import play.libs.Json;
 
 public class ControllerUtils {
@@ -14,10 +14,11 @@ public class ControllerUtils {
     Map<String, Tag> tags = new HashMap<>();
     JsonNode tagsNode = json.get("tags");
     if (tagsNode != null) {
-      tagsNode.forEach(tagNode -> {
-        Tag tag = Json.fromJson(tagNode, Tag.class);
-        tags.put(tag.getKey(), tag);
-      });
+      tagsNode.forEach(
+          tagNode -> {
+            Tag tag = Json.fromJson(tagNode, Tag.class);
+            tags.put(tag.getKey(), tag);
+          });
     }
 
     return tags;
@@ -27,11 +28,14 @@ public class ControllerUtils {
     Map<String, String> referenceParameters = new HashMap<>();
     JsonNode paramsNode = json.get("parameters");
     if (paramsNode != null) {
-      paramsNode.fieldNames().forEachRemaining(fieldName ->{
-        String value = paramsNode.get(fieldName).asText();
+      paramsNode
+          .fieldNames()
+          .forEachRemaining(
+              fieldName -> {
+                String value = paramsNode.get(fieldName).asText();
 
-        referenceParameters.put(fieldName, value);
-      });
+                referenceParameters.put(fieldName, value);
+              });
     }
 
     return referenceParameters;

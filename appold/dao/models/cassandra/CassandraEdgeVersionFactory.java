@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.cassandra;
 
 import dao.models.EdgeVersionFactory;
@@ -21,22 +18,18 @@ import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.EdgeVersion;
-import models.models.RichVersion;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
+import models.models.EdgeVersion;
+import models.models.RichVersion;
+import models.versions.GroundType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
-public class CassandraEdgeVersionFactory
-    extends CassandraRichVersionFactory<EdgeVersion>
+public class CassandraEdgeVersionFactory extends CassandraRichVersionFactory<EdgeVersion>
     implements EdgeVersionFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeVersionFactory.class);
@@ -52,11 +45,12 @@ public class CassandraEdgeVersionFactory
    * @param dbClient the Cassandra client
    * @param idGenerator a unique ID generator
    */
-  public CassandraEdgeVersionFactory(CassandraClient dbClient,
-                                     CassandraEdgeFactory edgeFactory,
-                                     CassandraStructureVersionFactory structureVersionFactory,
-                                     CassandraTagFactory tagFactory,
-                                     IdGenerator idGenerator) {
+  public CassandraEdgeVersionFactory(
+      CassandraClient dbClient,
+      CassandraEdgeFactory edgeFactory,
+      CassandraStructureVersionFactory structureVersionFactory,
+      CassandraTagFactory tagFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient, structureVersionFactory, tagFactory);
 
@@ -82,16 +76,18 @@ public class CassandraEdgeVersionFactory
    * @throws GroundException an error while creating or persisting the version
    */
   @Override
-  public EdgeVersion create(Map<String, Tag> tags,
-                            long structureVersionId,
-                            String reference,
-                            Map<String, String> referenceParameters,
-                            long edgeId,
-                            long fromNodeVersionStartId,
-                            long fromNodeVersionEndId,
-                            long toNodeVersionStartId,
-                            long toNodeVersionEndId,
-                            List<Long> parentIds) throws GroundException {
+  public EdgeVersion create(
+      Map<String, Tag> tags,
+      long structureVersionId,
+      String reference,
+      Map<String, String> referenceParameters,
+      long edgeId,
+      long fromNodeVersionStartId,
+      long fromNodeVersionEndId,
+      long toNodeVersionStartId,
+      long toNodeVersionEndId,
+      List<Long> parentIds)
+      throws GroundException {
     long id = this.idGenerator.generateVersionId();
     tags = RichVersionFactory.addIdToTags(id, tags);
 
@@ -100,20 +96,26 @@ public class CassandraEdgeVersionFactory
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
     insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-    insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
-        fromNodeVersionStartId));
-    insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
-        fromNodeVersionEndId));
-    insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
-        toNodeVersionStartId));
+    insertions.add(
+        new DbDataContainer("from_node_start_id", GroundType.LONG, fromNodeVersionStartId));
+    insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG, fromNodeVersionEndId));
+    insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG, toNodeVersionStartId));
     insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
     this.dbClient.insert("edge_version", insertions);
     this.edgeFactory.update(edgeId, id, parentIds);
     LOGGER.info("Created edge version " + id + " in edge " + edgeId + ".");
 
-    return new EdgeVersion(id, tags, structureVersionId, reference, referenceParameters,
-        edgeId, fromNodeVersionStartId, fromNodeVersionEndId, toNodeVersionStartId,
+    return new EdgeVersion(
+        id,
+        tags,
+        structureVersionId,
+        reference,
+        referenceParameters,
+        edgeId,
+        fromNodeVersionStartId,
+        fromNodeVersionEndId,
+        toNodeVersionStartId,
         toNodeVersionEndId);
   }
 
@@ -131,29 +133,35 @@ public class CassandraEdgeVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    CassandraResults resultSet =
+        this.dbClient.equalitySelect("edge_version", DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     long edgeId = resultSet.getLong("edge_id");
 
     long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
 
-    long fromNodeVersionEndId =  resultSet.getLong("from_node_end_id");
+    long fromNodeVersionEndId = resultSet.getLong("from_node_end_id");
     long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
     long toNodeVersionEndId = resultSet.getLong("to_node_end_id");
 
     LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 
-    return new EdgeVersion(id, version.getTags(), version.getStructureVersionId(),
-        version.getReference(), version.getParameters(), edgeId, fromNodeVersionStartId,
-        fromNodeVersionEndId, toNodeVersionStartId, toNodeVersionEndId);
+    return new EdgeVersion(
+        id,
+        version.getTags(),
+        version.getStructureVersionId(),
+        version.getReference(),
+        version.getParameters(),
+        edgeId,
+        fromNodeVersionStartId,
+        fromNodeVersionEndId,
+        toNodeVersionStartId,
+        toNodeVersionEndId);
   }
 
   @Override
-  public void updatePreviousVersion(long id, long fromEndId, long toEndId)
-      throws GroundException {
+  public void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException {
 
     List<DbDataContainer> setPredicates = new ArrayList<>();
     List<DbDataContainer> wherePredicates = new ArrayList<>();

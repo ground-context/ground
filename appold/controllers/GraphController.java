@@ -5,6 +5,7 @@ import dao.models.GraphFactory;
 import dao.models.GraphVersionFactory;
 import db.DbClient;
 import edu.berkeley.ground.exception.GroundException;
+import edu.berkeley.ground.model.version.Tag;
 import exceptions.GroundItemNotFoundException;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import models.models.Graph;
 import models.models.GraphVersion;
-import edu.berkeley.ground.model.version.Tag;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -95,9 +95,15 @@ public class GraphController extends Controller {
 
       List<Long> edgeVersionIds = ControllerUtils.getListFromJson(requestBody, "edgeVersionIds");
 
-
-      GraphVersion created = this.graphVersionFactory.create(tags, structureVersionId, reference,
-          referenceParameters, graphId, edgeVersionIds, parents);
+      GraphVersion created =
+          this.graphVersionFactory.create(
+              tags,
+              structureVersionId,
+              reference,
+              referenceParameters,
+              graphId,
+              edgeVersionIds,
+              parents);
 
       this.dbClient.commit();
       return ok(Json.toJson(created));

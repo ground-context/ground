@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions.cassandra;
 
 import dao.models.cassandra.CassandraTagFactory;
@@ -20,16 +17,14 @@ import db.CassandraClient;
 import db.CassandraResults;
 import db.DbDataContainer;
 import edu.berkeley.ground.exception.GroundException;
-import exceptions.GroundItemNotFoundException;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import models.versions.Item;
-import models.versions.VersionHistoryDag;
-
+import exceptions.GroundItemNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import models.versions.GroundType;
+import models.versions.Item;
+import models.versions.VersionHistoryDag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +42,10 @@ public abstract class CassandraItemFactory<T extends Item> implements ItemFactor
    * @param versionHistoryDagFactory the singleton CassandraVersionHistoryDagFactory
    * @param tagFactory the singleton CassandraTagFactory
    */
-  public CassandraItemFactory(CassandraClient dbClient,
-                              CassandraVersionHistoryDagFactory versionHistoryDagFactory,
-                              CassandraTagFactory tagFactory) {
+  public CassandraItemFactory(
+      CassandraClient dbClient,
+      CassandraVersionHistoryDagFactory versionHistoryDagFactory,
+      CassandraTagFactory tagFactory) {
     this.dbClient = dbClient;
     this.versionHistoryDagFactory = versionHistoryDagFactory;
     this.tagFactory = tagFactory;
@@ -76,10 +72,10 @@ public abstract class CassandraItemFactory<T extends Item> implements ItemFactor
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
-            tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
-            tag.getValueType().toString()));
+        tagInsertion.add(
+            new DbDataContainer("value", GroundType.STRING, tag.getValue().toString()));
+        tagInsertion.add(
+            new DbDataContainer("type", GroundType.STRING, tag.getValueType().toString()));
       } else {
         tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
         tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
@@ -182,7 +178,7 @@ public abstract class CassandraItemFactory<T extends Item> implements ItemFactor
    * @throws GroundItemNotFoundException an exception indicating the item wasn't found
    */
   protected void verifyResultSet(CassandraResults resultSet, String fieldName, Object value)
-    throws GroundItemNotFoundException {
+      throws GroundItemNotFoundException {
 
     if (resultSet.isEmpty()) {
       throw new GroundItemNotFoundException(this.getType(), fieldName, value);

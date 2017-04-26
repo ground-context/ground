@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.postgres;
 
 import dao.models.StructureVersionFactory;
@@ -21,20 +18,17 @@ import db.DbDataContainer;
 import db.PostgresClient;
 import db.PostgresResults;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.StructureVersion;
-import models.versions.GroundType;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import models.models.StructureVersion;
+import models.versions.GroundType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.IdGenerator;
 
-public class PostgresStructureVersionFactory
-    extends PostgresVersionFactory<StructureVersion>
+public class PostgresStructureVersionFactory extends PostgresVersionFactory<StructureVersion>
     implements StructureVersionFactory {
 
   private static final Logger LOGGER =
@@ -51,9 +45,8 @@ public class PostgresStructureVersionFactory
    * @param dbClient the Postgres client
    * @param idGenerator a unique id generator
    */
-  public PostgresStructureVersionFactory(PostgresClient dbClient,
-                                         PostgresStructureFactory structureFactory,
-                                         IdGenerator idGenerator) {
+  public PostgresStructureVersionFactory(
+      PostgresClient dbClient, PostgresStructureFactory structureFactory, IdGenerator idGenerator) {
 
     super(dbClient);
 
@@ -72,9 +65,9 @@ public class PostgresStructureVersionFactory
    * @throws GroundException an error while creating or persisting this version
    */
   @Override
-  public StructureVersion create(long structureId,
-                                 Map<String, GroundType> attributes,
-                                 List<Long> parentIds) throws GroundException {
+  public StructureVersion create(
+      long structureId, Map<String, GroundType> attributes, List<Long> parentIds)
+      throws GroundException {
 
     long id = this.idGenerator.generateVersionId();
 
@@ -90,8 +83,8 @@ public class PostgresStructureVersionFactory
       List<DbDataContainer> itemInsertions = new ArrayList<>();
       itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
       itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING,
-          attributes.get(key).toString()));
+      itemInsertions.add(
+          new DbDataContainer("type", GroundType.STRING, attributes.get(key).toString()));
 
       this.dbClient.insert("structure_version_attribute", itemInsertions);
     }
@@ -114,17 +107,17 @@ public class PostgresStructureVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("structure_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    PostgresResults resultSet =
+        this.dbClient.equalitySelect("structure_version", DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
     List<DbDataContainer> attributePredicates = new ArrayList<>();
     attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
 
     PostgresResults attributesSet;
-    attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
-        DbClient.SELECT_STAR, attributePredicates);
+    attributesSet =
+        this.dbClient.equalitySelect(
+            "structure_version_attribute", DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
       throw new GroundException("No attributes found for StructureVersion with id " + id + ".");

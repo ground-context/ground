@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.models.cassandra;
 
 import dao.models.EdgeFactory;
@@ -22,21 +19,18 @@ import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
 import edu.berkeley.ground.exception.GroundException;
-import models.models.Edge;
-import models.models.EdgeVersion;
 import edu.berkeley.ground.model.version.Tag;
-import models.versions.GroundType;
-import models.versions.VersionHistoryDag;
-import util.IdGenerator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import models.models.Edge;
+import models.models.EdgeVersion;
+import models.versions.GroundType;
+import models.versions.VersionHistoryDag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import util.IdGenerator;
 
 public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements EdgeFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraEdgeFactory.class);
@@ -54,10 +48,11 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
    * @param versionHistoryDagFactory a CassandraVersionHistoryDAGFactory singleton
    * @param tagFactory a CassandraTagFactory singleton
    */
-  public CassandraEdgeFactory(CassandraClient dbClient,
-                              CassandraVersionHistoryDagFactory versionHistoryDagFactory,
-                              CassandraTagFactory tagFactory,
-                              IdGenerator idGenerator) {
+  public CassandraEdgeFactory(
+      CassandraClient dbClient,
+      CassandraVersionHistoryDagFactory versionHistoryDagFactory,
+      CassandraTagFactory tagFactory,
+      IdGenerator idGenerator) {
 
     super(dbClient, versionHistoryDagFactory, tagFactory);
 
@@ -83,11 +78,9 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
    * @throws GroundException an error while creating or persisting the edge
    */
   @Override
-  public Edge create(String name,
-                     String sourceKey,
-                     long fromNodeId,
-                     long toNodeId,
-                     Map<String, Tag> tags) throws GroundException {
+  public Edge create(
+      String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
+      throws GroundException {
 
     super.verifyItemNotExists(sourceKey);
 
@@ -121,7 +114,6 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
     return super.getLeaves(edge.getId());
   }
 
-
   @Override
   public Edge retrieveFromDatabase(String sourceKey) throws GroundException {
     return this.retrieveByPredicate("source_key", sourceKey, GroundType.STRING);
@@ -138,11 +130,9 @@ public class CassandraEdgeFactory extends CassandraItemFactory<Edge> implements 
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer(fieldName, valueType, value));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("edge",
-        DbClient.SELECT_STAR,
-        predicates);
+    CassandraResults resultSet =
+        this.dbClient.equalitySelect("edge", DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
-
 
     long id = resultSet.getLong("item_id");
     long fromNodeId = resultSet.getLong("from_node_id");

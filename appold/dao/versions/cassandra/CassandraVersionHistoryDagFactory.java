@@ -1,27 +1,27 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package dao.versions.cassandra;
 
 import com.google.common.base.CaseFormat;
-
 import dao.versions.VersionHistoryDagFactory;
 import db.CassandraClient;
 import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
 import edu.berkeley.ground.exception.GroundException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import models.models.Structure;
 import models.versions.GroundType;
 import models.versions.Item;
@@ -29,18 +29,12 @@ import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final CassandraClient dbClient;
   private final CassandraVersionSuccessorFactory versionSuccessorFactory;
 
   public CassandraVersionHistoryDagFactory(
-      CassandraClient dbClient,
-      CassandraVersionSuccessorFactory versionSuccessorFactory) {
+      CassandraClient dbClient, CassandraVersionSuccessorFactory versionSuccessorFactory) {
     this.dbClient = dbClient;
     this.versionSuccessorFactory = versionSuccessorFactory;
   }
@@ -63,8 +57,8 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       throws GroundException {
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    CassandraResults resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
-          predicates);
+    CassandraResults resultSet =
+        this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       return new VersionHistoryDag<T>(itemId, new ArrayList<>());
@@ -72,8 +66,9 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
     do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
-          .getLong("version_successor_id")));
+      edges.add(
+          this.versionSuccessorFactory.retrieveFromDatabase(
+              resultSet.getLong("version_successor_id")));
     } while (resultSet.next());
 
     return new VersionHistoryDag(itemId, edges);
@@ -118,9 +113,7 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
     while (keptLevels <= numLevels) {
       List<Long> currentLevel = new ArrayList<>();
 
-      previousLevel.forEach(id ->
-          currentLevel.addAll(dag.getParent(id))
-      );
+      previousLevel.forEach(id -> currentLevel.addAll(dag.getParent(id)));
 
       lastLevel = previousLevel;
       previousLevel = currentLevel;
@@ -136,7 +129,6 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
       this.addEdge(dag, 0, id, dag.getItemId());
     }
-
 
     while (deleteQueue.size() > 0) {
       long id = deleteQueue.get(0);
@@ -177,11 +169,12 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
 
         List<Long> parents = dag.getParent(id);
 
-        parents.forEach(parentId -> {
-          if (!deleted.contains(parentId)) {
-            deleteQueue.add(parentId);
-          }
-        });
+        parents.forEach(
+            parentId -> {
+              if (!deleted.contains(parentId)) {
+                deleteQueue.add(parentId);
+              }
+            });
 
         predicates.clear();
       }
