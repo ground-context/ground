@@ -11,12 +11,11 @@
  */
 package edu.berkeley.ground.lib.factory.core;
 
-import java.util.List;
-import java.util.Map;
-
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.EdgeVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.List;
+import java.util.Map;
 
 public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
 

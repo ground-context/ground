@@ -11,10 +11,9 @@
  */
 package edu.berkeley.ground.lib.model.usage;
 
-import java.util.Map;
-
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.Map;
 
 public class LineageGraph extends Item<LineageGraphVersion> {
   // the name of this graph
