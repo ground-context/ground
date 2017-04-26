@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.berkeley.ground.lib.model.usage;
 
 import java.util.Map;
@@ -32,26 +29,23 @@ public class LineageEdgeVersion extends RichVersion {
   /**
    * Create a lineage edge version.
    *
-   * @param id
-   *          the id of this version
-   * @param tags
-   *          the tags associated with this version
-   * @param structureVersionId
-   *          the id of the StructureVersion associated with this version
-   * @param reference
-   *          an optional external reference
-   * @param referenceParameters
-   *          the access parameters for the reference
-   * @param fromId
-   *          the source rich version id
-   * @param toId
-   *          the destination rich version id
-   * @param lineageEdgeId
-   *          the id of the lineage edge containing this version
+   * @param id the id of this version
+   * @param tags the tags associated with this version
+   * @param structureVersionId the id of the StructureVersion associated with this version
+   * @param reference an optional external reference
+   * @param referenceParameters the access parameters for the reference
+   * @param fromId the source rich version id
+   * @param toId the destination rich version id
+   * @param lineageEdgeId the id of the lineage edge containing this version
    */
-
-  public LineageEdgeVersion(long id, Map<String, Tag> tags, long structureVersionId,
-      String reference, Map<String, String> referenceParameters, long fromId, long toId,
+  public LineageEdgeVersion(
+      long id,
+      Map<String, Tag> tags,
+      long structureVersionId,
+      String reference,
+      Map<String, String> referenceParameters,
+      long fromId,
+      long toId,
       long lineageEdgeId) {
     super(id, tags, structureVersionId, reference, referenceParameters);
 
@@ -83,6 +77,7 @@ public class LineageEdgeVersion extends RichVersion {
     return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
         && this.fromId == otherLineageEdgeVersion.fromId
         && this.toId == otherLineageEdgeVersion.toId
-        && this.getId() == otherLineageEdgeVersion.getId() && super.equals(other);
+        && this.getId() == otherLineageEdgeVersion.getId()
+        && super.equals(other);
   }
 }
