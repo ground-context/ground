@@ -52,6 +52,7 @@ public class Edge extends Item<EdgeVersion> {
       @JsonProperty("from_node_id") long fromNodeId,
       @JsonProperty("to_node_id") long toNodeId,
       @JsonProperty("tags") Map<String, Tag> tags) {
+
     super(id, tags);
 
     this.name = name;

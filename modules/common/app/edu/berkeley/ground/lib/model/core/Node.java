@@ -15,7 +15,6 @@ import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 
 public class Node extends Item<NodeVersion> {

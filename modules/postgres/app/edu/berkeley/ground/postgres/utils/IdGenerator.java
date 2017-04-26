@@ -27,6 +27,14 @@ public class IdGenerator {
   // If true, only one counter will be used. If false, all three counters will be used.
   private final boolean globallyUnique;
 
+  public IdGenerator() {
+    this.prefix = 0;
+    this.versionCounter = 1;
+    this.successorCounter = 1;
+    this.itemCounter = 1;
+    this.globallyUnique = true;
+  }
+
   /**
    * Create a unique id generator.
    *
@@ -34,7 +42,6 @@ public class IdGenerator {
    * @param numMachines the total number of machines
    * @param globallyUnique if true, only one counter will be used for all version
    */
-
   public IdGenerator(long machineId, long numMachines, boolean globallyUnique) {
     long machineBits = 1;
     long fence = 2;
