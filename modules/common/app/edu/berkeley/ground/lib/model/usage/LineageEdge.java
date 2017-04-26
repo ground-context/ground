@@ -16,14 +16,18 @@ package edu.berkeley.ground.lib.model.usage;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
 
 public class LineageEdge extends Item<LineageEdgeVersion> {
   // the name of this LineageEdge
+  @JsonProperty("name")
   private final String name;
 
   // the source key for this Node
+  @JsonProperty("source_key")
   private final String sourceKey;
 
   /**
@@ -39,7 +43,10 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
    *          the tags associated with this lineage edge
    */
 
-  public LineageEdge(long id, String name, String sourceKey, Map<String, Tag> tags) {
+  //TODO implement tags
+  @JsonCreator
+  public LineageEdge(@JsonProperty("item_id") long id, @JsonProperty("name") String name,
+                     @JsonProperty("source_key") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
