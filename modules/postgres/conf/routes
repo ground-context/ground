@@ -10,6 +10,7 @@ GET 	/ground/v1.0/nodes			edu.berkeley.ground.postgres.controllers.ExampleContro
 POST 	/ground/v1.0/nodes			edu.berkeley.ground.postgres.controllers.ExampleController.addNode
 
 # Map static resources from the /public folder to the /assets URL path
+### NoDocs ###
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 # node endpoints
@@ -22,4 +23,4 @@ GET     /versions/nodes/:id                edu.berkeley.ground.postgres.controll
 POST    /graphs                          				  edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
 GET     /graphs/:sourceKey                                edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
 POST    /versions/graphs                      			  edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
-GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
+GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: long)
