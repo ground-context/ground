@@ -1,17 +1,14 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.berkeley.ground.lib.model.core;
 
 import java.util.Map;
@@ -35,21 +32,19 @@ public class Edge extends Item<EdgeVersion> {
   /**
    * Construct a new Edge.
    *
-   * @param id
-   *          the edge id
-   * @param name
-   *          the edge name
-   * @param sourceKey
-   *          the user-generated unique key for the edge
-   * @param fromNodeId
-   *          the source node of this edge
-   * @param toNodeId
-   *          the destination node of this edge
-   * @param tags
-   *          the tags associated with this edge
+   * @param id the edge id
+   * @param name the edge name
+   * @param sourceKey the user-generated unique key for the edge
+   * @param fromNodeId the source node of this edge
+   * @param toNodeId the destination node of this edge
+   * @param tags the tags associated with this edge
    */
-
-  public Edge(long id, String name, String sourceKey, long fromNodeId, long toNodeId,
+  public Edge(
+      long id,
+      String name,
+      String sourceKey,
+      long fromNodeId,
+      long toNodeId,
       Map<String, Tag> tags) {
     super(id, tags);
 
@@ -83,8 +78,11 @@ public class Edge extends Item<EdgeVersion> {
 
     Edge otherEdge = (Edge) other;
 
-    return this.name.equals(otherEdge.name) && this.sourceKey.equals(otherEdge.sourceKey)
-        && this.getId() == otherEdge.getId() && this.fromNodeId == otherEdge.fromNodeId
-        && this.toNodeId == otherEdge.toNodeId && this.getTags().equals(otherEdge.getTags());
+    return this.name.equals(otherEdge.name)
+        && this.sourceKey.equals(otherEdge.sourceKey)
+        && this.getId() == otherEdge.getId()
+        && this.fromNodeId == otherEdge.fromNodeId
+        && this.toNodeId == otherEdge.toNodeId
+        && this.getTags().equals(otherEdge.getTags());
   }
 }

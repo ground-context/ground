@@ -10,10 +10,13 @@ import play.db.Database;
 
 public class ExampleVersionDao {
 
-    public final void create(final Database dbSource, final NodeVersion nodeVersion) throws GroundException {
-        final List<String> sqlList = new ArrayList<>();
-        sqlList.add(String.format("insert into node_version (id, node_id) values (%s,%s)", nodeVersion.getId(),
-                nodeVersion.getNodeId()));
-        PostgresUtils.executeSqlList(dbSource, sqlList);
-    }
+  public final void create(final Database dbSource, final NodeVersion nodeVersion)
+      throws GroundException {
+    final List<String> sqlList = new ArrayList<>();
+    sqlList.add(
+        String.format(
+            "insert into node_version (id, node_id) values (%s,%s)",
+            nodeVersion.getId(), nodeVersion.getNodeId()));
+    PostgresUtils.executeSqlList(dbSource, sqlList);
+  }
 }
