@@ -12,9 +12,14 @@ POST 	/ground/v1.0/nodes			edu.berkeley.ground.postgres.controllers.ExampleContr
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
-
 # node endpoints
 POST    /nodes                             edu.berkeley.ground.postgres.controllers.NodeController.createNode()
 GET     /nodes/:sourceKey                  edu.berkeley.ground.postgres.controllers.NodeController.getNode(sourceKey: String)
 POST    /versions/nodes                    edu.berkeley.ground.postgres.controllers.NodeController.createNodeVersion()
 GET     /versions/nodes/:id                edu.berkeley.ground.postgres.controllers.NodeController.getNodeVersion(id: Long)
+
+#Graph
+POST    /graphs                          				  edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
+GET     /graphs/:sourceKey                                edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
+POST    /versions/graphs                      			  edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
+GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
