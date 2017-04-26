@@ -3,8 +3,10 @@ package edu.berkeley.ground.postgres.start;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
 import play.Logger;
 import play.api.Configuration;
 import play.inject.ApplicationLifecycle;

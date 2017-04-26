@@ -11,9 +11,10 @@
  */
 package edu.berkeley.ground.lib.model.usage;
 
+import java.util.Map;
+
 import edu.berkeley.ground.lib.model.core.RichVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.Map;
 
 public class LineageEdgeVersion extends RichVersion {
   // the id of the LineageEdge containing this Version

@@ -1,34 +1,42 @@
 /**
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the
- * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing permissions and
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.berkeley.ground.lib.model.core;
+
+package models.models;
+
+
+
+import models.versions.Version;
 
 import java.util.Map;
 import java.util.Objects;
 
-import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.lib.model.version.Version;
+import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 
 public class RichVersion extends Version {
   // the map of Keys to Tags associated with this RichVersion
-  private final Map<String, Tag> tags;
+  private Map<String, Tag> tags;
 
   // the StructureVersion associated with this RichVersion
-  private final long structureVersionId;
+  private long structureVersionId;
 
+  
   // the optional reference associated with this RichVersion
-  private final String reference;
+  private String reference;
 
+  
   // the optional parameters associated with this RichVersion if there is a reference
-  private final Map<String, String> parameters;
+  private Map<String, String> parameters;
 
   /**
    * Create a new rich version.
@@ -39,12 +47,12 @@ public class RichVersion extends Version {
    * @param reference an optional external reference
    * @param referenceParameters the access parameters for the reference
    */
-  public RichVersion(
-      long id,
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters) {
+
+  public RichVersion(long id,
+                     Map<String, Tag> tags,
+                     long structureVersionId,
+                     String reference,
+                     Map<String, String> referenceParameters) {
 
     super(id);
 
@@ -54,20 +62,35 @@ public class RichVersion extends Version {
     this.parameters = referenceParameters;
   }
 
+  
   public Map<String, Tag> getTags() {
     return this.tags;
   }
 
+  
   public long getStructureVersionId() {
     return this.structureVersionId;
   }
 
+  
   public String getReference() {
     return this.reference;
   }
-
+  
   public Map<String, String> getParameters() {
     return this.parameters;
+  }
+
+  public void setTags(final Map<String, Tag>  tags) {
+    this.tags = tags;
+  }
+
+  public void setStructureVersionId(final long structureVersionId) {
+    this.structureVersionId = structureVersionId;
+  }
+
+  public void setReference(final String reference) {
+    this.reference = reference;
   }
 
   @Override

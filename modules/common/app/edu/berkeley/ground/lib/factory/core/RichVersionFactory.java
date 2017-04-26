@@ -11,15 +11,16 @@
  */
 package edu.berkeley.ground.lib.factory.core;
 
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.VersionFactory;
 import edu.berkeley.ground.lib.model.core.RichVersion;
 import edu.berkeley.ground.lib.model.core.StructureVersion;
 import edu.berkeley.ground.lib.model.version.GroundType;
 import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public interface RichVersionFactory<T extends RichVersion> extends VersionFactory<T> {
 

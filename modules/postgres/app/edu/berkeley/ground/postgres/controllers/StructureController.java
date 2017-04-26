@@ -3,10 +3,10 @@ package edu.berkeley.ground.postgres.controllers;
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.Graph;
-import edu.berkeley.ground.lib.model.core.GraphVersion;
-import edu.berkeley.ground.postgres.dao.GraphDao;
-import edu.berkeley.ground.postgres.dao.GraphVersionDao;
+import edu.berkeley.ground.lib.model.core.Structure;
+import edu.berkeley.ground.lib.model.core.StructureVersion;
+import edu.berkeley.ground.postgres.dao.StructureDao;
+import edu.berkeley.ground.postgres.dao.StructureVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +20,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-public class GraphController extends Controller {
+public class StructureController extends Controller {
   private CacheApi cache;
   private Database dbSource;
   private ActorSystem actorSystem;
@@ -33,15 +33,15 @@ public class GraphController extends Controller {
     this.cache = cache;
   }
 
-  public final CompletionStage<Result> getGraph(final String sourceKey) {
+  public final CompletionStage<Result> getStructure(final String sourceKey) {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
                   String sql =
-                      String.format("select * from graph where source_key = \'%s\'", sourceKey);
+                      String.format("select * from structure where source_key = \'%s\'", sourceKey);
                   try {
                     return cache.getOrElse(
-                        "graphs",
+                        "structures",
                         () -> PostgresUtils.executeQueryToJson(dbSource, sql),
                         Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
                   } catch (Exception e) {
@@ -58,18 +58,18 @@ public class GraphController extends Controller {
   }
 
   @BodyParser.Of(BodyParser.Json.class)
-  public final CompletionStage<Result> addGraph() {
+  public final CompletionStage<Result> addStructure() {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
                   JsonNode json = request().body().asJson();
-                  Graph graph = Json.fromJson(json, Graph.class);
+                  Structure structure = Json.fromJson(json, Structure.class);
                   try {
-                    new GraphDao().create(dbSource, graph);
+                    new StructureDao().create(dbSource, structure);
                   } catch (GroundException e) {
                     throw new CompletionException(e);
                   }
-                  return String.format("New Graph Created Successfully");
+                  return String.format("New Structure Created Successfully");
                 },
                 PostgresUtils.getDbSourceHttpContext(actorSystem))
             .thenApply(output -> created(output))
@@ -86,14 +86,14 @@ public class GraphController extends Controller {
     return results;
   }
 
-  public final CompletionStage<Result> getGraphVersion(final long id) {
+  public final CompletionStage<Result> getStructureVersion(final long id) {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
-                  String sql = String.format("select * from graph_version where id = %d", id);
+                  String sql = String.format("select * from structure_version where id = %d", id);
                   try {
                     return cache.getOrElse(
-                        "graphs",
+                        "structures",
                         () -> PostgresUtils.executeQueryToJson(dbSource, sql),
                         Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
                   } catch (Exception e) {
@@ -110,18 +110,18 @@ public class GraphController extends Controller {
   }
 
   @BodyParser.Of(BodyParser.Json.class)
-  public final CompletionStage<Result> addGraphVersion() {
+  public final CompletionStage<Result> addStructureVersion() {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
                   JsonNode json = request().body().asJson();
-                  GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
+                  StructureVersion structureVersion = Json.fromJson(json, StructureVersion.class);
                   try {
-                    new GraphVersionDao().create(dbSource, graphVersion);
+                    new StructureVersionDao().create(dbSource, structureVersion);
                   } catch (GroundException e) {
                     throw new CompletionException(e);
                   }
-                  return String.format("New Graph Version Created Successfully");
+                  return String.format("New Structure Version Created Successfully");
                 },
                 PostgresUtils.getDbSourceHttpContext(actorSystem))
             .thenApply(output -> created(output))

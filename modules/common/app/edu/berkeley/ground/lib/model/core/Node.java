@@ -11,6 +11,8 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import java.util.Map;
+
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
 import com.fasterxml.jackson.annotation.JsonCreator;
