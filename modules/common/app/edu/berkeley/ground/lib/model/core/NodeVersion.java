@@ -12,10 +12,14 @@
 package edu.berkeley.ground.lib.model.core;
 
 import edu.berkeley.ground.lib.model.version.Tag;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 public class NodeVersion extends RichVersion {
   // the id of the Node containing this Version
+  
+  @JsonProperty("node_id")
   private final long nodeId;
 
   /**
@@ -28,13 +32,14 @@ public class NodeVersion extends RichVersion {
    * @param referenceParameters the parameters associated with the reference
    * @param nodeId the id of the node containing this version
    */
+  @JsonCreator
   public NodeVersion(
-      long id,
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long nodeId) {
+      @JsonProperty("id") long id,
+      @JsonProperty("tags") Map<String, Tag> tags,
+      @JsonProperty("structure_version_id") long structureVersionId,
+      @JsonProperty("reference") String reference,
+      @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
+      @JsonProperty("node_id") long nodeId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
