@@ -21,11 +21,11 @@ import edu.berkeley.ground.lib.model.version.Tag;
 public class Graph extends Item<GraphVersion> {
   // the name of this Graph
   @JsonProperty("name")
-  private String name;
+  private final String name;
 
   // the source key for this Graph
   @JsonProperty("source_key")
-  private String sourceKey;
+  private final String sourceKey;
 
   /**
    * Create a new Graph.
@@ -51,14 +51,6 @@ public class Graph extends Item<GraphVersion> {
 
   public String getSourceKey() {
     return this.sourceKey;
-  }
-
-  public void setName(final String name) {
-    this.name = name;
-  }
-
-  public void setSourceKey(final String sourceKey) {
-    this.sourceKey = sourceKey;
   }
 
   @Override

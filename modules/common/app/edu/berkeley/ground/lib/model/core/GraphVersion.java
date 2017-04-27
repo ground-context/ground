@@ -21,11 +21,11 @@ import edu.berkeley.ground.lib.model.version.Tag;
 public class GraphVersion extends RichVersion {
   // the id of the Graph that contains this Version
   @JsonProperty("graph_id")
-  private long graphId;
+  private final long graphId;
 
   // the list of ids of EdgeVersions in this GraphVersion
   @JsonProperty("edge_version_ids")
-  private List<Long> edgeVersionIds;
+  private final List<Long> edgeVersionIds;
 
   /**
    * Create a new graph version.
@@ -61,14 +61,6 @@ public class GraphVersion extends RichVersion {
 
   public List<Long> getEdgeVersionIds() {
     return this.edgeVersionIds;
-  }
-
-  public void setGraphId(final long graphId) {
-    this.graphId = graphId;
-  }
-
-  public void setEdgeVersionIds(final List<Long> edgeVersionIds) {
-    this.edgeVersionIds = edgeVersionIds;
   }
 
   @Override

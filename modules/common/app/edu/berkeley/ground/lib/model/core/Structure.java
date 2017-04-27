@@ -11,15 +11,20 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
+
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.Map;
 
 public class Structure extends Item<StructureVersion> {
   // the name of this Structure
+  @JsonProperty("name")
   private final String name;
 
   // the source key for this Node
+  @JsonProperty("source_key")
   private final String sourceKey;
 
   /**
@@ -30,7 +35,9 @@ public class Structure extends Item<StructureVersion> {
    * @param sourceKey the user-generated unique key for the structure
    * @param tags the tags associated with this structure
    */
-  public Structure(long id, String name, String sourceKey, Map<String, Tag> tags) {
+  @JsonCreator
+  public Structure(@JsonProperty("item_id") long id, @JsonProperty("name") String name,
+                     @JsonProperty("source_key") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
