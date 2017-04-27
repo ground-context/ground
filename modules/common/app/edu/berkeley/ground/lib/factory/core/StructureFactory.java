@@ -11,12 +11,13 @@
  */
 package edu.berkeley.ground.lib.factory.core;
 
+import java.util.List;
+import java.util.Map;
+
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.ItemFactory;
 import edu.berkeley.ground.lib.model.core.Structure;
 import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.List;
-import java.util.Map;
 
 public interface StructureFactory extends ItemFactory<Structure> {
 

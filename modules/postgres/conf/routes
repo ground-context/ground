@@ -13,8 +13,17 @@ POST 	/ground/v1.0/nodes			edu.berkeley.ground.postgres.controllers.ExampleContr
 ### NoDocs ###
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
-#Graph
-POST    /graphs                          				  edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
+POST    /graphs                        		  			  edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
 GET     /graphs/:sourceKey                                edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
 POST    /versions/graphs                      			  edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
+<<<<<<< HEAD
 GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: long)
+=======
+GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
+
+# structure endpoints
+POST    /structures                        		  		  edu.berkeley.ground.postgres.controllers.StructureController.addStructure()
+GET     /structures/:sourceKey                            edu.berkeley.ground.postgres.controllers.StructureController.getStructure(sourceKey: String)
+POST    /versions/structures                      		  edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
+GET     /versions/structures/:id                          edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
+>>>>>>> origin/master

@@ -1,10 +1,12 @@
 package edu.berkeley.ground.postgres.filters;
 
-import akka.stream.Materializer;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+
 import javax.inject.*;
+
+import akka.stream.Materializer;
 import play.mvc.*;
 import play.mvc.Http.RequestHeader;
 

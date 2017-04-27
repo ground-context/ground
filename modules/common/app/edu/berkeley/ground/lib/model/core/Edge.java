@@ -11,9 +11,10 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import java.util.Map;
+
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.Map;
 
 public class Edge extends Item<EdgeVersion> {
   // the name of this Edge

@@ -8,7 +8,7 @@ import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
-public class ExampleVersionDao {
+public class NodeVersionDao {
 
   public final void create(final Database dbSource, final NodeVersion nodeVersion)
       throws GroundException {

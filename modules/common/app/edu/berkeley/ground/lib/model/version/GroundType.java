@@ -11,8 +11,9 @@
  */
 package edu.berkeley.ground.lib.model.version;
 
-import edu.berkeley.ground.lib.exception.GroundException;
 import java.sql.Types;
+
+import edu.berkeley.ground.lib.exception.GroundException;
 
 public enum GroundType {
   STRING(String.class, "string", Types.VARCHAR) {
