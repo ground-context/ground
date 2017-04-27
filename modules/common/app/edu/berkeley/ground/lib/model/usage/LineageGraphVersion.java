@@ -11,11 +11,10 @@
  */
 package edu.berkeley.ground.lib.model.usage;
 
-import java.util.List;
-import java.util.Map;
-
 import edu.berkeley.ground.lib.model.core.RichVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.List;
+import java.util.Map;
 
 public class LineageGraphVersion extends RichVersion {
   // the id of the LineageGraph that contains this version
