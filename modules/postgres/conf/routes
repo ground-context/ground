@@ -29,3 +29,9 @@ POST    /structures                        		  		  edu.berkeley.ground.postgres.
 GET     /structures/:sourceKey                            edu.berkeley.ground.postgres.controllers.StructureController.getStructure(sourceKey: String)
 POST    /versions/structures                      		  edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
 GET     /versions/structures/:id                          edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
+
+#Edge
+POST    /edges                         				  	  edu.berkeley.ground.postgres.controllers.EdgeController.addEdge()
+GET     /edges/:sourceKey                                 edu.berkeley.ground.postgres.controllers.EdgeController.getEdge(sourceKey: String)
+POST    /versions/edges                      			  edu.berkeley.ground.postgres.controllers.EdgeController.addEdgeVersion()
+GET     /versions/edges/:id                               edu.berkeley.ground.postgres.controllers.EdgeController.getEdgeVersion(id: Long)

@@ -11,21 +11,27 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.Map;
 
 public class Edge extends Item<EdgeVersion> {
   // the name of this Edge
+  @JsonProperty("name")
   private final String name;
 
   // the id of the Node that this EdgeVersion originates from
+  @JsonProperty("from_node_id")
   private final long fromNodeId;
 
   // the id of the Node that this EdgeVersion points to
+  @JsonProperty("to_node_id")
   private final long toNodeId;
 
   // the source key for this Edge
+  @JsonProperty("source_key")
   private final String sourceKey;
 
   /**
@@ -38,13 +44,14 @@ public class Edge extends Item<EdgeVersion> {
    * @param toNodeId the destination node of this edge
    * @param tags the tags associated with this edge
    */
+  @JsonCreator
   public Edge(
-      long id,
-      String name,
-      String sourceKey,
-      long fromNodeId,
-      long toNodeId,
-      Map<String, Tag> tags) {
+      @JsonProperty("item_id") long id,
+      @JsonProperty("name") String name,
+      @JsonProperty("source_key") String sourceKey,
+      @JsonProperty("from_node_id") long fromNodeId,
+      @JsonProperty("to_node_id") long toNodeId,
+      @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
