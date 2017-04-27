@@ -96,7 +96,7 @@ public class NodeController extends Controller {
                   String sql = String.format("select * from node_version where node_id=\'%s\'", id.toString());
                   try {
                     return cache.getOrElse(
-                        "nodes",
+                        "node_versions",
                         () -> PostgresUtils.executeQueryToJson(dbSource, sql),
                         Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
                   } catch (Exception e) {
