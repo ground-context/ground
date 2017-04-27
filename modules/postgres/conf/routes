@@ -23,7 +23,7 @@ GET     /versions/nodes/:id                edu.berkeley.ground.postgres.controll
 POST    /graphs                          				  edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
 GET     /graphs/:sourceKey                                edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
 POST    /versions/graphs                      			  edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
-GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: long)
+GET     /versions/graphs/:id                              edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
 
 # structure endpoints
 POST    /structures                        		  		  edu.berkeley.ground.postgres.controllers.StructureController.addStructure()

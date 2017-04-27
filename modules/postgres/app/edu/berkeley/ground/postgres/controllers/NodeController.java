@@ -1,21 +1,18 @@
 package edu.berkeley.ground.postgres.controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-
-import javax.inject.Inject;
-
 import akka.actor.ActorSystem;
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.lib.model.core.Node;
+import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.dao.NodeDao;
 import edu.berkeley.ground.postgres.dao.NodeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -40,7 +37,8 @@ public class NodeController extends Controller {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
-                  String sql = String.format("select * from node where source_key=\'%s\'", sourceKey);
+                  String sql =
+                      String.format("select * from node where source_key=\'%s\'", sourceKey);
                   try {
                     return cache.getOrElse(
                         "nodes",
@@ -88,12 +86,13 @@ public class NodeController extends Controller {
     return results;
   }
 
-
   public final CompletionStage<Result> getNodeVersion(Long id) {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
-                  String sql = String.format("select * from node_version where node_id=\'%s\'", id.toString());
+                  String sql =
+                      String.format(
+                          "select * from node_version where node_id=\'%s\'", id.toString());
                   try {
                     return cache.getOrElse(
                         "node_versions",
@@ -111,7 +110,6 @@ public class NodeController extends Controller {
                 });
     return results;
   }
-
 
   public final CompletionStage<Result> createNodeVersion() {
     CompletableFuture<Result> results =
