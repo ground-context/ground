@@ -1,11 +1,10 @@
 package edu.berkeley.ground.postgres.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.ArrayList;
+import java.util.List;
 import play.db.Database;
 
 public class NodeVersionDao {

@@ -11,9 +11,8 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
-import java.util.Map;
-
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.Map;
 
 public class EdgeVersion extends RichVersion {
   // the id of the Edge containing this Version

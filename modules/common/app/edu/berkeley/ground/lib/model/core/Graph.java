@@ -11,12 +11,11 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.Map;
 
 public class Graph extends Item<GraphVersion> {
   // the name of this Graph
@@ -35,10 +34,12 @@ public class Graph extends Item<GraphVersion> {
    * @param sourceKey the user-generated unique key for the graph
    * @param tags the tags associated with the graph
    */
-
   @JsonCreator
-  public Graph(@JsonProperty("item_id") long id, @JsonProperty("name") String name,
-                     @JsonProperty("source_key") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
+  public Graph(
+      @JsonProperty("item_id") long id,
+      @JsonProperty("name") String name,
+      @JsonProperty("source_key") String sourceKey,
+      @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;

@@ -13,10 +13,9 @@ package edu.berkeley.ground.lib.model.core;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
-
-import edu.berkeley.ground.lib.model.version.Tag;
 
 public class GraphVersion extends RichVersion {
   // the id of the Graph that contains this Version
@@ -38,7 +37,6 @@ public class GraphVersion extends RichVersion {
    * @param graphId the id of the graph containing this version
    * @param edgeVersionIds the list of edge versions in this graph version
    */
-
   @JsonCreator
   public GraphVersion(
       @JsonProperty("id") long id,
