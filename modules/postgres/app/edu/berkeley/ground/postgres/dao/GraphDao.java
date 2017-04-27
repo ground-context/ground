@@ -12,7 +12,7 @@ public class GraphDao {
 
     public final void create(final Database dbSource, final Graph graph) throws GroundException {
         final List<String> sqlList = new ArrayList<>();
-        sqlList.add(String.format("insert into graph (item_id, source_key, name) values (%d,%s, %s)", graph.getId(),
+        sqlList.add(String.format("insert into graph (item_id, source_key, name) values (%d, '%s', '%s')", graph.getId(),
                 graph.getSourceKey(), graph.getName()));
         PostgresUtils.executeSqlList(dbSource, sqlList);
     }
