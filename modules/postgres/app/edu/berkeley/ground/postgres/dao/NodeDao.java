@@ -12,12 +12,17 @@ public class NodeDao {
   public final void create(final Database dbSource, final Node node) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     // Need to create a unique item id
-    long uniqueItemId = 2L;
+    long uniqueItemId = 30L;
+    sqlList.add(
+      String.format(
+        "insert into item (id) values (%s)",
+        uniqueItemId));
 
     sqlList.add(
-        String.format(
-            "insert into node (item_id, source_key, name) values (%s,%s,%s)",
-            uniqueItemId, node.getSourceKey(), node.getName()));
+      String.format(
+        "insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
+        uniqueItemId, node.getSourceKey(), node.getName()));
+
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
 }
