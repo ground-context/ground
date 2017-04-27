@@ -11,16 +11,21 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.Map;
 
 public class Graph extends Item<GraphVersion> {
   // the name of this Graph
-  private final String name;
+  @JsonProperty("name")
+  private String name;
 
   // the source key for this Graph
-  private final String sourceKey;
+  @JsonProperty("source_key")
+  private String sourceKey;
 
   /**
    * Create a new Graph.
@@ -30,7 +35,10 @@ public class Graph extends Item<GraphVersion> {
    * @param sourceKey the user-generated unique key for the graph
    * @param tags the tags associated with the graph
    */
-  public Graph(long id, String name, String sourceKey, Map<String, Tag> tags) {
+
+  @JsonCreator
+  public Graph(@JsonProperty("item_id") long id, @JsonProperty("name") String name,
+                     @JsonProperty("source_key") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
@@ -43,6 +51,14 @@ public class Graph extends Item<GraphVersion> {
 
   public String getSourceKey() {
     return this.sourceKey;
+  }
+
+  public void setName(final String name) {
+    this.name = name;
+  }
+
+  public void setSourceKey(final String sourceKey) {
+    this.sourceKey = sourceKey;
   }
 
   @Override
