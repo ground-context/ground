@@ -17,6 +17,7 @@ import edu.berkeley.ground.lib.model.usage.LineageEdge;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
 
@@ -28,10 +29,10 @@ public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
   }
 
   @Override
-  LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException;
+  LineageEdge retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
 
   @Override
-  LineageEdge retrieveFromDatabase(long id) throws GroundException;
+  LineageEdge retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;

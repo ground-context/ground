@@ -14,11 +14,12 @@ package edu.berkeley.ground.lib.factory.version;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.Item;
 import java.util.List;
+import play.db.Database;
 
 public interface ItemFactory<T extends Item> {
-  T retrieveFromDatabase(long id) throws GroundException;
+  T retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
-  T retrieveFromDatabase(String sourceKey) throws GroundException;
+  T retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
 
   Class<T> getType();
 
@@ -43,9 +44,9 @@ public interface ItemFactory<T extends Item> {
    */
   void truncate(long itemId, int numLevels) throws GroundException;
 
-  default boolean checkIfItemExists(String sourceKey) throws GroundException {
+  /*default boolean checkIfItemExists(String sourceKey) {
     try {
-      this.retrieveFromDatabase(sourceKey);
+      //this.retrieveFromDatabase(new Object(), sourceKey);
 
       return true;
     } catch (GroundException e) {
@@ -58,5 +59,5 @@ public interface ItemFactory<T extends Item> {
       // TODO: Remove empty string
       throw new GroundException("");
     }
-  }
+  }*/
 }

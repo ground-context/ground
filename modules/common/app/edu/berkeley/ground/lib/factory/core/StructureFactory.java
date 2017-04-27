@@ -17,6 +17,7 @@ import edu.berkeley.ground.lib.model.core.Structure;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface StructureFactory extends ItemFactory<Structure> {
 
@@ -28,10 +29,10 @@ public interface StructureFactory extends ItemFactory<Structure> {
   }
 
   @Override
-  Structure retrieveFromDatabase(String sourceKey) throws GroundException;
+  Structure retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
 
   @Override
-  Structure retrieveFromDatabase(long id) throws GroundException;
+  Structure retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
