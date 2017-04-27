@@ -11,16 +11,18 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
-import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.version.GroundType;
 import edu.berkeley.ground.lib.model.version.Version;
+import java.util.Map;
 
 public class StructureVersion extends Version {
   // the id of the Structure containing this Version
+  @JsonProperty("structure_id")
   private final long structureId;
 
   // the map of attribute names to types
+  @JsonProperty("attributes")
   private final Map<String, GroundType> attributes;
 
   /**
@@ -30,7 +32,10 @@ public class StructureVersion extends Version {
    * @param structureId the id of the structure containing this version
    * @param attributes the attributes required by this structure version
    */
-  public StructureVersion(long id, long structureId, Map<String, GroundType> attributes) {
+  public StructureVersion(
+      @JsonProperty("id") long id,
+      @JsonProperty("structure_id") long structureId,
+      @JsonProperty("attributes") Map<String, GroundType> attributes) {
     super(id);
 
     this.structureId = structureId;

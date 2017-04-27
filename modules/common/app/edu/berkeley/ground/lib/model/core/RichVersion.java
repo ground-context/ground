@@ -11,11 +11,10 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
-import java.util.Map;
-import java.util.Objects;
-
 import edu.berkeley.ground.lib.model.version.Tag;
 import edu.berkeley.ground.lib.model.version.Version;
+import java.util.Map;
+import java.util.Objects;
 
 public class RichVersion extends Version {
   // the map of Keys to Tags associated with this RichVersion

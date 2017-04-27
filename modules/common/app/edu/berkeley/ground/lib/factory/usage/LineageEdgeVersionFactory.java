@@ -11,13 +11,12 @@
  */
 package edu.berkeley.ground.lib.factory.usage;
 
-import java.util.List;
-import java.util.Map;
-
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.core.RichVersionFactory;
 import edu.berkeley.ground.lib.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.List;
+import java.util.Map;
 
 public interface LineageEdgeVersionFactory extends RichVersionFactory<LineageEdgeVersion> {
 

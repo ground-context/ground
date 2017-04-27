@@ -11,16 +11,19 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.lib.model.version.Tag;
-
 public class GraphVersion extends RichVersion {
   // the id of the Graph that contains this Version
+  @JsonProperty("graph_id")
   private final long graphId;
 
   // the list of ids of EdgeVersions in this GraphVersion
+  @JsonProperty("edge_version_ids")
   private final List<Long> edgeVersionIds;
 
   /**
@@ -34,14 +37,15 @@ public class GraphVersion extends RichVersion {
    * @param graphId the id of the graph containing this version
    * @param edgeVersionIds the list of edge versions in this graph version
    */
+  @JsonCreator
   public GraphVersion(
-      long id,
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long graphId,
-      List<Long> edgeVersionIds) {
+      @JsonProperty("id") long id,
+      @JsonProperty("tags") Map<String, Tag> tags,
+      @JsonProperty("structure_version_id") long structureVersionId,
+      @JsonProperty("reference") String reference,
+      @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
+      @JsonProperty("graph_id") long graphId,
+      @JsonProperty("edge_version_ids") List<Long> edgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 

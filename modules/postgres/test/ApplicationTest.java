@@ -1,12 +1,11 @@
-import org.junit.*;
+import static org.junit.Assert.*;
+import static play.test.Helpers.*;
 
+import org.junit.*;
 import play.libs.F.*;
 import play.mvc.*;
 import play.test.*;
 import play.twirl.api.Content;
-
-import static org.junit.Assert.*;
-import static play.test.Helpers.*;
 
 /**
  * Simple (JUnit) tests that can call all parts of a play app. If you are interested in mocking a
