@@ -18,16 +18,16 @@ import models.versions.Version;
 
 public class RichVersion extends Version {
   // the map of Keys to Tags associated with this RichVersion
-  private final Map<String, Tag> tags;
+  private Map<String, Tag> tags;
 
   // the StructureVersion associated with this RichVersion
-  private final long structureVersionId;
+  private long structureVersionId;
 
   // the optional reference associated with this RichVersion
-  private final String reference;
+  private String reference;
 
   // the optional parameters associated with this RichVersion if there is a reference
-  private final Map<String, String> parameters;
+  private Map<String, String> parameters;
 
   /**
    * Create a new rich version.
@@ -38,12 +38,19 @@ public class RichVersion extends Version {
    * @param reference an optional external reference
    * @param referenceParameters the access parameters for the reference
    */
+
   public RichVersion(
       long id,
       Map<String, Tag> tags,
       long structureVersionId,
       String reference,
       Map<String, String> referenceParameters) {
+
+  public RichVersion(long id,
+                     Map<String, Tag> tags,
+                     long structureVersionId,
+                     String reference,
+                     Map<String, String> referenceParameters) {
 
     super(id);
 
@@ -67,6 +74,18 @@ public class RichVersion extends Version {
 
   public Map<String, String> getParameters() {
     return this.parameters;
+  }
+
+  public void setTags(final Map<String, Tag>  tags) {
+    this.tags = tags;
+  }
+
+  public void setStructureVersionId(final long structureVersionId) {
+    this.structureVersionId = structureVersionId;
+  }
+
+  public void setReference(final String reference) {
+    this.reference = reference;
   }
 
   @Override

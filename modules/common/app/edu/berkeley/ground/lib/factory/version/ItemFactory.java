@@ -11,9 +11,10 @@
  */
 package edu.berkeley.ground.lib.factory.version;
 
+import java.util.List;
+
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.Item;
-import java.util.List;
 
 public interface ItemFactory<T extends Item> {
   T retrieveFromDatabase(long id) throws GroundException;

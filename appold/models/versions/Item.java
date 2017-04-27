@@ -16,9 +16,9 @@ import java.util.Map;
 
 public class Item<T extends Version> {
 
-  private final long id;
+  private long id;
 
-  private final Map<String, Tag> tags;
+  private Map<String, Tag> tags;
 
   public Item(long id, Map<String, Tag> tags) {
     this.id = id;
@@ -29,7 +29,18 @@ public class Item<T extends Version> {
     return this.id;
   }
 
+<<<<<<< HEAD
+=======
+ public void setId(final long id) {
+    this.id = id;
+  }
+
+>>>>>>> cc92711b038f5186788812f8aedbd268d83880e1
   public Map<String, Tag> getTags() {
     return this.tags;
+  }
+
+  public void setTags(final Map<String, Tag> tags) {
+    this.tags = tags;
   }
 }

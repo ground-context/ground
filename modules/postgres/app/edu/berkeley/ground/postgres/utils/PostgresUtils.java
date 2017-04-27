@@ -1,6 +1,5 @@
 package edu.berkeley.ground.postgres.utils;
 
-import akka.actor.ActorSystem;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+
+import akka.actor.ActorSystem;
 import play.Logger;
 import play.db.Database;
 import play.libs.concurrent.HttpExecution;

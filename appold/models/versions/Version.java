@@ -12,7 +12,7 @@
 package models.versions;
 
 public class Version {
-  private final long id;
+  private long id;
 
   public Version(long id) {
     this.id = id;
@@ -20,5 +20,9 @@ public class Version {
 
   public long getId() {
     return this.id;
+  }
+
+  public void setId(final long id) {
+  	this.id = id;
   }
 }
