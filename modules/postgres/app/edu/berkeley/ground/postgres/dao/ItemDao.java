@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 import play.db.Database;
 
-public class ItemDao {
+public class ItemDao<T extends Item> {
 
-  public final void create(final Database dbSource, final Item item, final IdGenerator idGenerator) throws GroundException {
+  public void create(final Database dbSource, final T item, final IdGenerator idGenerator) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     sqlList.add(
         String.format(

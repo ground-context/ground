@@ -21,8 +21,6 @@ import play.db.Database;
 
 public interface GraphFactory extends ItemFactory<Graph> {
 
-  Graph create(Database dbSource, String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
-
   @Override
   default Class<Graph> getType() {
     return Graph.class;
@@ -39,4 +37,7 @@ public interface GraphFactory extends ItemFactory<Graph> {
 
   @Override
   List<Long> getLeaves(String sourceKey) throws GroundException;
+
+  @Override
+  void truncate(long itemId, int numLevels) throws GroundException;
 }

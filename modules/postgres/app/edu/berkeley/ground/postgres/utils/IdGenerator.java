@@ -15,6 +15,7 @@
 package edu.berkeley.ground.postgres.utils;
 
 import javax.inject.Singleton;
+import javax.inject.Inject;
 
 @Singleton
 public class IdGenerator {
@@ -33,6 +34,7 @@ public class IdGenerator {
    * @param numMachines the total number of machines
    * @param globallyUnique if true, only one counter will be used for all version
    */
+
   public IdGenerator(long machineId, long numMachines, boolean globallyUnique) {
     long machineBits = 1;
     long fence = 2;

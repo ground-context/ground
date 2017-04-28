@@ -13,10 +13,10 @@ import play.db.Database;
 import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class GraphDao extends ItemDao implements GraphFactory {
+public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   @Override
-  public final void create(final Database dbSource, final Graph graph, final IdGenerator idGenerator) throws GroundException {
+  public void create(final Database dbSource, final Graph graph, final IdGenerator idGenerator) throws GroundException {
     super.create(dbSource, graph, idGenerator);
     final List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
@@ -28,27 +28,31 @@ public class GraphDao extends ItemDao implements GraphFactory {
   }
 
   @Override
-  Graph retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
+  public Graph retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
   	String sql = String.format("select * from graph where source_key = \'%s\'", sourceKey);
   	JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
   	return Json.fromJson(json, Graph.class);
   }
 
   @Override
-  Graph retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
+  public Graph retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
   	String sql = String.format("select * from graph_version where id = %d", id);
   	JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
   	return Json.fromJson(json, Graph.class);
   }
 
   @Override
-  void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
 
   }
 
   @Override
-  List<Long> getLeaves(String sourceKey) throws GroundException {
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
   	return new ArrayList<>();
+  }
+
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    
   }
 
 }
