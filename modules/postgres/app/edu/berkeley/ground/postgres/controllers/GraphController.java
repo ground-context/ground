@@ -8,6 +8,7 @@ import edu.berkeley.ground.lib.model.core.GraphVersion;
 import edu.berkeley.ground.postgres.dao.GraphDao;
 import edu.berkeley.ground.postgres.dao.GraphVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
+import edu.berkeley.ground.postgres.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -24,25 +25,25 @@ public class GraphController extends Controller {
   private CacheApi cache;
   private Database dbSource;
   private ActorSystem actorSystem;
+  private IdGenerator idGenerator;
 
   @Inject
   final void injectUtils(
-      final CacheApi cache, final Database dbSource, final ActorSystem actorSystem) {
+      final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.actorSystem = actorSystem;
     this.cache = cache;
+    this.idGenerator = idGenerator;
   }
 
   public final CompletionStage<Result> getGraph(final String sourceKey) {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
-                  String sql =
-                      String.format("select * from graph where source_key = \'%s\'", sourceKey);
                   try {
                     return cache.getOrElse(
                         "graphs",
-                        () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+                        () -> Json.toJson(new GraphDao().retrieveFromDatabase(dbSource, sourceKey)).toString(),
                         Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
                   } catch (Exception e) {
                     throw new CompletionException(e);
@@ -65,7 +66,7 @@ public class GraphController extends Controller {
                   JsonNode json = request().body().asJson();
                   Graph graph = Json.fromJson(json, Graph.class);
                   try {
-                    new GraphDao().create(dbSource, graph);
+                    new GraphDao().create(dbSource, graph, idGenerator);
                   } catch (GroundException e) {
                     throw new CompletionException(e);
                   }
@@ -90,11 +91,10 @@ public class GraphController extends Controller {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
-                  String sql = String.format("select * from graph_version where id = %d", id);
                   try {
                     return cache.getOrElse(
                         "graphs",
-                        () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+                        () -> Json.toJson(new GraphDao().retrieveFromDatabase(dbSource, id)).toString(),
                         Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
                   } catch (Exception e) {
                     throw new CompletionException(e);

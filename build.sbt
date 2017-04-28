@@ -21,7 +21,8 @@ lazy val common = (project in file("modules/common"))
         name := "ground-common-lib",
         organization := "edu.berkeley.ground.lib",
 		version := "0.1-SNAPSHOT",
-  		scalaVersion := "2.11.8"
+  		scalaVersion := "2.11.8",
+      libraryDependencies += javaJdbc
     )
 
 lazy val postgres = (project in file("modules/postgres"))

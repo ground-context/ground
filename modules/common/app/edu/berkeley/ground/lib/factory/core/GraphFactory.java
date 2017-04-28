@@ -17,10 +17,11 @@ import edu.berkeley.ground.lib.model.core.Graph;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface GraphFactory extends ItemFactory<Graph> {
 
-  Graph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
+  Graph create(Database dbSource, String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
 
   @Override
   default Class<Graph> getType() {
@@ -28,10 +29,10 @@ public interface GraphFactory extends ItemFactory<Graph> {
   }
 
   @Override
-  Graph retrieveFromDatabase(String sourceKey) throws GroundException;
+  Graph retrieveFromDatabase(final Database dbSource, final String sourceKey) throws GroundException;
 
   @Override
-  Graph retrieveFromDatabase(long id) throws GroundException;
+  Graph retrieveFromDatabase(final Database dbSource, final long id) throws GroundException;
 
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
