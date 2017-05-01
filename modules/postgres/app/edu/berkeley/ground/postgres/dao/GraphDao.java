@@ -43,7 +43,6 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-
   }
 
   @Override
@@ -52,7 +51,6 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
   }
 
   public void truncate(long itemId, int numLevels) throws GroundException {
-    
   }
 
 }
