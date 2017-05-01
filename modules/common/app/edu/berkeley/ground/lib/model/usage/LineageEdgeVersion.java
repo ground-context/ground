@@ -11,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package edu.berkeley.ground.lib.model.usage;
 
 import java.util.Map;
@@ -20,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.core.RichVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.Map;
 
 public class LineageEdgeVersion extends RichVersion {
     // the id of the LineageEdge containing this Version
@@ -88,9 +88,10 @@ public class LineageEdgeVersion extends RichVersion {
 
         LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
 
-        return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
-                && this.fromId == otherLineageEdgeVersion.fromId
-                && this.toId == otherLineageEdgeVersion.toId
-                && this.getId() == otherLineageEdgeVersion.getId() && super.equals(other);
-    }
+    return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
+        && this.fromId == otherLineageEdgeVersion.fromId
+        && this.toId == otherLineageEdgeVersion.toId
+        && this.getId() == otherLineageEdgeVersion.getId()
+        && super.equals(other);
+  }
 }
