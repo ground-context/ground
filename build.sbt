@@ -6,7 +6,9 @@ version := "0.1-SNAPSHOT"
 scalaVersion := "2.11.8"
 
 
-lazy val root = (project in file(".")).enablePlugins(PlayJava)
+lazy val root = (project in file(".")).enablePlugins(PlayJava
+//  , SwaggerPlugin
+  )
   .settings(
     name := "ground"
   )
@@ -19,11 +21,14 @@ lazy val common = (project in file("modules/common"))
         name := "ground-common-lib",
         organization := "edu.berkeley.ground.lib",
 		version := "0.1-SNAPSHOT",
-  		scalaVersion := "2.11.8"
+  		scalaVersion := "2.11.8",
+      libraryDependencies += javaJdbc
     )
 
 lazy val postgres = (project in file("modules/postgres"))
-    .enablePlugins(PlayJava, JavaAppPackaging)
+    .enablePlugins(PlayJava, JavaAppPackaging
+    //  , SwaggerPlugin
+    )
     .settings(
         name := "ground-postgres",
         organization := "edu.berkeley.ground.postgres",
@@ -41,3 +46,4 @@ EclipseKeys.preTasks := Seq(compile in Compile)
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
 EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes
 
+//swaggerDomainNameSpaces := Seq("models")

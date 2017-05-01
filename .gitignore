@@ -9,6 +9,7 @@ output*
 .classpath
 .settings
 .checkstyle
+.project
 
 # ignore standard IntelliJ files
 .idea/
