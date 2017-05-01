@@ -36,19 +36,15 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
 
   public final void create(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
     //super.create(dbSource, lineageEdge, idGenerator);
-    //TODO better rollbacks (very simple right now and technically not even guaranteed to work...)
-    final List<String> sqlList = new ArrayList<>();
+    List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
-    System.out.println("trying");
     try {
-      System.out.println("create item");
-      super.create(dbSource, newLineageEdge, idGenerator);
+      sqlList.addAll(super.createSqlString(newLineageEdge));
       sqlList.add(String.format("insert into lineage_edge (item_id, source_key, name) values (%d, '%s', '%s')",
         uniqueId, lineageEdge.getSourceKey(), lineageEdge.getName()));
       PostgresUtils.executeSqlList(dbSource, sqlList);
     } catch (Exception e) {
-      super.delete(dbSource, newLineageEdge);
       throw new GroundException(e);
     }
   }

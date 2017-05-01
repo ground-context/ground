@@ -83,6 +83,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   ;
 
   public void create(final Database dbSource, final T item, final IdGenerator idGenerator) throws GroundException {
+    final List<String> sqlList = createSqlString(item);
+    PostgresUtils.executeSqlList(dbSource, sqlList);
+  }
+
+  public List<String> createSqlString(final T item) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     sqlList.add(
       String.format(
@@ -104,11 +109,12 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
             item.getId(), key, null, null));
       }
     }
-    PostgresUtils.executeSqlList(dbSource, sqlList);
+    return sqlList;
   }
 
   public void delete(final Database dbSource, final T item) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
+    sqlList.add("begin");
     sqlList.add(String.format("delete from item where id = %d", item.getId()));
     final Map<String, Tag> tags = item.getTags();
     for (String key : tags.keySet()) {
@@ -116,6 +122,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
 
       sqlList.add(String.format("delete from item_tag where item_id = %d", item.getId()));
     }
+    sqlList.add("commit");
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
 }

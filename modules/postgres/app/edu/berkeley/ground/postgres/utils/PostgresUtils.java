@@ -80,8 +80,6 @@ public final class PostgresUtils {
                 throw new RuntimeException(
                     "Trying to execute sql. sql : " + sql + e.getMessage(), e);
               }
-              con.commit();
-              status = "SUCCESS";
             } catch (SQLException e) {
               Logger.error(
                   "error: executeSqlList SQL : {} Message: {} Cause {}. Trace: {}",
@@ -93,6 +91,8 @@ public final class PostgresUtils {
                   String.format("error : executeSqlList Message: %s", e.getMessage()), e);
             }
           }
+          con.commit();
+          status = "SUCCESS";
           return status;
         }
       }
