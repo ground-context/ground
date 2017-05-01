@@ -32,14 +32,9 @@ public class NodeVersion extends RichVersion {
    * @param referenceParameters the parameters associated with the reference
    * @param nodeId the id of the node containing this version
    */
-  @JsonCreator
-  public NodeVersion(
-      @JsonProperty("id") long id,
-      @JsonProperty("tags") Map<String, Tag> tags,
-      @JsonProperty("structure_version_id") long structureVersionId,
-      @JsonProperty("reference") String reference,
-      @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
-      @JsonProperty("node_id") long nodeId) {
+
+@JsonCreator  public NodeVersion(@JsonProperty("id")long id,@JsonProperty("tags") Map<String, Tag> tags,@JsonProperty("structure_version_id") long structureVersionId,@JsonProperty("reference") String reference,
+      @JsonProperty("reference_parameters")Map<String, String> referenceParameters,@JsonProperty("node_id") long nodeId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 

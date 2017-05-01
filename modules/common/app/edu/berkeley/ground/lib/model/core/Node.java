@@ -34,10 +34,8 @@ public class Node extends Item<NodeVersion> {
    * @param sourceKey the user-generated source key of the node
    * @param tags the tags associated with the node
    */
-  @JsonCreator
-  public Node(@JsonProperty("item_id") long id, @JsonProperty("name") String name,
-    @JsonProperty("source_key") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
-
+@JsonCreator
+  public Node(@JsonProperty("item_id")long id, @JsonProperty("name")String name,@JsonProperty("source_key") String sourceKey, @JsonProperty("tags")Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
