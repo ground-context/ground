@@ -88,10 +88,10 @@ public class LineageEdgeVersion extends RichVersion {
 
         LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
 
-        return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
-                && this.fromId == otherLineageEdgeVersion.fromId
-                && this.toId == otherLineageEdgeVersion.toId
-                && this.getId() == otherLineageEdgeVersion.getId()
+    return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
+        && this.fromId == otherLineageEdgeVersion.fromId
+        && this.toId == otherLineageEdgeVersion.toId
+        && this.getId() == otherLineageEdgeVersion.getId()
         && super.equals(other);
-    }
+  }
 }
