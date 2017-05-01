@@ -40,7 +40,7 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
     long uniqueId = idGenerator.generateItemId();
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
     try {
-      sqlList.addAll(super.createSqlString(newLineageEdge));
+      sqlList.addAll(super.createSqlList(newLineageEdge));
       sqlList.add(String.format("insert into lineage_edge (item_id, source_key, name) values (%d, '%s', '%s')",
         uniqueId, lineageEdge.getSourceKey(), lineageEdge.getName()));
       PostgresUtils.executeSqlList(dbSource, sqlList);

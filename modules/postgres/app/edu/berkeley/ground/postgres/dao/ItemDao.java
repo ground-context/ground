@@ -83,11 +83,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   ;
 
   public void create(final Database dbSource, final T item, final IdGenerator idGenerator) throws GroundException {
-    final List<String> sqlList = createSqlString(item);
+    final List<String> sqlList = createSqlList(item);
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
 
-  public List<String> createSqlString(final T item) throws GroundException {
+  public List<String> createSqlList(final T item) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     sqlList.add(
       String.format(
