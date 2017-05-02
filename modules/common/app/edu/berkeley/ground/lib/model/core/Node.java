@@ -37,9 +37,9 @@ public class Node extends Item<NodeVersion> {
    */
   @JsonCreator
   public Node(@JsonProperty("item_id") long id,
-    @JsonProperty("name") String name,
-    @JsonProperty("source_key") String sourceKey,
-    @JsonProperty("tags") Map<String, Tag> tags) {
+      @JsonProperty("name") String name,
+      @JsonProperty("source_key") String sourceKey,
+      @JsonProperty("tags") Map<String, Tag> tags) {
 
     super(id, tags);
 
