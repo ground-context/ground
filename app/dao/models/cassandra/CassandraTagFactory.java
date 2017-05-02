@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 
+
 package dao.models.cassandra;
 
 import dao.models.TagFactory;
@@ -22,7 +23,7 @@ import db.DbDataContainer;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.versions.GroundType;
-
+import util.ElasticSearch;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,9 +31,11 @@ import java.util.Map;
 
 public class CassandraTagFactory implements TagFactory {
   private final CassandraClient dbClient;
+  private final boolean elasticSearchOn;
 
-  public CassandraTagFactory(CassandraClient dbClient) {
+  public CassandraTagFactory(CassandraClient dbClient, boolean elasticSearchOn) {
     this.dbClient = dbClient;
+    this.elasticSearchOn = elasticSearchOn;
   }
 
   @Override
@@ -75,15 +78,23 @@ public class CassandraTagFactory implements TagFactory {
     return result;
   }
 
-  @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "rich_version");
+    if (elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("rich_version", tag);
+    } else {
+      return this.getIdsByTag(tag, "rich_version");
+    }
   }
 
-  @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "item");
+    if (elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("item", tag);
+    } else {
+      return this.getIdsByTag(tag, "item");
+    }
   }
+
+
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
     List<Long> result = new ArrayList<>();

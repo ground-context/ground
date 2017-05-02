@@ -21,21 +21,23 @@ import exceptions.GroundDbException;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.versions.GroundType;
+import org.neo4j.driver.internal.value.NullValue;
+import org.neo4j.driver.internal.value.StringValue;
+import org.neo4j.driver.v1.Record;
+import util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.driver.internal.value.NullValue;
-import org.neo4j.driver.internal.value.StringValue;
-import org.neo4j.driver.v1.Record;
-
 public class Neo4jTagFactory implements TagFactory {
   private final Neo4jClient dbClient;
+  private final boolean elasticSearchOn;
 
-  public Neo4jTagFactory(Neo4jClient dbClient) {
+  public Neo4jTagFactory(Neo4jClient dbClient, boolean elasticSearchOn) {
     this.dbClient = dbClient;
+    this.elasticSearchOn = elasticSearchOn;
   }
 
   @Override
@@ -86,14 +88,20 @@ public class Neo4jTagFactory implements TagFactory {
     return tags;
   }
 
-  @Override
-  public List<Long> getVersionIdsByTag(String tag) throws GroundDbException {
-    return this.getIdsByTag(tag, "rich_version_id");
+  public List<Long> getVersionIdsByTag(String tag) throws GroundException {
+    if (this.elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("rich_version", tag);
+    } else {
+      return this.getIdsByTag(tag, "rich_version");
+    }
   }
 
-  @Override
-  public List<Long> getItemIdsByTag(String tag) throws GroundDbException {
-    return this.getIdsByTag(tag, "item_id");
+  public List<Long> getItemIdsByTag(String tag) throws GroundException {
+    if (this.elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("item", tag);
+    } else {
+      return this.getIdsByTag(tag, "item");
+    }
   }
 
   private List<Long> getIdsByTag(String tag, String idAttribute) throws GroundDbException {

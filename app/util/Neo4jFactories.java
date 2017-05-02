@@ -14,24 +14,8 @@
 
 package util;
 
-import dao.models.EdgeFactory;
-import dao.models.EdgeVersionFactory;
-import dao.models.GraphFactory;
-import dao.models.GraphVersionFactory;
-import dao.models.NodeFactory;
-import dao.models.NodeVersionFactory;
-import dao.models.StructureFactory;
-import dao.models.StructureVersionFactory;
-import dao.models.neo4j.Neo4jEdgeFactory;
-import dao.models.neo4j.Neo4jEdgeVersionFactory;
-import dao.models.neo4j.Neo4jGraphFactory;
-import dao.models.neo4j.Neo4jGraphVersionFactory;
-import dao.models.neo4j.Neo4jNodeFactory;
-import dao.models.neo4j.Neo4jNodeVersionFactory;
-import dao.models.neo4j.Neo4jRichVersionFactory;
-import dao.models.neo4j.Neo4jStructureFactory;
-import dao.models.neo4j.Neo4jStructureVersionFactory;
-import dao.models.neo4j.Neo4jTagFactory;
+import dao.models.*;
+import dao.models.neo4j.*;
 import dao.usage.LineageEdgeFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import dao.usage.LineageGraphFactory;
@@ -40,15 +24,15 @@ import dao.usage.neo4j.Neo4jLineageEdgeFactory;
 import dao.usage.neo4j.Neo4jLineageEdgeVersionFactory;
 import dao.usage.neo4j.Neo4jLineageGraphFactory;
 import dao.usage.neo4j.Neo4jLineageGraphVersionFactory;
-import dao.versions.neo4j.Neo4jItemFactory;
 import dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import dao.versions.neo4j.Neo4jVersionSuccessorFactory;
 import db.DbClient;
 import db.Neo4jClient;
 import exceptions.GroundDbException;
+import play.Configuration;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import play.Configuration;
 
 @Singleton
 public class Neo4jFactories implements FactoryGenerator {
@@ -62,11 +46,12 @@ public class Neo4jFactories implements FactoryGenerator {
   private final Neo4jGraphVersionFactory graphVersionFactory;
   private final Neo4jNodeFactory nodeFactory;
   private final Neo4jNodeVersionFactory nodeVersionFactory;
-
+  private final Neo4jTagFactory tagFactory;
   private final Neo4jLineageEdgeFactory lineageEdgeFactory;
   private final Neo4jLineageEdgeVersionFactory lineageEdgeVersionFactory;
   private final Neo4jLineageGraphFactory lineageGraphFactory;
   private final Neo4jLineageGraphVersionFactory lineageGraphVersionFactory;
+
 
   /**
    * Create the Neo4j factories.
@@ -92,7 +77,7 @@ public class Neo4jFactories implements FactoryGenerator {
         new Neo4jVersionSuccessorFactory(this.neo4jClient, idGenerator);
     Neo4jVersionHistoryDagFactory versionHistoryDagFactory =
         new Neo4jVersionHistoryDagFactory(this.neo4jClient, versionSuccessorFactory);
-    Neo4jTagFactory tagFactory = new Neo4jTagFactory(this.neo4jClient);
+    Neo4jTagFactory tagFactory = new Neo4jTagFactory(this.neo4jClient, dbConf.getBoolean("elasticSearchOn"));
 
     this.structureFactory = new Neo4jStructureFactory(this.neo4jClient, versionHistoryDagFactory,
         tagFactory, idGenerator);
@@ -106,6 +91,7 @@ public class Neo4jFactories implements FactoryGenerator {
 
     this.graphFactory = new Neo4jGraphFactory(this.neo4jClient, versionHistoryDagFactory,
         tagFactory, idGenerator);
+
     this.graphVersionFactory = new Neo4jGraphVersionFactory(this.neo4jClient, this.graphFactory,
         this.structureVersionFactory, tagFactory, idGenerator);
     this.nodeFactory = new Neo4jNodeFactory(this.neo4jClient, versionHistoryDagFactory,
@@ -121,6 +107,7 @@ public class Neo4jFactories implements FactoryGenerator {
         versionHistoryDagFactory, tagFactory, idGenerator);
     this.lineageGraphVersionFactory = new Neo4jLineageGraphVersionFactory(this.neo4jClient,
         this.lineageGraphFactory, this.structureVersionFactory, tagFactory, idGenerator);
+    this.tagFactory = tagFactory;
   }
 
   @Override
@@ -184,6 +171,10 @@ public class Neo4jFactories implements FactoryGenerator {
   }
 
   @Override
+  public TagFactory getTagFactory() {
+    return this.tagFactory;
+  }
+
   public DbClient getDbClient() {
     return this.neo4jClient;
   }

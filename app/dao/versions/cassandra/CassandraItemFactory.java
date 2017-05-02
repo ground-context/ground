@@ -25,13 +25,13 @@ import models.models.Tag;
 import models.versions.GroundType;
 import models.versions.Item;
 import models.versions.VersionHistoryDag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class CassandraItemFactory<T extends Item> implements ItemFactory<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraItemFactory.class);
@@ -70,7 +70,7 @@ public abstract class CassandraItemFactory<T extends Item> implements ItemFactor
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
-
+      ElasticSearch.insertElasticSearch(tag, "item");
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));

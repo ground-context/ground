@@ -12,26 +12,11 @@
  * limitations under the License.
  */
 
+
 package util;
 
-import dao.models.EdgeFactory;
-import dao.models.EdgeVersionFactory;
-import dao.models.GraphFactory;
-import dao.models.GraphVersionFactory;
-import dao.models.NodeFactory;
-import dao.models.NodeVersionFactory;
-import dao.models.StructureFactory;
-import dao.models.StructureVersionFactory;
-import dao.models.postgres.PostgresEdgeFactory;
-import dao.models.postgres.PostgresEdgeVersionFactory;
-import dao.models.postgres.PostgresGraphFactory;
-import dao.models.postgres.PostgresGraphVersionFactory;
-import dao.models.postgres.PostgresNodeFactory;
-import dao.models.postgres.PostgresNodeVersionFactory;
-import dao.models.postgres.PostgresRichVersionFactory;
-import dao.models.postgres.PostgresStructureFactory;
-import dao.models.postgres.PostgresStructureVersionFactory;
-import dao.models.postgres.PostgresTagFactory;
+import dao.models.*;
+import dao.models.postgres.*;
 import dao.usage.LineageEdgeFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import dao.usage.LineageGraphFactory;
@@ -40,16 +25,15 @@ import dao.usage.postgres.PostgresLineageEdgeFactory;
 import dao.usage.postgres.PostgresLineageEdgeVersionFactory;
 import dao.usage.postgres.PostgresLineageGraphFactory;
 import dao.usage.postgres.PostgresLineageGraphVersionFactory;
-import dao.versions.postgres.PostgresItemFactory;
-import dao.versions.postgres.PostgresVersionFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import dao.versions.postgres.PostgresVersionSuccessorFactory;
 import db.DbClient;
 import db.PostgresClient;
 import exceptions.GroundDbException;
+import play.Configuration;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import play.Configuration;
 
 @Singleton
 public class PostgresFactories implements FactoryGenerator {
@@ -68,6 +52,7 @@ public class PostgresFactories implements FactoryGenerator {
   private final PostgresLineageEdgeVersionFactory lineageEdgeVersionFactory;
   private final PostgresLineageGraphFactory lineageGraphFactory;
   private final PostgresLineageGraphVersionFactory lineageGraphVersionFactory;
+  private final PostgresTagFactory tagFactory;
 
   /**
    * Create the Postgres factories.
@@ -94,7 +79,7 @@ public class PostgresFactories implements FactoryGenerator {
         new PostgresVersionSuccessorFactory(this.postgresClient, idGenerator);
     PostgresVersionHistoryDagFactory versionHistoryDagFactory =
         new PostgresVersionHistoryDagFactory(this.postgresClient, versionSuccessorFactory);
-    PostgresTagFactory tagFactory = new PostgresTagFactory(this.postgresClient);
+    PostgresTagFactory tagFactory = new PostgresTagFactory(this.postgresClient, dbConf.getBoolean("elasticSearchOn"));
 
     this.structureFactory = new PostgresStructureFactory(this.postgresClient, versionHistoryDagFactory,
         tagFactory, idGenerator);
@@ -123,6 +108,7 @@ public class PostgresFactories implements FactoryGenerator {
         versionHistoryDagFactory, tagFactory, idGenerator);
     this.lineageGraphVersionFactory = new PostgresLineageGraphVersionFactory(this.postgresClient,
         this.lineageGraphFactory, this.structureVersionFactory, tagFactory, idGenerator);
+    this.tagFactory = tagFactory;
   }
 
   @Override
@@ -186,6 +172,10 @@ public class PostgresFactories implements FactoryGenerator {
   }
 
   @Override
+  public TagFactory getTagFactory() {
+    return this.tagFactory;
+  }
+
   public DbClient getDbClient() {
     return this.postgresClient;
   }

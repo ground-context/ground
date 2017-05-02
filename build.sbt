@@ -15,6 +15,8 @@ libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1208"
 libraryDependencies += "org.neo4j.driver" % "neo4j-java-driver" % "1.2.0"
 libraryDependencies += "org.mockito" % "mockito-core" % "2.7.22" % "test"
 libraryDependencies += "org.assertj" % "assertj-core" % "3.6.2" % "test"
+libraryDependencies += "org.elasticsearch" % "elasticsearch" % "1.5.1"
+
 
 // disable parallel execution of tests
 parallelExecution in Test := false

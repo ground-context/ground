@@ -12,21 +12,16 @@
  * limitations under the License.
  */
 
+
 package util;
 
-import dao.models.EdgeFactory;
-import dao.models.EdgeVersionFactory;
-import dao.models.GraphFactory;
-import dao.models.GraphVersionFactory;
-import dao.models.NodeFactory;
-import dao.models.NodeVersionFactory;
-import dao.models.StructureFactory;
-import dao.models.StructureVersionFactory;
+import dao.models.*;
 import dao.usage.LineageEdgeFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import dao.usage.LineageGraphFactory;
 import dao.usage.LineageGraphVersionFactory;
 import db.DbClient;
+
 
 public interface FactoryGenerator {
   EdgeFactory getEdgeFactory();
@@ -52,6 +47,8 @@ public interface FactoryGenerator {
   LineageGraphFactory getLineageGraphFactory();
 
   LineageGraphVersionFactory getLineageGraphVersionFactory();
+
+  TagFactory getTagFactory();
 
   DbClient getDbClient();
 }

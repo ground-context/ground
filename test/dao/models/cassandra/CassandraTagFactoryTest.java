@@ -14,6 +14,10 @@
 
 package dao.models.cassandra;
 
+import dao.CassandraTest;
+import exceptions.GroundException;
+import models.models.Tag;
+import models.versions.GroundType;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -21,12 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dao.CassandraTest;
-import models.models.Tag;
-import models.versions.GroundType;
-import exceptions.GroundException;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class CassandraTagFactoryTest extends CassandraTest {
 
@@ -37,12 +36,13 @@ public class CassandraTagFactoryTest extends CassandraTest {
   @Test
   public void testGetItemIdsByTag() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
+    tagsMap.put("testtag", tag);
 
     long nodeId1 = CassandraTest.nodeFactory.create(null, "test1", tagsMap).getId();
     long nodeId2 = CassandraTest.nodeFactory.create(null, "test2", tagsMap).getId();
 
-    List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag("testtag");
+    List<Long> ids = CassandraTest.tagFactory.getItemIdsByTag(tag.getKey());
 
     CassandraTest.cassandraClient.commit();
 
@@ -53,7 +53,8 @@ public class CassandraTagFactoryTest extends CassandraTest {
   @Test
   public void testGetVersionIdsByTag() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    Tag tag = new Tag(1, "testtag", "tag", GroundType.STRING);
+    tagsMap.put("testtag", tag);
 
     long nodeId = CassandraTest.createNode("testNode").getId();
 
@@ -62,7 +63,7 @@ public class CassandraTagFactoryTest extends CassandraTest {
     long nodeVersionId2 = CassandraTest.nodeVersionFactory.create(tagsMap, -1, null,
         new HashMap<>(), nodeId, new ArrayList<>()).getId();
 
-    List<Long> ids = CassandraTest.tagFactory.getVersionIdsByTag("testtag");
+    List<Long> ids = CassandraTest.tagFactory.getVersionIdsByTag(tag.getKey());
 
     CassandraTest.cassandraClient.commit();
 

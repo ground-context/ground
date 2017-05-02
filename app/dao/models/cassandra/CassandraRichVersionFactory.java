@@ -26,6 +26,7 @@ import models.models.RichVersion;
 import models.models.StructureVersion;
 import models.models.Tag;
 import models.versions.GroundType;
+import util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -93,7 +94,7 @@ public abstract class CassandraRichVersionFactory<T extends RichVersion>
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
-
+      ElasticSearch.insertElasticSearch(tag, "rich_version");
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));

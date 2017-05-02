@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 
+
 package dao.models.postgres;
 
 import dao.models.TagFactory;
@@ -22,6 +23,7 @@ import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.versions.GroundType;
+import util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +32,11 @@ import java.util.Map;
 
 public class PostgresTagFactory implements TagFactory {
   private final PostgresClient dbClient;
+  private final boolean elasticSearchOn;
 
-  public PostgresTagFactory(PostgresClient dbClient) {
+  public PostgresTagFactory(PostgresClient dbClient, boolean elasticSearchOn) {
     this.dbClient = dbClient;
+    this.elasticSearchOn = elasticSearchOn;
   }
 
   @Override
@@ -76,13 +80,21 @@ public class PostgresTagFactory implements TagFactory {
 
   @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "rich_version");
+    if (this.elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("rich_version", tag);
+    } else {
+      return this.getIdsByTag(tag, "rich_version");
+    }
   }
 
 
   @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "item");
+    if (this.elasticSearchOn) {
+      return ElasticSearch.getSearchResponse("item", tag);
+    } else {
+      return this.getIdsByTag(tag, "item");
+    }
   }
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {

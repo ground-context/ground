@@ -6,10 +6,6 @@ import dao.models.GraphVersionFactory;
 import db.DbClient;
 import exceptions.GroundException;
 import exceptions.GroundItemNotFoundException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.inject.Inject;
 import models.models.Graph;
 import models.models.GraphVersion;
 import models.models.Tag;
@@ -18,6 +14,11 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import util.ControllerUtils;
 import util.FactoryGenerator;
+
+import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GraphController extends Controller {
   private final GraphFactory graphFactory;

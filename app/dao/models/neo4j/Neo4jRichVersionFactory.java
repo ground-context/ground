@@ -12,28 +12,28 @@
  * limitations under the License.
  */
 
+
 package dao.models.neo4j;
 
 import dao.models.RichVersionFactory;
 import dao.versions.neo4j.Neo4jVersionFactory;
 import db.DbDataContainer;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
 import models.models.RichVersion;
 import models.models.StructureVersion;
 import models.models.Tag;
 import models.versions.GroundType;
+import org.neo4j.driver.internal.value.NullValue;
+import org.neo4j.driver.internal.value.StringValue;
+import org.neo4j.driver.v1.Record;
+import util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.neo4j.driver.internal.value.NullValue;
-import org.neo4j.driver.internal.value.StringValue;
-import org.neo4j.driver.v1.Record;
 
 public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
     extends Neo4jVersionFactory<T>
@@ -104,7 +104,7 @@ public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
-
+      ElasticSearch.insertElasticSearch(tag, "rich_version");
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
       tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));

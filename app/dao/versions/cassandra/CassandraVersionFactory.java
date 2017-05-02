@@ -43,7 +43,6 @@ public abstract class CassandraVersionFactory<T extends Version> implements Vers
   public void insertIntoDatabase(long id) throws GroundException {
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-
     this.dbClient.insert("version", insertions);
   }
 

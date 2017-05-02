@@ -14,8 +14,6 @@
 
 package dao.versions.neo4j;
 
-import org.neo4j.driver.v1.Record;
-
 import dao.models.neo4j.Neo4jTagFactory;
 import dao.versions.ItemFactory;
 import db.DbDataContainer;
@@ -27,6 +25,8 @@ import models.models.Tag;
 import models.versions.GroundType;
 import models.versions.Item;
 import models.versions.VersionHistoryDag;
+import org.neo4j.driver.v1.Record;
+import util.ElasticSearch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,9 +59,11 @@ public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T>
    * @param tags the tags associated with the item
    * @throws GroundDbException an error inserting data into the database
    */
-  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundDbException {
+
+  public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
+      ElasticSearch.insertElasticSearch(tag, "item");
 
       List<DbDataContainer> tagInsertion = new ArrayList<>();
       tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));

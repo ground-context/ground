@@ -12,27 +12,11 @@
  * limitations under the License.
  */
 
+
 package util;
 
-import com.google.common.annotations.VisibleForTesting;
-import dao.models.EdgeFactory;
-import dao.models.EdgeVersionFactory;
-import dao.models.GraphFactory;
-import dao.models.GraphVersionFactory;
-import dao.models.NodeFactory;
-import dao.models.NodeVersionFactory;
-import dao.models.StructureFactory;
-import dao.models.StructureVersionFactory;
-import dao.models.cassandra.CassandraEdgeFactory;
-import dao.models.cassandra.CassandraEdgeVersionFactory;
-import dao.models.cassandra.CassandraGraphFactory;
-import dao.models.cassandra.CassandraGraphVersionFactory;
-import dao.models.cassandra.CassandraNodeFactory;
-import dao.models.cassandra.CassandraNodeVersionFactory;
-import dao.models.cassandra.CassandraRichVersionFactory;
-import dao.models.cassandra.CassandraStructureFactory;
-import dao.models.cassandra.CassandraStructureVersionFactory;
-import dao.models.cassandra.CassandraTagFactory;
+import dao.models.*;
+import dao.models.cassandra.*;
 import dao.usage.LineageEdgeFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import dao.usage.LineageGraphFactory;
@@ -41,21 +25,19 @@ import dao.usage.cassandra.CassandraLineageEdgeFactory;
 import dao.usage.cassandra.CassandraLineageEdgeVersionFactory;
 import dao.usage.cassandra.CassandraLineageGraphFactory;
 import dao.usage.cassandra.CassandraLineageGraphVersionFactory;
-import dao.versions.cassandra.CassandraItemFactory;
-import dao.versions.cassandra.CassandraVersionFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import dao.versions.cassandra.CassandraVersionSuccessorFactory;
 import db.CassandraClient;
 import db.DbClient;
 import exceptions.GroundDbException;
+import play.Configuration;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import play.Configuration;
 
 @Singleton
 public class CassandraFactories implements FactoryGenerator {
   private final CassandraClient cassandraClient;
-
   private final CassandraStructureFactory structureFactory;
   private final CassandraStructureVersionFactory structureVersionFactory;
   private final CassandraEdgeFactory edgeFactory;
@@ -64,7 +46,7 @@ public class CassandraFactories implements FactoryGenerator {
   private final CassandraGraphVersionFactory graphVersionFactory;
   private final CassandraNodeFactory nodeFactory;
   private final CassandraNodeVersionFactory nodeVersionFactory;
-
+  private final CassandraTagFactory tagFactory;
   private final CassandraLineageEdgeFactory lineageEdgeFactory;
   private final CassandraLineageEdgeVersionFactory lineageEdgeVersionFactory;
   private final CassandraLineageGraphFactory lineageGraphFactory;
@@ -95,7 +77,7 @@ public class CassandraFactories implements FactoryGenerator {
         new CassandraVersionSuccessorFactory(cassandraClient, idGenerator);
     CassandraVersionHistoryDagFactory versionHistoryDagFactory =
         new CassandraVersionHistoryDagFactory(cassandraClient, versionSuccessorFactory);
-    CassandraTagFactory tagFactory = new CassandraTagFactory(cassandraClient);
+    CassandraTagFactory tagFactory = new CassandraTagFactory(cassandraClient, dbConf.getBoolean("elasticSearchOn"));
 
     this.structureFactory = new CassandraStructureFactory(cassandraClient, versionHistoryDagFactory,
         tagFactory, idGenerator);
@@ -124,6 +106,7 @@ public class CassandraFactories implements FactoryGenerator {
         versionHistoryDagFactory, tagFactory, idGenerator);
     this.lineageGraphVersionFactory = new CassandraLineageGraphVersionFactory(cassandraClient,
         this.lineageGraphFactory, this.structureVersionFactory, tagFactory, idGenerator);
+    this.tagFactory = tagFactory;
   }
 
   @Override
@@ -186,7 +169,11 @@ public class CassandraFactories implements FactoryGenerator {
     return this.lineageGraphVersionFactory;
   }
 
-  @Override
+
+  public TagFactory getTagFactory() {
+    return this.tagFactory;
+  }
+
   public DbClient getDbClient() {
     return this.cassandraClient;
   }
