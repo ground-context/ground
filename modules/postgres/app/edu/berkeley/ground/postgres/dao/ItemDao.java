@@ -94,19 +94,21 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         "insert into item (id) values (%d)",
         item.getId()));
     final Map<String, Tag> tags = item.getTags();
-    for (String key : tags.keySet()) {
-      Tag tag = tags.get(key);
+    if (tags != null) {
+      for (String key : tags.keySet()) {
+        Tag tag = tags.get(key);
 
-      if (tag.getValue() != null) {
-        sqlList.add(
-          String.format(
-            "insert into item_tag (item_id, key, value, type) values (%d, %s, %s, %s)",
-            item.getId(), key, tag.getValue().toString(), tag.getValueType().toString()));
-      } else {
-        sqlList.add(
-          String.format(
-            "insert into item_tag (item_id, key, value, type) values (%d, %s, %s, %s)",
-            item.getId(), key, null, null));
+        if (tag.getValue() != null) {
+          sqlList.add(
+            String.format(
+              "insert into item_tag (item_id, key, value, type) values (%d, %s, %s, %s)",
+              item.getId(), key, tag.getValue().toString(), tag.getValueType().toString()));
+        } else {
+          sqlList.add(
+            String.format(
+              "insert into item_tag (item_id, key, value, type) values (%d, %s, %s, %s)",
+              item.getId(), key, null, null));
+        }
       }
     }
     return sqlList;
