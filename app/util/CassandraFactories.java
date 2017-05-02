@@ -38,7 +38,6 @@ import javax.inject.Singleton;
 @Singleton
 public class CassandraFactories implements FactoryGenerator {
   private final CassandraClient cassandraClient;
-
   private final CassandraStructureFactory structureFactory;
   private final CassandraStructureVersionFactory structureVersionFactory;
   private final CassandraEdgeFactory edgeFactory;

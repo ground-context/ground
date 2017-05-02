@@ -14,26 +14,25 @@
 
 package dao;
 
-import java.util.HashMap;
-import java.util.Map;
-import play.Configuration;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import dao.models.postgres.PostgresStructureVersionFactory;
 import dao.models.postgres.PostgresTagFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import dao.versions.postgres.PostgresVersionSuccessorFactory;
 import db.PostgresClient;
 import exceptions.GroundDbException;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import play.Configuration;
 import util.IdGenerator;
 import util.PostgresFactories;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PostgresTest extends DaoTest {
   private static final String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
@@ -52,7 +51,7 @@ public class PostgresTest extends DaoTest {
 
     versionSuccessorFactory = new PostgresVersionSuccessorFactory(postgresClient, new IdGenerator(0, 1, false));
     versionHistoryDAGFactory = new PostgresVersionHistoryDagFactory(postgresClient, versionSuccessorFactory);
-    tagFactory = new PostgresTagFactory(postgresClient);
+    tagFactory = new PostgresTagFactory(postgresClient, true);
 
     edgeFactory = factories.getEdgeFactory();
     graphFactory = factories.getGraphFactory();

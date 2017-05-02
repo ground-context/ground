@@ -15,22 +15,23 @@
 package dao;
 
 
-import com.typesafe.config.Config;
-import exceptions.GroundException;
-import java.util.HashMap;
-import java.util.Map;
-import play.Configuration;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import java.io.IOException;
 import dao.models.neo4j.Neo4jStructureVersionFactory;
 import dao.models.neo4j.Neo4jTagFactory;
 import dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
 import dao.versions.neo4j.Neo4jVersionSuccessorFactory;
 import db.Neo4jClient;
+import exceptions.GroundException;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import play.Configuration;
+import util.ElasticSearch;
 import util.IdGenerator;
 import util.Neo4jFactories;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Neo4jTest extends DaoTest {
@@ -51,7 +52,7 @@ public class Neo4jTest extends DaoTest {
 
     versionSuccessorFactory = new Neo4jVersionSuccessorFactory(neo4jClient, new IdGenerator(0, 1, true));
     versionHistoryDAGFactory = new Neo4jVersionHistoryDagFactory(neo4jClient, versionSuccessorFactory);
-    tagFactory = new Neo4jTagFactory(neo4jClient);
+    tagFactory = new Neo4jTagFactory(neo4jClient, true);
 
 
     edgeFactory = factories.getEdgeFactory();
@@ -85,7 +86,7 @@ public class Neo4jTest extends DaoTest {
 
 
   @AfterClass
-  public static void tearDown() {
+  public static void tearDown() throws IOException {
     ElasticSearch.closeElasticSearch();
   }
 

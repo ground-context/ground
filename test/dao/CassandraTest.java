@@ -14,24 +14,23 @@
 
 package dao;
 
-import java.util.HashMap;
-import java.util.Map;
-import play.Configuration;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-
-import java.io.IOException;
-import java.util.function.Function;
-
 import dao.models.cassandra.CassandraStructureVersionFactory;
 import dao.models.cassandra.CassandraTagFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import dao.versions.cassandra.CassandraVersionSuccessorFactory;
 import db.CassandraClient;
 import exceptions.GroundDbException;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import play.Configuration;
 import util.CassandraFactories;
 import util.IdGenerator;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class CassandraTest extends DaoTest {
 
@@ -59,7 +58,7 @@ public class CassandraTest extends DaoTest {
         new IdGenerator(0, 1, false));
     versionHistoryDAGFactory = new CassandraVersionHistoryDagFactory(cassandraClient,
         versionSuccessorFactory);
-    tagFactory = new CassandraTagFactory(cassandraClient);
+    tagFactory = new CassandraTagFactory(cassandraClient, true);
 
     edgeFactory = factories.getEdgeFactory();
     graphFactory = factories.getGraphFactory();
