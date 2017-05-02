@@ -17,9 +17,11 @@ package dao.models.postgres;
 import dao.models.RichVersionFactory;
 import dao.versions.postgres.PostgresVersionFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
 import models.models.RichVersion;
@@ -82,40 +84,41 @@ public abstract class PostgresRichVersionFactory<T extends RichVersion>
       RichVersionFactory.checkStructureTags(structureVersion, tags);
     }
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("structure_version_id", GroundType.LONG,
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("structure_version_id", GroundType.LONG,
         structureVersionId));
-    insertions.add(new DbDataContainer("reference", GroundType.STRING, reference));
+    insertions.add(new DbEqualsCondition("reference", GroundType.STRING, reference));
 
     this.dbClient.insert("rich_version", insertions);
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
-      List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
-      tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+      List<DbEqualsCondition> tagInsertion = new ArrayList<>();
+      tagInsertion.add(new DbEqualsCondition("from_rich_version_id", GroundType.LONG, tag.getStartId()));
+      tagInsertion.add(new DbEqualsCondition("to_rich_version_id", GroundType.LONG, tag.getEndId()));
+      tagInsertion.add(new DbEqualsCondition("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING,
             tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING,
             tag.getValueType().toString()));
       } else {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING, null));
       }
 
       this.dbClient.insert("rich_version_tag", tagInsertion);
     }
 
     for (String key : referenceParameters.keySet()) {
-      List<DbDataContainer> parameterInsertion = new ArrayList<>();
+      List<DbEqualsCondition> parameterInsertion = new ArrayList<>();
 
-      parameterInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
-      parameterInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
-      parameterInsertion.add(new DbDataContainer("value", GroundType.STRING,
+      parameterInsertion.add(new DbEqualsCondition("rich_version_id", GroundType.LONG, id));
+      parameterInsertion.add(new DbEqualsCondition("key", GroundType.STRING, key));
+      parameterInsertion.add(new DbEqualsCondition("value", GroundType.STRING,
           referenceParameters.get(key)));
 
       this.dbClient.insert("rich_version_external_parameter", parameterInsertion);
@@ -130,37 +133,32 @@ public abstract class PostgresRichVersionFactory<T extends RichVersion>
    * @throws GroundException either the rich version didn't exist or couldn't be retrieved
    */
   public RichVersion retrieveRichVersionData(long id) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("rich_version",
-        DbClient.SELECT_STAR,
-        predicates);
-
+    DbResults resultSet = this.dbClient.select("rich_version",
+        DbClient.SELECT_STAR, predicates);
     if (resultSet.isEmpty()) {
       throw new GroundVersionNotFoundException(RichVersion.class, id);
     }
 
-    List<DbDataContainer> parameterPredicates = new ArrayList<>();
-    parameterPredicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+    List<DbEqualsCondition> parameterPredicates = new ArrayList<>();
+    parameterPredicates.add(new DbEqualsCondition("rich_version_id", GroundType.LONG, id));
     Map<String, String> referenceParameters = new HashMap<>();
 
-    PostgresResults parameterSet = this.dbClient.equalitySelect("rich_version_external_parameter",
+    DbResults parameterSet = this.dbClient.select("rich_version_external_parameter",
         DbClient.SELECT_STAR, parameterPredicates);
 
-    if (!parameterSet.isEmpty()) {
-      do {
-        referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
-      } while (parameterSet.next());
+    for (DbRow parameterRow : parameterSet) {
+      referenceParameters.put(parameterRow.getString("key"), parameterRow.getString("value"));
     }
 
-    Map<String, Tag> tags = tagFactory.retrieveFromDatabaseByVersionId(id);
+    Map<String, Tag> tags = this.tagFactory.retrieveFromDatabaseByVersionId(id);
 
-    String reference = resultSet.getString(3);
-    long structureVersionId = resultSet.getLong(2);
-    structureVersionId = structureVersionId == 0 ? -1 : structureVersionId;
+    DbRow row = resultSet.one();
+    String reference = row.getString("reference");
+    long structureVersionId = row.getLong("structure_version_id");
 
-    return new RichVersion(id, tags, structureVersionId, reference,
-        referenceParameters);
+    return new RichVersion(id, tags, structureVersionId, reference, referenceParameters);
   }
 }

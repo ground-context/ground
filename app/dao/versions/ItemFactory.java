@@ -14,14 +14,13 @@
 
 package dao.versions;
 
+import db.DbResults;
 import exceptions.GroundException;
 import exceptions.GroundItemExistsException;
 import exceptions.GroundItemNotFoundException;
-import models.models.Tag;
 import models.versions.Item;
 
 import java.util.List;
-import java.util.Map;
 
 public interface ItemFactory<T extends Item> {
   T retrieveFromDatabase(long id) throws GroundException;
@@ -61,9 +60,25 @@ public interface ItemFactory<T extends Item> {
     }
   }
 
-  default void verifyItemNotExists(String sourceKey ) throws GroundException {
+  default void verifyItemNotExists(String sourceKey) throws GroundException {
     if (checkIfItemExists(sourceKey)) {
       throw new GroundItemExistsException(getType(), sourceKey);
+    }
+  }
+
+  /**
+   * Verify that a result set for an item is not empty.
+   *
+   * @param resultSet the result set to check
+   * @param fieldName the name of the field that was used to retrieve this item
+   * @param value the value used to retrieve the item
+   * @throws GroundItemNotFoundException an exception indicating the item wasn't found
+   */
+  default void verifyResultSet(DbResults resultSet, String fieldName, Object value)
+    throws GroundException {
+
+    if (resultSet.isEmpty()) {
+      throw new GroundItemNotFoundException(this.getType(), fieldName, value);
     }
   }
 }

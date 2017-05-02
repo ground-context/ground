@@ -16,9 +16,11 @@ package dao.models.cassandra;
 
 import dao.models.TagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Tag;
 import models.versions.GroundType;
@@ -48,29 +50,24 @@ public class CassandraTagFactory implements TagFactory {
   private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(keyPrefix + "_id", GroundType.LONG, id));
 
     Map<String, Tag> result = new HashMap<>();
+    DbResults resultSet = this.dbClient.select(keyPrefix + "_tag",
+        DbClient.SELECT_STAR, predicates);
 
-    CassandraResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
-        DbClient.SELECT_STAR,
-        predicates);
-
-    if (resultSet.isEmpty()) {
-      // this means that there are no tags
-      return result;
-    }
-
-    do {
-      String key = resultSet.getString("key");
+    for (DbRow row : resultSet) {
+      long fromId = row.getLong("from_rich_version_id");
+      long toId = row.getLong("to_rich_version_id");
+      String key = row.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
-      GroundType type = GroundType.fromString(resultSet.getString("type"));
-      Object value = this.getValue(type, resultSet);
+      GroundType type = GroundType.fromString(row.getString("type"));
+      Object value = row.getValue(type, "value");
 
-      result.put(key, new Tag(id, key, value, type));
-    } while (resultSet.next());
+      result.put(key, new Tag(fromId, toId, key, value, type));
+    }
 
     return result;
   }
@@ -86,48 +83,21 @@ public class CassandraTagFactory implements TagFactory {
   }
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
-    List<Long> result = new ArrayList<>();
-
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("key", GroundType.STRING, tag));
 
     List<String> projections = new ArrayList<>();
     String idColumn = keyPrefix + "_id";
     projections.add(idColumn);
 
-    CassandraResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
-        projections,
-        predicates);
+    List<Long> result = new ArrayList<>();
+    DbResults resultSet = this.dbClient.select(keyPrefix + "_tag",
+        projections, predicates);
 
-    if (resultSet.isEmpty()) {
-      // this means that there are no tags
-      return result;
+    for (DbRow row : resultSet) {
+      result.add(row.getLong(idColumn));
     }
-
-    do {
-      result.add(resultSet.getLong(idColumn));
-    } while (resultSet.next());
 
     return result;
-  }
-
-  private Object getValue(GroundType type, CassandraResults resultSet) throws GroundException {
-    if (type == null) {
-      return null;
-    }
-
-    switch (type) {
-      case STRING:
-        return resultSet.getString("value");
-      case INTEGER:
-        return resultSet.getInt("value");
-      case LONG:
-        return resultSet.getLong("value");
-      case BOOLEAN:
-        return resultSet.getBoolean("value");
-      default:
-        // this should never happen because we've listed all types
-        throw new GroundException("Unidentified type: " + type);
-    }
   }
 }

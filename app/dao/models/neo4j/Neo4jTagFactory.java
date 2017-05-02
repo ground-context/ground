@@ -15,7 +15,7 @@
 package dao.models.neo4j;
 
 import dao.models.TagFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundDbException;
 import exceptions.GroundException;
@@ -62,6 +62,9 @@ public class Neo4jTagFactory implements TagFactory {
     Map<String, Tag> tags = new HashMap<>();
 
     for (Record record : tagsRecords) {
+      long fromId = record.get("from_rich_version_id").asLong();
+      long toId = record.get("to_rich_version_id").asLong();
+
       String key = Neo4jClient.getStringFromValue((StringValue) record.get("tkey"));
 
       Object value;
@@ -80,7 +83,7 @@ public class Neo4jTagFactory implements TagFactory {
         gType = null;
       }
 
-      tags.put(key, new Tag(id, key, value, gType));
+      tags.put(key, new Tag(fromId, toId, key, value, gType));
     }
 
     return tags;
@@ -97,8 +100,8 @@ public class Neo4jTagFactory implements TagFactory {
   }
 
   private List<Long> getIdsByTag(String tag, String idAttribute) throws GroundDbException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("tkey", GroundType.STRING, tag));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("tkey", GroundType.STRING, tag));
 
     return this.dbClient.getVerticesByAttributes(predicates, idAttribute);
   }

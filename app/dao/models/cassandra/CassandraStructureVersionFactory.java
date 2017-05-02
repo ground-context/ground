@@ -17,10 +17,13 @@ package dao.models.cassandra;
 import dao.models.StructureVersionFactory;
 import dao.versions.cassandra.CassandraVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
+import exceptions.GroundVersionNotFoundException;
 import models.models.StructureVersion;
 import models.versions.GroundType;
 import util.IdGenerator;
@@ -81,17 +84,17 @@ public class CassandraStructureVersionFactory
 
     super.insertIntoDatabase(id);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("structure_id", GroundType.LONG, structureId));
 
     this.dbClient.insert("structure_version", insertions);
 
     for (String key : attributes.keySet()) {
-      List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-      itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING,
+      List<DbEqualsCondition> itemInsertions = new ArrayList<>();
+      itemInsertions.add(new DbEqualsCondition("structure_version_id", GroundType.LONG, id));
+      itemInsertions.add(new DbEqualsCondition("key", GroundType.STRING, key));
+      itemInsertions.add(new DbEqualsCondition("type", GroundType.STRING,
           attributes.get(key).toString()));
 
       this.dbClient.insert("structure_version_attribute", itemInsertions);
@@ -112,31 +115,32 @@ public class CassandraStructureVersionFactory
    */
   @Override
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("structure_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("structure_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    Map<String, GroundType> attributes = new HashMap<>();
+    List<DbEqualsCondition> attributePredicates = new ArrayList<>();
+    attributePredicates.add(new DbEqualsCondition("structure_version_id", GroundType.LONG, id));
 
-    List<DbDataContainer> attributePredicates = new ArrayList<>();
-    attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-    CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+    DbResults attributesSet = this.dbClient.select("structure_version_attribute",
         DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {
-      throw new GroundException("No StructureVersion attributes found for id " + id + ".");
+      throw new GroundVersionNotFoundException(StructureVersion.class, id);
     }
 
-    do {
-      attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
-          .getString("type")));
-    } while (attributesSet.next());
+    Map<String, GroundType> attributes = new HashMap<>();
 
-    long structureId = resultSet.getLong("structure_id");
+    for (DbRow attributesRow : attributesSet) {
+      attributes.put(attributesRow.getString("key"),
+          GroundType.fromString(attributesRow.getString("type")));
+    }
+
+    DbRow row = resultSet.one();
+    long structureId = row.getLong("structure_id");
 
     LOGGER.info("Retrieved structure version " + id + " in structure " + structureId + ".");
     return new StructureVersion(id, structureId, attributes);

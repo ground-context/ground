@@ -21,22 +21,26 @@ import exceptions.GroundException;
 import java.sql.Types;
 
 public enum GroundType {
-  STRING(String.class, "string", Types.VARCHAR){
+  STRING(String.class, "string", Types.VARCHAR) {
+    @Override
     public Object parse(String str){
       return str;
     }
   },
-  INTEGER(Integer.class, "integer", Types.INTEGER){
+  INTEGER(Integer.class, "integer", Types.INTEGER) {
+    @Override
     public Object parse(String str){
       return Integer.parseInt(str);
     }
   },
-  BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN){
+  BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN) {
+    @Override
     public Object parse(String str){
       return Boolean.parseBoolean(str);
     }
   },
-  LONG(Long.class, "long", Types.BIGINT){
+  LONG(Long.class, "long", Types.BIGINT) {
+    @Override
     public Object parse(String str){
       return Long.parseLong(str);
     }

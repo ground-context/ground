@@ -20,9 +20,11 @@ import dao.models.postgres.PostgresStructureVersionFactory;
 import dao.models.postgres.PostgresTagFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.RichVersion;
 import models.models.Tag;
@@ -97,11 +99,11 @@ public class PostgresLineageEdgeVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("lineage_edge_id", GroundType.LONG, lineageEdgeId));
-    insertions.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, fromId));
-    insertions.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, toId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("lineage_edge_id", GroundType.LONG, lineageEdgeId));
+    insertions.add(new DbEqualsCondition("from_rich_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbEqualsCondition("to_rich_version_id", GroundType.LONG, toId));
 
     this.dbClient.insert("lineage_edge_version", insertions);
 
@@ -124,17 +126,17 @@ public class PostgresLineageEdgeVersionFactory
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("lineage_edge_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long lineageEdgeId = resultSet.getLong(2);
-    long fromId = resultSet.getLong(3);
-    long toId = resultSet.getLong(4);
+    DbRow row = resultSet.one();
+    long lineageEdgeId = row.getLong("lineage_edge_id");
+    long fromId = row.getLong("from_rich_version_id");
+    long toId = row.getLong("to_rich_version_id");
 
     LOGGER.info("Retrieved lineage edge version " + id + " in lineage edge " + lineageEdgeId
         + ".");

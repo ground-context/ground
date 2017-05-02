@@ -36,10 +36,14 @@ public interface RichVersionFactory<T extends RichVersion> extends VersionFactor
       throws GroundException;
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {
-
     Function<Tag, Tag> addId = (Tag t) -> {
+      // Use the existing tag if it does not have an endId.
+      if (t.getEndId() == -1) {
+        return t;
+      }
+
       try {
-        return new Tag(id, t.getKey(), t.getValue(), t.getValueType());
+        return new Tag(id, -1, t.getKey(), t.getValue(), t.getValueType());
       } catch (GroundException e) {
         throw new RuntimeException(e);
       }

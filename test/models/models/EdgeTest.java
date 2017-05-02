@@ -29,7 +29,7 @@ public class EdgeTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     final Edge edge = new Edge(1, "test", "testKey", 2, 3, tagsMap);
 
@@ -41,7 +41,7 @@ public class EdgeTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     final Edge edge = new Edge(1, "test", "testKey", 2, 3, tagsMap);
     assertEquals(convertFromStringToClass(readFromFile("test/resources/fixtures/models/edge.json"),
@@ -69,7 +69,7 @@ public class EdgeTest {
     assertFalse(truth.equals(differentToId));
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    tags.put("test", new Tag(1, -1, "test", 1L, GroundType.LONG));
     Edge differentTags = new Edge(1, "name", "sourceKey", 2, 3, tags);
     assertFalse(truth.equals(differentTags));
   }

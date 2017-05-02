@@ -247,10 +247,10 @@ public class CassandraItemFactoryTest extends CassandraTest {
     try {
       long testId = 1;
       Map<String, Tag> tags = new HashMap<>();
-      tags.put("justkey", new Tag(-1, "justkey", null, null));
-      tags.put("withintvalue", new Tag(-1, "withintvalue", 1, GroundType.INTEGER));
-      tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
-      tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
+      tags.put("justkey", new Tag(-1, -1, "justkey", null, null));
+      tags.put("withintvalue", new Tag(-1, -1, "withintvalue", 1, GroundType.INTEGER));
+      tags.put("withstringvalue", new Tag(-1, -1, "withstringvalue", "1", GroundType.STRING));
+      tags.put("withboolvalue", new Tag(-1, -1, "withboolvalue", true, GroundType.BOOLEAN));
 
       this.itemFactory.insertIntoDatabase(testId, tags);
 
@@ -261,9 +261,12 @@ public class CassandraItemFactoryTest extends CassandraTest {
 
       Map<String, Tag> retrievedTags = retrieved.getTags();
       for (String key : tags.keySet()) {
-        assert (retrievedTags).containsKey(key);
-        assertEquals(tags.get(key), retrievedTags.get(key));
-        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
+        assertTrue(retrievedTags.containsKey(key));
+
+        Tag tag = retrievedTags.get(key);
+        assertEquals(tags.get(key), tag);
+        assertTrue(tag.getStartId() <= retrieved.getId());
+        assertTrue(tag.getEndId() == -1 || retrieved.getId() <= tag.getEndId());
       }
     } finally {
       CassandraTest.cassandraClient.abort();

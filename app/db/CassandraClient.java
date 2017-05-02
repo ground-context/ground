@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraClient extends DbClient {
+public class CassandraClient implements DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
 
   private final Cluster cluster;
@@ -74,14 +74,15 @@ public class CassandraClient extends DbClient {
    * @param table the table to update
    * @param insertValues the values to put into table
    */
-  public void insert(String table, List<DbDataContainer> insertValues) {
+  @Override
+  public void insert(String table, List<DbEqualsCondition> insertValues) {
     String fields =
-        insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
+        insertValues.stream().map(DbEqualsCondition::getField).collect(Collectors.joining(", "));
     String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
     String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
 
-    BoundStatement statement = bind(insert, insertValues);
+    BoundStatement statement = this.bind(insert, insertValues);
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
@@ -94,9 +95,10 @@ public class CassandraClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public CassandraResults equalitySelect(String table,
-                                         List<String> projection,
-                                         List<DbDataContainer> predicatesAndValues) {
+  @Override
+  public DbResults select(String table,
+                          List<String> projection,
+                          List<? extends DbCondition> predicatesAndValues) {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
 
@@ -104,14 +106,14 @@ public class CassandraClient extends DbClient {
       String predicatesString =
           predicatesAndValues
               .stream()
-              .map(predicate -> predicate.getField() + " = ?")
+              .map(DbCondition::getPredicate)
               .collect(Collectors.joining(" and "));
       select += " where " + predicatesString;
     }
 
     select += " ALLOW FILTERING;";
 
-    BoundStatement statement = bind(select, predicatesAndValues);
+    BoundStatement statement = this.bind(select, predicatesAndValues);
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
@@ -126,15 +128,15 @@ public class CassandraClient extends DbClient {
    * @param wherePredicates the where portion of the update statement
    * @param table the table to update
    */
-  public void update(List<DbDataContainer> setPredicates,
-                     List<DbDataContainer> wherePredicates,
+  public void update(List<DbEqualsCondition> setPredicates,
+                     List<? extends DbCondition> wherePredicates,
                      String table) {
 
     String updateString = "update " + table + " set ";
 
     if (setPredicates.size() > 0) {
       String setPredicateString = setPredicates.stream()
-          .map(predicate -> predicate.getField() + " = ?")
+          .map(DbCondition::getPredicate)
           .collect(Collectors.joining(", "));
 
       updateString += setPredicateString;
@@ -142,13 +144,13 @@ public class CassandraClient extends DbClient {
 
     if (wherePredicates.size() > 0) {
       String wherePredicateString = wherePredicates.stream()
-          .map(predicate -> predicate.getField() + " = ?")
+          .map(DbCondition::getPredicate)
           .collect(Collectors.joining(" and "));
 
       updateString += " where " + wherePredicateString;
     }
 
-    BoundStatement statement = bind(updateString, setPredicates, wherePredicates);
+    BoundStatement statement = this.bind(updateString, setPredicates, wherePredicates);
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
@@ -160,24 +162,26 @@ public class CassandraClient extends DbClient {
    * @param predicates the delete predicates
    * @param table the table to delete from
    */
-  public void delete(List<DbDataContainer> predicates, String table) {
+  @Override
+  public void delete(List<? extends DbCondition> predicates, String table) {
     String deleteString = "delete from " + table + " ";
 
-    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+    String predicateString = predicates.stream().map(DbCondition::getPredicate)
         .collect(Collectors.joining(" and "));
 
     deleteString += "where " + predicateString;
 
-    BoundStatement statement = bind(deleteString, predicates);
+    BoundStatement statement = this.bind(deleteString, predicates);
 
     this.session.execute(statement);
   }
 
-  private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
+  private BoundStatement bind(String statement, List<? extends DbCondition>... predicates) {
     BoundStatement boundStatement = this.prepareStatement(statement);
-    List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
-      .map(p-> p.getValue()).collect(Collectors.toList());
-    boundStatement.bind(values.toArray(new Object[values.size()]));
+    Object[] values = Arrays.stream(predicates).flatMap(Collection::stream)
+        .map(DbCondition::getValues).flatMap(Collection::stream)
+        .toArray();
+    boundStatement.bind(values);
     return boundStatement;
   }
 

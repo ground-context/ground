@@ -17,9 +17,11 @@ package dao.models.postgres;
 import dao.models.GraphVersionFactory;
 import dao.models.RichVersionFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.GraphVersion;
 import models.models.RichVersion;
@@ -30,7 +32,6 @@ import util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,16 +94,16 @@ public class PostgresGraphVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("graph_id", GroundType.LONG, graphId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("graph_id", GroundType.LONG, graphId));
 
     this.dbClient.insert("graph_version", insertions);
 
     for (long edgeVersionId : edgeVersionIds) {
-      List<DbDataContainer> edgeInsertion = new ArrayList<>();
-      edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
-      edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.LONG, edgeVersionId));
+      List<DbEqualsCondition> edgeInsertion = new ArrayList<>();
+      edgeInsertion.add(new DbEqualsCondition("graph_version_id", GroundType.LONG, id));
+      edgeInsertion.add(new DbEqualsCondition("edge_version_id", GroundType.LONG, edgeVersionId));
 
       this.dbClient.insert("graph_version_edge", edgeInsertion);
     }
@@ -125,29 +126,25 @@ public class PostgresGraphVersionFactory
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    List<DbDataContainer> edgePredicate = new ArrayList<>();
-    edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
+    List<DbEqualsCondition> edgePredicate = new ArrayList<>();
+    edgePredicate.add(new DbEqualsCondition("graph_version_id", GroundType.LONG, id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("graph_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("graph_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
+    DbRow row = resultSet.one();
+    long graphId = row.getLong("graph_id");
 
-    long graphId = resultSet.getLong(2);
-
-    PostgresResults edgeSet;
     List<Long> edgeVersionIds = new ArrayList<>();
-    edgeSet = this.dbClient.equalitySelect("graph_version_edge", DbClient.SELECT_STAR,
-        edgePredicate);
+    DbResults edgeSet = this.dbClient.select("graph_version_edge",
+        DbClient.SELECT_STAR, edgePredicate);
 
-    if (!edgeSet.isEmpty()) {
-      do {
-        edgeVersionIds.add(edgeSet.getLong(2));
-      } while (edgeSet.next());
+    for (DbRow edgeRow : edgeSet) {
+      edgeVersionIds.add(edgeRow.getLong("edge_version_id"));
     }
 
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");

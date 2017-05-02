@@ -26,7 +26,11 @@ import org.hibernate.validator.valuehandling.UnwrapValidatedValue;
 import java.util.Objects;
 
 public class Tag {
-  private final long id;
+  // the first RichVersion that this Tag applies to
+  private final long startId;
+
+  // the last RichVersion that this Tag applies to
+  private final long endId;
 
   @NotEmpty
   // the Key of the Tag
@@ -43,13 +47,15 @@ public class Tag {
   /**
    * Create a new tag.
    *
-   * @param id the id of the version containing this tag
+   * @param startId the id of the first version containing this tag
+   * @param endId the id of the last version containing this tag
    * @param key the key of the tag
    * @param value the value of the tag
    * @param valueType the type of the value
    */
   @JsonCreator
-  public Tag(@JsonProperty("id") long id,
+  public Tag(@JsonProperty("fromRichVersionId") long startId,
+             @JsonProperty("toRichVersionId") long endId,
              @JsonProperty("key") String key,
              @JsonProperty("value") Object value,
              @JsonProperty("type") GroundType valueType) throws GroundException {
@@ -65,16 +71,21 @@ public class Tag {
       assert (value.getClass().equals(valueType.getTypeClass()));
     }
 
-
-    this.id = id;
+    this.startId = startId;
+    this.endId = endId;
     this.key = key;
     this.value = value;
     this.valueType = valueType;
   }
 
   @JsonProperty
-  public long getId() {
-    return this.id;
+  public long getStartId() {
+    return this.startId;
+  }
+
+  @JsonProperty
+  public long getEndId() {
+    return this.endId;
   }
 
   @JsonProperty
@@ -100,7 +111,9 @@ public class Tag {
 
     Tag otherTag = (Tag) other;
 
-    return this.key.equals(otherTag.key)
+    return this.startId == otherTag.startId
+        && this.endId == otherTag.endId
+        && this.key.equals(otherTag.key)
         && Objects.equals(this.value, otherTag.value)
         && Objects.equals(this.valueType, otherTag.valueType);
   }

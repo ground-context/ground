@@ -15,11 +15,9 @@
 package dao.versions.postgres;
 
 import dao.versions.VersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
-import exceptions.GroundVersionNotFoundException;
 import models.versions.GroundType;
 import models.versions.Version;
 
@@ -41,25 +39,9 @@ public abstract class PostgresVersionFactory<T extends Version> implements Versi
    */
   @Override
   public void insertIntoDatabase(long id) throws GroundException {
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     this.dbClient.insert("version", insertions);
-  }
-
-
-  /**
-   * Verify that a result set for a version is not empty.
-   *
-   * @param resultSet the result set to check
-   * @param id the id of the version
-   * @throws GroundVersionNotFoundException an exception indicating the item wasn't found
-   */
-  protected void verifyResultSet(PostgresResults resultSet, long id)
-      throws GroundException {
-
-    if (resultSet.isEmpty()) {
-      throw new GroundVersionNotFoundException(this.getType(), id);
-    }
   }
 }

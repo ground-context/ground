@@ -98,10 +98,10 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       long id = Neo4jTest.createNodeVersion(testNodeId).getId();
 
       Map<String, Tag> tags = new HashMap<>();
-      tags.put("justkey", new Tag(-1, "justkey", null, null));
-      tags.put("withintvalue", new Tag(-1, "withintvalue", 1, GroundType.INTEGER));
-      tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
-      tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
+      tags.put("justkey", new Tag(-1, -1, "justkey", null, null));
+      tags.put("withintvalue", new Tag(-1, -1, "withintvalue", 1, GroundType.INTEGER));
+      tags.put("withstringvalue", new Tag(-1, -1, "withstringvalue", "1", GroundType.STRING));
+      tags.put("withboolvalue", new Tag(-1, -1, "withboolvalue", true, GroundType.BOOLEAN));
 
       this.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
 
@@ -112,9 +112,12 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
 
       Map<String, Tag> retrievedTags = retrieved.getTags();
       for (String key : tags.keySet()) {
-        assert (retrievedTags).containsKey(key);
-        assertEquals(tags.get(key), retrievedTags.get(key));
-        assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
+        assertTrue(retrievedTags.containsKey(key));
+
+        Tag tag = retrievedTags.get(key);
+        assertEquals(tags.get(key), tag);
+        assertTrue(tag.getStartId() <= retrieved.getId());
+        assertTrue(tag.getEndId() == -1 || retrieved.getId() <= tag.getEndId());
       }
     } finally {
       Neo4jTest.neo4jClient.commit();
@@ -165,7 +168,7 @@ public class Neo4jRichVersionFactoryTest extends Neo4jTest {
       }
 
       Map<String, Tag> tags = new HashMap<>();
-      tags.put("boolfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
+      tags.put("boolfield", new Tag(-1, -1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
       this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,

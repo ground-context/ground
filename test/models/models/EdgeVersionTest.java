@@ -30,7 +30,7 @@ public class EdgeVersionTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
@@ -46,7 +46,7 @@ public class EdgeVersionTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     Map<String, String> parametersMap = new HashMap<>();
     parametersMap.put("http", "GET");
@@ -70,7 +70,7 @@ public class EdgeVersionTest {
     assertFalse(truth.equals(differentId));
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    tags.put("test", new Tag(1, -1, "test", 1L, GroundType.LONG));
     EdgeVersion differentTags = new EdgeVersion(1, tags, 2, "http://www.google.com",
         new HashMap<>(), 3, 4, 5, 6, 7);
     assertFalse(truth.equals(differentTags));

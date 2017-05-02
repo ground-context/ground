@@ -30,7 +30,7 @@ public class NodeTest {
   @Test
   public void serializesToJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     final Node node = new Node(1, "test", "testKey", tagsMap);
 
@@ -42,7 +42,7 @@ public class NodeTest {
   @Test
   public void deserializesFromJSON() throws Exception {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     final Node node = new Node(1, "test", "testKey", tagsMap);
     assertEquals(convertFromStringToClass(
@@ -64,7 +64,7 @@ public class NodeTest {
     assertFalse(truth.equals(differentKey));
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", 1L, GroundType.LONG));
+    tags.put("test", new Tag(1, -1, "test", 1L, GroundType.LONG));
     Node differentTags = new Node(1, "name", "sourceKey", tags);
     assertFalse(truth.equals(differentTags));
   }

@@ -38,7 +38,7 @@ public class PostgresTagFactoryTest extends PostgresTest {
   public void testGetItemIdsByTag() throws GroundException {
     try {
       Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+      tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
       long nodeId1 = PostgresTest.nodeFactory.create(null, "test1", tagsMap).getId();
       long nodeId2 = PostgresTest.nodeFactory.create(null, "test2", tagsMap).getId();
@@ -58,7 +58,7 @@ public class PostgresTagFactoryTest extends PostgresTest {
   public void testGetVersionIdsByTag() throws GroundException {
     try {
       Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+      tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
       long nodeId = PostgresTest.createNode("testNode").getId();
 

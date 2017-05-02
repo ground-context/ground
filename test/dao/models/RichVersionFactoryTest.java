@@ -38,7 +38,7 @@ public class RichVersionFactoryTest {
     StructureVersion structureVersion = new StructureVersion(1, 1, attributes);
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", null, null));
+    tags.put("test", new Tag(1, -1, "test", null, null));
 
     try {
       RichVersionFactory.checkStructureTags(structureVersion, tags);
@@ -57,7 +57,7 @@ public class RichVersionFactoryTest {
     StructureVersion structureVersion = new StructureVersion(1, 1, attributes);
 
     Map<String, Tag> tags = new HashMap<>();
-    tags.put("test", new Tag(1, "test", 1, GroundType.INTEGER));
+    tags.put("test", new Tag(1, -1, "test", 1, GroundType.INTEGER));
 
     try {
       RichVersionFactory.checkStructureTags(structureVersion, tags);

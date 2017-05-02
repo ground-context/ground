@@ -32,7 +32,7 @@ import org.postgresql.PGStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresClient extends DbClient {
+public class PostgresClient implements DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
   private static final String JDBCString = "jdbc:postgresql://%s:%d/%s?stringtype=unspecified";
 
@@ -76,28 +76,20 @@ public class PostgresClient extends DbClient {
    * @param table the table to update
    * @param insertValues the values to put into table
    */
-  public void insert(String table, List<DbDataContainer> insertValues) throws GroundDbException {
+  @Override
+  public void insert(String table, List<DbEqualsCondition> insertValues) throws GroundDbException {
     String fields =
-        insertValues.stream().map(DbDataContainer::getField).collect(Collectors.joining(", "));
+        insertValues.stream().map(DbEqualsCondition::getField).collect(Collectors.joining(", "));
     String values = String.join(", ", Collections.nCopies(insertValues.size(), "?"));
 
     String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
     try {
-      PreparedStatement preparedStatement = this.prepareStatement(insert);
-      int index = 1;
-      for (DbDataContainer container : insertValues) {
-        PostgresClient.setValue(
-            preparedStatement, container.getValue(), container.getGroundType(), index);
-
-        index++;
-      }
+      PreparedStatement preparedStatement = this.bind(insert, insertValues);
 
       LOGGER.info("Executing update: " + preparedStatement.toString() + ".");
-
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       LOGGER.error("Unexpected error in database insertion: " + e.getMessage());
-
       throw new GroundDbException(e);
     }
   }
@@ -109,8 +101,9 @@ public class PostgresClient extends DbClient {
    * @param projection the set of columns to retrieve
    * @param predicatesAndValues the predicates
    */
-  public PostgresResults equalitySelect(
-      String table, List<String> projection, List<DbDataContainer> predicatesAndValues)
+  @Override
+  public DbResults select(
+      String table, List<String> projection, List<? extends DbCondition> predicatesAndValues)
       throws GroundDbException {
     String items = String.join(", ", projection);
     String select = "select " + items + " from " + table;
@@ -119,31 +112,22 @@ public class PostgresClient extends DbClient {
       String predicatesString =
           predicatesAndValues
               .stream()
-              .map(predicate -> predicate.getField() + " = ?")
+              .map(DbCondition::getPredicate)
               .collect(Collectors.joining(" and "));
       select += " where " + predicatesString;
     }
 
     select += ";";
     try {
-      PreparedStatement preparedStatement = this.prepareStatement(select);
-      int index = 1;
-      for (DbDataContainer container : predicatesAndValues) {
-        PostgresClient.setValue(
-            preparedStatement, container.getValue(), container.getGroundType(), index);
-
-        index++;
-      }
+      PreparedStatement preparedStatement = this.bind(select, predicatesAndValues);
 
       LOGGER.info("Executing query: " + preparedStatement.toString() + ".");
-
       ResultSet resultSet = preparedStatement.executeQuery();
 
       // Moves the cursor to the first element so that data can be accessed directly.
       return new PostgresResults(resultSet);
     } catch (SQLException e) {
       LOGGER.error("Unexpected error in database query: " + e.getMessage());
-
       throw new GroundDbException(e);
     }
   }
@@ -156,42 +140,27 @@ public class PostgresClient extends DbClient {
    * @param table the table to update
    * @throws GroundDbException an error while executing the update
    */
-  public void update(List<DbDataContainer> setPredicates, List<DbDataContainer> wherePredicates,
+  public void update(List<DbEqualsCondition> setPredicates, List<? extends DbCondition> wherePredicates,
                      String table) throws GroundDbException {
 
     String updateString = "update " + table + " set ";
 
-    if (setPredicates.size() > 0) {
-      String setPredicateString = setPredicates.stream()
-          .map(predicate -> predicate.getField() + " = ?")
-          .collect(Collectors.joining(", "));
+    String setPredicateString = setPredicates.stream()
+        .map(DbCondition::getPredicate)
+        .collect(Collectors.joining(", "));
 
-      updateString += setPredicateString;
-    }
+    updateString += setPredicateString;
 
     if (wherePredicates.size() > 0) {
       String wherePredicateString = wherePredicates.stream()
-          .map(predicate -> predicate.getField() + " = ?")
+          .map(DbCondition::getPredicate)
           .collect(Collectors.joining(" and "));
 
       updateString += " where " + wherePredicateString;
     }
 
-    PreparedStatement statement = this.prepareStatement(updateString);
-
     try {
-      int index = 1;
-      for (DbDataContainer predicate : setPredicates) {
-        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-        index++;
-      }
-
-
-      for (DbDataContainer predicate : wherePredicates) {
-        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-        index++;
-      }
-
+      PreparedStatement statement = this.bind(updateString, setPredicates, wherePredicates);
       statement.executeUpdate();
     } catch (SQLException e) {
       throw new GroundDbException(e);
@@ -204,24 +173,17 @@ public class PostgresClient extends DbClient {
    * @param predicates the delete predicates
    * @param table the table to delete from
    */
-  public void delete(List<DbDataContainer> predicates, String table) throws GroundDbException {
+  @Override
+  public void delete(List<? extends DbCondition> predicates, String table) throws GroundDbException {
     String deleteString = "delete from " + table + " ";
 
-    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+    String predicateString = predicates.stream().map(DbCondition::getPredicate)
         .collect(Collectors.joining(", "));
 
     deleteString += "where " + predicateString;
 
-    int index = 1;
-
     try {
-      PreparedStatement statement = this.prepareStatement(deleteString);
-
-      for (DbDataContainer predicate : predicates) {
-        PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-        index++;
-      }
-
+      PreparedStatement statement = this.bind(deleteString, predicates);
       statement.executeUpdate();
     } catch (SQLException e) {
       throw new GroundDbException(e);
@@ -259,6 +221,27 @@ public class PostgresClient extends DbClient {
     }
   }
 
+  private PreparedStatement bind(String sql, List<? extends DbCondition>... predicatesList)
+      throws GroundDbException {
+    PreparedStatement statement = this.prepareStatement(sql);
+
+    int index = 1;
+    for (List<? extends DbCondition> predicates : predicatesList) {
+      for (DbCondition predicate : predicates) {
+        for (Object value : predicate.getValues()) {
+          try {
+            PostgresClient.setValue(statement, value, predicate.getGroundType(), index);
+            ++index;
+          } catch (SQLException e) {
+            throw new GroundDbException(e);
+          }
+        }
+      }
+    }
+
+    return statement;
+  }
+
   private PreparedStatement prepareStatement(String sql) throws GroundDbException {
     // We cannot use computeIfAbsent, as prepareStatement throws an exception.
     // Check if the statement is already in the cache; if so, use it.
@@ -281,7 +264,7 @@ public class PostgresClient extends DbClient {
   }
 
   private static void setValue(PreparedStatement preparedStatement, Object value, GroundType groundType, int index)
-    throws SQLException {
+      throws SQLException {
     if (value == null) {
       preparedStatement.setNull(index, groundType.getSqlType());
     } else if (groundType == GroundType.LONG && (long) value == -1) {// What is this magic number? Is -1L not allowed as a value?

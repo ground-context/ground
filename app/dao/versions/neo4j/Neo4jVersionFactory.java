@@ -8,6 +8,7 @@ import exceptions.GroundVersionNotFoundException;
 import models.versions.Version;
 
 public abstract class Neo4jVersionFactory<T extends Version> implements VersionFactory<T> {
+  @Override
   public void insertIntoDatabase(long id) throws GroundException {
     // this should never be called because we never explicitly insert versions into Neo4j
     throw new GroundException("This operation should never be called");

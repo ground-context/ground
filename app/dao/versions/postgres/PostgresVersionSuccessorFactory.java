@@ -16,9 +16,11 @@ package dao.versions.postgres;
 
 import dao.versions.VersionSuccessorFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.versions.GroundType;
 import models.versions.Version;
@@ -50,16 +52,16 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
   public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
       throws GroundException {
 
-    List<DbDataContainer> insertions = new ArrayList<>();
+    List<DbEqualsCondition> insertions = new ArrayList<>();
     long dbId = idGenerator.generateSuccessorId();
 
-    insertions.add(new DbDataContainer("id", GroundType.LONG, dbId));
-    insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
-    insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
+    insertions.add(new DbEqualsCondition("from_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbEqualsCondition("to_version_id", GroundType.LONG, toId));
 
     this.dbClient.insert("version_successor", insertions);
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -74,21 +76,21 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
   public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
     }
 
-    long toId = resultSet.getLong(2);
-    long fromId = resultSet.getLong(3);
+    DbRow row = resultSet.one();
+    long fromId = row.getLong("from_version_id");
+    long toId = row.getLong("to_version_id");
 
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<>(dbId, fromId, toId);
   }
 
   /**
@@ -98,29 +100,28 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
    */
   @Override
   public void deleteFromDestination(long toId, long itemId) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("to_version_id", GroundType.LONG, toId));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("version_successor",
+        DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("Version " + toId + " was not part of a DAG.");
     }
 
-    do {
-      long dbId = resultSet.getLong(1);
+    for (DbRow row : resultSet) {
+      long dbId = row.getLong("id");
 
       predicates.clear();
-      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
+      predicates.add(new DbEqualsCondition("version_successor_id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_history_dag");
 
       predicates.clear();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+      predicates.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_successor");
-    } while (resultSet.next());
+    }
   }
 }

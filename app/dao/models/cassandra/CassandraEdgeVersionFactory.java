@@ -17,9 +17,11 @@ package dao.models.cassandra;
 import dao.models.EdgeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.EdgeVersion;
 import models.models.RichVersion;
@@ -30,7 +32,6 @@ import util.IdGenerator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,16 +98,16 @@ public class CassandraEdgeVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-    insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("edge_id", GroundType.LONG, edgeId));
+    insertions.add(new DbEqualsCondition("from_node_start_id", GroundType.LONG,
         fromNodeVersionStartId));
-    insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+    insertions.add(new DbEqualsCondition("from_node_end_id", GroundType.LONG,
         fromNodeVersionEndId));
-    insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+    insertions.add(new DbEqualsCondition("to_node_start_id", GroundType.LONG,
         toNodeVersionStartId));
-    insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
+    insertions.add(new DbEqualsCondition("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
     this.dbClient.insert("edge_version", insertions);
     this.edgeFactory.update(edgeId, id, parentIds);
@@ -128,21 +129,21 @@ public class CassandraEdgeVersionFactory
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("edge_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("edge_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    long edgeId = resultSet.getLong("edge_id");
+    DbRow row = resultSet.one();
+    long edgeId = row.getLong("edge_id");
 
-    long fromNodeVersionStartId = resultSet.getLong("from_node_start_id");
+    long fromNodeVersionStartId = row.getLong("from_node_start_id");
 
-    long fromNodeVersionEndId =  resultSet.getLong("from_node_end_id");
-    long toNodeVersionStartId = resultSet.getLong("to_node_start_id");
-    long toNodeVersionEndId = resultSet.getLong("to_node_end_id");
+    long fromNodeVersionEndId =  row.getLong("from_node_end_id");
+    long toNodeVersionStartId = row.getLong("to_node_start_id");
+    long toNodeVersionEndId = row.getLong("to_node_end_id");
 
     LOGGER.info("Retrieved edge version " + id + " in Edge " + edgeId + ".");
 
@@ -155,18 +156,18 @@ public class CassandraEdgeVersionFactory
   public void updatePreviousVersion(long id, long fromEndId, long toEndId)
       throws GroundException {
 
-    List<DbDataContainer> setPredicates = new ArrayList<>();
-    List<DbDataContainer> wherePredicates = new ArrayList<>();
+    List<DbEqualsCondition> setPredicates = new ArrayList<>();
+    List<DbEqualsCondition> wherePredicates = new ArrayList<>();
 
     if (fromEndId != -1) {
-      setPredicates.add(new DbDataContainer("from_node_end_id", GroundType.LONG, fromEndId));
+      setPredicates.add(new DbEqualsCondition("from_node_end_id", GroundType.LONG, fromEndId));
     }
 
     if (toEndId != -1) {
-      setPredicates.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toEndId));
+      setPredicates.add(new DbEqualsCondition("to_node_end_id", GroundType.LONG, toEndId));
     }
 
-    wherePredicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    wherePredicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
     this.dbClient.update(setPredicates, wherePredicates, "edge_version");
   }
 }

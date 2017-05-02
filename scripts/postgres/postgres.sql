@@ -11,7 +11,7 @@
 -- limitations under the License.
 
 -- VERSIONS
-CREATE TYPE data_type as enum ('integer', 'string', 'boolean');
+CREATE TYPE data_type AS ENUM ('integer', 'string', 'boolean');
 
 CREATE TABLE IF NOT EXISTS version (
     id bigint NOT NULL PRIMARY KEY
@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS item (
 CREATE TABLE IF NOT EXISTS item_tag (
     item_id bigint NOT NULL REFERENCES item(id),
     key varchar NOT NULL,
-    value varchar,
     type data_type,
+    value varchar,
     CONSTRAINT item_tag_pkey PRIMARY KEY (item_id, key)
 );
 
@@ -76,11 +76,12 @@ CREATE TABLE IF NOT EXISTS rich_version_external_parameter (
 );
 
 CREATE TABLE IF NOT EXISTS rich_version_tag (
-    rich_version_id bigint REFERENCES rich_version(id),
+    from_rich_version_id bigint REFERENCES rich_version(id),
+    to_rich_version_id bigint REFERENCES rich_version(id),
     key varchar NOT NULL,
-    value varchar,
     type data_type,
-    CONSTRAINT rich_version_tag_pkey PRIMARY KEY (rich_version_id, key)
+    value varchar,
+    CONSTRAINT rich_version_tag_pkey PRIMARY KEY (from_rich_version_id, to_rich_version_id, key)
 );
 
 CREATE TABLE IF NOT EXISTS node (
@@ -170,4 +171,4 @@ CREATE TABLE IF NOT EXISTS lineage_graph_version_edge (
 
 -- CREATE EMPTY VERSION
 
-INSERT INTO version(id) values (0);
+INSERT INTO version(id) VALUES (0);

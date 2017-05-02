@@ -20,9 +20,11 @@ import dao.models.postgres.PostgresStructureVersionFactory;
 import dao.models.postgres.PostgresTagFactory;
 import dao.usage.LineageGraphVersionFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import db.PostgresClient;
-import db.PostgresResults;
 import exceptions.GroundException;
 import models.models.RichVersion;
 import models.models.Tag;
@@ -96,17 +98,17 @@ public class PostgresLineageGraphVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("lineage_graph_id", GroundType.LONG, lineageGraphId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("lineage_graph_id", GroundType.LONG, lineageGraphId));
 
     this.dbClient.insert("lineage_graph_version", insertions);
 
     for (long lineageEdgeVersionId : lineageEdgeVersionIds) {
-      List<DbDataContainer> lineageEdgeInsertion = new ArrayList<>();
-      lineageEdgeInsertion.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+      List<DbEqualsCondition> lineageEdgeInsertion = new ArrayList<>();
+      lineageEdgeInsertion.add(new DbEqualsCondition("lineage_graph_version_id", GroundType.LONG,
           id));
-      lineageEdgeInsertion.add(new DbDataContainer("lineage_edge_version_id", GroundType.LONG,
+      lineageEdgeInsertion.add(new DbEqualsCondition("lineage_edge_version_id", GroundType.LONG,
           lineageEdgeVersionId));
 
       this.dbClient.insert("lineage_graph_version_edge", lineageEdgeInsertion);
@@ -132,30 +134,27 @@ public class PostgresLineageGraphVersionFactory
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    List<DbDataContainer> lineageEdgePredicate = new ArrayList<>();
-    lineageEdgePredicate.add(new DbDataContainer("lineage_graph_version_id", GroundType.LONG,
+    List<DbEqualsCondition> lineageEdgePredicate = new ArrayList<>();
+    lineageEdgePredicate.add(new DbEqualsCondition("lineage_graph_version_id", GroundType.LONG,
         id));
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("lineage_graph_version",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("lineage_graph_version",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    PostgresResults lineageEdgeSet;
+    DbRow row = resultSet.one();
+    long lineageGraphId = row.getLong("lineage_graph_id");
+
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
+    DbResults lineageEdgeSet = this.dbClient.select("lineage_graph_version_edge",
+        DbClient.SELECT_STAR, lineageEdgePredicate);
 
-    lineageEdgeSet = this.dbClient.equalitySelect("lineage_graph_version_edge", DbClient
-        .SELECT_STAR, lineageEdgePredicate);
-    if (!lineageEdgeSet.isEmpty()) {
-      do {
-        lineageEdgeVersionIds.add(lineageEdgeSet.getLong(2));
-      } while (lineageEdgeSet.next());
+    for (DbRow lineageEdgeRow : lineageEdgeSet) {
+      lineageEdgeVersionIds.add(lineageEdgeRow.getLong("lineage_edge_version_id"));
     }
-
-    long lineageGraphId = resultSet.getLong(2);
 
     LOGGER.info("Retrieved lineage_graph version "
         + id

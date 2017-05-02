@@ -16,9 +16,8 @@ package dao.models.neo4j;
 
 import dao.models.RichVersionFactory;
 import dao.versions.neo4j.Neo4jVersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
 import models.models.RichVersion;
@@ -83,10 +82,10 @@ public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
     for (String key : referenceParameters.keySet()) {
       String value = referenceParameters.get(key);
 
-      List<DbDataContainer> insertions = new ArrayList<>();
-      insertions.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
-      insertions.add(new DbDataContainer("pkey", GroundType.STRING, key));
-      insertions.add(new DbDataContainer("value", GroundType.STRING, value));
+      List<DbEqualsCondition> insertions = new ArrayList<>();
+      insertions.add(new DbEqualsCondition("rich_version_id", GroundType.LONG, id));
+      insertions.add(new DbEqualsCondition("pkey", GroundType.STRING, key));
+      insertions.add(new DbEqualsCondition("value", GroundType.STRING, value));
 
       this.dbClient.addVertexAndEdge("RichVersionExternalParameter", insertions,
           "RichVersionExternalParameterConnection", id, new ArrayList<>());
@@ -105,18 +104,19 @@ public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
-      List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
-      tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
+      List<DbEqualsCondition> tagInsertion = new ArrayList<>();
+      tagInsertion.add(new DbEqualsCondition("from_rich_version_id", GroundType.LONG, tag.getStartId()));
+      tagInsertion.add(new DbEqualsCondition("to_rich_version_id", GroundType.LONG, tag.getEndId()));
+      tagInsertion.add(new DbEqualsCondition("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING,
             tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING,
             tag.getValueType().toString()));
       } else {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING, null));
       }
 
       this.dbClient.addVertexAndEdge("RichVersionTag", tagInsertion, "RichVersionTagConnection",
@@ -133,8 +133,8 @@ public abstract  class Neo4jRichVersionFactory<T extends RichVersion>
    * @throws GroundException either the rich version didn't exist or couldn't be retrieved
    */
   public RichVersion retrieveRichVersionData(long id) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     Record record = this.dbClient.getVertex(predicates);
 

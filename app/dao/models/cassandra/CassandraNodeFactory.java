@@ -18,9 +18,11 @@ import dao.models.NodeFactory;
 import dao.versions.cassandra.CassandraItemFactory;
 import dao.versions.cassandra.CassandraVersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
+import db.DbResults;
+import db.DbRow;
 import exceptions.GroundException;
 import models.models.Node;
 import models.models.Tag;
@@ -74,10 +76,10 @@ public class CassandraNodeFactory extends CassandraItemFactory<Node> implements 
     long uniqueId = this.idGenerator.generateItemId();
     super.insertIntoDatabase(uniqueId, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("name", GroundType.STRING, name));
+    insertions.add(new DbEqualsCondition("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbEqualsCondition("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.insert("node", insertions);
 
@@ -125,17 +127,17 @@ public class CassandraNodeFactory extends CassandraItemFactory<Node> implements 
   private Node retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(fieldName, valueType, value));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(fieldName, valueType, value));
 
-    CassandraResults resultSet = this.dbClient.equalitySelect("node",
-        DbClient.SELECT_STAR,
-        predicates);
+    DbResults resultSet = this.dbClient.select("node",
+        DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 
-    long id = resultSet.getLong("item_id");
-    String name = resultSet.getString("name");
-    String sourceKey = resultSet.getString("source_key");
+    DbRow row = resultSet.one();
+    long id = row.getLong("item_id");
+    String sourceKey = row.getString("source_key");
+    String name = row.getString("name");
 
     Map<String, Tag> tags = super.retrieveItemTags(id);
 

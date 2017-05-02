@@ -16,9 +16,8 @@ package dao.models.neo4j;
 
 import dao.models.StructureVersionFactory;
 import dao.versions.neo4j.Neo4jVersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
-import exceptions.GroundDbException;
 import exceptions.GroundException;
 import models.models.StructureVersion;
 import models.versions.GroundType;
@@ -74,17 +73,17 @@ public class Neo4jStructureVersionFactory
                                  List<Long> parentIds) throws GroundException {
     long id = this.idGenerator.generateVersionId();
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("structure_id", GroundType.LONG, structureId));
 
     this.dbClient.addVertex("StructureVersion", insertions);
 
     for (String key : attributes.keySet()) {
-      List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("svid", GroundType.LONG, id));
-      itemInsertions.add(new DbDataContainer("skey", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("stype", GroundType.STRING,
+      List<DbEqualsCondition> itemInsertions = new ArrayList<>();
+      itemInsertions.add(new DbEqualsCondition("svid", GroundType.LONG, id));
+      itemInsertions.add(new DbEqualsCondition("skey", GroundType.STRING, key));
+      itemInsertions.add(new DbEqualsCondition("stype", GroundType.STRING,
           attributes.get(key).toString()));
 
       this.dbClient.addVertexAndEdge("StructureVersionItem", itemInsertions,
@@ -107,8 +106,8 @@ public class Neo4jStructureVersionFactory
    */
   @Override
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     Record record = this.dbClient.getVertex(predicates);
     super.verifyResultSet(record, id);

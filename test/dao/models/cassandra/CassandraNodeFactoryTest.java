@@ -44,7 +44,7 @@ public class CassandraNodeFactoryTest extends CassandraTest {
   @Test
   public void testNodeCreation() throws GroundException {
     Map<String, Tag> tagsMap = new HashMap<>();
-    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    tagsMap.put("testtag", new Tag(1, -1, "testtag", "tag", GroundType.STRING));
 
     String testName = "test";
     String sourceKey = "testKey";
