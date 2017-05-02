@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class NodeVersion extends RichVersion {
   // the id of the Node containing this Version
-  
+
   @JsonProperty("node_id")
   private final long nodeId;
 

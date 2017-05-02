@@ -17,6 +17,7 @@ import edu.berkeley.ground.lib.model.core.Node;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface NodeFactory extends ItemFactory<Node> {
 
@@ -28,10 +29,10 @@ public interface NodeFactory extends ItemFactory<Node> {
   }
 
   @Override
-  Node retrieveFromDatabase(String sourceKey) throws GroundException;
+  Node retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
 
   @Override
-  Node retrieveFromDatabase(long id) throws GroundException;
+  Node retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
