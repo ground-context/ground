@@ -18,7 +18,8 @@ import dao.models.NodeFactory;
 import dao.versions.postgres.PostgresItemFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -74,10 +75,10 @@ public class PostgresNodeFactory extends PostgresItemFactory<Node> implements No
 
     super.insertIntoDatabase(uniqueId, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("name", GroundType.STRING, name));
+    insertions.add(new DbEqualsCondition("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbEqualsCondition("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.insert("node", insertions);
 
@@ -126,10 +127,10 @@ public class PostgresNodeFactory extends PostgresItemFactory<Node> implements No
   private Node retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(fieldName, valueType, value));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(fieldName, valueType, value));
 
-    DbResults resultSet = this.dbClient.equalitySelect("node",
+    DbResults resultSet = this.dbClient.select("node",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 

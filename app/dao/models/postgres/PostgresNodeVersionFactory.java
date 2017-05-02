@@ -17,7 +17,8 @@ package dao.models.postgres;
 import dao.models.NodeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -91,9 +92,9 @@ public class PostgresNodeVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("node_id", GroundType.LONG, nodeId));
 
     this.dbClient.insert("node_version", insertions);
 
@@ -114,10 +115,10 @@ public class PostgresNodeVersionFactory
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    DbResults resultSet = this.dbClient.equalitySelect("node_version",
+    DbResults resultSet = this.dbClient.select("node_version",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 

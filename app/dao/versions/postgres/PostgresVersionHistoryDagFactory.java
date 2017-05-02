@@ -18,7 +18,8 @@ import com.google.common.base.CaseFormat;
 
 import dao.versions.VersionHistoryDagFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -67,10 +68,10 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
   public <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("item_id", GroundType.LONG, itemId));
 
-    DbResults resultSet = this.dbClient.equalitySelect("version_history_dag",
+    DbResults resultSet = this.dbClient.select("version_history_dag",
         DbClient.SELECT_STAR, predicates);
     if (resultSet.isEmpty()) {
       // do nothing' this just means that no versions have been added yet.
@@ -102,9 +103,9 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
 
     VersionSuccessor<T> successor = this.versionSuccessorFactory.create(parentId, childId);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("item_id", GroundType.LONG, itemId));
+    insertions.add(new DbEqualsCondition("version_successor_id", GroundType.LONG, successor.getId()));
 
     this.dbClient.insert("version_history_dag", insertions);
 
@@ -138,7 +139,7 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
     Queue<Long> deleteQueue = new ArrayDeque<>(level);
     Set<Long> deleted = new HashSet<>();
 
-    List<DbDataContainer> predicates = new ArrayList<>();
+    List<DbCondition> predicates = new ArrayList<>();
     for (long id : lastLevel) {
       this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
       this.addEdge(dag, 0, id, dag.getItemId());
@@ -153,18 +154,18 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
         tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
 
         if (itemType.equals(Structure.class)) {
-          predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+          predicates.add(new DbEqualsCondition("structure_version_id", GroundType.LONG, id));
           this.dbClient.delete(predicates, "structure_version_attribute");
           predicates.clear();
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
-          predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
+          predicates.add(new DbEqualsCondition(tableNamePrefix + "_version_id", GroundType.LONG, id));
           this.dbClient.delete(predicates, tableNamePrefix + "_version_edge");
           predicates.clear();
         }
 
-        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+        predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
         this.dbClient.delete(predicates, tableNamePrefix + "_version");
 
@@ -175,11 +176,11 @@ public class PostgresVersionHistoryDagFactory implements VersionHistoryDagFactor
         this.versionSuccessorFactory.deleteFromDestination(id, dag.getItemId());
 
         predicates.clear();
-        predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+        predicates.add(new DbEqualsCondition("rich_version_id", GroundType.LONG, id));
         this.dbClient.delete(predicates, "rich_version_tag");
 
         predicates.clear();
-        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+        predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
         this.dbClient.delete(predicates, "version");
 
         deleted.add(id);

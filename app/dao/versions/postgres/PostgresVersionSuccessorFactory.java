@@ -16,7 +16,8 @@ package dao.versions.postgres;
 
 import dao.versions.VersionSuccessorFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -51,12 +52,12 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
   public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
       throws GroundException {
 
-    List<DbDataContainer> insertions = new ArrayList<>();
+    List<DbEqualsCondition> insertions = new ArrayList<>();
     long dbId = idGenerator.generateSuccessorId();
 
-    insertions.add(new DbDataContainer("id", GroundType.LONG, dbId));
-    insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
-    insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
+    insertions.add(new DbEqualsCondition("from_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbEqualsCondition("to_version_id", GroundType.LONG, toId));
 
     this.dbClient.insert("version_successor", insertions);
 
@@ -75,10 +76,10 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
   public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
 
-    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+    DbResults resultSet = this.dbClient.select("version_successor",
         DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
@@ -99,10 +100,10 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
    */
   @Override
   public void deleteFromDestination(long toId, long itemId) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("to_version_id", GroundType.LONG, toId));
 
-    DbResults resultSet = this.dbClient.equalitySelect("version_successor",
+    DbResults resultSet = this.dbClient.select("version_successor",
         DbClient.SELECT_STAR, predicates);
 
     if (resultSet.isEmpty()) {
@@ -113,12 +114,12 @@ public class PostgresVersionSuccessorFactory implements VersionSuccessorFactory 
       long dbId = row.getLong("id");
 
       predicates.clear();
-      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
+      predicates.add(new DbEqualsCondition("version_successor_id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_history_dag");
 
       predicates.clear();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+      predicates.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
 
       this.dbClient.delete(predicates, "version_successor");
     }

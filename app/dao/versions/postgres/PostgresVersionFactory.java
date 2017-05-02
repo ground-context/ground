@@ -15,7 +15,7 @@
 package dao.versions.postgres;
 
 import dao.versions.VersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.versions.GroundType;
@@ -39,8 +39,8 @@ public abstract class PostgresVersionFactory<T extends Version> implements Versi
    */
   @Override
   public void insertIntoDatabase(long id) throws GroundException {
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     this.dbClient.insert("version", insertions);
   }

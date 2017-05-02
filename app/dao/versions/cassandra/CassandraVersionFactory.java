@@ -16,7 +16,7 @@ package dao.versions.cassandra;
 
 import dao.versions.VersionFactory;
 import db.CassandraClient;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import exceptions.GroundException;
 import models.versions.GroundType;
 import models.versions.Version;
@@ -39,8 +39,8 @@ public abstract class CassandraVersionFactory<T extends Version> implements Vers
    */
   @Override
   public void insertIntoDatabase(long id) throws GroundException {
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     this.dbClient.insert("version", insertions);
   }

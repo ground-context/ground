@@ -52,7 +52,7 @@ public class Neo4jClient implements DbClient {
     this.transaction = session.beginTransaction();
   }
 
-  private String addValuesToStatement(String statement, List<DbDataContainer> values) {
+  private String addValuesToStatement(String statement, List<DbEqualsCondition> values) {
     return statement + values.stream()
         .filter(container -> container.getValue() != null)
         .map(container -> {
@@ -72,7 +72,7 @@ public class Neo4jClient implements DbClient {
    * @param label the vertex label
    * @param attributes the vertex's attributes
    */
-  public void addVertex(String label, List<DbDataContainer> attributes) {
+  public void addVertex(String label, List<DbEqualsCondition> attributes) {
     String insert = "CREATE (: " + label + " {";
 
     insert = this.addValuesToStatement(insert, attributes);
@@ -89,7 +89,7 @@ public class Neo4jClient implements DbClient {
    * @param toId the id of the destination vertex
    * @param attributes the edge's attributes
    */
-  public void addEdge(String label, long fromId, long toId, List<DbDataContainer> attributes) {
+  public void addEdge(String label, long fromId, long toId, List<DbEqualsCondition> attributes) {
     String insert =
         "MATCH (f"
             + "{id : "
@@ -120,10 +120,10 @@ public class Neo4jClient implements DbClient {
    */
   public void addVertexAndEdge(
       String label,
-      List<DbDataContainer> attributes,
+      List<DbEqualsCondition> attributes,
       String edgeLabel,
       long fromId,
-      List<DbDataContainer> edgeAttributes) {
+      List<DbEqualsCondition> edgeAttributes) {
 
     String insert = "MATCH (f {id: " + fromId + "})";
     insert += "CREATE (t: " + label + "{";
@@ -143,7 +143,7 @@ public class Neo4jClient implements DbClient {
    *
    * @param attributes the attributes to filter by
    */
-  public List<Long> getVerticesByAttributes(List<DbDataContainer> attributes, String idAttribute) {
+  public List<Long> getVerticesByAttributes(List<DbEqualsCondition> attributes, String idAttribute) {
     String query = "MATCH (f {";
 
     query = this.addValuesToStatement(query, attributes);
@@ -165,7 +165,7 @@ public class Neo4jClient implements DbClient {
    * @param attributes the set of attributes to filter
    * @return the Record of the vertex
    */
-  public Record getVertex(List<DbDataContainer> attributes) {
+  public Record getVertex(List<DbEqualsCondition> attributes) {
     return this.getVertex(null, attributes);
   }
 
@@ -176,7 +176,7 @@ public class Neo4jClient implements DbClient {
    * @param attributes the attributes to filter by
    * @return the Record with the vertex
    */
-  public Record getVertex(String label, List<DbDataContainer> attributes) {
+  public Record getVertex(String label, List<DbEqualsCondition> attributes) {
     String query = "MATCH (v";
 
     if (label == null) {
@@ -203,7 +203,7 @@ public class Neo4jClient implements DbClient {
    * @param attributes the attributes to filter by
    * @return the Neo4j Relationship for this edge
    */
-  public Relationship getEdge(String label, List<DbDataContainer> attributes) {
+  public Relationship getEdge(String label, List<DbEqualsCondition> attributes) {
     String query = "MATCH (v)-[e:" + label + "{";
 
     query = this.addValuesToStatement(query, attributes);
@@ -283,7 +283,7 @@ public class Neo4jClient implements DbClient {
     this.transaction.run(insert);
   }
 
-  public void deleteNode(List<DbDataContainer> predicates, String label) {
+  public void deleteNode(List<DbEqualsCondition> predicates, String label) {
     String delete = "MATCH (n: " + label + " {";
 
     delete = this.addValuesToStatement(delete, predicates);
@@ -318,18 +318,18 @@ public class Neo4jClient implements DbClient {
   }
 
   @Override
-  public DbResults equalitySelect(String table, List<String> projection,
-                                  List<DbDataContainer> predicatesAndValues) {
+  public DbResults select(String table, List<String> projection,
+                          List<? extends DbCondition> predicatesAndValues) {
     throw new UnsupportedOperationException("Invalid method for Neo4j.");
   }
 
   @Override
-  public void insert(String table, List<DbDataContainer> insertValues) {
+  public void insert(String table, List<DbEqualsCondition> insertValues) {
     throw new UnsupportedOperationException("Invalid method for Neo4j.");
   }
 
   @Override
-  public void delete(List<DbDataContainer> predicates, String table) {
+  public void delete(List<? extends DbCondition> predicates, String table) {
     throw new UnsupportedOperationException("Invalid method for Neo4j.");
   }
 

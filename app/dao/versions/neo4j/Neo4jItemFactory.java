@@ -18,7 +18,7 @@ import org.neo4j.driver.v1.Record;
 
 import dao.models.neo4j.Neo4jTagFactory;
 import dao.versions.ItemFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundDbException;
 import exceptions.GroundException;
@@ -63,18 +63,18 @@ public abstract class Neo4jItemFactory<T extends Item> implements ItemFactory<T>
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
-      List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
-      tagInsertion.add(new DbDataContainer("tkey", GroundType.STRING, key));
+      List<DbEqualsCondition> tagInsertion = new ArrayList<>();
+      tagInsertion.add(new DbEqualsCondition("item_id", GroundType.LONG, id));
+      tagInsertion.add(new DbEqualsCondition("tkey", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING,
             tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING,
             tag.getValueType().toString()));
       } else {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING, null));
       }
 
       this.dbClient.addVertexAndEdge("ItemTag", tagInsertion, "ItemTagConnection", id,

@@ -28,8 +28,8 @@ public interface DbClient extends AutoCloseable {
   void commit() throws GroundDbException;
   void abort() throws GroundDbException;
 
-  DbResults equalitySelect(String table, List<String> projection,
-                           List<DbDataContainer> predicatesAndValues) throws GroundDbException;
-  void insert(String table, List<DbDataContainer> insertValues) throws GroundDbException;
-  void delete(List<DbDataContainer> predicates, String table) throws GroundDbException;
+  DbResults select(String table, List<String> projection,
+                   List<? extends DbCondition> predicatesAndValues) throws GroundDbException;
+  void insert(String table, List<DbEqualsCondition> insertValues) throws GroundDbException;
+  void delete(List<? extends DbCondition> predicates, String table) throws GroundDbException;
 }

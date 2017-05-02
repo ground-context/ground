@@ -18,7 +18,8 @@ import dao.models.StructureVersionFactory;
 import dao.versions.cassandra.CassandraVersionFactory;
 import db.CassandraClient;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import exceptions.GroundException;
@@ -83,17 +84,17 @@ public class CassandraStructureVersionFactory
 
     super.insertIntoDatabase(id);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("structure_id", GroundType.LONG, structureId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("structure_id", GroundType.LONG, structureId));
 
     this.dbClient.insert("structure_version", insertions);
 
     for (String key : attributes.keySet()) {
-      List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-      itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING,
+      List<DbEqualsCondition> itemInsertions = new ArrayList<>();
+      itemInsertions.add(new DbEqualsCondition("structure_version_id", GroundType.LONG, id));
+      itemInsertions.add(new DbEqualsCondition("key", GroundType.STRING, key));
+      itemInsertions.add(new DbEqualsCondition("type", GroundType.STRING,
           attributes.get(key).toString()));
 
       this.dbClient.insert("structure_version_attribute", itemInsertions);
@@ -114,17 +115,17 @@ public class CassandraStructureVersionFactory
    */
   @Override
   public StructureVersion retrieveFromDatabase(long id) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    DbResults resultSet = this.dbClient.equalitySelect("structure_version",
+    DbResults resultSet = this.dbClient.select("structure_version",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
-    List<DbDataContainer> attributePredicates = new ArrayList<>();
-    attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+    List<DbEqualsCondition> attributePredicates = new ArrayList<>();
+    attributePredicates.add(new DbEqualsCondition("structure_version_id", GroundType.LONG, id));
 
-    DbResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
+    DbResults attributesSet = this.dbClient.select("structure_version_attribute",
         DbClient.SELECT_STAR, attributePredicates);
 
     if (attributesSet.isEmpty()) {

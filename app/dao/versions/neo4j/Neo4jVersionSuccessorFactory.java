@@ -15,7 +15,7 @@
 package dao.versions.neo4j;
 
 import dao.versions.VersionSuccessorFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundDbException;
 import exceptions.GroundException;
@@ -58,11 +58,10 @@ public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
 
     long dbId = idGenerator.generateSuccessorId();
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.clear();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
-    predicates.add(new DbDataContainer("fromId", GroundType.LONG, fromId));
-    predicates.add(new DbDataContainer("toId", GroundType.LONG, toId));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
+    predicates.add(new DbEqualsCondition("fromId", GroundType.LONG, fromId));
+    predicates.add(new DbEqualsCondition("toId", GroundType.LONG, toId));
 
     this.dbClient.addEdge("VersionSuccessor", fromId, toId, predicates);
 
@@ -81,8 +80,8 @@ public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
   public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, dbId));
 
     Relationship result = this.dbClient.getEdge("VersionSuccessor", predicates);
 
@@ -109,8 +108,8 @@ public class Neo4jVersionSuccessorFactory implements VersionSuccessorFactory {
   }
 
   private void verifyVersion(long id) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     Record record = this.dbClient.getVertex(predicates);
 

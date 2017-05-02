@@ -17,7 +17,7 @@ package dao.models.neo4j;
 import dao.models.EdgeFactory;
 import dao.versions.neo4j.Neo4jItemFactory;
 import dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundException;
 import exceptions.GroundVersionNotFoundException;
@@ -92,12 +92,12 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
 
     super.insertIntoDatabase(uniqueId, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-    insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
-    insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
-    insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
-    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("name", GroundType.STRING, name));
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, uniqueId));
+    insertions.add(new DbEqualsCondition("from_node_id", GroundType.LONG, fromNodeId));
+    insertions.add(new DbEqualsCondition("to_node_id", GroundType.LONG, toNodeId));
+    insertions.add(new DbEqualsCondition("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.addVertex("GroundEdge", insertions);
 
@@ -130,8 +130,8 @@ public class Neo4jEdgeFactory extends Neo4jItemFactory<Edge> implements EdgeFact
 
   private Edge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(fieldName, valueType, value));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(fieldName, valueType, value));
 
     Record record = this.dbClient.getVertex(predicates);
     super.verifyResultSet(record, fieldName, value);

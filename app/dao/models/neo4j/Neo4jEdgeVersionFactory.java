@@ -16,7 +16,7 @@ package dao.models.neo4j;
 
 import dao.models.EdgeVersionFactory;
 import dao.models.RichVersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundException;
 import models.models.EdgeVersion;
@@ -94,16 +94,16 @@ public class Neo4jEdgeVersionFactory
 
     tags = RichVersionFactory.addIdToTags(id, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-    insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("edge_id", GroundType.LONG, edgeId));
+    insertions.add(new DbEqualsCondition("from_node_start_id", GroundType.LONG,
         fromNodeVersionStartId));
-    insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+    insertions.add(new DbEqualsCondition("from_node_end_id", GroundType.LONG,
         fromNodeVersionEndId));
-    insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+    insertions.add(new DbEqualsCondition("to_node_start_id", GroundType.LONG,
         toNodeVersionStartId));
-    insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
+    insertions.add(new DbEqualsCondition("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
     this.dbClient.addVertex("EdgeVersion", insertions);
     super.insertIntoDatabase(id, tags, structureVersionId, reference,
@@ -138,8 +138,8 @@ public class Neo4jEdgeVersionFactory
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     Record versionRecord = this.dbClient.getVertex("EdgeVersion", predicates);
     super.verifyResultSet(versionRecord, id);

@@ -16,7 +16,7 @@ package dao.models.neo4j;
 
 import dao.models.NodeVersionFactory;
 import dao.models.RichVersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundException;
 import models.models.NodeVersion;
@@ -87,9 +87,9 @@ public class Neo4jNodeVersionFactory
     // add the id of the version to the tag
     tags = RichVersionFactory.addIdToTags(id, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("node_id", GroundType.LONG, nodeId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("node_id", GroundType.LONG, nodeId));
 
     this.dbClient.addVertex("NodeVersion", insertions);
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
@@ -111,8 +111,8 @@ public class Neo4jNodeVersionFactory
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     Record record = this.dbClient.getVertex(predicates);
     super.verifyResultSet(record, id);

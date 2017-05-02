@@ -17,7 +17,7 @@ package dao.versions.neo4j;
 import com.google.common.base.CaseFormat;
 
 import dao.versions.VersionHistoryDagFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundException;
 import models.models.Structure;
@@ -130,7 +130,7 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
       this.addEdge(dag, dag.getItemId(), id, dag.getItemId());
     }
 
-    List<DbDataContainer> predicates = new ArrayList<>();
+    List<DbEqualsCondition> predicates = new ArrayList<>();
 
     while (!deleteQueue.isEmpty()) {
       long id = deleteQueue.remove();
@@ -141,25 +141,25 @@ public class Neo4jVersionHistoryDagFactory implements VersionHistoryDagFactory {
           className);
 
       if (itemType.equals(Structure.class)) {
-        predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
+        predicates.add(new DbEqualsCondition("structure_version_id", GroundType.LONG, id));
         this.dbClient.deleteNode(predicates, "structure_version_attribute");
         predicates.clear();
       }
 
       if (itemType.getName().toLowerCase().contains("graph")) {
-        predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
+        predicates.add(new DbEqualsCondition(tableNamePrefix + "_version_id", GroundType.LONG, id));
         this.dbClient.deleteNode(predicates, tableNamePrefix + "_version_edge");
         predicates.clear();
       }
 
-      predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+      predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
       this.dbClient.deleteNode(predicates, className + "Version");
 
       Collection<Long> parents = dag.getParent(id);
 
       predicates.clear();
-      predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
+      predicates.add(new DbEqualsCondition("rich_version_id", GroundType.LONG, id));
       this.dbClient.deleteNode(predicates, "RichVersionTag");
       deleted.add(id);
 

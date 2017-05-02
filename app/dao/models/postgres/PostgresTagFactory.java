@@ -16,7 +16,8 @@ package dao.models.postgres;
 
 import dao.models.TagFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -49,12 +50,12 @@ public class PostgresTagFactory implements TagFactory {
   private Map<String, Tag> retrieveFromDatabaseById(long id, String keyPrefix)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(keyPrefix + "_id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(keyPrefix + "_id", GroundType.LONG, id));
 
     Map<String, Tag> result = new HashMap<>();
 
-    DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
+    DbResults resultSet = this.dbClient.select(keyPrefix + "_tag",
         DbClient.SELECT_STAR, predicates);
 
     for (DbRow row : resultSet) {
@@ -84,15 +85,15 @@ public class PostgresTagFactory implements TagFactory {
   }
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("key", GroundType.STRING, tag));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("key", GroundType.STRING, tag));
 
     List<String> projections = new ArrayList<>();
     String idColumn = keyPrefix + "_id";
     projections.add(idColumn);
 
     List<Long> result = new ArrayList<>();
-    DbResults resultSet = this.dbClient.equalitySelect(keyPrefix + "_tag",
+    DbResults resultSet = this.dbClient.select(keyPrefix + "_tag",
         projections, predicates);
 
     for (DbRow row : resultSet) {

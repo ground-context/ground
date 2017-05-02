@@ -21,7 +21,8 @@ import dao.models.cassandra.CassandraTagFactory;
 import dao.usage.LineageEdgeVersionFactory;
 import db.CassandraClient;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import exceptions.GroundException;
@@ -101,11 +102,11 @@ public class CassandraLineageEdgeVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("lineage_edge_id", GroundType.LONG, lineageEdgeId));
-    insertions.add(new DbDataContainer("from_rich_version_id", GroundType.LONG, fromId));
-    insertions.add(new DbDataContainer("to_rich_version_id", GroundType.LONG, toId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("lineage_edge_id", GroundType.LONG, lineageEdgeId));
+    insertions.add(new DbEqualsCondition("from_rich_version_id", GroundType.LONG, fromId));
+    insertions.add(new DbEqualsCondition("to_rich_version_id", GroundType.LONG, toId));
 
     this.dbClient.insert("lineage_edge_version", insertions);
 
@@ -127,10 +128,10 @@ public class CassandraLineageEdgeVersionFactory
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    DbResults resultSet = this.dbClient.equalitySelect("lineage_edge_version",
+    DbResults resultSet = this.dbClient.select("lineage_edge_version",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 

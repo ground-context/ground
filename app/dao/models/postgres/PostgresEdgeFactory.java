@@ -18,7 +18,8 @@ import dao.models.EdgeFactory;
 import dao.versions.postgres.PostgresItemFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -94,12 +95,12 @@ public class PostgresEdgeFactory extends PostgresItemFactory<Edge> implements Ed
 
     super.insertIntoDatabase(uniqueId, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-    insertions.add(new DbDataContainer("from_node_id", GroundType.LONG, fromNodeId));
-    insertions.add(new DbDataContainer("to_node_id", GroundType.LONG, toNodeId));
-    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("name", GroundType.STRING, name));
+    insertions.add(new DbEqualsCondition("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbEqualsCondition("from_node_id", GroundType.LONG, fromNodeId));
+    insertions.add(new DbEqualsCondition("to_node_id", GroundType.LONG, toNodeId));
+    insertions.add(new DbEqualsCondition("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.insert("edge", insertions);
 
@@ -132,11 +133,11 @@ public class PostgresEdgeFactory extends PostgresItemFactory<Edge> implements Ed
 
   private Edge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
+    List<DbCondition> predicates = new ArrayList<>();
 
-    predicates.add(new DbDataContainer(fieldName, valueType, value));
+    predicates.add(new DbEqualsCondition(fieldName, valueType, value));
 
-    DbResults resultSet = this.dbClient.equalitySelect("edge",
+    DbResults resultSet = this.dbClient.select("edge",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 

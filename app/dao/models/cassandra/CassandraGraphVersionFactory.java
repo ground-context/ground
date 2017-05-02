@@ -18,7 +18,8 @@ import dao.models.GraphVersionFactory;
 import dao.models.RichVersionFactory;
 import db.CassandraClient;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import exceptions.GroundException;
@@ -91,16 +92,16 @@ public class CassandraGraphVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("graph_id", GroundType.LONG, graphId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("graph_id", GroundType.LONG, graphId));
 
     this.dbClient.insert("graph_version", insertions);
 
     for (long edgeVersionId : edgeVersionIds) {
-      List<DbDataContainer> edgeInsertion = new ArrayList<>();
-      edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
-      edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.LONG, edgeVersionId));
+      List<DbEqualsCondition> edgeInsertion = new ArrayList<>();
+      edgeInsertion.add(new DbEqualsCondition("graph_version_id", GroundType.LONG, id));
+      edgeInsertion.add(new DbEqualsCondition("edge_version_id", GroundType.LONG, edgeVersionId));
 
       this.dbClient.insert("graph_version_edge", edgeInsertion);
     }
@@ -123,13 +124,13 @@ public class CassandraGraphVersionFactory
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    List<DbDataContainer> edgePredicate = new ArrayList<>();
-    edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
+    List<DbEqualsCondition> edgePredicate = new ArrayList<>();
+    edgePredicate.add(new DbEqualsCondition("graph_version_id", GroundType.LONG, id));
 
-    DbResults resultSet = this.dbClient.equalitySelect("graph_version",
+    DbResults resultSet = this.dbClient.select("graph_version",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
@@ -137,7 +138,7 @@ public class CassandraGraphVersionFactory
     long graphId = row.getLong("graph_id");
 
     List<Long> edgeVersionIds = new ArrayList<>();
-    DbResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
+    DbResults edgeSet = this.dbClient.select("graph_version_edge",
         DbClient.SELECT_STAR, edgePredicate);
 
     for (DbRow edgeRow : edgeSet) {

@@ -19,7 +19,8 @@ import dao.usage.LineageEdgeFactory;
 import dao.versions.postgres.PostgresItemFactory;
 import dao.versions.postgres.PostgresVersionHistoryDagFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -80,10 +81,10 @@ public class PostgresLineageEdgeFactory
 
     super.insertIntoDatabase(uniqueId, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, uniqueId));
-    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("name", GroundType.STRING, name));
+    insertions.add(new DbEqualsCondition("item_id", GroundType.LONG, uniqueId));
+    insertions.add(new DbEqualsCondition("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.insert("lineage_edge", insertions);
 
@@ -132,10 +133,10 @@ public class PostgresLineageEdgeFactory
   private LineageEdge retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(fieldName, valueType, value));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(fieldName, valueType, value));
 
-    DbResults resultSet = this.dbClient.equalitySelect("lineage_edge",
+    DbResults resultSet = this.dbClient.select("lineage_edge",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, fieldName, value);
 

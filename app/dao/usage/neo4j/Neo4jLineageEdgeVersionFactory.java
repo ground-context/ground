@@ -19,7 +19,7 @@ import dao.models.neo4j.Neo4jRichVersionFactory;
 import dao.models.neo4j.Neo4jStructureVersionFactory;
 import dao.models.neo4j.Neo4jTagFactory;
 import dao.usage.LineageEdgeVersionFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundException;
 import models.models.RichVersion;
@@ -95,11 +95,11 @@ public class Neo4jLineageEdgeVersionFactory
 
     tags = RichVersionFactory.addIdToTags(id, tags);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("lineageedge_id", GroundType.LONG, lineageEdgeId));
-    insertions.add(new DbDataContainer("endpoint_one", GroundType.LONG, fromId));
-    insertions.add(new DbDataContainer("endpoint_two", GroundType.LONG, toId));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("lineageedge_id", GroundType.LONG, lineageEdgeId));
+    insertions.add(new DbEqualsCondition("endpoint_one", GroundType.LONG, fromId));
+    insertions.add(new DbEqualsCondition("endpoint_two", GroundType.LONG, toId));
 
     this.dbClient.addVertex("LineageEdgeVersion", insertions);
 
@@ -125,8 +125,8 @@ public class Neo4jLineageEdgeVersionFactory
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     Record versionRecord = this.dbClient.getVertex(predicates);
     super.verifyResultSet(versionRecord, id);

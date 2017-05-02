@@ -16,7 +16,7 @@ package dao.versions.postgres;
 
 import dao.models.postgres.PostgresTagFactory;
 import dao.versions.ItemFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.PostgresClient;
 import exceptions.GroundException;
 import models.models.Tag;
@@ -61,26 +61,26 @@ public abstract class PostgresItemFactory<T extends Item> implements ItemFactory
    * @throws GroundException an error inserting data into the database
    */
   public void insertIntoDatabase(long id, Map<String, Tag> tags) throws GroundException {
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
     this.dbClient.insert("item", insertions);
 
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
 
-      List<DbDataContainer> tagInsertion = new ArrayList<>();
-      tagInsertion.add(new DbDataContainer("item_id", GroundType.LONG, id));
-      tagInsertion.add(new DbDataContainer("key", GroundType.STRING, key));
+      List<DbEqualsCondition> tagInsertion = new ArrayList<>();
+      tagInsertion.add(new DbEqualsCondition("item_id", GroundType.LONG, id));
+      tagInsertion.add(new DbEqualsCondition("key", GroundType.STRING, key));
 
       if (tag.getValue() != null) {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING,
             tag.getValue().toString()));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING,
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING,
             tag.getValueType().toString()));
       } else {
-        tagInsertion.add(new DbDataContainer("value", GroundType.STRING, null));
-        tagInsertion.add(new DbDataContainer("type", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("value", GroundType.STRING, null));
+        tagInsertion.add(new DbEqualsCondition("type", GroundType.STRING, null));
       }
 
       this.dbClient.insert("item_tag", tagInsertion);

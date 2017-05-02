@@ -17,7 +17,7 @@ package dao.models.neo4j;
 import dao.models.NodeFactory;
 import dao.versions.neo4j.Neo4jItemFactory;
 import dao.versions.neo4j.Neo4jVersionHistoryDagFactory;
-import db.DbDataContainer;
+import db.DbEqualsCondition;
 import db.Neo4jClient;
 import exceptions.GroundException;
 import models.models.Node;
@@ -71,10 +71,10 @@ public class Neo4jNodeFactory extends Neo4jItemFactory<Node> implements NodeFact
     super.verifyItemNotExists(sourceKey);
     long uniqueId = this.idGenerator.generateItemId();
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("name", GroundType.STRING, name));
-    insertions.add(new DbDataContainer("id", GroundType.LONG, uniqueId));
-    insertions.add(new DbDataContainer("source_key", GroundType.STRING, sourceKey));
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("name", GroundType.STRING, name));
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, uniqueId));
+    insertions.add(new DbEqualsCondition("source_key", GroundType.STRING, sourceKey));
 
     this.dbClient.addVertex("Node", insertions);
     super.insertIntoDatabase(uniqueId, tags);
@@ -124,8 +124,8 @@ public class Neo4jNodeFactory extends Neo4jItemFactory<Node> implements NodeFact
   private Node retrieveByPredicate(String fieldName, Object value, GroundType valueType)
       throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer(fieldName, valueType, value));
+    List<DbEqualsCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition(fieldName, valueType, value));
 
     Record record = this.dbClient.getVertex("Node", predicates);
     super.verifyResultSet(record, fieldName, value);

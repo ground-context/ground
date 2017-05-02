@@ -17,7 +17,8 @@ package dao.models.postgres;
 import dao.models.EdgeVersionFactory;
 import dao.models.RichVersionFactory;
 import db.DbClient;
-import db.DbDataContainer;
+import db.DbCondition;
+import db.DbEqualsCondition;
 import db.DbResults;
 import db.DbRow;
 import db.PostgresClient;
@@ -99,16 +100,16 @@ public class PostgresEdgeVersionFactory
 
     super.insertIntoDatabase(id, tags, structureVersionId, reference, referenceParameters);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("id", GroundType.LONG, id));
-    insertions.add(new DbDataContainer("edge_id", GroundType.LONG, edgeId));
-    insertions.add(new DbDataContainer("from_node_start_id", GroundType.LONG,
+    List<DbEqualsCondition> insertions = new ArrayList<>();
+    insertions.add(new DbEqualsCondition("id", GroundType.LONG, id));
+    insertions.add(new DbEqualsCondition("edge_id", GroundType.LONG, edgeId));
+    insertions.add(new DbEqualsCondition("from_node_start_id", GroundType.LONG,
         fromNodeVersionStartId));
-    insertions.add(new DbDataContainer("from_node_end_id", GroundType.LONG,
+    insertions.add(new DbEqualsCondition("from_node_end_id", GroundType.LONG,
         fromNodeVersionEndId));
-    insertions.add(new DbDataContainer("to_node_start_id", GroundType.LONG,
+    insertions.add(new DbEqualsCondition("to_node_start_id", GroundType.LONG,
         toNodeVersionStartId));
-    insertions.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
+    insertions.add(new DbEqualsCondition("to_node_end_id", GroundType.LONG, toNodeVersionEndId));
 
     this.dbClient.insert("edge_version", insertions);
 
@@ -132,10 +133,10 @@ public class PostgresEdgeVersionFactory
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     final RichVersion version = super.retrieveRichVersionData(id);
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    List<DbCondition> predicates = new ArrayList<>();
+    predicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
 
-    DbResults resultSet = this.dbClient.equalitySelect("edge_version",
+    DbResults resultSet = this.dbClient.select("edge_version",
         DbClient.SELECT_STAR, predicates);
     super.verifyResultSet(resultSet, id);
 
@@ -158,18 +159,18 @@ public class PostgresEdgeVersionFactory
 
   @Override
   public void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException {
-    List<DbDataContainer> setPredicates = new ArrayList<>();
-    List<DbDataContainer> wherePredicates = new ArrayList<>();
+    List<DbEqualsCondition> setPredicates = new ArrayList<>();
+    List<DbEqualsCondition> wherePredicates = new ArrayList<>();
 
     if (fromEndId != -1) {
-      setPredicates.add(new DbDataContainer("from_node_end_id", GroundType.LONG, fromEndId));
+      setPredicates.add(new DbEqualsCondition("from_node_end_id", GroundType.LONG, fromEndId));
     }
 
     if (toEndId != -1) {
-      setPredicates.add(new DbDataContainer("to_node_end_id", GroundType.LONG, toEndId));
+      setPredicates.add(new DbEqualsCondition("to_node_end_id", GroundType.LONG, toEndId));
     }
 
-    wherePredicates.add(new DbDataContainer("id", GroundType.LONG, id));
+    wherePredicates.add(new DbEqualsCondition("id", GroundType.LONG, id));
     this.dbClient.update(setPredicates, wherePredicates, "edge_version");
   }
 }

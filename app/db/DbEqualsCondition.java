@@ -17,46 +17,40 @@ package db;
 import exceptions.GroundDbException;
 import models.versions.GroundType;
 
-public class DbDataContainer {
-  // the name of the field
-  private final String field;
+import java.util.Arrays;
+import java.util.List;
 
-  // the type of the field
-  private final GroundType groundType;
-
-  // the value of the field;
-  private final Object value;
+public class DbEqualsCondition<T> extends DbCondition<T> {
+  // The value of the field.
+  private final T value;
 
   /**
-   * Create a new data container.
+   * Create an "equals" condition for use in WHERE clauses.
    *
    * @param field the name of the field
    * @param groundType the type of value
    * @param value the value of the field
    * @throws GroundDbException mismatch between groundType and value's type
    */
-  public DbDataContainer(String field, GroundType groundType, Object value)
+  public DbEqualsCondition(String field, GroundType groundType, T value)
       throws GroundDbException {
+    super(field, groundType);
 
-    if (value != null && !(value.getClass().equals(groundType.getTypeClass()))) {
-      throw new GroundDbException("Value of type " + value.getClass().toString()
-          + " does not correspond to type of " + groundType.getTypeClass().toString() + ".");
-    }
-
-    this.field = field;
-    this.groundType = groundType;
+    verifyType(value);
     this.value = value;
   }
 
-  public String getField() {
-    return this.field;
-  }
-
-  public GroundType getGroundType() {
-    return this.groundType;
-  }
-
-  public Object getValue() {
+  public T getValue() {
     return this.value;
+  }
+
+  @Override
+  public String getPredicate() {
+    return this.field + " = ?";
+  }
+
+  @Override
+  public List<T> getValues() {
+    return Arrays.asList(value);
   }
 }
