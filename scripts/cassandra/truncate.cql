@@ -27,7 +27,6 @@ TRUNCATE rich_version_external_parameter;
 TRUNCATE rich_version;
 TRUNCATE structure_version;
 TRUNCATE structure;
-TRUNCATE version_history_dag;
 TRUNCATE item_tag;
 TRUNCATE item;
 TRUNCATE version_successor;

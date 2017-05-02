@@ -20,7 +20,7 @@ import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CassandraClient extends DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(CassandraClient.class);
@@ -83,7 +85,6 @@ public class CassandraClient extends DbClient {
     if (table.equals("edge") || table.equals("node") || table.equals("graph") || table.equals("structure")) {
       insert = insert.substring(0, insert.length() - 1) + "IF NOT EXISTS;";
     }
-    BoundStatement statement = this.prepareStatement(insert);
 
     BoundStatement statement = bind(insert, insertValues);
 
@@ -115,15 +116,12 @@ public class CassandraClient extends DbClient {
 
     BoundStatement statement = this.prepareStatement(query);
 
-    // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
-    statement.bind(keyValues);
-
-    int index = 1;
-    for (DbDataContainer container : predicates) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
+    List<Object> values = new ArrayList<>();
+    values.add(keyValues);
+    for (DbDataContainer dataContainer : predicates) {
+      values.add(dataContainer.getValue());
     }
+    statement.bind(values.toArray(new Object[values.size()]));
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
@@ -174,8 +172,9 @@ public class CassandraClient extends DbClient {
     String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + collectionName
       + " CONTAINS ?;";
 
-    BoundStatement statement = this.prepareStatement(query);
-    CassandraClient.setValue(statement, value.getValue(), value.getGroundType(), 0);
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(value);
+    BoundStatement statement = bind(query, predicates);
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
@@ -237,14 +236,6 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
-  private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
-    BoundStatement boundStatement = this.prepareStatement(statement);
-    List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
-      .map(p-> p.getValue()).collect(Collectors.toList());
-    boundStatement.bind(values.toArray(new Object[values.size()]));
-    return boundStatement;
-  }
-
   /**
    * Deletes values from a set
    * @param table the table to update
@@ -271,45 +262,19 @@ public class CassandraClient extends DbClient {
 
     deleteString += "where " + predicateString;
 
-    BoundStatement statement = this.prepareStatement(deleteString);
+    BoundStatement statement = bind(deleteString, predicates);
 
-    int index = 0;
-    for (DbDataContainer predicate : predicates) {
-      CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-      index++;
-    }
 
     this.session.execute(statement);
   }
 
-  /**
-   * Deletes all keys in the associated map by value
-   * @param predicates the predicates to match by row
-   * @param table the table to be deleted from
-   * @param columnName the column name of the map
-   * @param values the values in the map to be deleted
-   */
-  public void deleteFromMapByValue(List<DbDataContainer> predicates, String table,
-                                   String columnName, List<DbDataContainer> values) {
-    String deleteString = "delete " + columnName + "[?] from " + table;
-    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
-      .collect(Collectors.joining(" and "));
-    deleteString += " where " + predicateString;
 
-    for (DbDataContainer val : values) {
-      BoundStatement statement = this.prepareStatement(deleteString);
-
-      // Set the value to be deleted
-      CassandraClient.setValue(statement, val.getValue(), val.getGroundType(), 0);
-
-      int index = 1;
-      for (DbDataContainer predicate : predicates) {
-        CassandraClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
-        index++;
-      }
-
-      this.session.execute(statement);
-    }
+  private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
+    BoundStatement boundStatement = this.prepareStatement(statement);
+    List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
+      .map(p-> p.getValue()).collect(Collectors.toList());
+    boundStatement.bind(values.toArray(new Object[values.size()]));
+    return boundStatement;
   }
 
   @Override
@@ -351,15 +316,12 @@ public class CassandraClient extends DbClient {
 
     BoundStatement statement = this.prepareStatement(query);
 
-    // Cannot use normal setValue method for collections: https://datastax-oss.atlassian.net/browse/JAVA-185
-    statement.bind(values);
-
-    int index = 1;
-    for (DbDataContainer container : predicates) {
-      CassandraClient.setValue(statement, container.getValue(), container.getGroundType(), index);
-
-      index++;
+    List<Object> valuesToAdd = new ArrayList<>();
+    valuesToAdd.add(values);
+    for (DbDataContainer dataContainer : predicates) {
+      valuesToAdd.add(dataContainer.getValue());
     }
+    statement.bind(valuesToAdd.toArray(new Object[valuesToAdd.size()]));
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
