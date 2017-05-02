@@ -28,14 +28,17 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   @Override
   public void create(final Database dbSource, final Graph graph, final IdGenerator idGenerator) throws GroundException {
-    super.create(dbSource, graph, idGenerator);
     final List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
-    sqlList.add(
-        String.format(
-            "insert into graph (item_id, source_key, name) values (%d, '%s', '%s')",
-            uniqueId, graph.getSourceKey(), graph.getName()));
-    PostgresUtils.executeSqlList(dbSource, sqlList);
+    Graph newGraph = new Graph(uniqueId, graph.getName(), graph.getSourceKey(), graph.getTags());
+    try {
+      sqlList.addAll(super.createSqlList(newGraph));
+      sqlList.add(String.format("insert into graph (item_id, source_key, name) values (%d, '%s', '%s')",
+          uniqueId, graph.getSourceKey(), graph.getName()));
+      PostgresUtils.executeSqlList(dbSource, sqlList);
+    } catch (Exception e) {
+      throw new GroundException(e);
+    }
   }
 
   @Override

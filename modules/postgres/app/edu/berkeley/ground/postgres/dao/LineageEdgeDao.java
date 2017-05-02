@@ -35,7 +35,6 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   @Override
 
   public final void create(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
-    //super.create(dbSource, lineageEdge, idGenerator);
     List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
