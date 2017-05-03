@@ -14,25 +14,13 @@ package edu.berkeley.ground.lib.factory.core;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.GraphVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.lib.model.version.Version;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface GraphVersionFactory extends RichVersionFactory<GraphVersion> {
-  GraphVersion create(
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long graphId,
-      List<Long> edgeVersionIds,
-      List<Long> parentIds)
-      throws GroundException;
 
   @Override
-  default Class<GraphVersion> getType() {
-    return GraphVersion.class;
-  }
-
-  @Override
-  GraphVersion retrieveFromDatabase(long id) throws GroundException;
+  GraphVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 }

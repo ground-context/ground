@@ -48,25 +48,33 @@ public class GraphController extends Controller {
     this.idGenerator = idGenerator;
   }
 
-  public final CompletionStage<Result> getGraph(final String sourceKey) {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          try {
-            return cache.getOrElse(
-              "graphs",
-              () -> Json.toJson(new GraphDao().retrieveFromDatabase(dbSource, sourceKey)).toString(),
-              Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-          } catch (Exception e) {
-            throw new CompletionException(e);
-          }
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> ok(output))
-        .exceptionally(
-          e -> {
-            return internalServerError(GroundUtils.getServerError(request(), e));
-          });
+  public final CompletionStage<Result> getGraph(String sourceKey) {
+    CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
+      String sql = String.format("select * from graph where source_key = \'%s\'", sourceKey);
+      try {
+        return cache.getOrElse("graphs", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+      } catch (Exception e) {
+        throw new CompletionException(e);
+      }
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
+      return internalServerError(GroundUtils.getServerError(request(), e));
+    });
+    return results;
+  }
+
+  public final CompletionStage<Result> getGraphVersion(Long id) {
+    CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
+      String sql = String.format("select * from graph_version where id = \'%d\'", id);
+      try {
+        return cache.getOrElse("graphs", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+      } catch (Exception e) {
+        throw new CompletionException(e);
+      }
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
+      return internalServerError(GroundUtils.getServerError(request(), e));
+    });
     return results;
   }
 
@@ -95,28 +103,6 @@ public class GraphController extends Controller {
             } else {
               return internalServerError(GroundUtils.getServerError(request(), e));
             }
-          });
-    return results;
-  }
-
-  public final CompletionStage<Result> getGraphVersion(final long id) {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          try {
-            return cache.getOrElse(
-              "graphs",
-              () -> Json.toJson(new GraphDao().retrieveFromDatabase(dbSource, id)).toString(),
-              Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-          } catch (Exception e) {
-            throw new CompletionException(e);
-          }
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> ok(output))
-        .exceptionally(
-          e -> {
-            return internalServerError(GroundUtils.getServerError(request(), e));
           });
     return results;
   }
