@@ -21,10 +21,6 @@ import play.db.Database;
 
 public interface StructureVersionFactory extends VersionFactory<StructureVersion> {
 
-  StructureVersion create(
-      long structureId, Map<String, GroundType> attributes, List<Long> parentIds)
-      throws GroundException;
-
   @Override
   StructureVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 }

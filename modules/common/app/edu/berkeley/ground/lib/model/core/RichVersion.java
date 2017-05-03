@@ -25,7 +25,7 @@ public class RichVersion extends Version {
   private final Map<String, Tag> tags;
 
   // the StructureVersion associated with this RichVersion
-  private final long structureVersionId;
+  private final Long structureVersionId;
 
   // the optional reference associated with this RichVersion
   private final String reference;
@@ -46,7 +46,7 @@ public class RichVersion extends Version {
   public RichVersion(
       long id,
       Map<String, Tag> tags,
-      long structureVersionId,
+      Long structureVersionId,
       String reference,
       Map<String, String> referenceParameters) {
 
@@ -66,7 +66,7 @@ public class RichVersion extends Version {
     return this.tags;
   }
 
-  public long getStructureVersionId() {
+  public Long getStructureVersionId() {
     return this.structureVersionId;
   }
 
