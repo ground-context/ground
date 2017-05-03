@@ -17,6 +17,7 @@ import edu.berkeley.ground.lib.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface LineageGraphVersionFactory extends RichVersionFactory<LineageGraphVersion> {
 
@@ -31,10 +32,5 @@ public interface LineageGraphVersionFactory extends RichVersionFactory<LineageGr
       throws GroundException;
 
   @Override
-  default Class<LineageGraphVersion> getType() {
-    return LineageGraphVersion.class;
-  }
-
-  @Override
-  LineageGraphVersion retrieveFromDatabase(long id) throws GroundException;
+  LineageGraphVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 }

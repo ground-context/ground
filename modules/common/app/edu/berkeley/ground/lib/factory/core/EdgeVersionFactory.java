@@ -16,6 +16,7 @@ import edu.berkeley.ground.lib.model.core.EdgeVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
 
@@ -33,12 +34,7 @@ public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
       throws GroundException;
 
   @Override
-  default Class<EdgeVersion> getType() {
-    return EdgeVersion.class;
-  }
-
-  @Override
-  EdgeVersion retrieveFromDatabase(long id) throws GroundException;
+  EdgeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
   void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException;
 }

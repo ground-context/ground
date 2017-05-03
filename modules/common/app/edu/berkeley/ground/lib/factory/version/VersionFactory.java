@@ -13,11 +13,10 @@ package edu.berkeley.ground.lib.factory.version;
 
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.Version;
+import play.db.Database;
 
 public interface VersionFactory<T extends Version> {
-  void insertIntoDatabase(long id) throws GroundException;
+  void insertIntoDatabase(long id, T version) throws GroundException;
 
-  Class<T> getType();
-
-  T retrieveFromDatabase(long id) throws GroundException;
+  T retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 }
