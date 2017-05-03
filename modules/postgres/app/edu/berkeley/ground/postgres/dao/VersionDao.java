@@ -32,7 +32,7 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
 
-  public List<String> createSqlList(final T version) {
+  public List<String> createSqlList(final T version) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     sqlList.add(
       String.format(
