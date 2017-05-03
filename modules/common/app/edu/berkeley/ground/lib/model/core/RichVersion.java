@@ -15,6 +15,8 @@ import edu.berkeley.ground.lib.model.version.Tag;
 import edu.berkeley.ground.lib.model.version.Version;
 import java.util.Map;
 import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RichVersion extends Version {
   private long id;
@@ -40,6 +42,7 @@ public class RichVersion extends Version {
    * @param reference an optional external reference
    * @param referenceParameters the access parameters for the reference
    */
+  @JsonCreator
   public RichVersion(
       long id,
       Map<String, Tag> tags,
@@ -50,7 +53,7 @@ public class RichVersion extends Version {
     super(id);
     this.id = id;
     this.tags = tags;
-    this.structureVersionId = structureVersionId == 0 ? -1 : structureVersionId;
+    this.structureVersionId = structureVersionId;
     this.reference = reference;
     this.parameters = referenceParameters;
   }

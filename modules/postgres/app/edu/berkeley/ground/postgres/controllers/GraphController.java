@@ -115,7 +115,7 @@ public class GraphController extends Controller {
           JsonNode json = request().body().asJson();
           GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
           try {
-            new GraphVersionDao().create(dbSource, graphVersion);
+            new GraphVersionDao().create(dbSource, graphVersion, idGenerator);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }

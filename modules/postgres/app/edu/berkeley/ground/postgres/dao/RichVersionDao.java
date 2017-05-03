@@ -34,7 +34,7 @@ import play.libs.Json;
 import play.db.Database;
 
 public class RichVersionDao<T extends RichVersion> implements RichVersionFactory<T> {
-  void create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
+  public void create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
     final List<String> sqlList = createSqlList(richVersion);
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
