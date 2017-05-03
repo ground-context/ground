@@ -13,14 +13,12 @@ package edu.berkeley.ground.lib.factory.version;
 
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.Tag;
+
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface TagFactory {
-  Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException;
-
-  Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException;
-
   List<Long> getVersionIdsByTag(String tag) throws GroundException;
 
   List<Long> getItemIdsByTag(String tag) throws GroundException;

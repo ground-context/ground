@@ -42,7 +42,7 @@ public class LineageEdgeController extends Controller {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
       try {
-        return cache.getOrElse("graphs", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+        return cache.getOrElse("lineage_edge", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
           Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
       } catch (Exception e) {
         throw new CompletionException(e);
@@ -57,7 +57,7 @@ public class LineageEdgeController extends Controller {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       String sql = String.format("select * from lineage_edge_version where id = \'%d\'", id);
       try {
-        return cache.getOrElse("nodes", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+        return cache.getOrElse("lineage_edge", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
           Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
       } catch (Exception e) {
         throw new CompletionException(e);

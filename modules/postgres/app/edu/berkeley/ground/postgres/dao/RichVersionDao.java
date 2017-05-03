@@ -16,6 +16,7 @@ import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.ItemFactory;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.lib.model.version.Version;
 import edu.berkeley.ground.postgres.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.lib.model.core.StructureVersion;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 import play.libs.Json;
 import play.db.Database;
 
-public class RichVersionDao<T extends RichVersion> implements RichVersionFactory<T> {
+public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
   public void create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
     final List<String> sqlList = createSqlList(richVersion);
     PostgresUtils.executeSqlList(dbSource, sqlList);
@@ -101,8 +102,10 @@ public class RichVersionDao<T extends RichVersion> implements RichVersionFactory
     }
   }
 
+  @Override
   public List<String> createSqlList(final T richVersion) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
+    sqlList.addAll(super.createSqlList(richVersion));
     sqlList.add(
       String.format(
         "insert into rich_version (id, structure_version_id, reference) values (%d, %d, %s)",
