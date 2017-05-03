@@ -16,16 +16,6 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava
 
 
 lazy val common = (project in file("modules/common"))
-<<<<<<< HEAD
-    .enablePlugins(PlayJava, JavaAppPackaging)
-    .settings(
-        name := "ground-common-lib",
-        organization := "edu.berkeley.ground.lib",
-		version := "0.1-SNAPSHOT",
-  		scalaVersion := "2.11.8",
-      libraryDependencies += javaJdbc
-    )
-=======
   .enablePlugins(PlayJava, JavaAppPackaging)
   .settings(
     name := "ground-common-lib",
@@ -34,7 +24,6 @@ lazy val common = (project in file("modules/common"))
     scalaVersion := "2.11.8",
     libraryDependencies += javaJdbc
   )
->>>>>>> b6954d7ab266e3f26f2b5d88f4b31c3b93e03021
 
 lazy val postgres = (project in file("modules/postgres"))
   .enablePlugins(PlayJava, JavaAppPackaging
