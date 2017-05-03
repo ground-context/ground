@@ -24,7 +24,7 @@ import play.db.Database;
 public class VersionDao<T extends Version> implements VersionFactory<T> {
 
   @Override
-  public void insertIntoDatabase(long id) throws GroundException {
+  public void insertIntoDatabase(long id, T version) throws GroundException {
   }
 
   public void create(final Database dbSource, final T version, final IdGenerator idGenerator) throws GroundException {
@@ -32,7 +32,7 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
 
-  public List<String> createSqlList(final T version) {
+  public List<String> createSqlList(final T version) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     sqlList.add(
       String.format(
@@ -42,12 +42,7 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
   }
 
   @Override
-  public Class<T> getType() {
-    return null;
-  }
-
-  @Override
-  public T retrieveFromDatabase(long id) throws GroundException {
+  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
     return null;
   }
 

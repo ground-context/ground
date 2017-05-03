@@ -16,16 +16,8 @@ import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
 import play.db.Database;
 
-import java.util.List;
-import java.util.Map;
-
 public interface NodeVersionFactory extends RichVersionFactory<NodeVersion> {
 
   @Override
-  default Class<NodeVersion> getType() {
-    return NodeVersion.class;
-  }
-
   NodeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
-
 }

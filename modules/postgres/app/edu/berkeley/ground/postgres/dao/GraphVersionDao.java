@@ -13,20 +13,44 @@ package edu.berkeley.ground.postgres.dao;
 
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.GraphVersion;
+import edu.berkeley.ground.lib.factory.core.GraphVersionFactory;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.factory.core.RichVersionFactory;
+import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import play.db.Database;
+import play.libs.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public class GraphVersionDao {
+public class GraphVersionDao extends RichVersionDao<GraphVersion> implements GraphVersionFactory{
 
-  public final void create(final Database dbSource, final GraphVersion graphVersion)
+  @Override
+  public final void create(final Database dbSource, final GraphVersion graphVersion, final IdGenerator idGenerator)
       throws GroundException {
     final List<String> sqlList = new ArrayList<>();
-    sqlList.add(
-        String.format(
-            "insert into graph_version (id, graph_id) values (%d, %d)",
-            graphVersion.getId(), graphVersion.getGraphId()));
+    long uniqueId = idGenerator.generateItemId();
+    final Map<String, Tag> tags = graphVersion.getTags();
+    GraphVersion newGraphVersion = new GraphVersion(uniqueId, graphVersion.getTags(), graphVersion.getStructureVersionId(), 
+    	graphVersion.getReference(), graphVersion.getReferenceParameters(), graphVersion.getGraphId(), graphVersion.getEdgeVersionIds());
+    try{
+      sqlList.addAll(super.createSqlList(newGraphVersion));
+	    sqlList.add(
+	        String.format(
+	            "insert into graph_version (id, graph_id) values (%d, %d)",
+	            uniqueId, graphVersion.getGraphId()));
     PostgresUtils.executeSqlList(dbSource, sqlList);
+    } catch (Exception e) {
+      throw new GroundException(e);
+    }
+  }
+
+  @Override
+  public GraphVersion retrieveFromDatabase(final Database dbSource, final long id) throws GroundException{
+  	String sql = String.format("select * from graph_version where id = %d", id);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    return Json.fromJson(json, GraphVersion.class);
   }
 }

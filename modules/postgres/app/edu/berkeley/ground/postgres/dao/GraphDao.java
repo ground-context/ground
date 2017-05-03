@@ -43,16 +43,16 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   @Override
   public Graph retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
-  	String sql = String.format("select * from graph where source_key = \'%s\'", sourceKey);
-  	JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-  	return Json.fromJson(json, Graph.class);
+    String sql = String.format("select * from graph where source_key = \'%s\'", sourceKey);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    return Json.fromJson(json, Graph.class);
   }
 
   @Override
   public Graph retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
-  	String sql = String.format("select * from graph_version where id = %d", id);
-  	JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-  	return Json.fromJson(json, Graph.class);
+    String sql = String.format("select * from graph_version where id = %d", id);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    return Json.fromJson(json, Graph.class);
   }
 
   @Override
@@ -62,7 +62,7 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   @Override
   public List<Long> getLeaves(String sourceKey) throws GroundException {
-  	return new ArrayList<>();
+    return new ArrayList<>();
   }
 
   public void truncate(long itemId, int numLevels) throws GroundException {

@@ -17,6 +17,7 @@ import edu.berkeley.ground.lib.model.core.StructureVersion;
 import edu.berkeley.ground.lib.model.version.GroundType;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public interface StructureVersionFactory extends VersionFactory<StructureVersion> {
 
@@ -25,9 +26,5 @@ public interface StructureVersionFactory extends VersionFactory<StructureVersion
       throws GroundException;
 
   @Override
-  default Class<StructureVersion> getType() {
-    return StructureVersion.class;
-  }
-
-  StructureVersion retrieveFromDatabase(long id) throws GroundException;
+  StructureVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 }

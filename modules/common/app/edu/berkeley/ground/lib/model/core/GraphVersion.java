@@ -18,11 +18,16 @@ import java.util.List;
 import java.util.Map;
 
 public class GraphVersion extends RichVersion {
-  // the id of the Graph that contains this Version
+  @JsonProperty("tags")
+  private final Map<String, Tag> tags;
+  @JsonProperty("structure_version_id")
+  private final long structureVersionId;
+  @JsonProperty("reference")
+  private final String reference;
+  @JsonProperty("reference_parameters")
+  private final Map<String, String> referenceParameters;
   @JsonProperty("graph_id")
   private final long graphId;
-
-  // the list of ids of EdgeVersions in this GraphVersion
   @JsonProperty("edge_version_ids")
   private final List<Long> edgeVersionIds;
 
@@ -49,8 +54,28 @@ public class GraphVersion extends RichVersion {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
+    this.tags = tags;
+    this.structureVersionId = structureVersionId;
+    this.reference = reference;
+    this.referenceParameters = referenceParameters;
     this.graphId = graphId;
     this.edgeVersionIds = edgeVersionIds;
+  }
+
+  public Map<String, Tag> getTags() {
+    return this.tags;
+  }
+
+  public long getStructureVersionId() {
+    return this.structureVersionId;
+  }
+
+  public String getReference() {
+    return this.reference;
+  }
+
+  public Map<String, String> getReferenceParameters() {
+    return this.referenceParameters;
   }
 
   public long getGraphId() {
