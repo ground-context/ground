@@ -66,7 +66,7 @@ public class GraphVersion extends RichVersion {
     return this.tags;
   }
 
-  public long getStructureVersionId() {
+  public Long getStructureVersionId() {
     return this.structureVersionId;
   }
 
