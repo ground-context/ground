@@ -249,13 +249,15 @@ public class CassandraClient extends DbClient {
   }
 
   /**
-   * Deletes a column from a table (sets column to null)
+   * Deletes a column from a table
    * @param predicates the predicates used to match row(s) to delete from
    * @param table the table to delete from
-   * @param columnName the column to delete
+   * @param columnNames the columns to delete
    */
-  public void deleteColumn(List<DbDataContainer> predicates, String table, String columnName) {
-    String deleteString = "delete " + columnName + " from " + table + " ";
+  public void deleteColumn(List<DbDataContainer> predicates, String table, List<String> columnNames) {
+    String names = columnNames.stream().collect(Collectors.joining(", "));
+
+    String deleteString = "delete " + names + " from " + table + " ";
 
     String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
       .collect(Collectors.joining(" and "));
