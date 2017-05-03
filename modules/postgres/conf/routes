@@ -28,9 +28,6 @@ GET     /versions/graphs/:id                              edu.berkeley.ground.po
 POST    /structures                        		  		  edu.berkeley.ground.postgres.controllers.StructureController.addStructure()
 GET     /structures/:sourceKey                            edu.berkeley.ground.postgres.controllers.StructureController.getStructure(sourceKey: String)
 POST    /versions/structures                      		  edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
-<<<<<<< HEAD
-GET     /versions/structures/:id                          edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
-=======
 GET     /versions/structures/:id                          edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
 
 # lineage edge endpoints
@@ -38,4 +35,3 @@ POST    /lineage_edges                                  edu.berkeley.ground.post
 GET     /lineage_edges/:sourceKey                       edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdge(sourceKey: String)
 POST    /versions/lineage_edges                         edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdgeVersion()
 GET     /versions/lineage_edges/:id                     edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdgeVersion(id: Long)
->>>>>>> b6954d7ab266e3f26f2b5d88f4b31c3b93e03021
