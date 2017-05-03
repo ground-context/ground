@@ -15,24 +15,20 @@
 package dao.versions.cassandra;
 
 import com.google.common.base.CaseFormat;
-
 import dao.versions.VersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
-import db.DbClient;
 import db.DbDataContainer;
 import exceptions.GroundException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import models.models.Structure;
 import models.versions.GroundType;
 import models.versions.Item;
 import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final CassandraClient dbClient;
@@ -61,21 +57,14 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
   @Override
   public <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
       throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    CassandraResults resultSet = this.dbClient.equalitySelect("version_history_dag", DbClient.SELECT_STAR,
-          predicates);
+    List<VersionSuccessor<T>> edges;
 
-    if (resultSet.isEmpty()) {
+    try {
+      edges = this.versionSuccessorFactory.retrieveFromDatabaseByItemId(itemId);
+    } catch (GroundException e) {
+      // do nothing, this just means no version have been added yet.
       return new VersionHistoryDag<T>(itemId, new ArrayList<>());
     }
-
-    List<VersionSuccessor<T>> edges = new ArrayList<>();
-    do {
-      edges.add(this.versionSuccessorFactory.retrieveFromDatabase(resultSet
-          .getLong("version_successor_id")));
-    } while (resultSet.next());
-
     return new VersionHistoryDag(itemId, edges);
   }
 
@@ -93,12 +82,12 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
       throws GroundException {
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
+    // Adding to the entry with id = successor.getId()
+    List<DbDataContainer> newValue = new ArrayList<>(), predicate = new ArrayList<>();
+    newValue.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+    predicate.add(new DbDataContainer("id", GroundType.LONG, successor.getId()));
 
-    this.dbClient.insert("version_history_dag", insertions);
-
+    this.dbClient.update(newValue, predicate, "version_successor");
     dag.addEdge(parentId, childId, successor.getId());
   }
 
@@ -147,14 +136,18 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
         tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
 
         if (itemType.equals(Structure.class)) {
-          predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-          this.dbClient.delete(predicates, "structure_version_attribute");
+          predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+          List<String> columns = new ArrayList<>();
+          columns.add("key_type_map");
+          this.dbClient.deleteColumn(predicates, "structure_version", columns);
           predicates.clear();
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
-          predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
-          this.dbClient.delete(predicates, tableNamePrefix + "_version_edge");
+          predicates.add(new DbDataContainer("id", GroundType.LONG, id));
+          List<String> columns = new ArrayList<>();
+          columns.add("edge_version_set");
+          this.dbClient.deleteColumn(predicates, "graph_version", columns);
           predicates.clear();
         }
 

@@ -21,6 +21,9 @@ import com.datastax.driver.core.exceptions.CodecNotFoundException;
 import exceptions.GroundDbException;
 import models.versions.GroundType;
 
+import java.util.Map;
+import java.util.Set;
+
 public class CassandraResults {
   private final ResultSet resultSet;
   private Row currentRow;
@@ -88,6 +91,22 @@ public class CassandraResults {
       //Q: Why Long one does not follow the same logic as the other types?
       return this.currentRow.getLong(field);
     } catch (IllegalArgumentException | CodecNotFoundException e) {
+      throw new GroundDbException(e);
+    }
+  }
+
+  public <K, V> Map<K, V> getMap(String field, Class<K> keyKlass, Class<V> valueKlass) throws GroundDbException {
+    try {
+      return this.currentRow.getMap(field, keyKlass, valueKlass);
+    } catch (Exception e) {
+      throw new GroundDbException(e);
+    }
+  }
+
+  public <T> Set<T> getSet(String field, Class<T> klass) throws GroundDbException {
+    try {
+      return this.currentRow.getSet(field, klass);
+    } catch (Exception e) {
       throw new GroundDbException(e);
     }
   }

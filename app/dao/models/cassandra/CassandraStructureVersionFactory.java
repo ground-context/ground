@@ -88,13 +88,11 @@ public class CassandraStructureVersionFactory
     this.dbClient.insert("structure_version", insertions);
 
     for (String key : attributes.keySet()) {
-      List<DbDataContainer> itemInsertions = new ArrayList<>();
-      itemInsertions.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-      itemInsertions.add(new DbDataContainer("key", GroundType.STRING, key));
-      itemInsertions.add(new DbDataContainer("type", GroundType.STRING,
-          attributes.get(key).toString()));
-
-      this.dbClient.insert("structure_version_attribute", itemInsertions);
+      Map<String, String> map = new HashMap<>();
+      map.put(key, attributes.get(key).toString());
+      List<DbDataContainer> predicate = new ArrayList<>();
+      predicate.add(new DbDataContainer("id", GroundType.LONG, id));
+      this.dbClient.addToMap("structure_version", "key_type_map", map, predicate);
     }
 
     this.structureFactory.update(structureId, id, parentIds);
@@ -120,21 +118,16 @@ public class CassandraStructureVersionFactory
         predicates);
     super.verifyResultSet(resultSet, id);
 
-    Map<String, GroundType> attributes = new HashMap<>();
+    Map<String, String> tmpAttributes = resultSet.getMap("key_type_map", String.class, String.class);
 
-    List<DbDataContainer> attributePredicates = new ArrayList<>();
-    attributePredicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-    CassandraResults attributesSet = this.dbClient.equalitySelect("structure_version_attribute",
-        DbClient.SELECT_STAR, attributePredicates);
-
-    if (attributesSet.isEmpty()) {
+    if (tmpAttributes.isEmpty()) {
       throw new GroundException("No StructureVersion attributes found for id " + id + ".");
     }
 
-    do {
-      attributes.put(attributesSet.getString("key"), GroundType.fromString(attributesSet
-          .getString("type")));
-    } while (attributesSet.next());
+    Map<String, GroundType> attributes = new HashMap<>();
+    for (String key : tmpAttributes.keySet()) {
+      attributes.put(key, GroundType.fromString(tmpAttributes.get(key)));
+    }
 
     long structureId = resultSet.getLong("structure_id");
 

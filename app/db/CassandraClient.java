@@ -20,15 +20,15 @@ import com.datastax.driver.core.PlainTextAuthProvider;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +81,47 @@ public class CassandraClient extends DbClient {
 
     String insert = "insert into " + table + "(" + fields + ") values (" + values + ");";
 
+    // Ensure the following tables have unique entries
+    if (table.equals("edge") || table.equals("node") || table.equals("graph") || table.equals("structure")) {
+      insert = insert.substring(0, insert.length() - 1) + "IF NOT EXISTS;";
+    }
+
     BoundStatement statement = bind(insert, insertValues);
+
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+    this.session.execute(statement);
+  }
+
+  /**
+   *
+   * @param table the table to update
+   * @param setName the name of the set (column) being appended to
+   * @param values a set containing all values to be added. Set type must match with column type
+   * @param predicates values specifying which row will be updated
+	 */
+  public void addToSet(String table, String setName,
+                       Set<? extends Object> values, List<DbDataContainer> predicates) {
+    this.modifySet(table, setName, values, predicates, true);
+  }
+
+  public void addToMap(String table, String mapName, Map<? extends Object, ? extends Object> keyValues,
+                       List<DbDataContainer> predicates) {
+    String predicatesString =
+      predicates
+        .stream()
+        .map(predicate -> predicate.getField() + " = ?")
+        .collect(Collectors.joining(" and "));
+    String whereString = " where " + predicatesString + ";";
+    String query = "UPDATE " + table + " SET " + mapName + " = " + mapName + " + " + " ? " + whereString;
+
+    BoundStatement statement = this.prepareStatement(query);
+
+    List<Object> values = new ArrayList<>();
+    values.add(keyValues);
+    for (DbDataContainer dataContainer : predicates) {
+      values.add(dataContainer.getValue());
+    }
+    statement.bind(values.toArray(new Object[values.size()]));
 
     LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
     this.session.execute(statement);
@@ -109,9 +149,32 @@ public class CassandraClient extends DbClient {
       select += " where " + predicatesString;
     }
 
+    // This might not be very efficient https://www.datastax.com/dev/blog/allow-filtering-explained-2
     select += " ALLOW FILTERING;";
 
     BoundStatement statement = bind(select, predicatesAndValues);
+
+    LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
+    ResultSet resultSet = this.session.execute(statement);
+
+    return new CassandraResults(resultSet);
+  }
+
+  /**
+   *
+   * @param table the table to query
+   * @param projection the set of columns to retrieve
+   * @param collectionName the name of the set we will search
+   * @param value the value searched for in the set
+	 */
+  public CassandraResults selectWhereCollectionContains(
+    String table, List<String> projection, String collectionName, DbDataContainer value) {
+    String query = "SELECT " + String.join(", ", projection) + " FROM " + table + " WHERE " + collectionName
+      + " CONTAINS ?;";
+
+    List<DbDataContainer> predicates = new ArrayList<>();
+    predicates.add(value);
+    BoundStatement statement = bind(query, predicates);
 
     LOGGER.info("Executing query: " + statement.preparedStatement().getQueryString() + ".");
     ResultSet resultSet = this.session.execute(statement);
@@ -173,6 +236,41 @@ public class CassandraClient extends DbClient {
     this.session.execute(statement);
   }
 
+  /**
+   * Deletes values from a set
+   * @param table the table to update
+   * @param setName the name of the set (column) being updated
+   * @param values a set containing all values to be deleted. Set type must match with column type
+   * @param predicates values specifying which row will be updated
+   */
+  public void deleteFromSet(String table, String setName,
+                            Set<? extends Object> values, List<DbDataContainer> predicates) {
+    this.modifySet(table, setName, values, predicates, false);
+  }
+
+  /**
+   * Deletes a column from a table
+   * @param predicates the predicates used to match row(s) to delete from
+   * @param table the table to delete from
+   * @param columnNames the columns to delete
+   */
+  public void deleteColumn(List<DbDataContainer> predicates, String table, List<String> columnNames) {
+    String names = columnNames.stream().collect(Collectors.joining(", "));
+
+    String deleteString = "delete " + names + " from " + table + " ";
+
+    String predicateString = predicates.stream().map(predicate -> predicate.getField() + " = ? ")
+      .collect(Collectors.joining(" and "));
+
+    deleteString += "where " + predicateString;
+
+    BoundStatement statement = bind(deleteString, predicates);
+
+
+    this.session.execute(statement);
+  }
+
+
   private BoundStatement bind(String statement, List<DbDataContainer>... predicates) {
     BoundStatement boundStatement = this.prepareStatement(statement);
     List<Object> values = Arrays.stream(predicates).flatMap(Collection::stream)
@@ -191,6 +289,44 @@ public class CassandraClient extends DbClient {
   public void close() {
     this.session.close();
     this.cluster.close();
+  }
+
+  /**
+   * Adds or subtracts the specified elements from a set
+   * @param table the table to update
+   * @param setName the name of the set (column) being added to or subtracted from
+   * @param values a set containing all relevant values. Set type must match with column type
+   * @param predicates values specifying which row will be updated
+   * @param add true if adding false if subtracting
+   */
+  private void modifySet(String table, String setName,
+    Set<? extends Object> values, List<DbDataContainer> predicates, boolean add) {
+    String symbol;
+    if (add) {
+      symbol = " + ";
+    } else {
+      symbol = " - ";
+    }
+
+    String predicatesString =
+      predicates
+        .stream()
+        .map(predicate -> predicate.getField() + " = ?")
+        .collect(Collectors.joining(" and "));
+    String whereString = " where " + predicatesString + ";";
+    String query = "UPDATE " + table + " SET " + setName + " = " + setName + symbol + " ? " + whereString;
+
+    BoundStatement statement = this.prepareStatement(query);
+
+    List<Object> valuesToAdd = new ArrayList<>();
+    valuesToAdd.add(values);
+    for (DbDataContainer dataContainer : predicates) {
+      valuesToAdd.add(dataContainer.getValue());
+    }
+    statement.bind(valuesToAdd.toArray(new Object[valuesToAdd.size()]));
+
+    LOGGER.info("Executing update: " + statement.preparedStatement().getQueryString() + ".");
+    this.session.execute(statement);
   }
 
   private BoundStatement prepareStatement(String sql) {

@@ -28,10 +28,10 @@ import models.versions.GroundType;
 import util.IdGenerator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,12 +97,12 @@ public class CassandraGraphVersionFactory
 
     this.dbClient.insert("graph_version", insertions);
 
+    List<DbDataContainer> predicate = new ArrayList<>();
+    predicate.add(new DbDataContainer("id", GroundType.LONG, id));
     for (long edgeVersionId : edgeVersionIds) {
-      List<DbDataContainer> edgeInsertion = new ArrayList<>();
-      edgeInsertion.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
-      edgeInsertion.add(new DbDataContainer("edge_version_id", GroundType.LONG, edgeVersionId));
-
-      this.dbClient.insert("graph_version_edge", edgeInsertion);
+      Set<Long> edge = new HashSet<>();
+      edge.add(edgeVersionId);
+      this.dbClient.addToSet("graph_version", "edge_version_set", edge, predicate);
     }
 
     this.graphFactory.update(graphId, id, parentIds);
@@ -126,26 +126,12 @@ public class CassandraGraphVersionFactory
     List<DbDataContainer> predicates = new ArrayList<>();
     predicates.add(new DbDataContainer("id", GroundType.LONG, id));
 
-    List<DbDataContainer> edgePredicate = new ArrayList<>();
-    edgePredicate.add(new DbDataContainer("graph_version_id", GroundType.LONG, id));
-
     CassandraResults resultSet = this.dbClient.equalitySelect("graph_version",
         DbClient.SELECT_STAR,
         predicates);
 
-
     long graphId = resultSet.getLong("graph_id");
-
-    List<Long> edgeVersionIds = new ArrayList<>();
-    CassandraResults edgeSet = this.dbClient.equalitySelect("graph_version_edge",
-        DbClient.SELECT_STAR,
-        edgePredicate);
-
-    if (!edgeSet.isEmpty()) {
-      do {
-        edgeVersionIds.add(edgeSet.getLong("edge_version_id"));
-      } while (edgeSet.next());
-    }
+    List<Long> edgeVersionIds = new ArrayList<>(resultSet.getSet("edge_version_set", Long.class));
 
     LOGGER.info("Retrieved graph version " + id + " in graph " + graphId + ".");
     return new GraphVersion(id, version.getTags(), version.getStructureVersionId(),

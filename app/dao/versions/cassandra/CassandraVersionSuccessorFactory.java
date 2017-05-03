@@ -20,13 +20,12 @@ import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
 import exceptions.GroundException;
+import java.util.ArrayList;
+import java.util.List;
 import models.versions.GroundType;
 import models.versions.Version;
 import models.versions.VersionSuccessor;
 import util.IdGenerator;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory {
   private final CassandraClient dbClient;
@@ -64,6 +63,29 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
     this.dbClient.insert("version_successor", insertions);
 
     return new VersionSuccessor<>(dbId, toId, fromId);
+  }
+
+  public <T extends Version> List<VersionSuccessor<T>> retrieveFromDatabaseByItemId(long itemId)
+    throws GroundException {
+    CassandraResults resultSet;
+
+    List<VersionSuccessor<T>> versionSuccessors = new ArrayList<>();
+    List<DbDataContainer> predicate = new ArrayList<>();
+    predicate.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+    resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR, predicate);
+
+    if (resultSet.isEmpty()) {
+      throw new GroundException("No VersionSuccessor found with itemId " + itemId + ".");
+    }
+
+    do {
+      long id = resultSet.getLong("id");
+      long fromId = resultSet.getLong("from_version_id");
+      long toId = resultSet.getLong("to_version_id");
+      versionSuccessors.add(new VersionSuccessor<>(id, fromId, toId));
+    } while (resultSet.next());
+
+    return versionSuccessors;
   }
 
   /**
@@ -114,12 +136,6 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
 
     do {
       long dbId = resultSet.getLong("id");
-
-      predicates.clear();
-      predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
-
-      this.dbClient.delete(predicates, "version_history_dag");
 
       predicates.clear();
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
