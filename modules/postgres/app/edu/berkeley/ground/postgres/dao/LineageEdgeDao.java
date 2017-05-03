@@ -1,9 +1,9 @@
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * <p>
  * <p>http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * <p>Unless required by applicable law or agreed to in writing, software distributed under the
  * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  * express or implied. See the License for the specific language governing permissions and
@@ -27,22 +27,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeFactory {
 
-  public final LineageEdge create(final String name, final String sourceKey, final Map<String, Tag> tags) throws GroundException {
-    LineageEdge lineageEdge = null;
-    return lineageEdge;
+  public LineageEdge createLineageEdge(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
+    long uniqueId = idGenerator.generateItemId();
+    LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
+    return create(dbSource, newLineageEdge);
   }
 
   @Override
-
-  public final void create(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
+  public LineageEdge create(Database dbSource, LineageEdge lineageEdge) throws GroundException {
     List<String> sqlList = new ArrayList<>();
-    long uniqueId = idGenerator.generateItemId();
-    LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
     try {
-      sqlList.addAll(super.createSqlList(newLineageEdge));
+      sqlList.addAll(super.createSqlList(lineageEdge));
       sqlList.add(String.format("insert into lineage_edge (item_id, source_key, name) values (%d, '%s', '%s')",
-        uniqueId, lineageEdge.getSourceKey(), lineageEdge.getName()));
+        lineageEdge.getId(), lineageEdge.getSourceKey(), lineageEdge.getName()));
       PostgresUtils.executeSqlList(dbSource, sqlList);
+      return lineageEdge;
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -64,7 +63,8 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    //TODO implement (create new version, etc)
+    // TODO implement (create new version, etc)
+    // create version_successor objects for the parentIds to the new version
   }
 
   @Override

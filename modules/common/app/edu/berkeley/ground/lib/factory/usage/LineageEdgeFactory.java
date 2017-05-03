@@ -17,11 +17,12 @@ import edu.berkeley.ground.lib.model.usage.LineageEdge;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+
 import play.db.Database;
 
 public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
 
-  LineageEdge create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
+  LineageEdge create(Database dbSource, LineageEdge lineageEdge) throws GroundException;
 
   @Override
   default Class<LineageEdge> getType() {
