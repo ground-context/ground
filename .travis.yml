@@ -1,18 +1,33 @@
-language: java
-jdk: oraclejdk8
 sudo: required
+dist: trusty
+language: java
 
-env:
-  - NEO4J_VERSION=3.1.2
+jdk:
+  - oraclejdk8
+
+services:
+  - postgresql
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
+    - $HOME/.cache/pip
+
+before_cache:
+  # Cleanup the cached directories to avoid unnecessary cache updates.
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+  - find $HOME/.sbt        -name "*.lock"               -print -delete
+
+before_install:
+  - ./ci/install.sh
 
 before_script:
-  - sh -e ci/install.sh
-  - sh -e ci/init.sh 
+  - ./ci/init.sh
 
 script:
-  - sbt test
+  - sbt clean test
 
 after_success:
   - sbt jacoco:cover
   - bash <(curl -s https://codecov.io/bash)
-  - sh -e ci/server.sh

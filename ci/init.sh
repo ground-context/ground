@@ -1,25 +1,15 @@
 #!/bin/bash
+set -ev
 
-# start postgres
-sudo service postgresql start
-sudo service postgresql status
-sudo service postgresql restart
+# Create Postgres db and user.
+psql -c "CREATE DATABASE test;" -U postgres
+psql -c "CREATE ROLE test WITH LOGIN CREATEDB;" -U postgres
 
-# create Postgres db and user
-sudo su -c "createdb test" -s /bin/sh postgres
-sudo su -c "createuser test -d -s" -s /bin/sh postgres
+# Create Cassandra keyspace.
+pip install cqlsh
 
-# start cassandra
-sudo chmod 750 /var/run/cassandra
-sudo service cassandra start
-sleep 20
+cqlsh -e "CREATE KEYSPACE test WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
 
-# create Cassandra keyspace
-cqlsh -e "create keyspace test with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
-
-# start Neo4j
-sudo neo4j-community-$NEO4J_VERSION/bin/neo4j start
-
-# set Postgres and Cassandra schemas
-cd scripts/postgres && python2.7 postgres_setup.py test test && cd ../..
-cd scripts/cassandra && python2.7 cassandra_setup.py test && cd ../..
+# Set Postgres and Cassandra schemas.
+pushd scripts/postgres && python2 postgres_setup.py test test && popd
+pushd scripts/cassandra && python2 cassandra_setup.py test && popd
