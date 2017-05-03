@@ -29,6 +29,5 @@ public interface StructureVersionFactory extends VersionFactory<StructureVersion
     return StructureVersion.class;
   }
 
-  @Override
   StructureVersion retrieveFromDatabase(long id) throws GroundException;
 }

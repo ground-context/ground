@@ -12,7 +12,7 @@ import play.db.Database;
 import play.libs.Json;
 
 
-public class NodeDao  extends ItemDao<Node> implements NodeFactory {
+public class NodeDao extends ItemDao<Node> implements NodeFactory {
 
   @Override
   public void create(Database dbSource, Node node, IdGenerator idGenerator) throws GroundException {

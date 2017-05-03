@@ -33,6 +33,5 @@ public interface GraphVersionFactory extends RichVersionFactory<GraphVersion> {
     return GraphVersion.class;
   }
 
-  @Override
   GraphVersion retrieveFromDatabase(long id) throws GroundException;
 }

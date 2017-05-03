@@ -40,7 +40,7 @@ public class NodeVersionController extends Controller {
         () -> {
           String sql =
             String.format(
-              "select * from node_version where node_id=\'%s\'", id.toString());
+              "select * from node_version where node_id=%d", id);
           try {
             return cache.getOrElse(
               "node_versions",
@@ -67,7 +67,7 @@ public class NodeVersionController extends Controller {
           JsonNode json = request().body().asJson();
           NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
           try {
-            new NodeVersionDao().create(dbSource, nodeVersion);
+            new NodeVersionDao().insertIntoDatabase(dbSource, nodeVersion, idGenerator);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }

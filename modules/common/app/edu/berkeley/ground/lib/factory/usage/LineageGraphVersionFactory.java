@@ -35,6 +35,5 @@ public interface LineageGraphVersionFactory extends RichVersionFactory<LineageGr
     return LineageGraphVersion.class;
   }
 
-  @Override
   LineageGraphVersion retrieveFromDatabase(long id) throws GroundException;
 }

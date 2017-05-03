@@ -37,7 +37,6 @@ public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
     return EdgeVersion.class;
   }
 
-  @Override
   EdgeVersion retrieveFromDatabase(long id) throws GroundException;
 
   void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException;

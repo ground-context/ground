@@ -36,6 +36,5 @@ public interface LineageEdgeVersionFactory extends RichVersionFactory<LineageEdg
     return LineageEdgeVersion.class;
   }
 
-  @Override
   LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException;
 }

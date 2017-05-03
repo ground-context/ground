@@ -11,16 +11,22 @@
  */
 package edu.berkeley.ground.lib.model.version;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.exception.GroundException;
 import java.util.Objects;
 
 public class Tag {
+  @JsonProperty
   private final long id;
 
+  @JsonProperty
   private final String key;
 
+  @JsonProperty
   private final Object value;
 
+  @JsonProperty
   private final GroundType valueType;
 
   /**
@@ -31,7 +37,9 @@ public class Tag {
    * @param value the value of the tag
    * @param valueType the type of the value
    */
-  public Tag(long id, String key, Object value, GroundType valueType)
+  @JsonCreator
+  public Tag(@JsonProperty("item_id") long id, @JsonProperty("key") String key, @JsonProperty("value") Object value,
+             @JsonProperty("type") GroundType valueType)
       throws edu.berkeley.ground.lib.exception.GroundException {
 
     if (!((value != null) == (valueType != null))
