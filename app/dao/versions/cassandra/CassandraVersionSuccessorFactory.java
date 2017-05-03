@@ -20,15 +20,12 @@ import db.CassandraResults;
 import db.DbClient;
 import db.DbDataContainer;
 import exceptions.GroundException;
+import java.util.ArrayList;
+import java.util.List;
 import models.versions.GroundType;
 import models.versions.Version;
 import models.versions.VersionSuccessor;
 import util.IdGenerator;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory {
   private final CassandraClient dbClient;
@@ -73,11 +70,9 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
     CassandraResults resultSet;
 
     List<VersionSuccessor<T>> versionSuccessors = new ArrayList<>();
-    resultSet = this.dbClient.selectWhereCollectionContains(
-      "version_successor",
-      DbClient.SELECT_STAR,
-      "item_id_set",
-      new DbDataContainer(null, GroundType.LONG, itemId));
+    List<DbDataContainer> predicate = new ArrayList<>();
+    predicate.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
+    resultSet = this.dbClient.equalitySelect("version_successor", DbClient.SELECT_STAR, predicate);
 
     if (resultSet.isEmpty()) {
       throw new GroundException("No VersionSuccessor found with itemId " + itemId + ".");
@@ -141,13 +136,6 @@ public class CassandraVersionSuccessorFactory implements VersionSuccessorFactory
 
     do {
       long dbId = resultSet.getLong("id");
-
-      predicates.clear();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
-      Set<Long> value = new HashSet<>();
-      value.add(itemId);
-
-      this.dbClient.deleteFromSet("version_successor", "item_id_set", value, predicates);
 
       predicates.clear();
       predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));

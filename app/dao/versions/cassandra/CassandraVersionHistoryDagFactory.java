@@ -15,24 +15,20 @@
 package dao.versions.cassandra;
 
 import com.google.common.base.CaseFormat;
-
 import dao.versions.VersionHistoryDagFactory;
 import db.CassandraClient;
-import db.CassandraResults;
-import db.DbClient;
 import db.DbDataContainer;
 import exceptions.GroundException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import models.models.Structure;
 import models.versions.GroundType;
 import models.versions.Item;
 import models.versions.Version;
 import models.versions.VersionHistoryDag;
 import models.versions.VersionSuccessor;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFactory {
   private final CassandraClient dbClient;
@@ -87,14 +83,11 @@ public class CassandraVersionHistoryDagFactory implements VersionHistoryDagFacto
     VersionSuccessor successor = this.versionSuccessorFactory.create(parentId, childId);
 
     // Adding to the entry with id = successor.getId()
-    List<DbDataContainer> predicate = new ArrayList<>();
+    List<DbDataContainer> newValue = new ArrayList<>(), predicate = new ArrayList<>();
+    newValue.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
     predicate.add(new DbDataContainer("id", GroundType.LONG, successor.getId()));
 
-    // To add to a set column, must pass in a set containing the value(s) to add. See CasandraClient.addToSet
-    Set<Long> setValues = new HashSet<>();
-    setValues.add(itemId);
-
-    this.dbClient.addToSet("version_successor", "item_id_set", setValues, predicate);
+    this.dbClient.update(newValue, predicate, "version_successor");
     dag.addEdge(parentId, childId, successor.getId());
   }
 

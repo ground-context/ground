@@ -22,10 +22,8 @@ CREATE TABLE IF NOT EXISTS version_successor (
     id bigint PRIMARY KEY,
     from_version_id bigint,
     to_version_id bigint,
-    item_id_set set<bigint>
+    item_id bigint
 );
-
-CREATE INDEX IF NOT EXISTS version_successor_ind on version_successor (item_id_set);
 
 CREATE TABLE IF NOT EXISTS item (
     id bigint PRIMARY KEY
