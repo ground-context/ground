@@ -16,6 +16,7 @@ import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.ItemFactory;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.postgres.dao.TagDao;
 import edu.berkeley.ground.postgres.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 
@@ -32,28 +33,20 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     return null;
   }
 
-  ;
-
   @Override
   public T retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
     return null;
   }
-
-  ;
 
   @Override
   public Class<T> getType() {
     return null;
   }
 
-  ;
-
   @Override
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     return null;
   }
-
-  ;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
@@ -68,8 +61,6 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
   }
 
-  ;
-
   /**
    * Truncate the item to only have the most recent levels.
    *
@@ -79,8 +70,6 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
   }
-
-  ;
 
   public void create(final Database dbSource, final T item, final IdGenerator idGenerator) throws GroundException {
     final List<String> sqlList = createSqlList(item);
@@ -97,18 +86,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
-
-        if (tag.getValue() != null) {
-          sqlList.add(
-            String.format(
-              "insert into item_tag (item_id, key, value, type) values (%d, %s, %s, %s)",
-              item.getId(), key, tag.getValue().toString(), tag.getValueType().toString()));
-        } else {
-          sqlList.add(
-            String.format(
-              "insert into item_tag (item_id, key, value, type) values (%d, %s, %s, %s)",
-              item.getId(), key, null, null));
-        }
+        TagDao tagDao = new TagDao();
+        sqlList.addAll(tagDao.createSqlList(tag));
       }
     }
     return sqlList;
