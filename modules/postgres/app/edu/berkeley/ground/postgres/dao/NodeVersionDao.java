@@ -12,6 +12,8 @@ public class NodeVersionDao {
   public final void create(final Database dbSource, final NodeVersion nodeVersion)
       throws GroundException {
     final List<String> sqlList = new ArrayList<>();
+
+    //Call super.create to ensure that versions exist
     sqlList.add(
         String.format(
             "insert into node_version (id, node_id) values (%s,%s)",
