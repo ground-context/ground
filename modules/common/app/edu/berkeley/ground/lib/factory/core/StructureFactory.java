@@ -21,22 +21,23 @@ import play.db.Database;
 
 public interface StructureFactory extends ItemFactory<Structure> {
 
-  Structure create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
-
   @Override
   default Class<Structure> getType() {
     return Structure.class;
   }
 
-  @Override
-  Structure retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
+ @Override
+  Structure retrieveFromDatabase(final Database dbSource, final String sourceKey) throws GroundException;
 
   @Override
-  Structure retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  Structure retrieveFromDatabase(final Database dbSource, final long id) throws GroundException;
 
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   @Override
-  List<Long> getLeaves(String name) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
+
+  @Override
+  void truncate(long itemId, int numLevels) throws GroundException;
 }
