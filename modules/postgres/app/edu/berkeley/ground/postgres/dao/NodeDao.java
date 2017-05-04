@@ -51,12 +51,13 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
 
   @Override
   public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-
+    super.update(itemId, childId, parentIds);
   }
 
   @Override
-  public List<Long> getLeaves(String sourceKey) throws GroundException {
-    return new ArrayList<Long>();
+  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
+    Node node  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(dbSource, node.getId());
   }
 
 }
