@@ -87,4 +87,58 @@ public class NodeController extends Controller {
                 });
     return results;
   }
+
+  public final CompletionStage<Result> getNodeVersion(Long id) {
+    CompletableFuture<Result> results =
+      CompletableFuture.supplyAsync(
+        () -> {
+          String sql =
+            String.format(
+              "select * from node_version where node_id=%d", id);
+          try {
+            return cache.getOrElse(
+              "node_versions",
+              () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+              Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+          } catch (Exception e) {
+            throw new CompletionException(e);
+          }
+        },
+        PostgresUtils.getDbSourceHttpContext(actorSystem))
+        .thenApply(output -> ok(output))
+        .exceptionally(
+          e -> {
+            return internalServerError(GroundUtils.getServerError(request(), e));
+          });
+    return results;
+  }
+
+  @BodyParser.Of(BodyParser.Json.class)
+  public final CompletionStage<Result> addNodeVersion() {
+    CompletableFuture<Result> results =
+      CompletableFuture.supplyAsync(
+        () -> {
+          JsonNode json = request().body().asJson();
+          NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
+          try {
+            new NodeVersionDao().insertIntoDatabase(dbSource, nodeVersion, idGenerator);
+          } catch (GroundException e) {
+            throw new CompletionException(e);
+          }
+          return String.format("New Node Version Created Successfully");
+        },
+        PostgresUtils.getDbSourceHttpContext(actorSystem))
+        .thenApply(output -> created(output))
+        .exceptionally(
+          e -> {
+            if (e.getCause() instanceof GroundException) {
+              return badRequest(
+                GroundUtils.getClientError(
+                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+            } else {
+              return internalServerError(GroundUtils.getServerError(request(), e));
+            }
+          });
+    return results;
+  }
 }

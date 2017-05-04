@@ -104,6 +104,8 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
 
   @Override
   public List<String> createSqlList(final T richVersion) throws GroundException {
+
+    /*TODO: use checkStructureTags to verify that structureId matches with tags appropriately */
     final List<String> sqlList = new ArrayList<>();
     sqlList.addAll(super.createSqlList(richVersion));
     sqlList.add(
@@ -130,7 +132,5 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     }
     return sqlList;
   }
-
-
 
 }
