@@ -31,7 +31,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
 
     //Call super to create 1.version, 2. structure version (need to create a node_id)?, 3. rich version, 4. node_version
     try {
-      sqlList.addAll(super.createSqlList(newNodeVersion));
+      sqlList.addAll(super.createSqlList(dbSource, newNodeVersion));
       sqlList.add(
         String.format(
           "insert into node_version (id, node_id) values (%s,%s)",
