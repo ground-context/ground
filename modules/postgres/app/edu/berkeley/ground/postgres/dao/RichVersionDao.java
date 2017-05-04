@@ -36,6 +36,7 @@ import play.db.Database;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
   public void create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
+    checkStructureTags(new StructureVersionDao().retrieveFromDatabase(dbSource, richVersion.getStructureVersionId()), richVersion.getTags());
     final List<String> sqlList = createSqlList(richVersion);
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
@@ -49,7 +50,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   public void insertIntoDatabase(long id,
       RichVersion richVersion)
       throws GroundException {
-        
+
   }
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {
