@@ -35,8 +35,7 @@ public interface GraphFactory extends ItemFactory<Graph> {
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  @Override
-  List<Long> getLeaves(String sourceKey) throws GroundException;
+  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
 
   @Override
   void truncate(long itemId, int numLevels) throws GroundException;

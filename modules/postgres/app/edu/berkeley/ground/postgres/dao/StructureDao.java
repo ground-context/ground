@@ -60,8 +60,7 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     //TODO implement
   }
 
-  @Override
-  public List<Long> getLeaves(String sourceKey) throws GroundException {
+  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
     return new ArrayList<>();
   }
 

@@ -33,6 +33,5 @@ public interface NodeFactory extends ItemFactory<Node> {
   @Override
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
-  @Override
-  List<Long> getLeaves(String sourceKey) throws GroundException;
+  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
 }
