@@ -33,10 +33,10 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
     final List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
     final Map<String, Tag> tags = graphVersion.getTags();
-    GraphVersion newGraphVersion = new GraphVersion(uniqueId, graphVersion.getTags(), graphVersion.getStructureVersionId(), 
+    GraphVersion newGraphVersion = new GraphVersion(uniqueId, graphVersion.getTags(), graphVersion.getStructureVersionId(),
     	graphVersion.getReference(), graphVersion.getReferenceParameters(), graphVersion.getGraphId(), graphVersion.getEdgeVersionIds());
     try{
-      sqlList.addAll(super.createSqlList(newGraphVersion));
+      sqlList.addAll(super.createSqlList(dbSource, newGraphVersion));
 	    sqlList.add(
 	        String.format(
 	            "insert into graph_version (id, graph_id) values (%d, %d)",
