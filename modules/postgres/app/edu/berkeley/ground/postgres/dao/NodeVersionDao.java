@@ -20,7 +20,7 @@ import play.libs.Json;
 
 import javax.sql.DataSource;
 
-public class NodeVersionDao implements NodeVersionFactory {
+public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeVersionFactory {
 
   public final void insertIntoDatabase(final Database dbSource, final NodeVersion nodeVersion, IdGenerator idGenerator)
       throws GroundException {
@@ -49,21 +49,6 @@ public class NodeVersionDao implements NodeVersionFactory {
     } catch (Exception e) {
       throw new GroundException(e);
     }
-  }
-
-  @Override
-  public void insertIntoDatabase(long id) {
-
-  }
-
-  @Override
-  public void insertIntoDatabase(long id, Map<String, Tag> tags, long structureVersionId, String reference, Map<String, String> referenceParameters) throws GroundException {
-
-  }
-
-  @Override
-  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
-    return null;
   }
 
   @Override
