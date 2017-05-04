@@ -27,7 +27,9 @@ import edu.berkeley.ground.lib.model.version.GroundType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import edu.berkeley.ground.lib.model.version.Tag;
+
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,33 +38,32 @@ import play.db.Database;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
   public void create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
-    checkStructureTags(new StructureVersionDao().retrieveFromDatabase(dbSource, richVersion.getStructureVersionId()), richVersion.getTags());
     final List<String> sqlList = createSqlList(richVersion);
     PostgresUtils.executeSqlList(dbSource, sqlList);
   }
 
   @Override
-  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException{
-      return null;
+  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+    return null;
   }
 
   @Override
   public void insertIntoDatabase(long id,
-      RichVersion richVersion)
-      throws GroundException {
+                                 RichVersion richVersion)
+    throws GroundException {
 
   }
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {
 
     Function<Tag, Tag> addId =
-        (Tag t) -> {
-          try {
-            return new Tag(id, t.getKey(), t.getValue(), t.getValueType());
-          } catch (GroundException e) {
-            throw new RuntimeException(e);
-          }
-        };
+      (Tag t) -> {
+        try {
+          return new Tag(id, t.getKey(), t.getValue(), t.getValueType());
+        } catch (GroundException e) {
+          throw new RuntimeException(e);
+        }
+      };
 
     return tags.values().stream().collect(Collectors.toMap(Tag::getKey, addId));
   }
@@ -71,10 +72,10 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
    * Validate that the given Tags satisfy the StructureVersion's requirements.
    *
    * @param structureVersion the StructureVersion to check against
-   * @param tags the provided tags
+   * @param tags             the provided tags
    */
   static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags)
-      throws GroundException {
+    throws GroundException {
 
     Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 
@@ -92,21 +93,20 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
       } else if (!tags.get(key).getValueType().equals(structureVersionAttributes.get(key))) {
         // check that the value type is the same
         throw new GroundException(
-            "Tag with key "
-                + key
-                + " did not have a value of the correct type: expected ["
-                + structureVersionAttributes.get(key)
-                + "] but found ["
-                + tags.get(key).getValueType()
-                + "].");
+          "Tag with key "
+            + key
+            + " did not have a value of the correct type: expected ["
+            + structureVersionAttributes.get(key)
+            + "] but found ["
+            + tags.get(key).getValueType()
+            + "].");
       }
     }
   }
 
-  @Override
-  public List<String> createSqlList(final T richVersion) throws GroundException {
-
-    /*TODO: use checkStructureTags to verify that structureId matches with tags appropriately */
+  public List<String> createSqlList(final Database dbSource, final T richVersion) throws GroundException {
+    if (richVersion.getStructureVersionId() != null)
+      checkStructureTags(new StructureVersionDao().retrieveFromDatabase(dbSource, richVersion.getStructureVersionId()), richVersion.getTags());
     final List<String> sqlList = new ArrayList<>();
     sqlList.addAll(super.createSqlList(richVersion));
     sqlList.add(
