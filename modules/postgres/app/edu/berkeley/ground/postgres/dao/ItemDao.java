@@ -44,7 +44,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   }
 
   @Override
-  public List<Long> getLeaves(String sourceKey) throws GroundException {
+  public List<Long> getLeaves(Database dbSource, long itemId) throws GroundException {
     return null;
   }
 

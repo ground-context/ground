@@ -61,8 +61,8 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
   }
 
   @Override
-  public List<Long> getLeaves(String sourceKey) throws GroundException {
-  	return new ArrayList<>();
+  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
+    return new ArrayList<>();
   }
 
   public void truncate(long itemId, int numLevels) throws GroundException {
