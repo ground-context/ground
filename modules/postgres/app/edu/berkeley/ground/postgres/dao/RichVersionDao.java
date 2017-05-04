@@ -49,7 +49,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   public void insertIntoDatabase(long id,
       RichVersion richVersion)
       throws GroundException {
-        
+
   }
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {
@@ -108,7 +108,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     sqlList.addAll(super.createSqlList(richVersion));
     sqlList.add(
       String.format(
-        "insert into rich_version (id, structure_version_id, reference) values (%d, %d, %s)",
+        "insert into rich_version (id, structure_version_id, reference) values (%d, %d, \'%s\')",
         richVersion.getId(), richVersion.getStructureVersionId(), richVersion.getReference()));
     final Map<String, Tag> tags = richVersion.getTags();
     if (tags != null) {
