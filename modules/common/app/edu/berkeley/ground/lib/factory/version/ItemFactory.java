@@ -23,7 +23,7 @@ public interface ItemFactory<T extends Item> {
 
   Class<T> getType();
 
-  List<Long> getLeaves(String sourceKey) throws GroundException;
+  List<Long> getLeaves(Database dbSource, long itemId) throws GroundException;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
