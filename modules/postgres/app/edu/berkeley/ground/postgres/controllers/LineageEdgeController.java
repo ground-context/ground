@@ -73,12 +73,13 @@ public class LineageEdgeController extends Controller {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       JsonNode json = request().body().asJson();
       LineageEdge lineageEdge = Json.fromJson(json, LineageEdge.class);
+      LineageEdge newLineageEdge;
       try {
-        new LineageEdgeDao().create(dbSource, lineageEdge, idGenerator);
+        newLineageEdge = new LineageEdgeDao().createLineageEdge(dbSource, lineageEdge, idGenerator);
       } catch (GroundException e) {
         throw new CompletionException(e);
       }
-      return String.format("New Lineage Edge Created Successfully");
+      return String.format("New Lineage Edge Created Successfully with id = %d", newLineageEdge.getId());
     }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output)).exceptionally(e -> {
       if (e.getCause() instanceof GroundException) {
         return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
@@ -92,9 +93,11 @@ public class LineageEdgeController extends Controller {
   public final CompletionStage<Result> createLineageEdgeVersion() {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       JsonNode json = request().body().asJson();
+      System.out.println(json.toString());
       LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json, LineageEdgeVersion.class);
+      LineageEdgeVersion newLineageEdgeVersion;
       try {
-        new LineageEdgeVersionDao().create(dbSource, lineageEdgeVersion);
+        newLineageEdgeVersion = new LineageEdgeVersionDao().createNewLineageEdgeVersion(dbSource, lineageEdgeVersion, idGenerator);
       } catch (GroundException e) {
         throw new CompletionException(e);
       }

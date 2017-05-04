@@ -8,6 +8,7 @@ import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.dao.NodeDao;
 import edu.berkeley.ground.postgres.dao.NodeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
+import edu.berkeley.ground.postgres.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -24,13 +25,14 @@ public class NodeController extends Controller {
   private CacheApi cache;
   private Database dbSource;
   private ActorSystem actorSystem;
+  private IdGenerator idGenerator;
 
   @Inject
-  final void injectUtils(
-      final CacheApi cache, final Database dbSource, final ActorSystem actorSystem) {
+  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.actorSystem = actorSystem;
     this.cache = cache;
+    this.idGenerator = idGenerator;
   }
 
   public final CompletionStage<Result> getNode(String sourceKey) {
@@ -58,71 +60,18 @@ public class NodeController extends Controller {
   }
 
   @BodyParser.Of(BodyParser.Json.class)
-  public final CompletionStage<Result> createNode() {
+  public final CompletionStage<Result> addNode() {
     CompletableFuture<Result> results =
         CompletableFuture.supplyAsync(
                 () -> {
                   JsonNode json = request().body().asJson();
                   Node node = Json.fromJson(json, Node.class);
                   try {
-                    new NodeDao().create(dbSource, node);
+                    new NodeDao().create(dbSource, node, idGenerator);
                   } catch (GroundException e) {
                     throw new CompletionException(e);
                   }
                   return String.format("New Node Created Successfully");
-                },
-                PostgresUtils.getDbSourceHttpContext(actorSystem))
-            .thenApply(output -> created(output))
-            .exceptionally(
-                e -> {
-                  if (e.getCause() instanceof GroundException) {
-                    return badRequest(
-                        GroundUtils.getClientError(
-                            request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-                  } else {
-                    return internalServerError(GroundUtils.getServerError(request(), e));
-                  }
-                });
-    return results;
-  }
-
-  public final CompletionStage<Result> getNodeVersion(Long id) {
-    CompletableFuture<Result> results =
-        CompletableFuture.supplyAsync(
-                () -> {
-                  String sql =
-                      String.format(
-                          "select * from node_version where node_id=\'%s\'", id.toString());
-                  try {
-                    return cache.getOrElse(
-                        "node_versions",
-                        () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-                        Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-                  } catch (Exception e) {
-                    throw new CompletionException(e);
-                  }
-                },
-                PostgresUtils.getDbSourceHttpContext(actorSystem))
-            .thenApply(output -> ok(output))
-            .exceptionally(
-                e -> {
-                  return internalServerError(GroundUtils.getServerError(request(), e));
-                });
-    return results;
-  }
-
-  public final CompletionStage<Result> createNodeVersion() {
-    CompletableFuture<Result> results =
-        CompletableFuture.supplyAsync(
-                () -> {
-                  JsonNode json = request().body().asJson();
-                  NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
-                  try {
-                    new NodeVersionDao().create(dbSource, nodeVersion);
-                  } catch (GroundException e) {
-                    throw new CompletionException(e);
-                  }
-                  return String.format("New Node Version Created Successfully");
                 },
                 PostgresUtils.getDbSourceHttpContext(actorSystem))
             .thenApply(output -> created(output))

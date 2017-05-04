@@ -21,17 +21,8 @@ import play.db.Database;
 
 public interface LineageEdgeVersionFactory extends RichVersionFactory<LineageEdgeVersion> {
 
-  LineageEdgeVersion create(
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long fromId,
-      long toId,
-      long lineageEdgeId,
-      List<Long> parentIds)
-      throws GroundException;
-      
+  LineageEdgeVersion create(Database dbSource, LineageEdgeVersion lineageEdgeVersion) throws GroundException;
+
   @Override
   LineageEdgeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 }

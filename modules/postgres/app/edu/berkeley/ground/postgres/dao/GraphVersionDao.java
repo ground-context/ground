@@ -41,6 +41,12 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
 	        String.format(
 	            "insert into graph_version (id, graph_id) values (%d, %d)",
 	            uniqueId, graphVersion.getGraphId()));
+      for (long edgeVersionId : graphVersion.getEdgeVersionIds()) {
+          sqlList.add(
+              String.format(
+                  "insert into graph_version_edge (graph_version_id, edge_version_id) values (%d, %d)",
+                  uniqueId, edgeVersionId));
+      }
     PostgresUtils.executeSqlList(dbSource, sqlList);
     } catch (Exception e) {
       throw new GroundException(e);
