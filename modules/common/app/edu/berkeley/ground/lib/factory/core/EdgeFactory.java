@@ -21,8 +21,8 @@ import play.db.Database;
 
 public interface EdgeFactory extends ItemFactory<Edge> {
 
-  Edge create(String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
-      throws GroundException;
+  //Edge create(String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
+      //throws GroundException;
 
   @Override
   default Class<Edge> getType() {
@@ -39,4 +39,7 @@ public interface EdgeFactory extends ItemFactory<Edge> {
   void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+
+  @Override
+  void truncate(long itemId, int numLevels) throws GroundException;
 }
