@@ -63,16 +63,17 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
 
   @Override
   public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    // TODO implement (create new version, etc)
-    // create version_successor objects for the parentIds to the new version
+    super.update(idGenerator, itemId, childId, parentIds);
   }
 
   @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    return new ArrayList<>();
+    LineageGraph lineageGraph  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(dbSource, lineageGraph.getId());
   }
 
+  @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    //TODO implement
+    super.truncate(itemId, numLevels);
   }
 }
