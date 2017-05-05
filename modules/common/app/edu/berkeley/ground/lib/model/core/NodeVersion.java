@@ -1,9 +1,9 @@
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * <p>
  * <p>http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * <p>Unless required by applicable law or agreed to in writing, software distributed under the
  * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  * express or implied. See the License for the specific language governing permissions and
@@ -14,6 +14,7 @@ package edu.berkeley.ground.lib.model.core;
 import edu.berkeley.ground.lib.model.version.Tag;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Map;
 
 public class NodeVersion extends RichVersion {
@@ -33,8 +34,9 @@ public class NodeVersion extends RichVersion {
    * @param nodeId the id of the node containing this version
    */
 
-@JsonCreator  public NodeVersion(@JsonProperty("id")long id,@JsonProperty("tags") Map<String, Tag> tags,@JsonProperty("structure_version_id") Long structureVersionId,@JsonProperty("reference") String reference,
-      @JsonProperty("reference_parameters")Map<String, String> referenceParameters,@JsonProperty("node_id") long nodeId) {
+  @JsonCreator
+  public NodeVersion(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags, @JsonProperty("structure_version_id") Long structureVersionId, @JsonProperty("reference") String reference,
+                     @JsonProperty("reference_parameters") Map<String, String> referenceParameters, @JsonProperty("node_id") long nodeId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
