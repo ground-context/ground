@@ -15,7 +15,7 @@ import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.VersionFactory;
 import edu.berkeley.ground.lib.model.version.Version;
 import edu.berkeley.ground.lib.model.core.NodeVersion;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;

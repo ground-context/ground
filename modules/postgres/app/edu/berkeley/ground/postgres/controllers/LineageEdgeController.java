@@ -15,7 +15,7 @@ import edu.berkeley.ground.lib.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.postgres.dao.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.LineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
 import play.db.Database;
