@@ -21,7 +21,7 @@ import play.db.Database;
 
 public interface LineageGraphFactory extends ItemFactory<LineageGraph> {
 
-  LineageGraph create(String name, String sourceKey, Map<String, Tag> tags) throws GroundException;
+  LineageGraph create(Database dbSource, LineageGraph lineageGraph) throws GroundException;
 
   @Override
   default Class<LineageGraph> getType() {
