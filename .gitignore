@@ -54,5 +54,4 @@ dependency-reduced-pom.xml
 logs/
 .g8/
 project/project
-lib/
 /bin/
