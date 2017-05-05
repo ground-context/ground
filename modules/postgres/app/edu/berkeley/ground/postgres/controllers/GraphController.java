@@ -19,7 +19,7 @@ import edu.berkeley.ground.lib.model.core.GraphVersion;
 import edu.berkeley.ground.postgres.dao.GraphDao;
 import edu.berkeley.ground.postgres.dao.GraphVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 
 import java.util.concurrent.CompletableFuture;

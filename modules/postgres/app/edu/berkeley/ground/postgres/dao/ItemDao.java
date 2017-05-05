@@ -11,23 +11,38 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.ItemFactory;
+import edu.berkeley.ground.lib.factory.version.TagFactory;
+import edu.berkeley.ground.lib.factory.version.VersionHistoryDagFactory;
 import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.postgres.dao.TagDao;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.model.version.VersionHistoryDag;
+import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresClient;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import play.libs.Json;
 import play.db.Database;
 
 public class ItemDao<T extends Item> implements ItemFactory<T> {
+  private PostgresClient dbClient;
+  private VersionHistoryDagDao versionHistoryDagDao;
+  private TagFactory tagFactory;
+
+  public ItemDao() {}
+
+  public ItemDao(PostgresClient dbClient,
+                             VersionHistoryDagDao versionHistoryDagDao,
+                             TagFactory tagFactory) {
+    this.dbClient = dbClient;
+    this.versionHistoryDagDao = versionHistoryDagDao;
+    this.tagFactory = tagFactory;
+  }
+
   @Override
   public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
     return null;
@@ -58,7 +73,31 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    * @param parentIds the ids of the parents of the child
    */
   @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
+    // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
+    if (parentIds.isEmpty()) {
+      parentIds.add(0L);
+    }
+
+    VersionHistoryDag dag;
+    try {
+      dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No results found for query:")) {
+        throw e;
+      }
+
+      dag = versionHistoryDagDao.create(itemId);
+    }
+
+    for (long parentId : parentIds) {
+      if (parentId != 0 && !dag.checkItemInDag(parentId)) {
+        String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
+        throw new GroundException(errorString);
+      }
+
+      versionHistoryDagDao.addEdge(dag, parentId, childId, itemId);
+    }
   }
 
   /**

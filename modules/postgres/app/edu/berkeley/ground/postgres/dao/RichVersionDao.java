@@ -11,13 +11,9 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.version.ItemFactory;
-import edu.berkeley.ground.lib.model.version.Item;
 import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.lib.model.version.Version;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.lib.model.core.StructureVersion;
 import edu.berkeley.ground.lib.model.core.RichVersion;
@@ -28,12 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.lib.model.version.Tag;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import play.libs.Json;
 import play.db.Database;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {

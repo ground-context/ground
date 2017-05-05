@@ -14,10 +14,9 @@ package edu.berkeley.ground.postgres.dao;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.Graph;
 import edu.berkeley.ground.lib.factory.core.GraphFactory;
-import edu.berkeley.ground.postgres.dao.ItemDao;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import edu.berkeley.ground.lib.model.version.GroundType;
+
 import java.util.ArrayList;
 import java.util.List;
 import play.db.Database;
@@ -56,7 +55,7 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
   }
 
   @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
     //TODO implement
   }
 
