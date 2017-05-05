@@ -11,17 +11,15 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.TagFactory;
 import edu.berkeley.ground.lib.model.version.Tag;
 
 import java.util.*;
 
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
-import play.libs.Json;
 
 public class TagDao implements TagFactory {
 

@@ -17,6 +17,8 @@ import edu.berkeley.ground.lib.model.core.Graph;
 import edu.berkeley.ground.lib.model.version.Tag;
 import java.util.List;
 import java.util.Map;
+
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import play.db.Database;
 
 public interface GraphFactory extends ItemFactory<Graph> {
@@ -33,7 +35,7 @@ public interface GraphFactory extends ItemFactory<Graph> {
   Graph retrieveFromDatabase(final Database dbSource, final long id) throws GroundException;
 
   @Override
-  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
 

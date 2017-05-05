@@ -8,8 +8,10 @@ import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.dao.NodeDao;
 import edu.berkeley.ground.postgres.dao.NodeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -121,7 +123,7 @@ public class NodeController extends Controller {
           JsonNode json = request().body().asJson();
           NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
           try {
-            new NodeVersionDao().insertIntoDatabase(dbSource, nodeVersion, idGenerator);
+            new NodeVersionDao().create(dbSource, nodeVersion, idGenerator, new ArrayList<>());
           } catch (GroundException e) {
             throw new CompletionException(e);
           }

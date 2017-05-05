@@ -15,12 +15,11 @@ import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.StructureVersion;
 import edu.berkeley.ground.lib.factory.core.StructureVersionFactory;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
-import edu.berkeley.ground.lib.factory.core.RichVersionFactory;
-import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.lib.utils.IdGenerator;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 import play.db.Database;
 import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;

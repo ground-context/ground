@@ -14,6 +14,8 @@ package edu.berkeley.ground.lib.factory.version;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.Item;
 import java.util.List;
+
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import play.db.Database;
 
 public interface ItemFactory<T extends Item> {
@@ -34,7 +36,7 @@ public interface ItemFactory<T extends Item> {
    * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   /**
    * Truncate the item to only have the most recent levels.
