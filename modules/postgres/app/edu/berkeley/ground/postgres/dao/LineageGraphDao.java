@@ -11,54 +11,54 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.usage.LineageEdgeFactory;
-import edu.berkeley.ground.lib.model.usage.LineageEdge;
+import edu.berkeley.ground.lib.factory.usage.LineageGraphFactory;
+import edu.berkeley.ground.lib.model.usage.LineageGraph;
 import edu.berkeley.ground.lib.model.version.Tag;
 import edu.berkeley.ground.postgres.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
-import com.fasterxml.jackson.databind.JsonNode;
 
-public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeFactory {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-  public LineageEdge createLineageEdge(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
+public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGraphFactory {
+
+  public LineageGraph createLineageGraph(final Database dbSource, final LineageGraph lineageGraph, final IdGenerator idGenerator) throws GroundException {
     long uniqueId = idGenerator.generateItemId();
-    LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
-    return create(dbSource, newLineageEdge);
+    LineageGraph newLineageGraph = new LineageGraph(uniqueId, lineageGraph.getName(), lineageGraph.getSourceKey(), lineageGraph.getTags());
+    return create(dbSource, lineageGraph);
   }
 
   @Override
-  public LineageEdge create(Database dbSource, LineageEdge lineageEdge) throws GroundException {
+  public LineageGraph create(Database dbSource, LineageGraph lineageGraph) throws GroundException {
     List<String> sqlList = new ArrayList<>();
     try {
-      sqlList.addAll(super.createSqlList(lineageEdge));
-      sqlList.add(String.format("insert into lineage_edge (item_id, source_key, name) values (%d, '%s', '%s')",
-        lineageEdge.getId(), lineageEdge.getSourceKey(), lineageEdge.getName()));
+      sqlList.addAll(super.createSqlList(lineageGraph));
+      sqlList.add(String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')",
+        lineageGraph.getId(), lineageGraph.getSourceKey(), lineageGraph.getName()));
       PostgresUtils.executeSqlList(dbSource, sqlList);
-      return lineageEdge;
+      return lineageGraph;
     } catch (Exception e) {
       throw new GroundException(e);
     }
   }
 
   @Override
-  public LineageEdge retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
-    String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
+  public LineageGraph retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
+    String sql = String.format("select * from lineage_graph where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, LineageEdge.class);
+    return Json.fromJson(json, LineageGraph.class);
   }
 
   @Override
-  public LineageEdge retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
-    String sql = String.format("select * from lineage_edge where id = %d", id);
+  public LineageGraph retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
+    String sql = String.format("select * from lineage_graph where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, LineageEdge.class);
+    return Json.fromJson(json, LineageGraph.class);
   }
 
   @Override
@@ -70,6 +70,4 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   public void truncate(long itemId, int numLevels) throws GroundException {
     //TODO implement
   }
-
 }
-
