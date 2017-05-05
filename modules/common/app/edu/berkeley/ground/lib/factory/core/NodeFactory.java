@@ -15,6 +15,8 @@ import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.version.ItemFactory;
 import edu.berkeley.ground.lib.model.core.Node;
 import java.util.List;
+
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import play.db.Database;
 
 public interface NodeFactory extends ItemFactory<Node> {
@@ -31,7 +33,7 @@ public interface NodeFactory extends ItemFactory<Node> {
   Node retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
   @Override
-  void update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
 }

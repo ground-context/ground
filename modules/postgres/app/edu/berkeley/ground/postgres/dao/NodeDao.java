@@ -3,8 +3,10 @@ package edu.berkeley.ground.postgres.dao;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.core.NodeFactory;
+import edu.berkeley.ground.lib.factory.version.TagFactory;
 import edu.berkeley.ground.lib.model.core.Node;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresClient;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,20 @@ import play.libs.Json;
 
 
 public class NodeDao extends ItemDao<Node> implements NodeFactory {
+
+  private PostgresClient dbClient;
+  private VersionHistoryDagDao versionHistoryDagDao;
+  private TagFactory tagFactory;
+
+  public NodeDao() {}
+
+  public NodeDao(PostgresClient dbClient,
+                        VersionHistoryDagDao versionHistoryDagDao,
+                        TagFactory tagFactory) {
+    this.dbClient = dbClient;
+    this.versionHistoryDagDao = versionHistoryDagDao;
+    this.tagFactory = tagFactory;
+  }
 
   @Override
   public void create(Database dbSource, Node node, IdGenerator idGenerator) throws GroundException {
@@ -50,8 +66,8 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.update(itemId, childId, parentIds);
+  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
+    super.update(idGenerator, itemId, childId, parentIds);
   }
 
   @Override

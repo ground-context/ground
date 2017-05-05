@@ -13,19 +13,33 @@ package edu.berkeley.ground.postgres.dao;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.usage.LineageEdgeFactory;
+import edu.berkeley.ground.lib.factory.version.TagFactory;
 import edu.berkeley.ground.lib.model.usage.LineageEdge;
-import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresClient;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeFactory {
+
+  private PostgresClient dbClient;
+  private VersionHistoryDagDao versionHistoryDagDao;
+  private TagFactory tagFactory;
+
+  public LineageEdgeDao() {}
+
+  public LineageEdgeDao(PostgresClient dbClient,
+                 VersionHistoryDagDao versionHistoryDagDao,
+                 TagFactory tagFactory) {
+    this.dbClient = dbClient;
+    this.versionHistoryDagDao = versionHistoryDagDao;
+    this.tagFactory = tagFactory;
+  }
 
   public LineageEdge createLineageEdge(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
     long uniqueId = idGenerator.generateItemId();
@@ -62,9 +76,8 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   }
 
   @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    // TODO implement (create new version, etc)
-    // create version_successor objects for the parentIds to the new version
+  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
+    super.update(idGenerator, itemId, childId, parentIds);
   }
 
   @Override
