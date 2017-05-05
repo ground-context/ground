@@ -16,7 +16,7 @@ import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.usage.LineageGraphFactory;
 import edu.berkeley.ground.lib.model.usage.LineageGraph;
 import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
@@ -62,12 +62,18 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   }
 
   @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
-    // TODO implement (create new version, etc)
-    // create version_successor objects for the parentIds to the new version
+  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
+    super.update(idGenerator, itemId, childId, parentIds);
   }
 
+  @Override
+  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
+    LineageGraph lineageGraph  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(dbSource, lineageGraph.getId());
+  }
+
+  @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    //TODO implement
+    super.truncate(itemId, numLevels);
   }
 }
