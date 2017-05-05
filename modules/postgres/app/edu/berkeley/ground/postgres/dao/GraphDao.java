@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
+import play.db.Database;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class GraphDao extends ItemDao<Graph> implements GraphFactory {
@@ -56,16 +57,18 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   @Override
   public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    //TODO implement
+    super.update(idGenerator, itemId, childId, parentIds);
   }
 
   @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    return new ArrayList<>();
+    Graph graph  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(dbSource, graph.getId());
   }
 
+  @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    //TODO implement
+    super.truncate(itemId, numLevels);
   }
 
 }

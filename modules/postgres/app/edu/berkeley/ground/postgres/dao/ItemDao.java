@@ -60,7 +60,17 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
 
   @Override
   public List<Long> getLeaves(Database dbSource, long itemId) throws GroundException {
-    return null;
+    try {
+      VersionHistoryDag<?> dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+
+      return dag.getLeaves();
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No results found for query:")) {
+        throw e;
+      }
+
+      return new ArrayList<>();
+    }
   }
 
   /**
@@ -108,6 +118,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    */
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
+    VersionHistoryDag<?> dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+    this.versionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }
 
   public void create(final Database dbSource, final T item, final IdGenerator idGenerator) throws GroundException {

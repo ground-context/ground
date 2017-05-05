@@ -59,12 +59,14 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     //TODO implement
   }
 
+  @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    return new ArrayList<>();
+    Structure structure  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(dbSource, structure.getId());
   }
 
+  @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    //TODO implement
+    super.truncate(itemId, numLevels);
   }
-
 }
