@@ -16,7 +16,7 @@ import edu.berkeley.ground.lib.factory.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.lib.model.usage.LineageGraph;
 import edu.berkeley.ground.lib.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
