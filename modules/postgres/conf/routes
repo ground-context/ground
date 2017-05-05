@@ -1,0 +1,41 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# An example controller showing a sample home page
+GET         /                                  edu.berkeley.ground.postgres.controllers.HomeController.index
+
+#Node
+GET         /ground/v1.0/nodes                 edu.berkeley.ground.postgres.controllers.ExampleController.getNode
+POST        /ground/v1.0/nodes                 edu.berkeley.ground.postgres.controllers.ExampleController.addNode
+
+# Map static resources from the /public folder to the /assets URL path
+GET         /assets/*file                      controllers.Assets.versioned(path="/public", file: Asset)
+
+# node endpoints
+POST        /nodes                             edu.berkeley.ground.postgres.controllers.NodeController.addNode()
+GET         /nodes/:sourceKey                  edu.berkeley.ground.postgres.controllers.NodeController.getNode(sourceKey: String)
+POST        /versions/nodes                    edu.berkeley.ground.postgres.controllers.NodeController.addNodeVersion()
+GET         /versions/nodes/:id                edu.berkeley.ground.postgres.controllers.NodeController.getNodeVersion(id: Long)
+
+# graph endpoints
+POST        /graphs                            edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
+GET         /graphs/:sourceKey                 edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
+POST        /versions/graphs                   edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
+GET         /versions/graphs/:id               edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
+
+# structure endpoints
+POST        /structures                        edu.berkeley.ground.postgres.controllers.StructureController.addStructure()
+GET         /structures/:sourceKey             edu.berkeley.ground.postgres.controllers.StructureController.getStructure(sourceKey: String)
+POST        /versions/structures               edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
+GET         /versions/structures/:id           edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
+
+# lineage edge endpoints
+POST        /lineage_edges                     edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdge()
+GET         /lineage_edges/:sourceKey          edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdge(sourceKey: String)
+POST        /versions/lineage_edges            edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdgeVersion()
+GET         /versions/lineage_edges/:id        edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdgeVersion(id: Long)
+
+# tag endpoints
+POST        /tags                              edu.berkeley.ground.postgres.controllers.TagController.createTag()
+GET         /tags/:id                          edu.berkeley.ground.postgres.controllers.TagController.getTag(id: Long)
