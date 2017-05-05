@@ -82,11 +82,13 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
 
   @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    return null;
+    LineageEdge lineageEdge  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(dbSource, lineageEdge.getId());
   }
 
+  @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    //TODO implement
+    super.truncate(itemId, numLevels);
   }
 
 }

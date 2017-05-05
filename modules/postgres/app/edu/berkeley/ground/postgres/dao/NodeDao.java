@@ -76,4 +76,9 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
     return super.getLeaves(dbSource, node.getId());
   }
 
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    super.truncate(itemId, numLevels);
+  }
+
 }
