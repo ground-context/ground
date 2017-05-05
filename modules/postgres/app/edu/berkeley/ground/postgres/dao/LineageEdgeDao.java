@@ -67,6 +67,11 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
     // create version_successor objects for the parentIds to the new version
   }
 
+  @Override
+  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
+    return null;
+  }
+
   public void truncate(long itemId, int numLevels) throws GroundException {
     //TODO implement
   }
