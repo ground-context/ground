@@ -14,27 +14,13 @@ package edu.berkeley.ground.lib.factory.core;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.core.EdgeVersion;
 import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.lib.model.version.Version;
 import java.util.List;
 import java.util.Map;
 import play.db.Database;
 
 public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
 
-  EdgeVersion create(
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long edgeId,
-      long fromNodeVersionStartId,
-      long fromNodeVersionEndId,
-      long toNodeVersionStartId,
-      long toNodeVersionEndId,
-      List<Long> parentIds)
-      throws GroundException;
-
   @Override
   EdgeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
-
-  void updatePreviousVersion(long id, long fromEndId, long toEndId) throws GroundException;
 }
