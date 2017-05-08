@@ -26,7 +26,9 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
     final long uniqueId = idGenerator.generateVersionId();
     NodeVersion newNodeVersion = new NodeVersion(uniqueId, nodeVersion.getTags(), nodeVersion.getStructureVersionId(),
       nodeVersion.getReference(), nodeVersion.getParameters(), nodeVersion.getNodeId());
-    new NodeDao().update(idGenerator, nodeVersion.getNodeId(), nodeVersion.getId(), parentIds);
+    //TODO create version successor
+    //TODO pass PostgresClient and VHDD and TagFactory to ItemDao constructor
+    new NodeDao().update(nodeVersion.getNodeId(), nodeVersion.getId(), parentIds);
     //Call super to create 1.version, 2. structure version (need to create a node_id)?, 3. rich version, 4. node_version
     try {
       sqlList.addAll(super.createSqlList(dbSource, newNodeVersion));

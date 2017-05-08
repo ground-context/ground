@@ -56,11 +56,6 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
   }
 
   @Override
-  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.update(idGenerator, itemId, childId, parentIds);
-  }
-
-  @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
     Graph graph  = retrieveFromDatabase(dbSource, sourceKey);
     return super.getLeaves(dbSource, graph.getId());
