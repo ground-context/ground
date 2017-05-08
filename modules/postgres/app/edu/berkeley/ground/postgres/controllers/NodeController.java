@@ -11,6 +11,7 @@ import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
+import edu.berkeley.ground.postgres.utils.PostgresClient;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -27,12 +28,14 @@ import play.mvc.Result;
 public class NodeController extends Controller {
   private CacheApi cache;
   private Database dbSource;
+  private PostgresClient dbClient;
   private ActorSystem actorSystem;
   private IdGenerator idGenerator;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
+  final void injectUtils(final CacheApi cache, final Database dbSource, final PostgresClient dbClient, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
+    this.dbClient = dbClient;
     this.actorSystem = actorSystem;
     this.cache = cache;
     this.idGenerator = idGenerator;
@@ -124,7 +127,7 @@ public class NodeController extends Controller {
           JsonNode json = request().body().asJson();
           NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
           try {
-            new NodeVersionDao().create(dbSource, nodeVersion, idGenerator, ControllerUtils.getListFromJson(json, "parents"));
+            new NodeVersionDao().create(dbSource, dbClient, nodeVersion, idGenerator, ControllerUtils.getListFromJson(json, "parents"));
           } catch (GroundException e) {
             throw new CompletionException(e);
           }
