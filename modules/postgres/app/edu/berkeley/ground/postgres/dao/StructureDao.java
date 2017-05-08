@@ -55,11 +55,6 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
   }
 
   @Override
-  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    //TODO implement
-  }
-
-  @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
     Structure structure  = retrieveFromDatabase(dbSource, sourceKey);
     return super.getLeaves(dbSource, structure.getId());
