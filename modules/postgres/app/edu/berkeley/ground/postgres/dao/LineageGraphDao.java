@@ -62,8 +62,8 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   }
 
   @Override
-  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.update(idGenerator, itemId, childId, parentIds);
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+    super.update(itemId, childId, parentIds);
   }
 
   @Override

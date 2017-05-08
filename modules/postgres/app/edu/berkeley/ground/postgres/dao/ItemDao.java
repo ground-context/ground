@@ -83,7 +83,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    * @param parentIds the ids of the parents of the child
    */
   @Override
-  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
