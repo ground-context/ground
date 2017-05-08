@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.inject.Singleton;
 
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.GroundType;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.db.Database;
 
+@Singleton
 public class PostgresClient extends DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
   private static final String JDBCString = "jdbc:postgresql://%s:%d/%s?stringtype=unspecified";
