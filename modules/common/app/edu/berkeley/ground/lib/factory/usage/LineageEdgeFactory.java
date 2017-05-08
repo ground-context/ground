@@ -36,8 +36,5 @@ public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
   @Override
   LineageEdge retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
-  @Override
-  void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException;
-
   List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
 }

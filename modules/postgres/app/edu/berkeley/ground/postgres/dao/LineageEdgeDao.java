@@ -76,11 +76,6 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   }
 
   @Override
-  public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-    super.update(idGenerator, itemId, childId, parentIds);
-  }
-
-  @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
     LineageEdge lineageEdge  = retrieveFromDatabase(dbSource, sourceKey);
     return super.getLeaves(dbSource, lineageEdge.getId());
