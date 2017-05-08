@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
+import java.sql.SQLException;
 
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.model.version.GroundType;
@@ -32,23 +33,21 @@ import org.postgresql.PGStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.db.Database;
+import javax.inject.Inject;
 
 @Singleton
 public class PostgresClient extends DbClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresClient.class);
   private static final String JDBCString = "jdbc:postgresql://%s:%d/%s?stringtype=unspecified";
 
-  private final Connection connection;
-  private final Map<String, PreparedStatement> preparedStatements;
+  private Connection connection;
+  private Map<String, PreparedStatement> preparedStatements;
 
-  public PostgresClient(final Database db)
+  @Inject
+  private Database db;
+
+  public PostgresClient()
     throws GroundException {
-    try {
-      this.connection = db.getConnection();
-      this.connection.setAutoCommit(false);
-    } catch (SQLException e) {
-      throw new GroundException(e);
-    }
     this.preparedStatements = new HashMap<>();
   }
 
@@ -167,9 +166,8 @@ public class PostgresClient extends DbClient {
       updateString += " where " + wherePredicateString;
     }
 
-    PreparedStatement statement = this.prepareStatement(updateString);
-
     try {
+      PreparedStatement statement = this.prepareStatement(updateString);
       int index = 1;
       for (DbDataContainer predicate : setPredicates) {
         PostgresClient.setValue(statement, predicate.getValue(), predicate.getGroundType(), index);
@@ -249,9 +247,11 @@ public class PostgresClient extends DbClient {
     }
   }
 
-  private PreparedStatement prepareStatement(String sql) throws GroundException {
+  private PreparedStatement prepareStatement(String sql) throws GroundException{
     // We cannot use computeIfAbsent, as prepareStatement throws an exception.
     // Check if the statement is already in the cache; if so, use it.
+    this.connection = db.getConnection();
+    this.connection.setAutoCommit(false);
     PreparedStatement existingStatement = this.preparedStatements.get(sql);
     if (existingStatement != null) {
       return existingStatement;

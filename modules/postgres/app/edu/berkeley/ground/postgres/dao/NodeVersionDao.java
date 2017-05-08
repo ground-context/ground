@@ -20,14 +20,7 @@ import play.libs.Json;
 
 public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeVersionFactory {
 
-  PostgresClient dbClient;
-
-  @Inject
-  public NodeVersionDao(PostgresClient dbClient){
-    this.dbClient = dbClient;
-  }
-
-  public final void create(final Database dbSource, final NodeVersion nodeVersion, IdGenerator idGenerator, List<Long> parentIds)
+  public final void create(final Database dbSource, final PostgresClient dbClient, final NodeVersion nodeVersion, IdGenerator idGenerator, List<Long> parentIds)
       throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     final long uniqueId = idGenerator.generateVersionId();
