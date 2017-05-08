@@ -5,9 +5,12 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import edu.berkeley.ground.lib.exception.GroundException;
 import play.Logger;
 import play.api.Configuration;
 import play.inject.ApplicationLifecycle;
+import edu.berkeley.ground.postgres.utils.PostgresClient;
+import play.db.Database;
 
 /**
  * This class demonstrates how to run code when the application starts and stops. It starts a timer
@@ -28,7 +31,7 @@ public class ApplicationStart {
 
   @Inject
   public ApplicationStart(
-      Clock clock, ApplicationLifecycle appLifecycle, final Configuration configuration) {
+      Clock clock, ApplicationLifecycle appLifecycle, final Configuration configuration, final Database dbSource) throws GroundException{
     start = clock.instant();
     Logger.info("Ground Postgres: Starting application at " + start);
 

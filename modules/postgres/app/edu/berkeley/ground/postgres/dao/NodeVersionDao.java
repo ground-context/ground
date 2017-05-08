@@ -3,9 +3,14 @@ package edu.berkeley.ground.postgres.dao;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.lib.exception.GroundException;
 import edu.berkeley.ground.lib.factory.core.NodeVersionFactory;
+import edu.berkeley.ground.postgres.dao.VersionSuccessorDao;
+import edu.berkeley.ground.postgres.dao.VersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.TagDao;
 import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.utils.PostgresClient;
+import javax.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +20,7 @@ import play.libs.Json;
 
 public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeVersionFactory {
 
-  public final void create(final Database dbSource, final NodeVersion nodeVersion, IdGenerator idGenerator, List<Long> parentIds)
+  public final void create(final Database dbSource, final PostgresClient dbClient, final NodeVersion nodeVersion, IdGenerator idGenerator, List<Long> parentIds)
       throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     final long uniqueId = idGenerator.generateVersionId();
@@ -23,7 +28,9 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
       nodeVersion.getReference(), nodeVersion.getParameters(), nodeVersion.getNodeId());
     //TODO create version successor
     //TODO pass PostgresClient and VHDD and TagFactory to ItemDao constructor
-    new NodeDao().update(nodeVersion.getNodeId(), nodeVersion.getId(), parentIds);
+    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbClient, idGenerator);
+    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbClient, versionSuccessorDao);
+    new NodeDao(dbClient, versionHistoryDagDao, new TagDao()).update(nodeVersion.getNodeId(), nodeVersion.getId(), parentIds);
     //Call super to create 1.version, 2. structure version (need to create a node_id)?, 3. rich version, 4. node_version
     try {
       sqlList.addAll(super.createSqlList(dbSource, newNodeVersion));
