@@ -23,19 +23,19 @@ public class EdgeVersion extends RichVersion {
   private final long edgeId;
 
   // the first NodeVersion in fromNode that this EdgeVersion applies to
-  @JsonProperty("from_node_version_start_id")
+  @JsonProperty("from_node_start_id")
   private final long fromNodeVersionStartId;
 
   // the last NodeVersion in fromNode that this EdgeVersion applies to
-  @JsonProperty("from_node_version_end_id")
+  @JsonProperty("from_node_end_id")
   private final long fromNodeVersionEndId;
 
   // the first NodeVersion in toNode that this EdgeVersion applies to
-   @JsonProperty("to_node_version_start_id")
+   @JsonProperty("to_node_start_id")
   private final long toNodeVersionStartId;
 
   // the last NodeVersion in toNode that this EdgeVersion applies to
-   @JsonProperty("to_node_version_end_id")
+   @JsonProperty("to_node_end_id")
   private final long toNodeVersionEndId;
 
   /**
@@ -60,10 +60,10 @@ public class EdgeVersion extends RichVersion {
       @JsonProperty("reference") String reference,
       @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
       @JsonProperty("edge_id") long edgeId,
-      @JsonProperty("from_node_version_start_id") long fromNodeVersionStartId,
-      @JsonProperty("from_node_version_end_id") long fromNodeVersionEndId,
-      @JsonProperty("to_node_version_start_id") long toNodeVersionStartId,
-      @JsonProperty("to_node_version_end_id") long toNodeVersionEndId) {
+      @JsonProperty("from_node_start_id") long fromNodeVersionStartId,
+      @JsonProperty("from_node_end_id") long fromNodeVersionEndId,
+      @JsonProperty("to_node_start_id") long toNodeVersionStartId,
+      @JsonProperty("to_node_end_id") long toNodeVersionEndId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
