@@ -61,7 +61,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   @Override
   public List<Long> getLeaves(Database dbSource, long itemId) throws GroundException {
     try {
-      VersionHistoryDag<?> dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+      VersionHistoryDag<?> dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
 
       return dag.getLeaves();
     } catch (GroundException e) {
@@ -91,13 +91,13 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
 
     VersionHistoryDag dag;
     try {
-      dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+      dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
     } catch (GroundException e) {
       if (!e.getMessage().contains("No results found for query:")) {
         throw e;
       }
 
-      dag = versionHistoryDagDao.create(itemId);
+      dag = this.versionHistoryDagDao.create(itemId);
     }
 
     for (long parentId : parentIds) {
@@ -106,7 +106,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         throw new GroundException(errorString);
       }
 
-      versionHistoryDagDao.addEdge(dag, parentId, childId, itemId);
+      this.versionHistoryDagDao.addEdge(dag, parentId, childId, itemId);
     }
   }
 
