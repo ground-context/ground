@@ -16,20 +16,6 @@ import play.libs.Json;
 
 public class NodeDao extends ItemDao<Node> implements NodeFactory {
 
-  private PostgresClient dbClient;
-  private VersionHistoryDagDao versionHistoryDagDao;
-  private TagFactory tagFactory;
-
-  public NodeDao() {}
-
-  public NodeDao(PostgresClient dbClient,
-                        VersionHistoryDagDao versionHistoryDagDao,
-                        TagFactory tagFactory) {
-    this.dbClient = dbClient;
-    this.versionHistoryDagDao = versionHistoryDagDao;
-    this.tagFactory = tagFactory;
-  }
-
   @Override
   public void create(Database dbSource, Node node, IdGenerator idGenerator) throws GroundException {
 
