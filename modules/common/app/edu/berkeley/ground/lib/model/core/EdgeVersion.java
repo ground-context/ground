@@ -11,23 +11,31 @@
  */
 package edu.berkeley.ground.lib.model.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.lib.model.version.Tag;
+import java.util.List;
 import java.util.Map;
 
 public class EdgeVersion extends RichVersion {
   // the id of the Edge containing this Version
+  @JsonProperty("edge_id")
   private final long edgeId;
 
   // the first NodeVersion in fromNode that this EdgeVersion applies to
+  @JsonProperty("from_node_start_id")
   private final long fromNodeVersionStartId;
 
   // the last NodeVersion in fromNode that this EdgeVersion applies to
+  @JsonProperty("from_node_end_id")
   private final long fromNodeVersionEndId;
 
   // the first NodeVersion in toNode that this EdgeVersion applies to
+   @JsonProperty("to_node_start_id")
   private final long toNodeVersionStartId;
 
   // the last NodeVersion in toNode that this EdgeVersion applies to
+   @JsonProperty("to_node_end_id")
   private final long toNodeVersionEndId;
 
   /**
@@ -44,17 +52,18 @@ public class EdgeVersion extends RichVersion {
    * @param toNodeVersionStartId the start node version id from this edge's to node
    * @param toNodeVersionEndId the end node version id from this edge's to node
    */
+  @JsonCreator
   public EdgeVersion(
-      long id,
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long edgeId,
-      long fromNodeVersionStartId,
-      long fromNodeVersionEndId,
-      long toNodeVersionStartId,
-      long toNodeVersionEndId) {
+      @JsonProperty("id") long id,
+      @JsonProperty("tags") Map<String, Tag> tags,
+      @JsonProperty("structure_version_id") long structureVersionId,
+      @JsonProperty("reference") String reference,
+      @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
+      @JsonProperty("edge_id") long edgeId,
+      @JsonProperty("from_node_start_id") long fromNodeVersionStartId,
+      @JsonProperty("from_node_end_id") long fromNodeVersionEndId,
+      @JsonProperty("to_node_start_id") long toNodeVersionStartId,
+      @JsonProperty("to_node_end_id") long toNodeVersionEndId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 

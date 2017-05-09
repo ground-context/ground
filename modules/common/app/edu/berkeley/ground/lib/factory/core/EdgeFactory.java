@@ -23,8 +23,8 @@ import play.db.Database;
 
 public interface EdgeFactory extends ItemFactory<Edge> {
 
-  Edge create(String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
-      throws GroundException;
+  //Edge create(String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
+      //throws GroundException;
 
   @Override
   default Class<Edge> getType() {
