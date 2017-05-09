@@ -38,7 +38,4 @@ public interface EdgeFactory extends ItemFactory<Edge> {
   Edge retrieveFromDatabase(Database dbSource, long id) throws GroundException;
 
   List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
-
-  @Override
-  void truncate(long itemId, int numLevels) throws GroundException;
 }
