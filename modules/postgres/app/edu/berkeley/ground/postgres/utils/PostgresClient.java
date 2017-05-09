@@ -250,14 +250,14 @@ public class PostgresClient extends DbClient {
   private PreparedStatement prepareStatement(String sql) throws GroundException{
     // We cannot use computeIfAbsent, as prepareStatement throws an exception.
     // Check if the statement is already in the cache; if so, use it.
-    this.connection = db.getConnection();
-    this.connection.setAutoCommit(false);
-    PreparedStatement existingStatement = this.preparedStatements.get(sql);
-    if (existingStatement != null) {
-      return existingStatement;
-    }
 
     try {
+      this.connection = db.getConnection();
+      this.connection.setAutoCommit(false);
+      PreparedStatement existingStatement = this.preparedStatements.get(sql);
+      if (existingStatement != null) {
+        return existingStatement;
+      }
       // Otherwise, prepare the statement, then cache it.
       PreparedStatement newStatement = this.connection.prepareStatement(sql, ResultSet
         .TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);

@@ -27,20 +27,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeFactory {
 
-  private PostgresClient dbClient;
-  private VersionHistoryDagDao versionHistoryDagDao;
-  private TagFactory tagFactory;
-
-  public LineageEdgeDao() {}
-
-  public LineageEdgeDao(PostgresClient dbClient,
-                 VersionHistoryDagDao versionHistoryDagDao,
-                 TagFactory tagFactory) {
-    this.dbClient = dbClient;
-    this.versionHistoryDagDao = versionHistoryDagDao;
-    this.tagFactory = tagFactory;
-  }
-
   public LineageEdge createLineageEdge(final Database dbSource, final LineageEdge lineageEdge, final IdGenerator idGenerator) throws GroundException {
     long uniqueId = idGenerator.generateItemId();
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(), lineageEdge.getTags());
