@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.postgres.dao.version;
 
 import com.google.common.base.CaseFormat;
 import edu.berkeley.ground.common.exception.GroundException;
