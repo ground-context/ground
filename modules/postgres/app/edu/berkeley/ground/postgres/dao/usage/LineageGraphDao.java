@@ -17,6 +17,7 @@ import edu.berkeley.ground.common.factory.usage.LineageGraphFactory;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
@@ -26,20 +27,17 @@ import java.util.List;
 
 public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGraphFactory {
 
-  public LineageGraph createLineageGraph(final Database dbSource, final LineageGraph lineageGraph, final IdGenerator idGenerator) throws GroundException {
-    long uniqueId = idGenerator.generateItemId();
-    LineageGraph newLineageGraph = new LineageGraph(uniqueId, lineageGraph.getName(), lineageGraph.getSourceKey(), lineageGraph.getTags());
-    return create(dbSource, lineageGraph);
+  public LineageGraphDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
   }
 
   @Override
-  public LineageGraph create(Database dbSource, LineageGraph lineageGraph) throws GroundException {
-    List<String> sqlList = new ArrayList<>();
+  public LineageGraph create(LineageGraph lineageGraph) throws GroundException {
+    PostgresStatements statements = super.insert(lineageGraph);
+    statements.append(String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')",
+      lineageGraph.getId(), lineageGraph.getSourceKey(), lineageGraph.getName()));
     try {
-      sqlList.addAll(super.createSqlList(lineageGraph));
-      sqlList.add(String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')",
-        lineageGraph.getId(), lineageGraph.getSourceKey(), lineageGraph.getName()));
-      PostgresUtils.executeSqlList(dbSource, sqlList);
+      PostgresUtils.executeSqlList(dbSource, statements);
       return lineageGraph;
     } catch (Exception e) {
       throw new GroundException(e);
@@ -63,7 +61,7 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   @Override
   public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
     LineageGraph lineageGraph  = retrieveFromDatabase(dbSource, sourceKey);
-    return super.getLeaves(dbSource, lineageGraph.getId());
+    return super.getLeaves(lineageGraph.getId());
   }
 
   @Override

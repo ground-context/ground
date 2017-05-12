@@ -21,7 +21,7 @@ import play.db.Database;
 
 public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
 
-  LineageEdge create(Database dbSource, LineageEdge lineageEdge) throws GroundException;
+  LineageEdge create(LineageEdge lineageEdge) throws GroundException;
 
   @Override
   default Class<LineageEdge> getType() {
