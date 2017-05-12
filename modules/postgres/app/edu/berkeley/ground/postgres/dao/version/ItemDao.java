@@ -88,14 +88,14 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   //TODO: This should create a sqlList to support rollback
   //Should return sqlList and also add edges to the versionHistoryDag
   @Override
-  public List<String> update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public PostgresStatements update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
     }
 
     VersionHistoryDag dag;
-    List<String> sqlList = new ArrayList<String>();
+    PostgresStatements statements = new PostgresStatements();
     try {
       dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
     } catch (GroundException e) {
@@ -111,11 +111,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
         throw new GroundException(errorString);
       }
-      sqlList.addAll(versionHistoryDagDao.createSqlList(dag, parentId, childId, itemId));
+      statements.merge(versionHistoryDagDao.insert(dag, parentId, childId, itemId));
       this.versionHistoryDagDao.addEdge(dag, parentId, childId, itemId);
     }
 
-    return sqlList;
+    return statements;
   }
 
   /**

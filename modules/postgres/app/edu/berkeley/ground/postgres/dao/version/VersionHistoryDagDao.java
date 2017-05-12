@@ -18,6 +18,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionHistoryDagFactory;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.version.*;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import play.db.Database;
 
 
@@ -43,16 +44,15 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
     return new VersionHistoryDag<>(itemId, new ArrayList<>());
   }
 
-  //TODO: Create an addToSqlList method
-  public List<String> createSqlList(VersionHistoryDag dag, long parentId, long childId, long itemId)
+  public PostgresStatements insert(VersionHistoryDag dag, long parentId, long childId, long itemId)
     throws GroundException {
 
     long versionSuccessorId = this.versionSuccessorDao.getNewSuccessorId();
-    List<String> sqlList = versionSuccessorDao.createSqlList(parentId, childId, versionSuccessorId);
+    PostgresStatements statements = versionSuccessorDao.insert(parentId, childId, versionSuccessorId);
     String sql = String.format("insert into version_history_dag (item_id, version_successor_id) " +
       "values(%d, %d)", itemId, versionSuccessorId);
-    sqlList.add(sql);
-    return sqlList;
+    statements.append(sql);
+    return statements;
   }
 
   /**
