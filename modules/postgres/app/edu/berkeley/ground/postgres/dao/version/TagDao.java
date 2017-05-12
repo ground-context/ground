@@ -14,12 +14,13 @@ package edu.berkeley.ground.postgres.dao.version;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.TagFactory;
 import edu.berkeley.ground.common.model.version.Tag;
-
-import java.util.*;
-
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TagDao implements TagFactory {
 
@@ -27,17 +28,17 @@ public class TagDao implements TagFactory {
     long uniqueId = idGenerator.generateItemId();
     Tag newTag = new Tag(uniqueId, tag.getKey(), tag.getValue(), tag.getValueType());
     try {
-      PostgresUtils.executeSqlList(dbSource, createSqlList(newTag));
+      PostgresUtils.executeSqlList(dbSource, insert(newTag));
     } catch (Exception e) {
       throw new GroundException(e);
     }
   }
 
-  public List<String> createSqlList(final Tag tag) {
+  public PostgresStatements insert(final Tag tag) {
     List<String> sqlList = new ArrayList<>();
     sqlList.add(String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
       tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
-    return sqlList;
+    return new PostgresStatements(sqlList);
   }
 
   @Override

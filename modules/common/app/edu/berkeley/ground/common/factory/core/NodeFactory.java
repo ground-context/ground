@@ -14,10 +14,8 @@ package edu.berkeley.ground.common.factory.core;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.ItemFactory;
 import edu.berkeley.ground.common.model.core.Node;
-import java.util.List;
 
-import edu.berkeley.ground.common.utils.IdGenerator;
-import play.db.Database;
+import java.util.List;
 
 public interface NodeFactory extends ItemFactory<Node> {
 
@@ -29,10 +27,10 @@ public interface NodeFactory extends ItemFactory<Node> {
   }
 
   @Override
-  Node retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
+  Node retrieveFromDatabase(String sourceKey) throws GroundException;
 
   @Override
-  Node retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  Node retrieveFromDatabase(long id) throws GroundException;
 
-  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

@@ -11,9 +11,6 @@
  */
 package edu.berkeley.ground.postgres.dao.usage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
@@ -24,6 +21,10 @@ import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
 public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> implements LineageEdgeVersionFactory {
+
+  public LineageEdgeVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
+  }
 
   @Override
   public LineageEdgeVersion create(final LineageEdgeVersion lineageEdgeVersion) throws GroundException {

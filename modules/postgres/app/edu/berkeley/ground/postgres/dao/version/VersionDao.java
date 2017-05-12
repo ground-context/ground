@@ -14,12 +14,9 @@ package edu.berkeley.ground.postgres.dao.version;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionFactory;
 import edu.berkeley.ground.common.model.version.Version;
-import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import java.util.ArrayList;
-import java.util.List;
 import play.db.Database;
 
 public class VersionDao<T extends Version> implements VersionFactory<T> {

@@ -11,59 +11,71 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.factory.core.GraphFactory;
+import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 import play.db.Database;
 import play.libs.Json;
-import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.List;
+
+
+// TODO construct me with dbSource and idGenerator thanks
 public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
-  @Override
-  public void create(final Database dbSource, final Graph graph, final IdGenerator idGenerator) throws GroundException {
-    final List<String> sqlList = new ArrayList<>();
+  public GraphDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
+  }
+
+  public Graph create(Graph graph) throws GroundException {
+
+    PostgresStatements postgresStatements = new PostgresStatements();
     long uniqueId = idGenerator.generateItemId();
-    Graph newGraph = new Graph(uniqueId, graph.getName(), graph.getSourceKey(), graph.getTags());
+
+    Graph newGraph = new Graph(uniqueId, graph.getName(), graph
+      .getSourceKey(), graph.getTags());
     try {
-      sqlList.addAll(super.createSqlList(newGraph));
-      sqlList.add(String.format("insert into graph (item_id, source_key, name) values (%d, '%s', '%s')",
-          uniqueId, graph.getSourceKey(), graph.getName()));
-      PostgresUtils.executeSqlList(dbSource, sqlList);
+      postgresStatements.append(String.format(
+        "insert into graph (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
+        uniqueId, graph.getSourceKey(), graph.getName()));
+
+      super.insert(newGraph).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
+    PostgresUtils.executeSqlList(dbSource, postgresStatements);
+    return newGraph;
   }
 
   @Override
-  public Graph retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
-    String sql = String.format("select * from graph where source_key = \'%s\'", sourceKey);
+  public Graph retrieveFromDatabase(String sourceKey) throws GroundException {
+    String sql =
+      String.format("select * from graph where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, Graph.class);
   }
 
   @Override
-  public Graph retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
-    String sql = String.format("select * from graph_version where id = %d", id);
+  public Graph retrieveFromDatabase(long id) throws GroundException {
+    String sql =
+      String.format("select * from graph where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, Graph.class);
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    Graph graph  = retrieveFromDatabase(dbSource, sourceKey);
-    return super.getLeaves(dbSource, graph.getId());
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Graph graph  = retrieveFromDatabase(sourceKey);
+    return super.getLeaves(graph.getId());
   }
 
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
     super.truncate(itemId, numLevels);
   }
-
 }

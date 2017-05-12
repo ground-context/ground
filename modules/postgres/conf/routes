@@ -5,10 +5,6 @@
 # An example controller showing a sample home page
 GET         /                                  edu.berkeley.ground.postgres.controllers.HomeController.index
 
-#Node
-GET         /ground/v1.0/nodes                 edu.berkeley.ground.postgres.controllers.ExampleController.getNode
-POST        /ground/v1.0/nodes                 edu.berkeley.ground.postgres.controllers.ExampleController.addNode
-
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                      controllers.Assets.versioned(path="/public", file: Asset)
 

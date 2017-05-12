@@ -6,19 +6,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Node;
 import edu.berkeley.ground.common.model.core.NodeVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.NodeDao;
 import edu.berkeley.ground.postgres.dao.core.NodeVersionDao;
-import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.common.utils.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
-import edu.berkeley.ground.postgres.utils.PostgresClient;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.utils.GroundUtils;
+import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -26,17 +19,21 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 public class NodeController extends Controller {
   private CacheApi cache;
   private Database dbSource;
-  private PostgresClient dbClient;
   private ActorSystem actorSystem;
   private IdGenerator idGenerator;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource, final PostgresClient dbClient, final ActorSystem actorSystem, final IdGenerator idGenerator) {
+  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
-    this.dbClient = dbClient;
     this.actorSystem = actorSystem;
     this.cache = cache;
     this.idGenerator = idGenerator;

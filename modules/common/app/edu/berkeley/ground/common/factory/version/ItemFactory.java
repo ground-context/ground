@@ -13,10 +13,9 @@ package edu.berkeley.ground.common.factory.version;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Item;
-import java.util.List;
-
 import edu.berkeley.ground.common.utils.DbStatements;
-import play.db.Database;
+
+import java.util.List;
 
 
 public interface ItemFactory<T extends Item> {

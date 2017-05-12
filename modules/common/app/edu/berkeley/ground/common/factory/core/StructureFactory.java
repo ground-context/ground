@@ -17,8 +17,6 @@ import edu.berkeley.ground.common.model.core.Structure;
 
 import java.util.List;
 
-import play.db.Database;
-
 public interface StructureFactory extends ItemFactory<Structure> {
 
   @Override
@@ -27,12 +25,12 @@ public interface StructureFactory extends ItemFactory<Structure> {
   }
 
  @Override
-  Structure retrieveFromDatabase(final Database dbSource, final String sourceKey) throws GroundException;
+  Structure retrieveFromDatabase(final String sourceKey) throws GroundException;
 
   @Override
-  Structure retrieveFromDatabase(final Database dbSource, final long id) throws GroundException;
+  Structure retrieveFromDatabase(final long id) throws GroundException;
 
-  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 
   @Override
   void truncate(long itemId, int numLevels) throws GroundException;
