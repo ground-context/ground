@@ -16,9 +16,11 @@ import edu.berkeley.ground.common.factory.core.RichVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import play.db.Database;
 
+import java.util.List;
+
 public interface LineageGraphVersionFactory extends RichVersionFactory<LineageGraphVersion> {
 
-  LineageGraphVersion create(LineageGraphVersion lineageGraphVersion)
+  LineageGraphVersion create(LineageGraphVersion lineageGraphVersion, List<Long> parentIds)
       throws GroundException;
 
   @Override

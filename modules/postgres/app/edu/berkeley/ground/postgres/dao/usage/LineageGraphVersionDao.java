@@ -16,6 +16,10 @@ import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
@@ -26,15 +30,35 @@ import java.util.List;
 public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> implements LineageGraphVersionFactory {
 
   @Override
-  public LineageGraphVersion create(LineageGraphVersion lineageGraphVersion) throws GroundException {
-    PostgresStatements statements = super.insert(lineageGraphVersion);
-    statements.append(String.format("insert into lineage_graph_version (id, lineage_graph_id) values (%d, %d)",
-      lineageGraphVersion.getId(), lineageGraphVersion.getLineageGraphId()));
+  public LineageGraphVersion create(LineageGraphVersion lineageGraphVersion, List<Long> parentIds) throws GroundException {
+    final long uniqueId = idGenerator.generateVersionId();
+    LineageGraphVersion newLineageGraphVersion = new LineageGraphVersion(uniqueId, lineageGraphVersion.getTags(), lineageGraphVersion.getStructureVersionId(),
+      lineageGraphVersion.getReference(), lineageGraphVersion.getParameters(), lineageGraphVersion.getLineageGraphId(), lineageGraphVersion.getLineageEdgeVersionIds());
+
+    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
+    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+    TagDao tagDao = new TagDao();
+
+    //TODO: Ideally, I think this should add to the sqlList to support rollback???
+
+    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newLineageGraphVersion.getLineageGraphId(), newLineageGraphVersion.getId(), parentIds));
+
     try {
+      PostgresStatements statements = super.insert(newLineageGraphVersion);
+      statements.append(String.format(
+        "insert into lineage_graph_version (id, lineage_graph_id) values (%d,%d)",
+        uniqueId, newLineageGraphVersion.getLineageGraphId()));
+      statements.merge(updateVersionList);
+
+      System.out.println("uniqueId: " + uniqueId);
+      System.out.println("lineageGraphId: " + newLineageGraphVersion.getLineageGraphId());
+
       PostgresUtils.executeSqlList(dbSource, statements);
-      return lineageGraphVersion;
     } catch (Exception e) {
       throw new GroundException(e);
     }
+
+    return newLineageGraphVersion;
   }
 }

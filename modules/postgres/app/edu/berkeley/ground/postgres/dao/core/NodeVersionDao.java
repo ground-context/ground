@@ -51,7 +51,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
     try {
       PostgresStatements statements = super.insert(newNodeVersion);
       statements.append(String.format(
-        "insert into node_version (id, node_id) values (%s,%s)",
+        "insert into node_version (id, node_id) values (%d,%d)",
         uniqueId, nodeVersion.getNodeId()));
       statements.merge(updateVersionList);
 
@@ -62,7 +62,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
     } catch (Exception e) {
       throw new GroundException(e);
     }
-    return nodeVersion;
+    return newNodeVersion;
   }
 
   @Override
