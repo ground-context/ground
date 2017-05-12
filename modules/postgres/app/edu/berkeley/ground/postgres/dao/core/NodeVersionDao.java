@@ -50,6 +50,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
 
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
+      e.printStackTrace();
       throw new GroundException(e);
     }
     return newNodeVersion;
