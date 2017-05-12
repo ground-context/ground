@@ -36,6 +36,8 @@ import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 
+import javax.sound.sampled.Line;
+
 public class DaoTest {
 
   protected static EdgeFactory edgeFactory;
@@ -110,7 +112,8 @@ public class DaoTest {
   }
 
   public static LineageEdge createLineageEdge(String sourceKey) throws GroundException {
-    return lineageEdgeFactory.create(null, sourceKey, new HashMap<>());
+    LineageEdge lineageEdge = new LineageEdge(0, "", sourceKey, new HashMap<>());
+    return lineageEdgeFactory.create(lineageEdge);
   }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
@@ -130,7 +133,8 @@ public class DaoTest {
   }
 
   public static LineageGraph createLineageGraph(String sourceKey) throws GroundException {
-    return lineageGraphFactory.create(null, sourceKey, new HashMap<>());
+    LineageGraph lineageGraph = new LineageGraph(0, "", sourceKey, new HashMap<>());
+    return lineageGraphFactory.create(lineageGraph);
   }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,

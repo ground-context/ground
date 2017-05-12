@@ -18,7 +18,6 @@ import java.util.List;
 
 public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeVersionFactory {
 
-
   public NodeVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
   }
@@ -37,7 +36,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
 
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 
-    ItemDao itemDao = new ItemDao(versionHistoryDagDao, tagDao);
+    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
     PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newNodeVersion.getNodeId(), newNodeVersion.getId(), parentIds));
 
     try {

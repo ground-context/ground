@@ -22,15 +22,15 @@ import edu.berkeley.ground.common.model.version.Tag;
 
 public class LineageEdgeVersion extends RichVersion {
   // the id of the LineageEdge containing this Version
-  @JsonProperty("lineage_edge_id")
+  @JsonProperty("lineageEdgeId")
   private final long lineageEdgeId;
 
   // the id of the RichVersion that this LineageEdgeVersion originates from
-  @JsonProperty("from_rich_version_id")
+  @JsonProperty("fromRichVersionId")
   private final long fromId;
 
   // the id of the RichVersion that this LineageEdgeVersion points to
-  @JsonProperty("to_rich_version_id")
+  @JsonProperty("toRichVersionId")
   private final long toId;
 
   /**
@@ -48,10 +48,10 @@ public class LineageEdgeVersion extends RichVersion {
 
   @JsonCreator
   public LineageEdgeVersion(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags,
-                            @JsonProperty("structure_version_id") Long structureVersionId,
-                            @JsonProperty("reference") String reference, @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
-                            @JsonProperty("from_rich_version_id") long fromId, @JsonProperty("to_rich_version_id") long toId,
-                            @JsonProperty("lineage_edge_id") long lineageEdgeId) {
+                            @JsonProperty("structureVersionId") Long structureVersionId,
+                            @JsonProperty("reference") String reference, @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+                            @JsonProperty("fromRichVersionId") long fromId, @JsonProperty("toRichVersionId") long toId,
+                            @JsonProperty("lineageEdgeId") long lineageEdgeId) {
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.lineageEdgeId = lineageEdgeId;
