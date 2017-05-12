@@ -85,14 +85,16 @@ public class DaoTest {
 //    return createEdgeVersion(edgeId, fromStart, toStart, new ArrayList<>());
 //  }
 //
-//  public static EdgeVersion createEdgeVersion(long edgeId,
-//                                              long fromStart,
-//                                              long toStart,
-//                                              List<Long> parents)
-//    throws GroundException {
-//    return edgeVersionFactory.create(new HashMap<>(), -1, null, new HashMap<>(),
-//      edgeId, fromStart, -1, toStart, -1, parents);
-//  }
+
+  public static EdgeVersion createEdgeVersion(long edgeId,
+                                              long fromStart,
+                                              long toStart,
+                                              List<Long> parents)
+    throws GroundException {
+    EdgeVersion edgeVersion = new EdgeVersion(new HashMap<>(), -1, null, new HashMap<>(),
+      edgeId, fromStart, -1, toStart, -1;
+    return edgeVersionFactory.create(edgeVersion, parents);
+  }
 
   public static Graph createGraph(String sourceKey) throws GroundException {
     Graph graph = new Graph(1, "", sourceKey, new HashMap<>());
@@ -176,7 +178,7 @@ public class DaoTest {
 
     StructureVersion structureVersion = new StructureVersion(-1, structureId, structureVersionAttributes);
 
-    return structureVersionFactory.create(structureVersion);
+    return structureVersionFactory.create(structureVersion, parents);
   }
 
   public static Map<String, Tag> createTags() throws GroundException {
