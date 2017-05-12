@@ -40,7 +40,7 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newEdgeVersion.getEdgeId(), newEdgeVersion.getId(), parentIds));
+    PostgresStatements updateVersionList = itemDao.update(newEdgeVersion.getEdgeId(), newEdgeVersion.getId(), parentIds);
 
     try {
       PostgresStatements statements = super.insert(newEdgeVersion);

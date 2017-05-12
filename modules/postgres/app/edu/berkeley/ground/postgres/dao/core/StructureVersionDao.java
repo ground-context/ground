@@ -41,9 +41,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
       versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
     TagDao tagDao = new TagDao();
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update
-      (newStructureVersion.getStructureId
-      (), newStructureVersion.getId(), parentIds));
+    PostgresStatements updateVersionList = itemDao.update(newStructureVersion.getStructureId(), newStructureVersion.getId(), parentIds);
 
     try {
       PostgresStatements statements = super.insert(newStructureVersion);
