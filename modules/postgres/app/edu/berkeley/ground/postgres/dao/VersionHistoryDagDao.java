@@ -13,18 +13,17 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-
 import com.google.common.base.CaseFormat;
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.version.VersionHistoryDagFactory;
-import edu.berkeley.ground.lib.model.core.Structure;
-import edu.berkeley.ground.lib.model.version.*;
-import edu.berkeley.ground.postgres.utils.DbClient;
-import edu.berkeley.ground.postgres.utils.DbDataContainer;
-import edu.berkeley.ground.postgres.utils.PostgresResults;
-import edu.berkeley.ground.postgres.utils.PostgresClient;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.version.VersionHistoryDagFactory;
+import edu.berkeley.ground.common.model.core.Structure;
+import edu.berkeley.ground.common.model.version.*;
+import play.db.Database;
 
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,16 +31,28 @@ import java.util.Set;
 
 public class VersionHistoryDagDao implements VersionHistoryDagFactory {
   private VersionSuccessorDao versionSuccessorDao;
-  private PostgresClient postgresClient;
+  private Database dbSource;
 
-  public VersionHistoryDagDao(PostgresClient postgresClient, VersionSuccessorDao versionSuccessorDao) {
+  public VersionHistoryDagDao(Database dbSource, VersionSuccessorDao versionSuccessorDao) {
     this.versionSuccessorDao = versionSuccessorDao;
-    this.postgresClient = postgresClient;
+    this.dbSource = dbSource;
   }
 
   @Override
   public <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException {
     return new VersionHistoryDag<>(itemId, new ArrayList<>());
+  }
+
+  //TODO: Create an addToSqlList method
+  public List<String> createSqlList(VersionHistoryDag dag, long parentId, long childId, long itemId)
+    throws GroundException {
+
+    long versionSuccessorId = this.versionSuccessorDao.getNewSuccessorId();
+    List<String> sqlList = versionSuccessorDao.createSqlList(parentId, childId, versionSuccessorId);
+    String sql = String.format("insert into version_history_dag (item_id, version_successor_id) " +
+      "values(%d, %d)", itemId, versionSuccessorId);
+    sqlList.add(sql);
+    return sqlList;
   }
 
   /**
@@ -56,23 +67,26 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
   public <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId)
     throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-
-    PostgresResults resultSet = postgresClient.equalitySelect("version_history_dag",
-      DbClient.SELECT_STAR,
-      predicates);
-    if (resultSet.isEmpty()) {
-      // do nothing' this just means that no versions have been added yet.
-      return new VersionHistoryDag<T>(itemId, new ArrayList<>());
-    }
+    String sql =
+      String.format("select * from version_history_dag where item_id=%d", itemId);
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
-    do {
-      edges.add(this.versionSuccessorDao.retrieveFromDatabase(resultSet.getLong(2)));
-    } while (resultSet.next());
+    try (Connection con = dbSource.getConnection()){
 
-    return new VersionHistoryDag<>(itemId, edges);
+      Statement stmt = con.createStatement();
+      final ResultSet resultSet = stmt.executeQuery(sql);
+
+      while (resultSet.next()) {
+        long versionSuccessorId = resultSet.getLong("version_successor_id");
+        VersionSuccessor<T> versionSuccessor = versionSuccessorDao.retrieveFromDatabase(versionSuccessorId);
+        edges.add(versionSuccessor);
+      }
+      stmt.close();
+
+    } catch (Exception e) {
+      throw new GroundException(e);
+    }
+    return new VersionHistoryDag<T>(itemId, edges);
   }
 
   /**
@@ -89,15 +103,18 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
     throws GroundException {
 
     VersionSuccessor successor = this.versionSuccessorDao.create(parentId, childId);
-
+    dag.addEdge(parentId, childId, successor.getId());
+    //TODO: Refactor to use SQL statement -- Shouldn't rely on dbClient
+    /*
     List<DbDataContainer> insertions = new ArrayList<>();
     insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
     insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
 
     postgresClient.insert("version_history_dag", insertions);
+    */
 
-    dag.addEdge(parentId, childId, successor.getId());
   }
+
 
   /**
    * Truncate the DAG to only have a certain number of levels, removing everything before that.
@@ -110,6 +127,7 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
   @Override
   public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
     throws GroundException {
+
 
     int keptLevels = 1;
     List<Long> lastLevel = new ArrayList<>();
@@ -131,9 +149,12 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
     List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
     Set<Long> deleted = new HashSet<>();
 
-    List<DbDataContainer> predicates = new ArrayList<>();
+    List<String> sqlList = new ArrayList<>();
+
+    // delete the version successors between the last kept level and the first deleted level
     for (long id : lastLevel) {
-      this.versionSuccessorDao.deleteFromDestination(id, dag.getItemId());
+      // TODO: Change to take in a sql list
+      this.versionSuccessorDao.deleteFromDestination(sqlList, id, dag.getItemId());
       this.addEdge(dag, 0, id, dag.getItemId());
     }
 
@@ -146,34 +167,27 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
         tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
 
         if (itemType.equals(Structure.class)) {
-          predicates.add(new DbDataContainer("structure_version_id", GroundType.LONG, id));
-          postgresClient.delete(predicates, "structure_version_attribute");
-          predicates.clear();
+          sqlList.add(String.format("DELETE * FROM structure_version_attribute WHERE structure_version_id = %d;", id));
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
-          predicates.add(new DbDataContainer(tableNamePrefix + "_version_id", GroundType.LONG, id));
-          postgresClient.delete(predicates, tableNamePrefix + "_version_edge");
-          predicates.clear();
+          String tableName = tableNamePrefix + "_version_edge";
+
+          sqlList.add(String.format("DELETE * FROM %s WHERE %s_version_id = %d;", tableName,
+            tableNamePrefix, id));
         }
 
-        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-
-        postgresClient.delete(predicates, tableNamePrefix + "_version");
+        sqlList.add(String.format("DELETE * FROM %s_version where id = %d;", tableNamePrefix, id));
 
         if (!itemType.equals(Structure.class)) {
-          postgresClient.delete(predicates, "rich_version");
+          sqlList.add(String.format("DELETE * FROM rich_version where id = %d;", id));
+          sqlList.add(String.format("DELETE * FROM rich_version_tag where rich_version_id = %d;", id));
         }
 
-        this.versionSuccessorDao.deleteFromDestination(id, dag.getItemId());
+        // TODO: change to take SQL list
+        this.versionSuccessorDao.deleteFromDestination(sqlList, id, dag.getItemId());
 
-        predicates.clear();
-        predicates.add(new DbDataContainer("rich_version_id", GroundType.LONG, id));
-        postgresClient.delete(predicates, "rich_version_tag");
-
-        predicates.clear();
-        predicates.add(new DbDataContainer("id", GroundType.LONG, id));
-        postgresClient.delete(predicates, "version");
+        sqlList.add(String.format("DELETE * FROM version WHERE id = %d;", id));
 
         deleted.add(id);
 
@@ -184,10 +198,10 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
             deleteQueue.add(parentId);
           }
         });
-        predicates.clear();
       }
 
       deleteQueue.remove(0);
     }
+
   }
 }

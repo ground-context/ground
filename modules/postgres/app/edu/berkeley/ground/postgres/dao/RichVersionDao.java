@@ -11,16 +11,16 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import edu.berkeley.ground.lib.model.core.StructureVersion;
-import edu.berkeley.ground.lib.model.core.RichVersion;
-import edu.berkeley.ground.lib.factory.core.RichVersionFactory;
-import edu.berkeley.ground.lib.model.version.GroundType;
+import edu.berkeley.ground.common.model.core.StructureVersion;
+import edu.berkeley.ground.common.model.core.RichVersion;
+import edu.berkeley.ground.common.factory.core.RichVersionFactory;
+import edu.berkeley.ground.common.model.version.GroundType;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,21 +30,24 @@ import java.util.stream.Collectors;
 import play.db.Database;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
-  public void create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
-    final List<String> sqlList = createSqlList(richVersion);
-    PostgresUtils.executeSqlList(dbSource, sqlList);
+
+  protected Database dbSource;
+  protected IdGenerator idGenerator;
+
+  public RichVersionDao (Database dbSource, IdGenerator idGenerator) {
+    this.dbSource = dbSource;
+    this.idGenerator = idGenerator;
+  }
+
+  public RichVersion create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
+    PostgresStatements statements = insert(richVersion);
+    PostgresUtils.executeSqlList(dbSource, statements);
+    return richVersion;
   }
 
   @Override
   public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
     return null;
-  }
-
-  @Override
-  public void insertIntoDatabase(long id,
-                                 RichVersion richVersion)
-    throws GroundException {
-
   }
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {
@@ -97,12 +100,12 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     }
   }
 
-  public List<String> createSqlList(final Database dbSource, final T richVersion) throws GroundException {
+  @Override
+  public PostgresStatements insert(final T richVersion) throws GroundException {
     if (richVersion.getStructureVersionId() != null)
       checkStructureTags(new StructureVersionDao().retrieveFromDatabase(dbSource, richVersion.getStructureVersionId()), richVersion.getTags());
-    final List<String> sqlList = new ArrayList<>();
-    sqlList.addAll(super.createSqlList(richVersion));
-    sqlList.add(
+    PostgresStatements statements = super.insert(richVersion);
+    statements.append(
       String.format(
         "insert into rich_version (id, structure_version_id, reference) values (%d, %d, \'%s\')",
         richVersion.getId(), richVersion.getStructureVersionId(), richVersion.getReference()));
@@ -112,19 +115,19 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
         Tag tag = tags.get(key);
 
         if (tag.getValue() != null) {
-          sqlList.add(
+          statements.append(
             String.format(
               "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, %s, %s, %s)",
               richVersion.getId(), key, tag.getValue().toString(), tag.getValueType().toString()));
         } else {
-          sqlList.add(
+          statements.append(
             String.format(
               "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, %s, %s, %s)",
               richVersion.getId(), key, null, null));
         }
       }
     }
-    return sqlList;
+    return statements;
   }
 
 }

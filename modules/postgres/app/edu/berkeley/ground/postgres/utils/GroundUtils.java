@@ -2,7 +2,7 @@ package edu.berkeley.ground.postgres.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import edu.berkeley.ground.lib.exception.GroundException.exceptionType;
+import edu.berkeley.ground.common.exception.GroundException.exceptionType;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;

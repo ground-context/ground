@@ -1,8 +1,5 @@
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.core.NodeVersionFactory;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,16 +7,28 @@ import play.db.Database;
 import javax.sql.DataSource;
 import edu.berkeley.ground.lib.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.core.NodeVersionFactory;
+import edu.berkeley.ground.common.model.core.NodeVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeVersionFactory {
 
-  public final void create(final Database dbSource, final PostgresClient dbClient, final NodeVersion nodeVersion, IdGenerator idGenerator, List<Long> parentIds)
+
+  public NodeVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
+  }
+
+  public NodeVersion create(final NodeVersion nodeVersion, List<Long> parentIds)
       throws GroundException {
     final List<String> sqlList = new ArrayList<>();
 
@@ -27,25 +36,32 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
     final long uniqueId = idGenerator.generateVersionId();
     NodeVersion newNodeVersion = new NodeVersion(uniqueId, nodeVersion.getTags(), nodeVersion.getStructureVersionId(),
       nodeVersion.getReference(), nodeVersion.getParameters(), nodeVersion.getNodeId());
-    //TODO create version successor
-    //TODO pass PostgresClient and VHDD and TagFactory to ItemDao constructor
-    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbClient, idGenerator);
-    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbClient, versionSuccessorDao);
-    new ItemDao(dbClient, versionHistoryDagDao, new TagDao()).update(nodeVersion.getNodeId(),
-      nodeVersion
-      .getId(), parentIds);
-    //Call super to create 1.version, 2. structure version (need to create a node_id)?, 3. rich version, 4. node_version
+
+    //TODO: I think we should consider using injection here
+    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
+    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+    TagDao tagDao = new TagDao();
+
+    //TODO: Ideally, I think this should add to the sqlList to support rollback???
+
+    ItemDao itemDao = new ItemDao(versionHistoryDagDao, tagDao);
+    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newNodeVersion.getNodeId(), newNodeVersion.getId(), parentIds));
+
     try {
-      sqlList.addAll(super.createSqlList(dbSource, newNodeVersion));
-      sqlList.add(
-        String.format(
-          "insert into node_version (id, node_id) values (%s,%s)",
-          uniqueId, nodeVersion.getNodeId()));
-    PostgresUtils.executeSqlList(dbSource, sqlList);
-      PostgresUtils.executeSqlList(dbSource, sqlList);
+      PostgresStatements statements = super.insert(newNodeVersion);
+      statements.append(String.format(
+        "insert into node_version (id, node_id) values (%s,%s)",
+        uniqueId, nodeVersion.getNodeId()));
+      statements.merge(updateVersionList);
+
+      System.out.println("uniqueId: " + uniqueId);
+      System.out.println("nodeId: " + nodeVersion.getNodeId());
+
+      PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
+    return nodeVersion;
   }
 
   @Override

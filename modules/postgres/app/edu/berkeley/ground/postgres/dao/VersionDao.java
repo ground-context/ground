@@ -11,11 +11,12 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.version.VersionFactory;
-import edu.berkeley.ground.lib.model.version.Version;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
-import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.version.VersionFactory;
+import edu.berkeley.ground.common.model.version.Version;
+import edu.berkeley.ground.common.model.core.NodeVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,21 +25,18 @@ import play.db.Database;
 public class VersionDao<T extends Version> implements VersionFactory<T> {
 
   @Override
-  public void insertIntoDatabase(long id) throws GroundException {
-  }
-
-  public void create(final Database dbSource, final T version, final IdGenerator idGenerator) throws GroundException {
-    final List<String> sqlList = createSqlList(version);
-    PostgresUtils.executeSqlList(dbSource, sqlList);
-  }
-
-  public List<String> createSqlList(final T version) throws GroundException {
-    final List<String> sqlList = new ArrayList<>();
-    sqlList.add(
+  public PostgresStatements insert(T version) throws GroundException {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(
       String.format(
         "insert into version (id) values (%d)",
         version.getId()));
-      return sqlList;
+    return statements;
+  }
+
+  public Version create(final Database dbSource, final T version, final IdGenerator idGenerator) throws GroundException {
+    PostgresUtils.executeSqlList(dbSource, insert(version));
+    return version;
   }
 
   @Override
@@ -46,10 +44,4 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     return null;
   }
 
-  public final void create(final Database dbSource, final NodeVersion nodeVersion)
-    throws GroundException {
-    final List<String> sqlList = new ArrayList<>();
-    sqlList.add(String.format("insert into version (id) values (%d)", nodeVersion.getId()));
-    PostgresUtils.executeSqlList(dbSource, sqlList);
-  }
 }

@@ -15,7 +15,6 @@ package edu.berkeley.ground.postgres.utils;
  */
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,10 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
-import java.sql.SQLException;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.version.GroundType;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.version.GroundType;
 import org.postgresql.PGStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

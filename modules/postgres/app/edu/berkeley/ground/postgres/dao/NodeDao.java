@@ -1,13 +1,11 @@
 package edu.berkeley.ground.postgres.dao;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.util.IdGenerator;
-import edu.berkeley.ground.lib.factory.core.NodeFactory;
-import edu.berkeley.ground.lib.factory.version.TagFactory;
-import edu.berkeley.ground.lib.model.core.Node;
-import edu.berkeley.ground.lib.utils.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresClient;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.core.NodeFactory;
+import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +13,14 @@ import play.db.Database;
 import play.libs.Json;
 
 
-public class NodeDao  extends ItemDao<Node> implements NodeFactory {
-
-  @Override
-  public void create(Database dbSource, Node node, IdGenerator idGenerator) throws GroundException {
+// TODO construct me with dbSource and idGenerator thanks
+public class NodeDao extends ItemDao<Node> implements NodeFactory {
+  public Node create(Node node) throws GroundException {
 
     final List<String> sqlList = new ArrayList<>();
     // Call super.create(dbSource, something) to ensure that a unique item is created
 
+    PostgresStatements postgresStatements = new PostgresStatements();
     long uniqueId = idGenerator.generateItemId();
     sqlList.add(
       String.format(
@@ -31,15 +29,16 @@ public class NodeDao  extends ItemDao<Node> implements NodeFactory {
 
     Node newNode = new Node(uniqueId, node.getName(), node.getSourceKey(), node.getTags());
     try {
-      sqlList.addAll(super.createSqlList(newNode));
-      sqlList.add(
-        String.format(
-          "insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
-          uniqueId, node.getSourceKey(), node.getName()));
+      postgresStatements.append(String.format(
+        "insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
+        uniqueId, node.getSourceKey(), node.getName()));
+
+      super.insert(newNode).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
-    PostgresUtils.executeSqlList(dbSource, sqlList);
+    PostgresUtils.executeSqlList(dbSource, postgresStatements);
+    return newNode;
   }
 
   @Override

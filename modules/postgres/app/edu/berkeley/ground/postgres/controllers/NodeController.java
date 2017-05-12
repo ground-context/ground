@@ -2,18 +2,19 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.Node;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.dao.NodeDao;
 import edu.berkeley.ground.postgres.dao.NodeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
 import edu.berkeley.ground.postgres.utils.PostgresClient;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -73,7 +74,7 @@ public class NodeController extends Controller {
                   JsonNode json = request().body().asJson();
                   Node node = Json.fromJson(json, Node.class);
                   try {
-                    new NodeDao().create(dbSource, node, idGenerator);
+                    new NodeDao(dbSource, idGenerator).create(node);
                   } catch (GroundException e) {
                     throw new CompletionException(e);
                   }
@@ -125,10 +126,13 @@ public class NodeController extends Controller {
       CompletableFuture.supplyAsync(
         () -> {
           JsonNode json = request().body().asJson();
+          List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
+          ((ObjectNode) json).remove("parentIds");
           NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
           try {
-            new NodeVersionDao().create(dbSource, dbClient, nodeVersion, idGenerator, ControllerUtils.getListFromJson(json, "parents"));
+            new NodeVersionDao().create(dbSource, nodeVersion, idGenerator, parentIds);
           } catch (GroundException e) {
+            e.printStackTrace();
             throw new CompletionException(e);
           }
           return String.format("New Node Version Created Successfully");

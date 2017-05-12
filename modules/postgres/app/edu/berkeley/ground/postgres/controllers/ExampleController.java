@@ -2,8 +2,8 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.dao.ExampleVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
