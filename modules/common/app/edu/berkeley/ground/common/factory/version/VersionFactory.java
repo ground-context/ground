@@ -18,8 +18,6 @@ import edu.berkeley.ground.common.utils.DbStatements;
 import java.util.List;
 
 public interface VersionFactory<T extends Version> {
-  T create(T version, List<Long> parentIds) throws GroundException;
-
   DbStatements insert(T version) throws GroundException;
 
   T retrieveFromDatabase(long id) throws GroundException;

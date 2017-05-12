@@ -76,6 +76,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     }
   }
 
+  public T create(T Item) throws GroundException { return null; }
+
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
    * version. What's provided in the default case varies based on which database we are writing
