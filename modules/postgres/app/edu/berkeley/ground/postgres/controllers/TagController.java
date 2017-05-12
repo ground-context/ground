@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import akka.actor.ActorSystem;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.postgres.dao.TagDao;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;

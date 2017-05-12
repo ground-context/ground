@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.postgres.dao.version;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionSuccessorFactory;

@@ -9,11 +9,12 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.postgres.dao.core;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.common.model.core.StructureVersion;
@@ -21,7 +22,6 @@ import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.factory.core.RichVersionFactory;
 import edu.berkeley.ground.common.model.version.GroundType;
 
-import java.util.List;
 import java.util.Map;
 
 import java.util.function.Function;

@@ -1,4 +1,4 @@
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.postgres.dao.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;

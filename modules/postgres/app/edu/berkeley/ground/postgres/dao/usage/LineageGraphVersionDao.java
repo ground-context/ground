@@ -9,12 +9,13 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.postgres.dao.usage;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
