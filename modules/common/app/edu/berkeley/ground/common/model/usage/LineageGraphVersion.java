@@ -11,6 +11,8 @@
  */
 package edu.berkeley.ground.common.model.usage;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.List;
@@ -18,9 +20,11 @@ import java.util.Map;
 
 public class LineageGraphVersion extends RichVersion {
   // the id of the LineageGraph that contains this version
+  @JsonProperty("lineageGraphId")
   private final long lineageGraphId;
 
   // the list of ids of LineageEdgeVersions that are in this LineageGraph
+  @JsonProperty("lineageEdgeVersionIds")
   private final List<Long> lineageEdgeVersionIds;
 
   /**
@@ -34,14 +38,11 @@ public class LineageGraphVersion extends RichVersion {
    * @param lineageGraphId the id of the lineage graph containing this version
    * @param lineageEdgeVersionIds the ids of the lineage edges in this lineage graph version
    */
-  public LineageGraphVersion(
-      long id,
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long lineageGraphId,
-      List<Long> lineageEdgeVersionIds) {
+  @JsonCreator
+  public LineageGraphVersion(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags,
+      @JsonProperty("structureVersionId") long structureVersionId, @JsonProperty("reference") String reference,
+      @JsonProperty("referenceParameters") Map<String, String> referenceParameters, @JsonProperty("lineageGraphId") long lineageGraphId,
+      @JsonProperty("lineageEdgeVersionIds") List<Long> lineageEdgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 

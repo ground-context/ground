@@ -18,7 +18,6 @@ import java.util.List;
 
 public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeVersionFactory {
 
-
   public NodeVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
   }

@@ -26,7 +26,7 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
 
   public VersionDao() {}
 
-  public VersionDao (Database dbSource, IdGenerator idGenerator) {
+  public VersionDao(Database dbSource, IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
   }
@@ -41,7 +41,7 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     return statements;
   }
 
-  public Version create(final T version, final IdGenerator idGenerator) throws GroundException {
+  public Version create(final T version) throws GroundException {
     PostgresUtils.executeSqlList(dbSource, insert(version));
     return version;
   }

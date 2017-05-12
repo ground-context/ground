@@ -37,8 +37,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     this.idGenerator = idGenerator;
   }
 
-  public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao
-    versionHistoryDagDao, TagFactory tagFactory) {
+  public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao versionHistoryDagDao, TagFactory tagFactory) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
     this.versionHistoryDagDao = versionHistoryDagDao;
