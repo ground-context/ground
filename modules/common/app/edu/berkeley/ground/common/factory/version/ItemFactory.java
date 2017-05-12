@@ -39,7 +39,7 @@ public interface ItemFactory<T extends Item> {
    * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  List<String> update(long itemId, long childId, List<Long> parentIds) throws GroundException;
+  DbStatements update(long itemId, long childId, List<Long> parentIds) throws GroundException;
 
   /**
    * Truncate the item to only have the most recent levels.
