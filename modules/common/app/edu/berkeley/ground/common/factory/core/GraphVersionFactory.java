@@ -13,10 +13,9 @@ package edu.berkeley.ground.common.factory.core;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.GraphVersion;
-import play.db.Database;
 
 public interface GraphVersionFactory extends RichVersionFactory<GraphVersion> {
 
   @Override
-  GraphVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  GraphVersion retrieveFromDatabase(long id) throws GroundException;
 }

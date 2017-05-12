@@ -53,7 +53,7 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
   }
 
   @Override
-  public Structure retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
+  public Structure retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql =
       String.format("select * from structure where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -61,7 +61,7 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
   }
 
   @Override
-  public Structure retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public Structure retrieveFromDatabase(long id) throws GroundException {
     String sql =
       String.format("select * from structure where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -69,9 +69,9 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    Structure structure  = retrieveFromDatabase(dbSource, sourceKey);
-    return super.getLeaves(dbSource, structure.getId());
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Structure structure  = retrieveFromDatabase(sourceKey);
+    return super.getLeaves(structure.getId());
   }
 
   @Override

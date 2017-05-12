@@ -11,9 +11,7 @@
  */
 package edu.berkeley.ground.postgres.dao.usage;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
@@ -23,7 +21,8 @@ import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
-import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.List;
 
 public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeFactory {
 
@@ -45,22 +44,22 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   }
 
   @Override
-  public LineageEdge retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
+  public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, LineageEdge.class);
   }
 
   @Override
-  public LineageEdge retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
+  public LineageEdge retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_edge where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, LineageEdge.class);
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    LineageEdge lineageEdge  = retrieveFromDatabase(dbSource, sourceKey);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    LineageEdge lineageEdge  = retrieveFromDatabase(sourceKey);
     return super.getLeaves(lineageEdge.getId());
   }
 

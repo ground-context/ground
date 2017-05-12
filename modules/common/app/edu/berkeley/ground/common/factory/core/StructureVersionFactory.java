@@ -14,10 +14,9 @@ package edu.berkeley.ground.common.factory.core;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionFactory;
 import edu.berkeley.ground.common.model.core.StructureVersion;
-import play.db.Database;
 
 public interface StructureVersionFactory extends VersionFactory<StructureVersion> {
 
   @Override
-  StructureVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  StructureVersion retrieveFromDatabase(long id) throws GroundException;
 }

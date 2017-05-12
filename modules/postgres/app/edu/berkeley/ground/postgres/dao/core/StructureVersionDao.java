@@ -63,7 +63,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
   }
 
   @Override
-  public StructureVersion retrieveFromDatabase(final Database dbSource, final long id) throws GroundException{
+  public StructureVersion retrieveFromDatabase(final long id) throws GroundException{
   	String sql = String.format("select * from structure_version where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, StructureVersion.class);

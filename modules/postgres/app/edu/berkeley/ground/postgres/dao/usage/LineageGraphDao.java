@@ -22,7 +22,6 @@ import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGraphFactory {
@@ -45,22 +44,22 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   }
 
   @Override
-  public LineageGraph retrieveFromDatabase(final Database dbSource, String sourceKey) throws GroundException {
+  public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_graph where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, LineageGraph.class);
   }
 
   @Override
-  public LineageGraph retrieveFromDatabase(final Database dbSource, long id) throws GroundException {
+  public LineageGraph retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_graph where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, LineageGraph.class);
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    LineageGraph lineageGraph  = retrieveFromDatabase(dbSource, sourceKey);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    LineageGraph lineageGraph  = retrieveFromDatabase(sourceKey);
     return super.getLeaves(lineageGraph.getId());
   }
 
