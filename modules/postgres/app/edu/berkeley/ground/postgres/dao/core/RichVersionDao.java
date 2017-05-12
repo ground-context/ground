@@ -23,6 +23,7 @@ import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,11 +36,8 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     super(dbSource, idGenerator);
   }
 
-  public RichVersion create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
-    PostgresStatements statements = insert(richVersion);
-    PostgresUtils.executeSqlList(dbSource, statements);
-    return richVersion;
-  }
+  @Override
+  public T create(T RichVersion, List<Long> parentIds) throws GroundException { return null; }
 
   @Override
   public T retrieveFromDatabase(long id) throws GroundException {

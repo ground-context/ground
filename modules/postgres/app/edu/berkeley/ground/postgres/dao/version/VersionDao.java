@@ -41,11 +41,6 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     return statements;
   }
 
-  public Version create(final T version) throws GroundException {
-    PostgresUtils.executeSqlList(dbSource, insert(version));
-    return version;
-  }
-
   @Override
   public T retrieveFromDatabase(long id) throws GroundException {
     return null;

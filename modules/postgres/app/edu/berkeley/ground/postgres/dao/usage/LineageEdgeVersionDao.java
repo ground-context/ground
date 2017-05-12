@@ -24,6 +24,8 @@ import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
+import java.util.List;
+
 public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> implements LineageEdgeVersionFactory {
 
   public LineageEdgeVersionDao(Database dbSource, IdGenerator idGenerator) {
@@ -44,7 +46,7 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getId(), parentIds));
+    PostgresStatements updateVersionList = itemDao.update(newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getId(), parentIds);
 
     try {
       PostgresStatements statements = super.insert(newLineageEdgeVersion);

@@ -17,7 +17,11 @@ import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.utils.DbStatements;
 import play.db.Database;
 
+import java.util.List;
+
 public interface RichVersionFactory<T extends RichVersion> extends VersionFactory<T> {
+
+  T create(T RichVersion, List<Long> parentIds) throws GroundException;
 
   T retrieveFromDatabase(long id) throws GroundException;
 
