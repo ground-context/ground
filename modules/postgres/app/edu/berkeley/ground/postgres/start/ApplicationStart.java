@@ -5,11 +5,10 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import edu.berkeley.ground.lib.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException;
 import play.Logger;
 import play.api.Configuration;
 import play.inject.ApplicationLifecycle;
-import edu.berkeley.ground.postgres.utils.PostgresClient;
 import play.db.Database;
 
 /**

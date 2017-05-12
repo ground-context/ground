@@ -14,24 +14,49 @@
 
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.version.VersionSuccessorFactory;
-import edu.berkeley.ground.lib.model.version.GroundType;
-import edu.berkeley.ground.lib.model.version.Version;
-import edu.berkeley.ground.lib.model.version.VersionSuccessor;
-import edu.berkeley.ground.lib.utils.IdGenerator;
-import edu.berkeley.ground.postgres.utils.*;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.version.VersionSuccessorFactory;
+import edu.berkeley.ground.common.model.version.Version;
+import edu.berkeley.ground.common.model.version.VersionSuccessor;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import play.db.Database;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class VersionSuccessorDao implements VersionSuccessorFactory {
-  private final PostgresClient dbClient;
   private final IdGenerator idGenerator;
+  private final Database dbSource;
 
-  public VersionSuccessorDao(PostgresClient dbClient, IdGenerator idGenerator) {
-    this.dbClient = dbClient;
+  //TODO: Should take in a Play Database connection instead of dbClient
+  public VersionSuccessorDao(Database dbSource, IdGenerator idGenerator) {
+    this.dbSource = dbSource;
     this.idGenerator = idGenerator;
+  }
+
+  public long getNewSuccessorId() {
+    return this.idGenerator.generateSuccessorId();
+  }
+
+  //TODO: Create an addToSqlList method
+  /**
+   * Create a sqlList containing commands that will persist a new version successor
+   * @param fromId id of the parent version
+   * @param toId id of the child version
+   * @return List of one sql expression
+   * @throws GroundException an error creating the sql list
+   */
+  public List<String> createSqlList(long fromId, long toId, long versionSuccessorId) throws GroundException {
+
+    List<String> sqlList = new ArrayList<String>();
+    String sql = String.format("insert into version_successor (id, from_version_id, to_version_id) " +
+        "values (%d,%d,%d)", versionSuccessorId, fromId, toId);
+    sqlList.add(sql);
+    return sqlList;
   }
 
   /**
@@ -47,9 +72,12 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
   public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
     throws GroundException {
 
-    List<DbDataContainer> insertions = new ArrayList<>();
+    //TODO: Don't use dbClient
     long dbId = idGenerator.generateSuccessorId();
+    return new VersionSuccessor<>(dbId, fromId, toId);
 
+    //No longer need to handle dbInsertions here
+    /*
     insertions.add(new DbDataContainer("id", GroundType.LONG, dbId));
     insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
     insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
@@ -57,6 +85,8 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     this.dbClient.insert("version_successor", insertions);
 
     return new VersionSuccessor<>(dbId, toId, fromId);
+    */
+
   }
 
   /**
@@ -71,21 +101,23 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
   public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
     throws GroundException {
 
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
+    long fromId = 0L;
+    long toId = 0L;
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-      DbClient.SELECT_STAR,
-      predicates);
+    try (Connection con = dbSource.getConnection()) {
 
-    if (resultSet.isEmpty()) {
-      throw new GroundException("No VersionSuccessor found with id " + dbId + ".");
+      Statement stmt = con.createStatement();
+      String sql = String.format("select * from version_successor where id=%d", dbId);
+      final ResultSet resultSet = stmt.executeQuery(sql);
+      if (resultSet.next()) {
+        fromId = resultSet.getLong("from_version_id");
+        toId = resultSet.getLong("to_version_id");
+      }
+    } catch (Exception e) {
+      throw new GroundException(e);
     }
 
-    long toId = resultSet.getLong(2);
-    long fromId = resultSet.getLong(3);
-
-    return new VersionSuccessor<>(dbId, toId, fromId);
+    return new VersionSuccessor<T>(dbId, fromId, toId);
   }
 
   /**
@@ -94,30 +126,25 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
    * @param toId the destination version
    */
   @Override
-  public void deleteFromDestination(long toId, long itemId) throws GroundException {
-    List<DbDataContainer> predicates = new ArrayList<>();
-    predicates.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
+  public void deleteFromDestination(List<String> sqlList, long toId, long itemId) throws GroundException {
+    ResultSet resultSet;
+    try {
+      Connection connection = this.dbSource.getConnection();
+      Statement statement = connection.createStatement();
 
-    PostgresResults resultSet = this.dbClient.equalitySelect("version_successor",
-      DbClient.SELECT_STAR,
-      predicates);
+      statement.execute(String.format("SELECT * FROM version_successor WHERE to_version_id = %d;", toId));
+      resultSet = statement.getResultSet();
 
-    if (resultSet.isEmpty()) {
-      throw new GroundException("Version " + toId + " was not part of a DAG.");
+
+      while (resultSet.next()) {
+        long dbId = resultSet.getLong("version_successor_id");
+
+        sqlList.add(String.format("DELETE * FROM version_history_dag WHERE version_successor_id = %d;", dbId));
+        sqlList.add(String.format("DELETE * FROM version_successor WHERE id = %d;", dbId));
+      }
+    } catch (SQLException e) {
+      throw new GroundException(e);
     }
 
-    do {
-      long dbId = resultSet.getLong(1);
-
-      predicates.clear();
-      predicates.add(new DbDataContainer("version_successor_id", GroundType.LONG, dbId));
-
-      this.dbClient.delete(predicates, "version_history_dag");
-
-      predicates.clear();
-      predicates.add(new DbDataContainer("id", GroundType.LONG, dbId));
-
-      this.dbClient.delete(predicates, "version_successor");
-    } while (resultSet.next());
   }
 }

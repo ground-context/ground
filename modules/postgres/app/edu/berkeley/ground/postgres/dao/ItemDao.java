@@ -11,15 +11,14 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.factory.version.ItemFactory;
-import edu.berkeley.ground.lib.factory.version.TagFactory;
-import edu.berkeley.ground.lib.factory.version.VersionHistoryDagFactory;
-import edu.berkeley.ground.lib.model.version.Item;
-import edu.berkeley.ground.lib.model.version.Tag;
-import edu.berkeley.ground.lib.model.version.VersionHistoryDag;
-import edu.berkeley.ground.lib.utils.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresClient;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.version.ItemFactory;
+import edu.berkeley.ground.common.factory.version.TagFactory;
+import edu.berkeley.ground.common.model.version.Item;
+import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.common.model.version.VersionHistoryDag;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 
 import java.util.ArrayList;
@@ -29,16 +28,19 @@ import java.util.Map;
 import play.db.Database;
 
 public class ItemDao<T extends Item> implements ItemFactory<T> {
-  private PostgresClient dbClient;
   private VersionHistoryDagDao versionHistoryDagDao;
   private TagFactory tagFactory;
+  protected Database dbSource;
+  protected IdGenerator idGenerator;
 
   public ItemDao() {}
 
-  public ItemDao(PostgresClient dbClient,
-                             VersionHistoryDagDao versionHistoryDagDao,
-                             TagFactory tagFactory) {
-    this.dbClient = dbClient;
+  public ItemDao(Database dbSource, IdGenerator idGenerator) {
+    this.dbSource = dbSource;
+    this.idGenerator = idGenerator;
+  }
+
+  public ItemDao(VersionHistoryDagDao versionHistoryDagDao, TagFactory tagFactory) {
     this.versionHistoryDagDao = versionHistoryDagDao;
     this.tagFactory = tagFactory;
   }
@@ -82,14 +84,18 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
+  //TODO: This interface should remain the same, versionHistoryDag should operate the same way
+  //TODO: This should create a sqlList to support rollback
+  //Should return sqlList and also add edges to the versionHistoryDag
   @Override
-  public void update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public List<String> update(long itemId, long childId, List<Long> parentIds) throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
     }
 
     VersionHistoryDag dag;
+    List<String> sqlList = new ArrayList<String>();
     try {
       dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
     } catch (GroundException e) {
@@ -105,9 +111,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
         throw new GroundException(errorString);
       }
-
+      sqlList.addAll(versionHistoryDagDao.createSqlList(dag, parentId, childId, itemId));
       this.versionHistoryDagDao.addEdge(dag, parentId, childId, itemId);
     }
+
+    return sqlList;
   }
 
   /**
@@ -122,12 +130,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     this.versionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }
 
-  public void create(final Database dbSource, final T item, final IdGenerator idGenerator) throws GroundException {
-    final List<String> sqlList = createSqlList(item);
-    PostgresUtils.executeSqlList(dbSource, sqlList);
-  }
-
-  public List<String> createSqlList(final T item) throws GroundException {
+  @Override
+  public PostgresStatements insert(final T item) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     sqlList.add(
       String.format(
@@ -141,20 +145,19 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         sqlList.addAll(tagDao.createSqlList(tag));
       }
     }
-    return sqlList;
+    return new PostgresStatements(sqlList);
   }
 
   public void delete(final Database dbSource, final T item) throws GroundException {
-    final List<String> sqlList = new ArrayList<>();
-    sqlList.add("begin");
-    sqlList.add(String.format("delete from item where id = %d", item.getId()));
+    PostgresStatements statements = new PostgresStatements();
+    statements.append("begin");
+    statements.append(String.format("delete from item where id = %d", item.getId()));
     final Map<String, Tag> tags = item.getTags();
     for (String key : tags.keySet()) {
       Tag tag = tags.get(key);
-
-      sqlList.add(String.format("delete from item_tag where item_id = %d", item.getId()));
+      statements.append(String.format("delete from item_tag where item_id = %d", item.getId()));
     }
-    sqlList.add("commit");
-    PostgresUtils.executeSqlList(dbSource, sqlList);
+    statements.append("commit");
+    PostgresUtils.executeSqlList(dbSource, statements);
   }
 }

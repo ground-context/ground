@@ -1,7 +1,7 @@
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;

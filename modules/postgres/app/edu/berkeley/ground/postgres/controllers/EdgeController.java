@@ -2,17 +2,16 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.Edge;
-import edu.berkeley.ground.lib.model.core.EdgeVersion;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.Edge;
+import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.postgres.dao.EdgeDao;
 import edu.berkeley.ground.postgres.dao.EdgeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -40,15 +39,15 @@ public class EdgeController extends Controller {
     }
 
     public final CompletionStage<Result> getEdge(final String sourceKey) {
-        CompletableFuture<Result> results = 
+        CompletableFuture<Result> results =
             CompletableFuture.supplyAsync(
                 () -> {
-                    String sql = 
+                    String sql =
                         String.format("select * from edge where source_key = \'%s\'", sourceKey);
             //"select * from graph where source_key = \'%s'"
             try {
                 return cache.getOrElse(
-                    "edges", 
+                    "edges",
                     () -> PostgresUtils.executeQueryToJson(dbSource, sql),
                         Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
             } catch (Exception e) {
@@ -63,7 +62,7 @@ public class EdgeController extends Controller {
 
     @BodyParser.Of(BodyParser.Json.class)
     public final CompletionStage<Result> addEdge() {
-        CompletableFuture<Result> results = 
+        CompletableFuture<Result> results =
             CompletableFuture.supplyAsync(
                 () -> {
                     JsonNode json = request().body().asJson();
@@ -74,7 +73,7 @@ public class EdgeController extends Controller {
                         throw new CompletionException(e);
                     }
                     return String.format("New Edge Created Successfully");
-                }, 
+                },
                 PostgresUtils.getDbSourceHttpContext(actorSystem))
             .thenApply(output -> created(output))
             .exceptionally(
@@ -91,22 +90,22 @@ public class EdgeController extends Controller {
     }
 
     public final CompletionStage<Result> getEdgeVersion(Long id) {
-        CompletableFuture<Result> results = 
+        CompletableFuture<Result> results =
             CompletableFuture.supplyAsync(
                 () -> {
-                    String sql = 
+                    String sql =
                         String.format(
                             "select * from edge_version where id = %d", id);
             //"select * from graph where source_key = \'%s'"
                     try {
                         return cache.getOrElse(
-                            "edge_verisons", 
+                            "edge_verisons",
                             () -> PostgresUtils.executeQueryToJson(dbSource, sql),
                             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
                     } catch (Exception e) {
                         throw new CompletionException(e);
                     }
-                }, 
+                },
                 PostgresUtils.getDbSourceHttpContext(actorSystem))
                 .thenApply(output -> ok(output))
                 .exceptionally(
@@ -118,7 +117,7 @@ public class EdgeController extends Controller {
 
     @BodyParser.Of(BodyParser.Json.class)
     public final CompletionStage<Result> addEdgeVersion() {
-        CompletableFuture<Result> results = 
+        CompletableFuture<Result> results =
             CompletableFuture.supplyAsync(
                 () -> {
                     JsonNode json = request().body().asJson();
@@ -127,9 +126,9 @@ public class EdgeController extends Controller {
                         new EdgeVersionDao().create(dbSource, edgeVersion, idGenerator, ControllerUtils.getListFromJson(json, "parents"));
                     } catch (GroundException e) {
                         throw new CompletionException(e);
-                    }       
+                    }
                     return String.format("New Edge Version Created Successfully");
-                }, 
+                },
                 PostgresUtils.getDbSourceHttpContext(actorSystem))
                 .thenApply(output -> created(output))
                 .exceptionally(

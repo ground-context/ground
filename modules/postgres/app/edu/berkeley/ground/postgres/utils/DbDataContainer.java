@@ -14,8 +14,8 @@
 
 package edu.berkeley.ground.postgres.utils;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.version.GroundType;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.version.GroundType;
 
 public class DbDataContainer {
   // the name of the field
