@@ -20,6 +20,8 @@ import java.util.List;
 
 public interface ItemFactory<T extends Item> {
 
+  T create(T item) throws GroundException;
+
   DbStatements insert(T item) throws GroundException;
 
   T retrieveFromDatabase(long id) throws GroundException;
