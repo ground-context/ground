@@ -55,60 +55,65 @@ public class DaoTest {
   protected static StructureVersionFactory structureVersionFactory;
 
   public static Node createNode(String sourceKey) throws GroundException {
-    Node node = new Node(-1, null, sourceKey, new HashMap<>());
+    Node node = new Node(1, null, sourceKey, new HashMap<>());
     return nodeFactory.create(node);
   }
 
-  public static NodeVersion createNodeVersion(long nodeId) throws GroundException {
-    return createNodeVersion(nodeId, new ArrayList<>());
+  public static NodeVersion createNodeVersion(long nodeId, List<Long> parents) throws GroundException {
+    NodeVersion nodeVersion = new NodeVersion(1, new HashMap<>(), 0L, "", new HashMap<>(), nodeId);
+    return nodeVersionFactory.create(nodeVersion, new ArrayList<>());
   }
 
-  public static NodeVersion createNodeVersion(long nodeId, List<Long> parents)
-    throws GroundException {
-    return nodeVersionFactory.create(new HashMap<>(), -1, null, new HashMap<>(), nodeId,
-      parents);
-  }
+//  public static NodeVersion createNodeVersion(long nodeId, List<Long> parents)
+//    throws GroundException {
+//    return nodeVersionFactory.create(new HashMap<>(), -1, null, new HashMap<>(), nodeId,
+//      parents);
+//  }
 
-  public static Edge createEdge(String sourceKey, String fromNode, String toNode)
-    throws GroundException {
-
+  public static Edge createEdge(String sourceKey, String fromNode, String toNode) throws GroundException {
     long fromNodeId = nodeFactory.retrieveFromDatabase(fromNode).getId();
     long toNodeId = nodeFactory.retrieveFromDatabase(toNode).getId();
 
-    return edgeFactory.create(null, sourceKey, fromNodeId, toNodeId, new HashMap<>());
+    Edge edge = new Edge(1, "", sourceKey, fromNodeId, toNodeId, new HashMap<>());
+
+    return edgeFactory.create(edge);
   }
 
-  public static EdgeVersion createEdgeVersion(long edgeId, long fromStart, long toStart)
-    throws GroundException {
-
-    return createEdgeVersion(edgeId, fromStart, toStart, new ArrayList<>());
-  }
+//  public static EdgeVersion createEdgeVersion(long edgeId, long fromStart, long toStart)
+//    throws GroundException {
+//
+//    return createEdgeVersion(edgeId, fromStart, toStart, new ArrayList<>());
+//  }
+//
 
   public static EdgeVersion createEdgeVersion(long edgeId,
                                               long fromStart,
                                               long toStart,
                                               List<Long> parents)
     throws GroundException {
-    return edgeVersionFactory.create(new HashMap<>(), -1, null, new HashMap<>(),
-      edgeId, fromStart, -1, toStart, -1, parents);
+    EdgeVersion edgeVersion = new EdgeVersion(new HashMap<>(), -1, null, new HashMap<>(),
+      edgeId, fromStart, -1, toStart, -1;
+    return edgeVersionFactory.create(edgeVersion, parents);
   }
 
   public static Graph createGraph(String sourceKey) throws GroundException {
-    return graphFactory.create(null, sourceKey, new HashMap<>());
+    Graph graph = new Graph(1, "", sourceKey, new HashMap<>());
+    return graphFactory.create(graph);
   }
 
-  public static GraphVersion createGraphVersion(long graphId, List<Long> edgeVersionIds)
-    throws GroundException {
-
-    return createGraphVersion(graphId, edgeVersionIds, new ArrayList<>());
-  }
+//  public static GraphVersion createGraphVersion(long graphId, List<Long> edgeVersionIds)
+//    throws GroundException {
+//
+//    return createGraphVersion(graphId, edgeVersionIds, new ArrayList<>());
+//  }
 
   public static GraphVersion createGraphVersion(long graphId,
                                                 List<Long> edgeVersionIds,
                                                 List<Long> parents)
     throws GroundException {
-    return graphVersionFactory.create(new HashMap<>(), -1, null,  new HashMap<>(), graphId,
-      edgeVersionIds, parents);
+    GraphVersion graphVersion = new GraphVersion(-1, new HashMap<>(), -1, "",  new HashMap<>(), graphId,
+      edgeVersionIds);
+    return graphVersionFactory.create(graphVersion, parents);
   }
 
   public static LineageEdge createLineageEdge(String sourceKey) throws GroundException {
@@ -116,20 +121,21 @@ public class DaoTest {
     return lineageEdgeFactory.create(lineageEdge);
   }
 
-  public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
-                                                            long fromId,
-                                                            long toId) throws GroundException {
-
-    return createLineageEdgeVersion(lineageEdgeId, fromId, toId, new ArrayList<>());
-  }
+//  public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
+//                                                            long fromId,
+//                                                            long toId) throws GroundException {
+//
+//    return createLineageEdgeVersion(lineageEdgeId, fromId, toId, new ArrayList<>());
+//  }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
                                                             long fromId,
                                                             long toId,
                                                             List<Long> parents)
     throws GroundException {
-    return lineageEdgeVersionFactory.create(new HashMap<>(), -1, null,  new HashMap<>(),
-      fromId, toId, lineageEdgeId, parents);
+    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(-1, new HashMap<>(), -1L, "",  new HashMap<>(),
+      fromId, toId, lineageEdgeId);
+    return lineageEdgeVersionFactory.create(lineageEdgeVersion, parents);
   }
 
   public static LineageGraph createLineageGraph(String sourceKey) throws GroundException {
@@ -137,30 +143,30 @@ public class DaoTest {
     return lineageGraphFactory.create(lineageGraph);
   }
 
-  public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
-                                                              List<Long> lineageEdgeVersionIds)
-    throws GroundException {
-
-    return createLineageGraphVersion(lineageGraphId, lineageEdgeVersionIds, new ArrayList<>());
-  }
+//  public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
+//                                                              List<Long> lineageEdgeVersionIds)
+//    throws GroundException {
+//    return createLineageGraphVersion(lineageGraphId, lineageEdgeVersionIds, new ArrayList<>());
+//  }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
                                                               List<Long> lineageEdgeVersionIds,
                                                               List<Long> parents)
     throws GroundException {
-
-    return lineageGraphVersionFactory.create(new HashMap<>(), -1, null,  new HashMap<>(),
-      lineageGraphId, lineageEdgeVersionIds, parents);
+    LineageGraphVersion lineageGraphVersion = new LineageGraphVersion(-1, new HashMap<>(), -1, "",  new HashMap<>(),
+      lineageGraphId, lineageEdgeVersionIds);
+    return lineageGraphVersionFactory.create(lineageGraphVersion, parents);
   }
 
 
   public static Structure createStructure(String sourceKey) throws GroundException {
-    return structureFactory.create(null, sourceKey, new HashMap<>());
+    Structure structure = new Structure(-1, "", sourceKey, new HashMap<>());
+    return structureFactory.create(structure);
   }
 
-  public static StructureVersion createStructureVersion(long structureId) throws GroundException {
-    return createStructureVersion(structureId, new ArrayList<>());
-  }
+//  public static StructureVersion createStructureVersion(long structureId) throws GroundException {
+//    return createStructureVersion(structureId, new ArrayList<>());
+//  }
 
   public static StructureVersion createStructureVersion(long structureId, List<Long> parents)
     throws GroundException {
@@ -170,8 +176,9 @@ public class DaoTest {
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    return structureVersionFactory.create(structureId, structureVersionAttributes,
-      parents);
+    StructureVersion structureVersion = new StructureVersion(-1, structureId, structureVersionAttributes);
+
+    return structureVersionFactory.create(structureVersion, parents);
   }
 
   public static Map<String, Tag> createTags() throws GroundException {

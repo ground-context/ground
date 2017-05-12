@@ -16,6 +16,10 @@ import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
@@ -27,16 +31,36 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
   }
 
   @Override
-  public LineageEdgeVersion create(final LineageEdgeVersion lineageEdgeVersion) throws GroundException {
-    PostgresStatements statements = super.insert(lineageEdgeVersion);
-    statements.append(String.format("insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id," +
-        "to_rich_version_id) values (%d, %d, %d, %d)", lineageEdgeVersion.getId(),
-      lineageEdgeVersion.getLineageEdgeId(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId()));
+  public LineageEdgeVersion create(final LineageEdgeVersion lineageEdgeVersion, List<Long> parentIds) throws GroundException {
+    final long uniqueId = idGenerator.generateVersionId();
+
+    LineageEdgeVersion newLineageEdgeVersion = new LineageEdgeVersion(uniqueId, lineageEdgeVersion.getTags(), lineageEdgeVersion.getStructureVersionId(),
+      lineageEdgeVersion.getReference(), lineageEdgeVersion.getParameters(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId(), lineageEdgeVersion.getLineageEdgeId());
+
+    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
+    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+    TagDao tagDao = new TagDao();
+
+    //TODO: Ideally, I think this should add to the sqlList to support rollback???
+
+    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getId(), parentIds));
+
     try {
+      PostgresStatements statements = super.insert(newLineageEdgeVersion);
+      statements.append(String.format(
+        "insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id, to_rich_version_id, principal_id) values (%d, %d, %d, %d, %d)",
+        uniqueId, newLineageEdgeVersion.getId(), newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getFromId(),
+        newLineageEdgeVersion.getToId()));
+      statements.merge(updateVersionList);
+
+      System.out.println("uniqueId: " + uniqueId);
+      System.out.println("lineageEdgeId: " + newLineageEdgeVersion.getLineageEdgeId());
+
       PostgresUtils.executeSqlList(dbSource, statements);
-      return lineageEdgeVersion;
     } catch (Exception e) {
       throw new GroundException(e);
     }
+    return newLineageEdgeVersion;
   }
 }

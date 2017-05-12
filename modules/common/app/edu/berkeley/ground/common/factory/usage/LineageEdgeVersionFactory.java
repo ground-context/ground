@@ -16,9 +16,11 @@ import edu.berkeley.ground.common.factory.core.RichVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import play.db.Database;
 
+import java.util.List;
+
 public interface LineageEdgeVersionFactory extends RichVersionFactory<LineageEdgeVersion> {
 
-  LineageEdgeVersion create(LineageEdgeVersion lineageEdgeVersion) throws GroundException;
+  LineageEdgeVersion create(LineageEdgeVersion lineageEdgeVersion, List<Long> parentIds) throws GroundException;
 
   @Override
   LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException;

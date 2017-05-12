@@ -19,8 +19,6 @@ import java.util.List;
 
 public interface NodeFactory extends ItemFactory<Node> {
 
-  Node create(Node node) throws GroundException;
-
   @Override
   default Class<Node> getType() {
     return Node.class;
