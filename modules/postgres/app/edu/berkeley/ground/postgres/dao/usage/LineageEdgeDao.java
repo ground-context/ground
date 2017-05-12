@@ -9,7 +9,7 @@
  * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.postgres.dao.usage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +18,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
