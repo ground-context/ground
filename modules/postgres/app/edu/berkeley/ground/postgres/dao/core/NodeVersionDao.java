@@ -37,7 +37,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
 
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 
-    ItemDao itemDao = new ItemDao(versionHistoryDagDao, tagDao);
+    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
     PostgresStatements updateVersionList = new PostgresStatements(itemDao.update(newNodeVersion.getNodeId(), newNodeVersion.getId(), parentIds));
 
     try {
@@ -58,7 +58,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
   }
 
   @Override
-  public NodeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from node_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, NodeVersion.class);

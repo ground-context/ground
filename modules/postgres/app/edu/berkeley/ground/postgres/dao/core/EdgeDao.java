@@ -14,91 +14,69 @@ package edu.berkeley.ground.postgres.dao.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.EdgeFactory;
-import edu.berkeley.ground.common.factory.version.TagFactory;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.utils.PostgresClient;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import java.util.ArrayList;
-import java.util.List;
 import play.db.Database;
 import play.libs.Json;
 
+import java.util.List;
+
+
+// TODO construct me with dbSource and idGenerator thanks
 public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
 
-  private PostgresClient dbClient;
-  private VersionHistoryDagDao versionHistoryDagDao;
-  private TagFactory tagFactory;
-
-  public EdgeDao() {}
-
-  public EdgeDao(PostgresClient dbClient,
-                        VersionHistoryDagDao versionHistoryDagDao,
-                        TagFactory tagFactory) {
-    this.dbClient = dbClient;
-    this.versionHistoryDagDao = versionHistoryDagDao;
-    this.tagFactory = tagFactory;
+  public EdgeDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
   }
 
+  public Edge create(Edge edge) throws GroundException {
 
-	@Override
-	public void create(Database dbSource, Edge edge, IdGenerator idGenerator) throws GroundException {
-        final List<String> sqlList = new ArrayList<>();
-        long uniqueId = idGenerator.generateItemId();
-        Edge newEdge = new Edge(uniqueId, edge.getName(), edge.getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getTags());
-        try {
-        	sqlList.addAll(super.createSqlList(newEdge));
-        	sqlList.add(
-            String.format(
-              "insert into edge (item_id, source_key, from_node_id, to_node_id, name) values (%d, \'%s\', %d, %d, \'%s\')", uniqueId,
-                edge.getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(),edge.getName()));
+    PostgresStatements postgresStatements = new PostgresStatements();
+    long uniqueId = idGenerator.generateItemId();
 
-    	} catch (Exception e) {
-    		throw new GroundException(e);
-    	}
-      PostgresUtils.executeSqlList(dbSource, sqlList);
-   	}
-   	@Override
-   	public Edge retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
-   		String sql =
-        String.format("select * from edge where source_key = \'%s\'", sourceKey);
-   		JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-   		return Json.fromJson(json, Edge.class);
-   	}
-   	@Override
-  	public Edge retrieveFromDatabase(Database dbSource, long id) throws GroundException {
-    	String sql =
-        String.format("select * from edge where item_id = %d", id);
-    	JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    	return Json.fromJson(json, Edge.class);
+    Edge newEdge = new Edge(uniqueId, edge.getName(), edge
+      .getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getTags());
+    try {
+      postgresStatements.append(String.format(
+        "insert into edge (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
+        uniqueId, edge.getSourceKey(), edge.getName()));
+
+      super.insert(newEdge).merge(postgresStatements);
+    } catch (Exception e) {
+      throw new GroundException(e);
     }
-
-  	//public Edge retrieveFromDatabase(Database dbSource, long fromNodeId) throws GroundException {
-    	//String sql = String.format("select * from edge where from_node_id = %d", fromNodeId);
-    	//JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    	//return Json.fromJson(json, Edge.class);
-    //}
-
-  	//public Edge retrieveFromDatabase(Database dbSource, long toNodeId) throws GroundException {
-    	//String sql = String.format("select * from edge where to_node_id = %d", toNodeId);
-    	//JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    	//return Json.fromJson(json, Edge.class);
-    //}
-
-    //@Override
-    //public void update(IdGenerator idGenerator, long itemId, long childId, List<Long> parentIds) throws GroundException {
-        //super.update(idGenerator, itemId, childId, parentIds);
-    //}
-    @Override
-    public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-        Edge edge  = retrieveFromDatabase(dbSource, sourceKey);
-        return super.getLeaves(dbSource, edge.getId());
-    }
-
-    @Override
-    public void truncate(long itemId, int numLevels) throws GroundException {
-      super.truncate(itemId, numLevels);
+    PostgresUtils.executeSqlList(dbSource, postgresStatements);
+    return newEdge;
   }
+
+  @Override
+  public Edge retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
+    String sql =
+      String.format("select * from edge where source_key=\'%s\'", sourceKey);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    return Json.fromJson(json, Edge.class);
+  }
+
+  @Override
+  public Edge retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+    String sql =
+      String.format("select * from edge where item_id=%d", id);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    return Json.fromJson(json, Edge.class);
+  }
+
+  @Override
+  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
+    Edge edge  = retrieveFromDatabase(dbSource, sourceKey);
+    return super.getLeaves(edge.getId());
+  }
+
+  @Override
+  public void truncate(long itemId, int numLevels) throws GroundException {
+    super.truncate(itemId, numLevels);
+  }
+
 }
