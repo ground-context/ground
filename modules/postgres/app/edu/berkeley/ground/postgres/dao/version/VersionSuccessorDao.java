@@ -19,6 +19,7 @@ import edu.berkeley.ground.common.factory.version.VersionSuccessorFactory;
 import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import play.db.Database;
 
 import java.sql.Connection;
@@ -50,13 +51,13 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
    * @return List of one sql expression
    * @throws GroundException an error creating the sql list
    */
-  public List<String> createSqlList(long fromId, long toId, long versionSuccessorId) throws GroundException {
+  public PostgresStatements insert(long fromId, long toId, long versionSuccessorId) throws GroundException {
 
-    List<String> sqlList = new ArrayList<String>();
+    PostgresStatements statements = new PostgresStatements();
     String sql = String.format("insert into version_successor (id, from_version_id, to_version_id) " +
         "values (%d,%d,%d)", versionSuccessorId, fromId, toId);
-    sqlList.add(sql);
-    return sqlList;
+    statements.append(sql);
+    return statements;
   }
 
   /**

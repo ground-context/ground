@@ -13,26 +13,28 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.core.StructureVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.StructureDao;
 import edu.berkeley.ground.postgres.dao.core.StructureVersionDao;
+import edu.berkeley.ground.postgres.utils.ControllerUtils;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
-
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 public class StructureController extends Controller {
   private CacheApi cache;
@@ -86,7 +88,7 @@ public class StructureController extends Controller {
           JsonNode json = request().body().asJson();
           Structure structure = Json.fromJson(json, Structure.class);
           try {
-            new StructureDao().create(dbSource, structure, idGenerator);
+            new StructureDao(dbSource, idGenerator).create(structure);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }
@@ -113,9 +115,11 @@ public class StructureController extends Controller {
       CompletableFuture.supplyAsync(
         () -> {
           JsonNode json = request().body().asJson();
+          List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
+          ((ObjectNode) json).remove("parentIds");
           StructureVersion structureVersion = Json.fromJson(json, StructureVersion.class);
           try {
-            new StructureVersionDao().create(dbSource, structureVersion, idGenerator);
+            new StructureVersionDao(dbSource, idGenerator).create(structureVersion, parentIds);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }

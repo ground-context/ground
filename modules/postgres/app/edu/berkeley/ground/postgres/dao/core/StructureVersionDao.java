@@ -11,38 +11,55 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
-import edu.berkeley.ground.postgres.dao.version.VersionDao;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.version.*;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
+import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import play.db.Database;
+import play.libs.Json;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import play.db.Database;
-import play.libs.Json;
-import com.fasterxml.jackson.databind.JsonNode;
-
 public class StructureVersionDao extends VersionDao<StructureVersion> implements StructureVersionFactory{
 
-  @Override
-  public final void create(final Database dbSource, final StructureVersion structureVersion, final IdGenerator idGenerator)
+  public StructureVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
+  }
+
+  public final StructureVersion create(final StructureVersion structureVersion, List<Long> parentIds)
       throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
     StructureVersion newStructureVersion = new StructureVersion(uniqueId, structureVersion.getStructureId(), structureVersion.getAttributes());
-    try{
-      sqlList.addAll(super.createSqlList(newStructureVersion));
-	    sqlList.add(
-	        String.format(
-	            "insert into structure_version (id, structure_id) values (%d, %d)",
-	            uniqueId, structureVersion.getStructureId()));
-    PostgresUtils.executeSqlList(dbSource, sqlList);
+    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
+    VersionHistoryDagDao
+      versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+    TagDao tagDao = new TagDao();
+    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+    PostgresStatements updateVersionList = new PostgresStatements(itemDao.update
+      (newStructureVersion.getStructureId
+      (), newStructureVersion.getId(), parentIds));
+
+    try {
+      PostgresStatements statements = super.insert(newStructureVersion);
+      statements.append(String.format(
+        "insert into structure_version (id, structure_id) values (%s,%s)",
+        uniqueId, structureVersion.getStructureId()));
+      statements.merge(updateVersionList);
+
+      System.out.println("uniqueId: " + uniqueId);
+      System.out.println("structureId: " + structureVersion.getStructureId());
+
+      PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
+    return structureVersion;
   }
 
   @Override
