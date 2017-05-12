@@ -13,26 +13,28 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.model.core.GraphVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.GraphDao;
 import edu.berkeley.ground.postgres.dao.core.GraphVersionDao;
+import edu.berkeley.ground.postgres.utils.ControllerUtils;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
-
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 public class GraphController extends Controller {
   private CacheApi cache;
@@ -86,7 +88,7 @@ public class GraphController extends Controller {
           JsonNode json = request().body().asJson();
           Graph graph = Json.fromJson(json, Graph.class);
           try {
-            new GraphDao().create(dbSource, graph, idGenerator);
+            new GraphDao(dbSource, idGenerator).create(graph);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }
@@ -113,9 +115,11 @@ public class GraphController extends Controller {
       CompletableFuture.supplyAsync(
         () -> {
           JsonNode json = request().body().asJson();
+          List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
+          ((ObjectNode) json).remove("parentIds");
           GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
           try {
-            new GraphVersionDao().create(dbSource, graphVersion, idGenerator);
+            new GraphVersionDao(dbSource, idGenerator ).create(graphVersion, parentIds);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }

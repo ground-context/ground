@@ -12,31 +12,27 @@
 package edu.berkeley.ground.postgres.dao.core;
 
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.factory.core.RichVersionFactory;
+import edu.berkeley.ground.common.model.core.RichVersion;
+import edu.berkeley.ground.common.model.core.StructureVersion;
+import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import edu.berkeley.ground.common.model.core.StructureVersion;
-import edu.berkeley.ground.common.model.core.RichVersion;
-import edu.berkeley.ground.common.factory.core.RichVersionFactory;
-import edu.berkeley.ground.common.model.version.GroundType;
+import play.db.Database;
 
 import java.util.Map;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import play.db.Database;
-
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
 
-  protected Database dbSource;
-  protected IdGenerator idGenerator;
+  public RichVersionDao() {}
 
-  public RichVersionDao (Database dbSource, IdGenerator idGenerator) {
-    this.dbSource = dbSource;
-    this.idGenerator = idGenerator;
+  public RichVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
   }
 
   public RichVersion create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
@@ -46,7 +42,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   }
 
   @Override
-  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
 
@@ -103,7 +99,8 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   @Override
   public PostgresStatements insert(final T richVersion) throws GroundException {
     if (richVersion.getStructureVersionId() != null)
-      checkStructureTags(new StructureVersionDao().retrieveFromDatabase(dbSource, richVersion.getStructureVersionId()), richVersion.getTags());
+      checkStructureTags(new StructureVersionDao(dbSource, idGenerator)
+        .retrieveFromDatabase(richVersion.getStructureVersionId()), richVersion.getTags());
     PostgresStatements statements = super.insert(richVersion);
     statements.append(
       String.format(

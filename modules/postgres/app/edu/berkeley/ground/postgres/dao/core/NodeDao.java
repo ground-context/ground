@@ -4,17 +4,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.NodeFactory;
 import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-
-import java.util.List;
 import play.db.Database;
 import play.libs.Json;
+
+import java.util.List;
 
 
 // TODO construct me with dbSource and idGenerator thanks
 public class NodeDao extends ItemDao<Node> implements NodeFactory {
+
+  public NodeDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
+  }
 
   public Node create(Node node) throws GroundException {
 
@@ -36,7 +41,7 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public Node retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
+  public Node retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql =
       String.format("select * from node where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -44,7 +49,7 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public Node retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public Node retrieveFromDatabase(long id) throws GroundException {
     String sql =
       String.format("select * from node where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -52,9 +57,9 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    Node node  = retrieveFromDatabase(dbSource, sourceKey);
-    return super.getLeaves(dbSource, node.getId());
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Node node  = retrieveFromDatabase(sourceKey);
+    return super.getLeaves(node.getId());
   }
 
   @Override

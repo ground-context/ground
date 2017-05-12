@@ -17,11 +17,9 @@ import edu.berkeley.ground.common.model.usage.LineageEdge;
 
 import java.util.List;
 
-import play.db.Database;
-
 public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
 
-  LineageEdge create(Database dbSource, LineageEdge lineageEdge) throws GroundException;
+  LineageEdge create(LineageEdge lineageEdge) throws GroundException;
 
   @Override
   default Class<LineageEdge> getType() {
@@ -29,10 +27,10 @@ public interface LineageEdgeFactory extends ItemFactory<LineageEdge> {
   }
 
   @Override
-  LineageEdge retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
+  LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException;
 
   @Override
-  LineageEdge retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  LineageEdge retrieveFromDatabase(long id) throws GroundException;
 
-  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

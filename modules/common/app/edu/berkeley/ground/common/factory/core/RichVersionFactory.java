@@ -19,7 +19,7 @@ import play.db.Database;
 
 public interface RichVersionFactory<T extends RichVersion> extends VersionFactory<T> {
 
-  T retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  T retrieveFromDatabase(long id) throws GroundException;
 
   DbStatements insert(T richVersion)
       throws GroundException;

@@ -14,15 +14,22 @@ package edu.berkeley.ground.postgres.dao.version;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionFactory;
 import edu.berkeley.ground.common.model.version.Version;
-import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import java.util.ArrayList;
-import java.util.List;
 import play.db.Database;
 
 public class VersionDao<T extends Version> implements VersionFactory<T> {
+
+  protected Database dbSource;
+  protected IdGenerator idGenerator;
+
+  public VersionDao() {}
+
+  public VersionDao(Database dbSource, IdGenerator idGenerator) {
+    this.dbSource = dbSource;
+    this.idGenerator = idGenerator;
+  }
 
   @Override
   public PostgresStatements insert(T version) throws GroundException {
@@ -34,13 +41,13 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     return statements;
   }
 
-  public Version create(final Database dbSource, final T version, final IdGenerator idGenerator) throws GroundException {
+  public Version create(final T version) throws GroundException {
     PostgresUtils.executeSqlList(dbSource, insert(version));
     return version;
   }
 
   @Override
-  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
 

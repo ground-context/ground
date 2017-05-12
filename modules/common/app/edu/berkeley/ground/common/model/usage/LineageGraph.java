@@ -11,15 +11,19 @@
  */
 package edu.berkeley.ground.common.model.usage;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.Map;
 
 public class LineageGraph extends Item<LineageGraphVersion> {
   // the name of this graph
+  @JsonProperty("name")
   private final String name;
 
   // the source key for this Node
+  @JsonProperty("sourceKey")
   private final String sourceKey;
 
   /**
@@ -30,7 +34,9 @@ public class LineageGraph extends Item<LineageGraphVersion> {
    * @param sourceKey the user-generated unique key for the graph
    * @param tags the tags associated with the graph
    */
-  public LineageGraph(long id, String name, String sourceKey, Map<String, Tag> tags) {
+  @JsonCreator
+  public LineageGraph(@JsonProperty("id") long id, @JsonProperty("name") String name, @JsonProperty("sourceKey") String sourceKey,
+                      @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;

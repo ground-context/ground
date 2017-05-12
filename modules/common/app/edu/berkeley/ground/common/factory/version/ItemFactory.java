@@ -13,23 +13,22 @@ package edu.berkeley.ground.common.factory.version;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Item;
-import java.util.List;
-
 import edu.berkeley.ground.common.utils.DbStatements;
-import play.db.Database;
+
+import java.util.List;
 
 
 public interface ItemFactory<T extends Item> {
 
   DbStatements insert(T item) throws GroundException;
 
-  T retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  T retrieveFromDatabase(long id) throws GroundException;
 
-  T retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
+  T retrieveFromDatabase(String sourceKey) throws GroundException;
 
   Class<T> getType();
 
-  List<Long> getLeaves(Database dbSource, long itemId) throws GroundException;
+  List<Long> getLeaves(long itemId) throws GroundException;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular

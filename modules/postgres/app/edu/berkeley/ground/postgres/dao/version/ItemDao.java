@@ -20,12 +20,11 @@ import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import play.db.Database;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import play.db.Database;
 
 public class ItemDao<T extends Item> implements ItemFactory<T> {
   private VersionHistoryDagDao versionHistoryDagDao;
@@ -33,25 +32,27 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   protected Database dbSource;
   protected IdGenerator idGenerator;
 
-  public ItemDao() {}
-
   public ItemDao(Database dbSource, IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
   }
 
-  public ItemDao(VersionHistoryDagDao versionHistoryDagDao, TagFactory tagFactory) {
+  public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao
+    versionHistoryDagDao, TagFactory tagFactory) {
+    this.dbSource = dbSource;
+    this.idGenerator = idGenerator;
     this.versionHistoryDagDao = versionHistoryDagDao;
     this.tagFactory = tagFactory;
   }
 
+
   @Override
-  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
 
   @Override
-  public T retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
+  public T retrieveFromDatabase(String sourceKey) throws GroundException {
     return null;
   }
 
@@ -61,7 +62,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, long itemId) throws GroundException {
+  public List<Long> getLeaves(long itemId) throws GroundException {
     try {
       VersionHistoryDag<?> dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
 
@@ -138,17 +139,18 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         "insert into item (id) values (%d)",
         item.getId()));
     final Map<String, Tag> tags = item.getTags();
+    PostgresStatements postgresStatements = new PostgresStatements(sqlList);
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
         TagDao tagDao = new TagDao();
-        sqlList.addAll(tagDao.createSqlList(tag));
+        postgresStatements.merge(tagDao.insert(tag));
       }
     }
     return new PostgresStatements(sqlList);
   }
 
-  public void delete(final Database dbSource, final T item) throws GroundException {
+  public void delete(final T item) throws GroundException {
     PostgresStatements statements = new PostgresStatements();
     statements.append("begin");
     statements.append(String.format("delete from item where id = %d", item.getId()));

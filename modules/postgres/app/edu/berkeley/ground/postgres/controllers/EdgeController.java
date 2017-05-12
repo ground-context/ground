@@ -2,26 +2,28 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.EdgeDao;
 import edu.berkeley.ground.postgres.dao.core.EdgeVersionDao;
-import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.common.utils.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.utils.GroundUtils;
+import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 public class EdgeController extends Controller {
     private CacheApi cache;
@@ -68,7 +70,7 @@ public class EdgeController extends Controller {
                     JsonNode json = request().body().asJson();
                     Edge edge = Json.fromJson(json, Edge.class);
                     try {
-                        new EdgeDao().create(dbSource, edge, idGenerator);
+                        new EdgeDao(dbSource, idGenerator).create(edge);
                     } catch (GroundException e) {
                         throw new CompletionException(e);
                     }
@@ -121,9 +123,11 @@ public class EdgeController extends Controller {
             CompletableFuture.supplyAsync(
                 () -> {
                     JsonNode json = request().body().asJson();
+                  List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
+                  ((ObjectNode) json).remove("parentIds");
                     EdgeVersion edgeVersion = Json.fromJson(json, EdgeVersion.class);
                     try {
-                        new EdgeVersionDao().create(dbSource, edgeVersion, idGenerator, ControllerUtils.getListFromJson(json, "parents"));
+                        new EdgeVersionDao(dbSource, idGenerator).create(edgeVersion, parentIds);
                     } catch (GroundException e) {
                         throw new CompletionException(e);
                     }

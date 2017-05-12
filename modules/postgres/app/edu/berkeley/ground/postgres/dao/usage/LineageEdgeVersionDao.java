@@ -11,37 +11,29 @@
  */
 package edu.berkeley.ground.postgres.dao.usage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
 public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> implements LineageEdgeVersionFactory {
 
-  public LineageEdgeVersion createNewLineageEdgeVersion(final Database dbSource, final LineageEdgeVersion lineageEdgeVersion, IdGenerator idGenerator) throws GroundException {
-    long uniqueId = idGenerator.generateItemId();
-    System.out.println(lineageEdgeVersion.getStructureVersionId());
-    LineageEdgeVersion newLineageEdgeVersion = new LineageEdgeVersion(uniqueId, lineageEdgeVersion.getTags(), lineageEdgeVersion.getStructureVersionId(),
-      lineageEdgeVersion.getReference(), lineageEdgeVersion.getParameters(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId(),
-      lineageEdgeVersion.getLineageEdgeId());
-    return create(dbSource, newLineageEdgeVersion);
+  public LineageEdgeVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
   }
 
   @Override
-  public LineageEdgeVersion create(final Database dbSource, final LineageEdgeVersion lineageEdgeVersion) throws GroundException {
-    final List<String> sqlList = new ArrayList<>();
+  public LineageEdgeVersion create(final LineageEdgeVersion lineageEdgeVersion) throws GroundException {
+    PostgresStatements statements = super.insert(lineageEdgeVersion);
+    statements.append(String.format("insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id," +
+        "to_rich_version_id) values (%d, %d, %d, %d)", lineageEdgeVersion.getId(),
+      lineageEdgeVersion.getLineageEdgeId(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId()));
     try {
-      sqlList.addAll(super.createSqlList(dbSource, lineageEdgeVersion));
-      sqlList.add(String.format("insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id," +
-          "to_rich_version_id) values (%d, %d, %d, %d)", lineageEdgeVersion.getId(),
-        lineageEdgeVersion.getLineageEdgeId(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId()));
-      PostgresUtils.executeSqlList(dbSource, sqlList);
+      PostgresUtils.executeSqlList(dbSource, statements);
       return lineageEdgeVersion;
     } catch (Exception e) {
       throw new GroundException(e);

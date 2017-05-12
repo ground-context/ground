@@ -1,21 +1,14 @@
 package edu.berkeley.ground.postgres.controllers;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-
-import javax.inject.Inject;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
 import akka.actor.ActorSystem;
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
 import play.db.Database;
@@ -23,6 +16,11 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+
+import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 public class LineageEdgeController extends Controller {
   private CacheApi cache;
@@ -75,7 +73,7 @@ public class LineageEdgeController extends Controller {
       LineageEdge lineageEdge = Json.fromJson(json, LineageEdge.class);
       LineageEdge newLineageEdge;
       try {
-        newLineageEdge = new LineageEdgeDao().createLineageEdge(dbSource, lineageEdge, idGenerator);
+        newLineageEdge = new LineageEdgeDao(dbSource, idGenerator).create(lineageEdge);
       } catch (GroundException e) {
         throw new CompletionException(e);
       }
@@ -97,7 +95,7 @@ public class LineageEdgeController extends Controller {
       LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json, LineageEdgeVersion.class);
       LineageEdgeVersion newLineageEdgeVersion;
       try {
-        newLineageEdgeVersion = new LineageEdgeVersionDao().createNewLineageEdgeVersion(dbSource, lineageEdgeVersion, idGenerator);
+        newLineageEdgeVersion = new LineageEdgeVersionDao(dbSource, idGenerator).create(lineageEdgeVersion);
       } catch (GroundException e) {
         throw new CompletionException(e);
       }
