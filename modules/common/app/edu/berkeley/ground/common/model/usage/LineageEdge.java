@@ -24,7 +24,7 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
   private final String name;
 
   // the source key for this Node
-  @JsonProperty("source_key")
+  @JsonProperty("sourceKey")
   private final String sourceKey;
 
   /**
@@ -38,8 +38,8 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
 
   //TODO implement tags
   @JsonCreator
-  public LineageEdge(@JsonProperty("item_id") long id, @JsonProperty("name") String name,
-                     @JsonProperty("source_key") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
+  public LineageEdge(@JsonProperty("itemId") long id, @JsonProperty("name") String name,
+                     @JsonProperty("sourceKey") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;

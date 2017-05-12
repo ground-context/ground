@@ -18,8 +18,8 @@ import play.db.Database;
 
 public interface LineageEdgeVersionFactory extends RichVersionFactory<LineageEdgeVersion> {
 
-  LineageEdgeVersion create(Database dbSource, LineageEdgeVersion lineageEdgeVersion) throws GroundException;
+  LineageEdgeVersion create(LineageEdgeVersion lineageEdgeVersion) throws GroundException;
 
   @Override
-  LineageEdgeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException;
 }

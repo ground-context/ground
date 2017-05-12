@@ -130,7 +130,7 @@ public class NodeController extends Controller {
           ((ObjectNode) json).remove("parentIds");
           NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
           try {
-            new NodeVersionDao().create(dbSource, nodeVersion, idGenerator, parentIds);
+            new NodeVersionDao(dbSource, idGenerator).create(nodeVersion, parentIds);
           } catch (GroundException e) {
             e.printStackTrace();
             throw new CompletionException(e);

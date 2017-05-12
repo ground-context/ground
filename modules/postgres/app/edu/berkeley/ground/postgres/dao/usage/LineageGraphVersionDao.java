@@ -16,6 +16,7 @@ import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
@@ -24,22 +25,13 @@ import java.util.List;
 
 public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> implements LineageGraphVersionFactory {
 
-  public LineageGraphVersion createNewLineageGraphVersion(final Database dbSource, final LineageGraphVersion lineageGraphVersion, IdGenerator idGenerator) throws GroundException {
-    long uniqueId = idGenerator.generateItemId();
-    System.out.println(lineageGraphVersion.getStructureVersionId());
-    LineageGraphVersion newLineageGraphVersion = new LineageGraphVersion(uniqueId, lineageGraphVersion.getTags(), lineageGraphVersion.getStructureVersionId(),
-      lineageGraphVersion.getReference(), lineageGraphVersion.getParameters(), lineageGraphVersion.getLineageGraphId(), lineageGraphVersion.getLineageEdgeVersionIds());
-    return create(dbSource, newLineageGraphVersion);
-  }
-
   @Override
-  public LineageGraphVersion create(Database dbSource, LineageGraphVersion lineageGraphVersion) throws GroundException {
-    final List<String> sqlList = new ArrayList<>();
+  public LineageGraphVersion create(LineageGraphVersion lineageGraphVersion) throws GroundException {
+    PostgresStatements statements = super.insert(lineageGraphVersion);
+    statements.append(String.format("insert into lineage_graph_version (id, lineage_graph_id) values (%d, %d)",
+      lineageGraphVersion.getId(), lineageGraphVersion.getLineageGraphId()));
     try {
-      sqlList.addAll(super.createSqlList(dbSource, lineageGraphVersion));
-      sqlList.add(String.format("insert into lineage_graph_version (id, lineage_graph_id) values (%d, %d)",
-        lineageGraphVersion.getId(), lineageGraphVersion.getLineageGraphId()));
-      PostgresUtils.executeSqlList(dbSource, sqlList);
+      PostgresUtils.executeSqlList(dbSource, statements);
       return lineageGraphVersion;
     } catch (Exception e) {
       throw new GroundException(e);

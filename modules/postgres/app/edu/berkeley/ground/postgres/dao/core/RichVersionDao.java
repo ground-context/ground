@@ -31,12 +31,10 @@ import play.db.Database;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
 
-  protected Database dbSource;
-  protected IdGenerator idGenerator;
+  public RichVersionDao() {}
 
-  public RichVersionDao (Database dbSource, IdGenerator idGenerator) {
-    this.dbSource = dbSource;
-    this.idGenerator = idGenerator;
+  public RichVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
   }
 
   public RichVersion create(final Database dbSource, final T richVersion, final IdGenerator idGenerator) throws GroundException {
@@ -46,7 +44,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   }
 
   @Override
-  public T retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
 

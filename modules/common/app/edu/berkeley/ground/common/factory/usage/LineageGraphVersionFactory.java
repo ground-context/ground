@@ -18,9 +18,9 @@ import play.db.Database;
 
 public interface LineageGraphVersionFactory extends RichVersionFactory<LineageGraphVersion> {
 
-  LineageGraphVersion create(Database dbSource, LineageGraphVersion lineageGraphVersion)
+  LineageGraphVersion create(LineageGraphVersion lineageGraphVersion)
       throws GroundException;
 
   @Override
-  LineageGraphVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  LineageGraphVersion retrieveFromDatabase(long id) throws GroundException;
 }

@@ -19,5 +19,5 @@ import play.db.Database;
 public interface VersionFactory<T extends Version> {
   DbStatements insert(T version) throws GroundException;
 
-  T retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  T retrieveFromDatabase(long id) throws GroundException;
 }
