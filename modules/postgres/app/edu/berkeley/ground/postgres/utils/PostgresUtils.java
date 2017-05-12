@@ -11,10 +11,6 @@
  */
 package edu.berkeley.ground.postgres.utils;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.version.GroundType;
-import edu.berkeley.ground.postgres.utils.DbDataContainer;
-
 import akka.actor.ActorSystem;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -25,10 +21,6 @@ import java.util.concurrent.Executor;
 import play.Logger;
 import play.db.Database;
 import play.libs.concurrent.HttpExecution;
-import java.sql.PreparedStatement;
-import java.util.stream.Collectors;
-
-import org.postgresql.PGStatement;
 
 public final class PostgresUtils {
   private PostgresUtils() {}
@@ -79,13 +71,14 @@ public final class PostgresUtils {
     }
   }
 
-  public static final String executeSqlList(final Database dbSource, final List<String> sqlList) {
+  public static final String executeSqlList(final Database dbSource, final PostgresStatements statements) {
     String status = null;
+
     try {
       try (Connection con = dbSource.getConnection()) {
         con.setAutoCommit(false);
         try (Statement stmt = con.createStatement()) {
-          for (final String sql : sqlList) {
+          for (final String sql : statements.getAllStatements()) {
             try {
               Logger.debug("executeSqlList sql : {}", sql);
               try {
@@ -115,7 +108,7 @@ public final class PostgresUtils {
     } catch (SQLException e) {
       Logger.error(
           "error:  executeSqlList SQL : {} Message: {} Trace: {}",
-          sqlList,
+          statements.getAllStatements(),
           e.getMessage(),
           e.getStackTrace());
       throw new RuntimeException("error :  executeSqlList." + e.getMessage(), e);

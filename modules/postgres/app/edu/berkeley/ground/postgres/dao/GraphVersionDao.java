@@ -11,12 +11,12 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.GraphVersion;
-import edu.berkeley.ground.lib.factory.core.GraphVersionFactory;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.GraphVersion;
+import edu.berkeley.ground.common.factory.core.GraphVersionFactory;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import edu.berkeley.ground.lib.utils.IdGenerator;
-import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.model.version.Tag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -14,7 +14,7 @@
 
 package edu.berkeley.ground.postgres.utils;
 
-import edu.berkeley.ground.lib.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

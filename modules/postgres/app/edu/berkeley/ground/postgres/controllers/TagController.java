@@ -20,11 +20,11 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import akka.actor.ActorSystem;
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.version.Tag;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.postgres.dao.TagDao;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
 import play.db.Database;

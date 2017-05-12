@@ -11,11 +11,11 @@
  */
 package edu.berkeley.ground.postgres.dao;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.StructureVersion;
-import edu.berkeley.ground.lib.factory.core.StructureVersionFactory;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.StructureVersion;
+import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import edu.berkeley.ground.lib.utils.IdGenerator;
+import edu.berkeley.ground.common.utils.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
