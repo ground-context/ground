@@ -37,7 +37,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     this.idGenerator = idGenerator;
   }
 
-  public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao versionHistoryDagDao, TagFactory tagFactory) {
+  public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao
+    versionHistoryDagDao, TagFactory tagFactory) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
     this.versionHistoryDagDao = versionHistoryDagDao;
@@ -138,11 +139,12 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         "insert into item (id) values (%d)",
         item.getId()));
     final Map<String, Tag> tags = item.getTags();
+    PostgresStatements postgresStatements = new PostgresStatements(sqlList);
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
         TagDao tagDao = new TagDao();
-        sqlList.addAll(tagDao.createSqlList(tag));
+        postgresStatements.merge(tagDao.insert(tag));
       }
     }
     return new PostgresStatements(sqlList);

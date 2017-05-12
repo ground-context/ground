@@ -60,7 +60,7 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
   }
 
   @Override
-  public EdgeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from edge_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, EdgeVersion.class);

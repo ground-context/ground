@@ -13,10 +13,9 @@ package edu.berkeley.ground.common.factory.core;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
-import play.db.Database;
 
 public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
 
   @Override
-  EdgeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  EdgeVersion retrieveFromDatabase(long id) throws GroundException;
 }

@@ -48,7 +48,7 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public Node retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
+  public Node retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql =
       String.format("select * from node where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -56,7 +56,7 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public Node retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public Node retrieveFromDatabase(long id) throws GroundException {
     String sql =
       String.format("select * from node where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -64,8 +64,8 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
   }
 
   @Override
-  public List<Long> getLeaves(long id) throws GroundException {
-    Node node  = retrieveFromDatabase(id);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Node node  = retrieveFromDatabase(sourceKey);
     return super.getLeaves(node.getId());
   }
 

@@ -17,8 +17,6 @@ import edu.berkeley.ground.common.model.core.Edge;
 
 import java.util.List;
 
-import play.db.Database;
-
 public interface EdgeFactory extends ItemFactory<Edge> {
 
   //Edge create(String name, String sourceKey, long fromNodeId, long toNodeId, Map<String, Tag> tags)
@@ -30,10 +28,10 @@ public interface EdgeFactory extends ItemFactory<Edge> {
   }
 
   @Override
-  Edge retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
+  Edge retrieveFromDatabase(String sourceKey) throws GroundException;
 
   @Override
-  Edge retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  Edge retrieveFromDatabase(long id) throws GroundException;
 
-  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

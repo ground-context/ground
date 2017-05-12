@@ -17,8 +17,6 @@ import edu.berkeley.ground.common.model.core.Graph;
 
 import java.util.List;
 
-import play.db.Database;
-
 public interface GraphFactory extends ItemFactory<Graph> {
 
   @Override
@@ -27,12 +25,12 @@ public interface GraphFactory extends ItemFactory<Graph> {
   }
 
   @Override
-  Graph retrieveFromDatabase(final Database dbSource, final String sourceKey) throws GroundException;
+  Graph retrieveFromDatabase(final String sourceKey) throws GroundException;
 
   @Override
-  Graph retrieveFromDatabase(final Database dbSource, final long id) throws GroundException;
+  Graph retrieveFromDatabase(final long id) throws GroundException;
 
-  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 
   @Override
   void truncate(long itemId, int numLevels) throws GroundException;

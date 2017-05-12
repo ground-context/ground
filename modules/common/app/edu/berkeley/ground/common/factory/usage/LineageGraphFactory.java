@@ -17,8 +17,6 @@ import edu.berkeley.ground.common.model.usage.LineageGraph;
 
 import java.util.List;
 
-import play.db.Database;
-
 public interface LineageGraphFactory extends ItemFactory<LineageGraph> {
 
   LineageGraph create(LineageGraph lineageGraph) throws GroundException;
@@ -29,10 +27,10 @@ public interface LineageGraphFactory extends ItemFactory<LineageGraph> {
   }
 
   @Override
-  LineageGraph retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException;
+  LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException;
 
   @Override
-  LineageGraph retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  LineageGraph retrieveFromDatabase(long id) throws GroundException;
 
-  List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException;
+  List<Long> getLeaves(String sourceKey) throws GroundException;
 }

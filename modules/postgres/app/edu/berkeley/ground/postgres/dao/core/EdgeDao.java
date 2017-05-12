@@ -53,7 +53,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
   }
 
   @Override
-  public Edge retrieveFromDatabase(Database dbSource, String sourceKey) throws GroundException {
+  public Edge retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql =
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -61,7 +61,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
   }
 
   @Override
-  public Edge retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public Edge retrieveFromDatabase(long id) throws GroundException {
     String sql =
       String.format("select * from edge where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -69,8 +69,8 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
   }
 
   @Override
-  public List<Long> getLeaves(Database dbSource, String sourceKey) throws GroundException {
-    Edge edge  = retrieveFromDatabase(dbSource, sourceKey);
+  public List<Long> getLeaves(String sourceKey) throws GroundException {
+    Edge edge  = retrieveFromDatabase(sourceKey);
     return super.getLeaves(edge.getId());
   }
 

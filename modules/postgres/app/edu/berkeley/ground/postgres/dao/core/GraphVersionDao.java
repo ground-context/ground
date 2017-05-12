@@ -59,7 +59,7 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
   }
 
   @Override
-  public GraphVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException {
+  public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from graph_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     return Json.fromJson(json, GraphVersion.class);

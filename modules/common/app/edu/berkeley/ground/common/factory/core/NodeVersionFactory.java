@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.NodeVersion;
-import play.db.Database;
 
 public interface NodeVersionFactory extends RichVersionFactory<NodeVersion> {
   NodeVersion create(
@@ -31,5 +30,5 @@ public interface NodeVersionFactory extends RichVersionFactory<NodeVersion> {
       throws GroundException;
 
   @Override
-  NodeVersion retrieveFromDatabase(Database dbSource, long id) throws GroundException;
+  NodeVersion retrieveFromDatabase(long id) throws GroundException;
 }
