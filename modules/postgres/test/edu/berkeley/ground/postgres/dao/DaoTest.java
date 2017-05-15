@@ -1,18 +1,19 @@
 package edu.berkeley.ground.postgres.dao;
 
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.factory.core.EdgeFactory;
-import edu.berkeley.ground.common.factory.core.EdgeVersionFactory;
-import edu.berkeley.ground.common.factory.core.GraphFactory;
-import edu.berkeley.ground.common.factory.core.GraphVersionFactory;
-import edu.berkeley.ground.common.factory.core.NodeFactory;
-import edu.berkeley.ground.common.factory.core.NodeVersionFactory;
-import edu.berkeley.ground.common.factory.core.StructureFactory;
-import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
+import edu.berkeley.ground.common.factory.core.*;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeFactory;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.common.factory.usage.LineageGraphFactory;
 import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.common.model.core.*;
+import edu.berkeley.ground.common.model.usage.LineageEdge;
+import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
+import edu.berkeley.ground.common.model.usage.LineageGraph;
+import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
+import edu.berkeley.ground.common.model.version.GroundType;
+import edu.berkeley.ground.common.model.version.Tag;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,23 +21,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import edu.berkeley.ground.common.model.core.Edge;
-import edu.berkeley.ground.common.model.core.EdgeVersion;
-import edu.berkeley.ground.common.model.core.Graph;
-import edu.berkeley.ground.common.model.core.GraphVersion;
-import edu.berkeley.ground.common.model.core.Node;
-import edu.berkeley.ground.common.model.core.NodeVersion;
-import edu.berkeley.ground.common.model.core.Structure;
-import edu.berkeley.ground.common.model.core.StructureVersion;
-import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.common.model.usage.LineageEdge;
-import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
-import edu.berkeley.ground.common.model.usage.LineageGraph;
-import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
-import edu.berkeley.ground.common.model.version.GroundType;
-
-import javax.sound.sampled.Line;
 
 public class DaoTest {
 
@@ -91,8 +75,8 @@ public class DaoTest {
                                               long toStart,
                                               List<Long> parents)
     throws GroundException {
-    EdgeVersion edgeVersion = new EdgeVersion(new HashMap<>(), -1, null, new HashMap<>(),
-      edgeId, fromStart, -1, toStart, -1;
+    EdgeVersion edgeVersion = new EdgeVersion(-1, new HashMap<>(), -1, null, new HashMap<>(),
+      edgeId, fromStart, -1, toStart, -1);
     return edgeVersionFactory.create(edgeVersion, parents);
   }
 
@@ -190,6 +174,7 @@ public class DaoTest {
     return tags;
   }
 
+  /*
   public static long createTwoNodesAndEdge() throws GroundException {
     String firstTestNode = "firstTestNode";
     long firstTestNodeId = CassandraTest.createNode(firstTestNode).getId();
@@ -207,7 +192,7 @@ public class DaoTest {
 
     return edgeVersionId;
   }
-
+*/
 
   protected static void runScript(String scriptFile, Consumer<String> executor)  {
     final String SQL_COMMENT_START = "--";
