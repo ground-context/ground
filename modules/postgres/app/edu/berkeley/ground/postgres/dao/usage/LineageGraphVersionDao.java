@@ -24,10 +24,13 @@ import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> implements LineageGraphVersionFactory {
+
+  public LineageGraphVersionDao(Database dbSource, IdGenerator idGenerator) {
+    super(dbSource, idGenerator);
+  }
 
   @Override
   public LineageGraphVersion create(LineageGraphVersion lineageGraphVersion, List<Long> parentIds) throws GroundException {

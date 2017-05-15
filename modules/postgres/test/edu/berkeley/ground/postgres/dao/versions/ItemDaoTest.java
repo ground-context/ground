@@ -17,64 +17,67 @@ package edu.berkeley.ground.postgres.dao.versions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.utils.IdGenerator;
+import edu.berkeley.ground.common.utils.IdGenerator;
 import org.junit.Test;
 
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.model.version.VersionHistoryDag;
-import edu.berkeley.ground.common.model.version.VersionSuccessor;
+import edu.berkeley.ground.common.model.version.*;
+import edu.berkeley.ground.postgres.dao.DaoTest;
 import edu.berkeley.ground.postgres.dao.versions.mock.TestItemDao;
 import edu.berkeley.ground.postgres.dao.versions.mock.TestVersionDao;
 import play.db.Database;
 
-public class PostgresItemFactoryTest{
+import javax.inject.Inject;
 
-  private TestItemDao itemFactory;
-  private TestVersionDao versionFactory;
+public class ItemDaoTest extends DaoTest{
 
-  public PostgresItemFactoryTest() throws GroundException {
-    super();
+  private TestItemDao testItemDao;
+  private TestVersionDao versionDao;
 
-    this.itemFactory = new TestItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+  @Inject
+  Database dbSource;
+  IdGenerator idGenerator;
+  public ItemDaoTest() throws GroundException {
+    super(dbSource, new IdGenerator(0,0,false));
 
-    this.versionFactory = new TestPostgresVersionFactory(PostgresTest.postgresClient);
+    this.testItemDao = new TestItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+
+    this.versionDao = new TestVersionDao(dbSource, idGenerator);
   }
 
   @Test
-  public void testCorrectUpdateWithParent() throws GroundException {
+  public void testCorrectUpdateWithParent() throws GroundException, SQLException {
     try {
       long testId = 1;
-
-      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.testItemDao.insert(new Item(testId, new HashMap<>()));
 
       long fromId = 2;
       long toId = 3;
 
-      this.versionFactory.insertIntoDatabase(fromId);
-      this.versionFactory.insertIntoDatabase(toId);
+      this.versionDao.insert(new Version(fromId));
+      this.versionDao.insert(new Version(toId));
 
       List<Long> parentIds = new ArrayList<>();
-      this.itemFactory.update(testId, fromId, parentIds);
+      this.testItemDao.update(testId, fromId, parentIds);
 
       parentIds.clear();
       parentIds.add(fromId);
-      this.itemFactory.update(testId, toId, parentIds);
+      this.testItemDao.update(testId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = DaoTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
       VersionSuccessor<?> successor = null;
       for (long id : dag.getEdgeIds()) {
-        successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(id);
+        successor = DaoTest.versionSuccessorDao.retrieveFromDatabase(id);
 
         if (successor.getFromId() != 0) {
           break;
@@ -90,71 +93,71 @@ public class PostgresItemFactoryTest{
 
       fail();
     } finally {
-      PostgresTest.postgresClient.abort();
+      DaoTest.dbSource.getConnection().rollback();
     }
   }
 
   @Test
-  public void testCorrectUpdateWithoutParent() throws GroundException {
+  public void testCorrectUpdateWithoutParent() throws GroundException, SQLException {
     try {
       long testId = 1;
 
-      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.testItemDao.insert(new Item(testId, new HashMap<>()));
       long toId = 2;
-      this.versionFactory.insertIntoDatabase(toId);
+      this.versionDao.insert(new Version(toId));
 
       List<Long> parentIds = new ArrayList<>();
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      this.itemFactory.update(testId, toId, parentIds);
+      this.testItemDao.update(testId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = DaoTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
       assertEquals(1, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> successor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> successor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
       assertEquals(0, successor.getFromId());
       assertEquals(toId, successor.getToId());
     } finally {
-      PostgresTest.postgresClient.abort();
+      DaoTest.dbSource.getConnection().rollback();
     }
   }
 
   @Test
-  public void testCorrectUpdateWithLinearHistory() throws GroundException {
+  public void testCorrectUpdateWithLinearHistory() throws GroundException, SQLException {
     try {
       long testId = 1;
 
-      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.testItemDao.insert(new Item(testId, new HashMap<>()));
 
       long fromId = 2;
       long toId = 3;
 
-      this.versionFactory.insertIntoDatabase(fromId);
-      this.versionFactory.insertIntoDatabase(toId);
+      this.versionDao.insert(new Version(fromId));
+      this.versionDao.insert(new Version(toId));
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      this.itemFactory.update(testId, fromId, parentIds);
+      this.testItemDao.update(testId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(fromId);
-      this.itemFactory.update(testId, toId, parentIds);
+      this.testItemDao.update(testId, toId, parentIds);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = DaoTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
       assertEquals(2, dag.getEdgeIds().size());
       assertEquals(toId, (long) dag.getLeaves().get(0));
 
-      VersionSuccessor<?> fromSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> fromSuccessor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-      VersionSuccessor<?> toSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> toSuccessor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(1));
 
       if (fromSuccessor.getFromId() != 0) {
@@ -169,21 +172,21 @@ public class PostgresItemFactoryTest{
       assertEquals(fromId, toSuccessor.getFromId());
       assertEquals(toId, toSuccessor.getToId());
     } finally {
-      PostgresTest.postgresClient.abort();
+      DaoTest.dbSource.getConnection().rollback();
     }
   }
 
   @Test(expected = GroundException.class)
-  public void testIncorrectUpdate() throws GroundException {
+  public void testIncorrectUpdate() throws GroundException, SQLException {
     try {
       long testId = 1;
       long fromId = 2;
       long toId = 3;
 
       try {
-        this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+        this.testItemDao.insert(new Item(testId, new HashMap<>()));
 
-        this.versionFactory.insertIntoDatabase(toId);
+        this.versionDao.insert(new Version(toId));
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -192,54 +195,54 @@ public class PostgresItemFactoryTest{
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      this.itemFactory.update(testId, toId, parentIds);
+      this.testItemDao.update(testId, toId, parentIds);
     } finally {
-      PostgresTest.postgresClient.abort();
+      DaoTest.dbSource.getConnection().rollback();
     }
   }
 
   @Test
-  public void testMultipleParents() throws GroundException {
+  public void testMultipleParents() throws GroundException, SQLException {
     try {
       long testId = 1;
 
-      this.itemFactory.insertIntoDatabase(testId, new HashMap<>());
+      this.testItemDao.insert(new Item(testId, new HashMap<>()));
 
       long parentOne = 2;
       long parentTwo = 3;
       long child = 4;
 
-      this.versionFactory.insertIntoDatabase(parentOne);
-      this.versionFactory.insertIntoDatabase(parentTwo);
-      this.versionFactory.insertIntoDatabase(child);
+      this.versionDao.insert(new Version(parentOne));
+      this.versionDao.insert(new Version(parentTwo));
+      this.versionDao.insert(new Version(child));
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      this.itemFactory.update(testId, parentOne, parentIds);
-      this.itemFactory.update(testId, parentTwo, parentIds);
+      this.testItemDao.update(testId, parentOne, parentIds);
+      this.testItemDao.update(testId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      this.itemFactory.update(testId, child, parentIds);
+      this.testItemDao.update(testId, child, parentIds);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDAGFactory.retrieveFromDatabase(testId);
+      VersionHistoryDag<?> dag = DaoTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
       assertEquals(4, dag.getEdgeIds().size());
       assertEquals(child, (long) dag.getLeaves().get(0));
 
       // Retrieve all the version successors and check that they have the correct data.
-      VersionSuccessor<?> parentOneSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> parentOneSuccessor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(0));
 
-      VersionSuccessor<?> parentTwoSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> parentTwoSuccessor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(1));
 
-      VersionSuccessor<?> childOneSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> childOneSuccessor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(2));
 
-      VersionSuccessor<?> childTwoSuccessor = PostgresTest.versionSuccessorFactory.retrieveFromDatabase(
+      VersionSuccessor<?> childTwoSuccessor = DaoTest.versionSuccessorDao.retrieveFromDatabase(
         dag.getEdgeIds().get(3));
 
       assertEquals(0, parentOneSuccessor.getFromId());
@@ -255,12 +258,12 @@ public class PostgresItemFactoryTest{
       assertEquals(child, childTwoSuccessor.getToId());
       assertEquals(child, childTwoSuccessor.getToId());
     } finally {
-      PostgresTest.postgresClient.abort();
+      DaoTest.dbSource.getConnection().rollback();
     }
   }
 
   @Test
-  public void testTags() throws GroundException {
+  public void testTags() throws GroundException, SQLException {
     try {
       long testId = 1;
       Map<String, Tag> tags = new HashMap<>();
@@ -269,9 +272,9 @@ public class PostgresItemFactoryTest{
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      this.itemFactory.insertIntoDatabase(testId, tags);
+      this.testItemDao.insert(new Item(testId, new HashMap<>()));
 
-      Item retrieved = this.itemFactory.retrieveFromDatabase(testId);
+      Item retrieved = this.testItemDao.retrieveFromDatabase(testId);
 
       assertEquals(testId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -283,7 +286,7 @@ public class PostgresItemFactoryTest{
         assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
       }
     } finally {
-      PostgresTest.postgresClient.abort();
+      DaoTest.dbSource.getConnection().rollback();
     }
   }
 }
