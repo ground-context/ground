@@ -1,4 +1,4 @@
-package edu.berkeley.ground.postgres.dao;
+package edu.berkeley.ground.common.factory;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.*;

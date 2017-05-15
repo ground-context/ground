@@ -76,18 +76,6 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     //TODO: Don't use dbClient
     long dbId = idGenerator.generateSuccessorId();
     return new VersionSuccessor<>(dbId, fromId, toId);
-
-    //No longer need to handle dbInsertions here
-    /*
-    insertions.add(new DbDataContainer("id", GroundType.LONG, dbId));
-    insertions.add(new DbDataContainer("from_version_id", GroundType.LONG, fromId));
-    insertions.add(new DbDataContainer("to_version_id", GroundType.LONG, toId));
-
-    this.dbClient.insert("version_successor", insertions);
-
-    return new VersionSuccessor<>(dbId, toId, fromId);
-    */
-
   }
 
   /**

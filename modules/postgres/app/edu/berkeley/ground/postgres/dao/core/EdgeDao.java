@@ -40,11 +40,11 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     Edge newEdge = new Edge(uniqueId, edge.getName(), edge
       .getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getTags());
     try {
+      postgresStatements = super.insert(newEdge);
       postgresStatements.append(String.format(
-        "insert into edge (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
-        uniqueId, edge.getSourceKey(), edge.getName()));
+        "insert into edge (item_id, source_key, from_node_id, to_node_id, name) values (%d,\'%s\',%d,%d,\'%s\')",
+        uniqueId, edge.getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getName()));
 
-      super.insert(newEdge).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }

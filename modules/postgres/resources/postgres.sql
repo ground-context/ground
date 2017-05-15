@@ -1,6 +1,3 @@
--- noinspection SqlDialectInspectionForFile
-
--- noinspection SqlNoDataSourceInspectionForFile
 
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
@@ -34,7 +31,7 @@ CREATE TABLE IF NOT EXISTS item (
 
 CREATE TABLE IF NOT EXISTS item_tag (
     item_id bigint NOT NULL REFERENCES item(id),
-    tag_key varchar NOT NULL,
+    key varchar NOT NULL,
     value varchar,
     type data_type,
     CONSTRAINT item_tag_pkey PRIMARY KEY (item_id, key)
@@ -61,7 +58,7 @@ CREATE TABLE IF NOT EXISTS structure_version (
 
 CREATE TABLE IF NOT EXISTS structure_version_attribute (
     structure_version_id bigint NOT NULL REFERENCES structure_version(id),
-    structure_version_attribute_key varchar NOT NULL,
+    key varchar NOT NULL,
     type varchar NOT NULL,
     CONSTRAINT structure_version_attribute_pkey PRIMARY KEY(structure_version_id, key)
 );
@@ -74,14 +71,14 @@ CREATE TABLE IF NOT EXISTS rich_version (
 
 CREATE TABLE IF NOT EXISTS rich_version_external_parameter (
     rich_version_id bigint NOT NULL REFERENCES rich_version(id),
-    rich_version_external_parameter_key varchar NOT NULL,
+    key varchar NOT NULL,
     value varchar NOT NULL,
     CONSTRAINT rich_version_external_parameter_pkey PRIMARY KEY (rich_version_id, key)
 );
 
 CREATE TABLE IF NOT EXISTS rich_version_tag (
     rich_version_id bigint REFERENCES rich_version(id),
-    tag_key varchar NOT NULL,
+    key varchar NOT NULL,
     value varchar,
     type data_type,
     CONSTRAINT rich_version_tag_pkey PRIMARY KEY (rich_version_id, key)

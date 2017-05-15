@@ -2,12 +2,14 @@ package edu.berkeley.ground.postgres.controllers;
 
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
+import edu.berkeley.ground.postgres.utils.ControllerUtils;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
@@ -18,6 +20,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -91,11 +94,13 @@ public class LineageEdgeController extends Controller {
   public final CompletionStage<Result> createLineageEdgeVersion() {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       JsonNode json = request().body().asJson();
-      System.out.println(json.toString());
+      List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
+      ((ObjectNode) json).remove("parentIds");
       LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json, LineageEdgeVersion.class);
       LineageEdgeVersion newLineageEdgeVersion;
       try {
-        newLineageEdgeVersion = new LineageEdgeVersionDao(dbSource, idGenerator).create(lineageEdgeVersion);
+        newLineageEdgeVersion = new LineageEdgeVersionDao(dbSource, idGenerator).create
+          (lineageEdgeVersion, parentIds);
       } catch (GroundException e) {
         throw new CompletionException(e);
       }
