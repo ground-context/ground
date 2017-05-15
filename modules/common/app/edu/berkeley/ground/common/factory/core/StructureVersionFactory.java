@@ -15,7 +15,11 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionFactory;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 
+import java.util.List;
+
 public interface StructureVersionFactory extends VersionFactory<StructureVersion> {
+
+  StructureVersion create(StructureVersion structureVersion, List<Long> parentIds) throws GroundException;
 
   @Override
   StructureVersion retrieveFromDatabase(long id) throws GroundException;
