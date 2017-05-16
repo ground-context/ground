@@ -30,14 +30,17 @@ import java.util.stream.Collectors;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
 
-  public RichVersionDao() {}
+  public RichVersionDao() {
+  }
 
   public RichVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
   }
 
   @Override
-  public T create(T RichVersion, List<Long> parentIds) throws GroundException { return null; }
+  public T create(T RichVersion, List<Long> parentIds) throws GroundException {
+    return null;
+  }
 
   @Override
   public T retrieveFromDatabase(long id) throws GroundException {
@@ -96,14 +99,19 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
 
   @Override
   public PostgresStatements insert(final T richVersion) throws GroundException {
-    if (richVersion.getStructureVersionId() != null)
+    Long structureVersionId;
+    if (richVersion.getStructureVersionId() == -1) {
+      structureVersionId = null;
+    } else {
+      structureVersionId = richVersion.getStructureVersionId();
       checkStructureTags(new StructureVersionDao(dbSource, idGenerator)
         .retrieveFromDatabase(richVersion.getStructureVersionId()), richVersion.getTags());
+    }
     PostgresStatements statements = super.insert(richVersion);
     statements.append(
       String.format(
         "insert into rich_version (id, structure_version_id, reference) values (%d, %d, \'%s\')",
-        richVersion.getId(), richVersion.getStructureVersionId(), richVersion.getReference()));
+        richVersion.getId(), structureVersionId, richVersion.getReference()));
     final Map<String, Tag> tags = richVersion.getTags();
     if (tags != null) {
       for (String key : tags.keySet()) {
@@ -112,12 +120,12 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
         if (tag.getValue() != null) {
           statements.append(
             String.format(
-              "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, %s, %s, %s)",
+              "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, \'%s\', \'%s\', \'%s\')",
               richVersion.getId(), key, tag.getValue().toString(), tag.getValueType().toString()));
         } else {
           statements.append(
             String.format(
-              "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, %s, %s, %s)",
+              "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, \'%s\', \'%s\', \'%s\')",
               richVersion.getId(), key, null, null));
         }
       }

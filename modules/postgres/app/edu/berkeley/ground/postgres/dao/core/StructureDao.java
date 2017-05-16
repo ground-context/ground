@@ -1,9 +1,9 @@
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * <p>
  * <p>http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * <p>Unless required by applicable law or agreed to in writing, software distributed under the
  * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  * express or implied. See the License for the specific language governing permissions and
@@ -40,11 +40,10 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     Structure newStructure = new Structure(uniqueId, structure.getName(), structure
       .getSourceKey(), structure.getTags());
     try {
+      postgresStatements = super.insert(newStructure);
       postgresStatements.append(String.format(
         "insert into structure (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
         uniqueId, structure.getSourceKey(), structure.getName()));
-
-      super.insert(newStructure).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -70,7 +69,7 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
 
   @Override
   public List<Long> getLeaves(String sourceKey) throws GroundException {
-    Structure structure  = retrieveFromDatabase(sourceKey);
+    Structure structure = retrieveFromDatabase(sourceKey);
     return super.getLeaves(structure.getId());
   }
 

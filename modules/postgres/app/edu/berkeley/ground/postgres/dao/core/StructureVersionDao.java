@@ -55,7 +55,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
       for(Map.Entry<String, GroundType>attribute: structureVersion.getAttributes().entrySet()) {
         statements.append(String.format(
           "insert into structure_version_attribute (structure_version_id, key, type) values (%s,"
-            + "%s, %s)",
+            + "\'%s\', \'%s\')",
           uniqueId, attribute.getKey(), attribute.getValue()));
       }
       statements.merge(updateVersionList);
