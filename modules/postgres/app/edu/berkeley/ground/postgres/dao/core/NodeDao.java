@@ -28,11 +28,10 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
 
     Node newNode = new Node(uniqueId, node.getName(), node.getSourceKey(), node.getTags());
     try {
+      postgresStatements = super.insert(newNode);
       postgresStatements.append(String.format(
         "insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
         uniqueId, node.getSourceKey(), node.getName()));
-
-      super.insert(newNode).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
