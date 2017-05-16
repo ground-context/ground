@@ -12,6 +12,8 @@
 package edu.berkeley.ground.postgres.dao.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.EdgeFactory;
 import edu.berkeley.ground.common.model.core.Edge;
@@ -34,7 +36,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
 
   public Edge create(Edge edge) throws GroundException {
 
-    PostgresStatements postgresStatements = new PostgresStatements();
+    PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();
 
     Edge newEdge = new Edge(uniqueId, edge.getName(), edge
@@ -57,6 +59,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     String sql =
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    ((ObjectNode) (json).get(0)).set("tags", JsonNodeFactory.instance.objectNode());
     return Json.fromJson(json, Edge.class);
   }
 

@@ -23,7 +23,7 @@ public class Node extends Item<NodeVersion> {
   private final String name;
 
   // the source key for this Node
-  @JsonProperty("source_key")
+  @JsonProperty("sourceKey")
   private final String sourceKey;
 
   /**

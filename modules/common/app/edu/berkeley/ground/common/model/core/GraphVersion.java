@@ -20,15 +20,15 @@ import java.util.Map;
 public class GraphVersion extends RichVersion {
   @JsonProperty("tags")
   private final Map<String, Tag> tags;
-  @JsonProperty("structure_version_id")
+  @JsonProperty("structureVersionId")
   private final long structureVersionId;
   @JsonProperty("reference")
   private final String reference;
-  @JsonProperty("reference_parameters")
+  @JsonProperty("referenceParameters")
   private final Map<String, String> referenceParameters;
-  @JsonProperty("graph_id")
+  @JsonProperty("graphId")
   private final long graphId;
-  @JsonProperty("edge_version_ids")
+  @JsonProperty("edgeVersionIds")
   private final List<Long> edgeVersionIds;
 
   /**
@@ -46,11 +46,11 @@ public class GraphVersion extends RichVersion {
   public GraphVersion(
       @JsonProperty("id") long id,
       @JsonProperty("tags") Map<String, Tag> tags,
-      @JsonProperty("structure_version_id") long structureVersionId,
+      @JsonProperty("structureVersionId") long structureVersionId,
       @JsonProperty("reference") String reference,
-      @JsonProperty("reference_parameters") Map<String, String> referenceParameters,
-      @JsonProperty("graph_id") long graphId,
-      @JsonProperty("edge_version_ids") List<Long> edgeVersionIds) {
+      @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+      @JsonProperty("graphId") long graphId,
+      @JsonProperty("edgeVersionIds") List<Long> edgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 

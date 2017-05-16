@@ -18,9 +18,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.Executor;
+
+import com.google.common.base.Enums;
 import play.Logger;
 import play.db.Database;
 import play.libs.concurrent.HttpExecution;
+import com.google.common.base.CaseFormat;
 
 public final class PostgresUtils {
   private PostgresUtils() {}
@@ -42,8 +45,8 @@ public final class PostgresUtils {
             while (resultSet.next()) {
               final Map<String, Object> rowData = new HashMap<String, Object>();
               for (int column = 1; column <= columnCount; ++column) {
-                rowData.put(
-                    resultSet.getMetaData().getColumnLabel(column), resultSet.getObject(column));
+                String key = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, resultSet.getMetaData().getColumnLabel(column));
+                rowData.put(key, resultSet.getObject(column));
               }
               objList.add(rowData);
             }
