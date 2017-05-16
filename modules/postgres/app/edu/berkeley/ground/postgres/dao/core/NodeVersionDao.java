@@ -45,9 +45,6 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
         uniqueId, nodeVersion.getNodeId()));
       statements.merge(updateVersionList);
 
-      System.out.println("uniqueId: " + uniqueId);
-      System.out.println("nodeId: " + nodeVersion.getNodeId());
-
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
       e.printStackTrace();

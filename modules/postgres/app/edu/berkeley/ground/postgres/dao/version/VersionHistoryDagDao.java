@@ -49,9 +49,8 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
 
     long versionSuccessorId = this.versionSuccessorDao.getNewSuccessorId();
     PostgresStatements statements = versionSuccessorDao.insert(parentId, childId, versionSuccessorId);
-    String sql = String.format("insert into version_history_dag (item_id, version_successor_id) " +
-      "values(%d, %d)", itemId, versionSuccessorId);
-    statements.append(sql);
+    statements.append(String.format("insert into version_history_dag (item_id, version_successor_id) " +
+      "values(%d, %d)", itemId, versionSuccessorId));
     return statements;
   }
 
