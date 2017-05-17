@@ -59,8 +59,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     String sql =
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    ((ObjectNode) (json).get(0)).set("tags", JsonNodeFactory.instance.objectNode());
-    return Json.fromJson(json, Edge.class);
+    return Json.fromJson(json.get(0), Edge.class);
   }
 
   @Override
