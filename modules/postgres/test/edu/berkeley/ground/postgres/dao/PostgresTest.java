@@ -33,8 +33,18 @@ public class PostgresTest extends DaoTest {
 
   }
 
-  @BeforeClass
-  public static void setupClass() throws GroundException {
+//  @BeforeClass
+//  public static void setupClass() throws GroundException {
+//  }
+
+  @AfterClass
+  public static void teardownClass() throws SQLException {
+    //dbSource.getConnection().close();
+    dbSource.shutdown();
+  }
+
+  @Before
+  public void setup() throws IOException, InterruptedException, GroundException {
     Database dbSource = Databases.createFrom(
       "org.postgresql.Driver",
       "jdbc:postgresql://localhost:5432/ground",
@@ -65,16 +75,6 @@ public class PostgresTest extends DaoTest {
     lineageGraphVersionDao = daos.getLineageGraphVersionDao();
     nodeVersionDao = daos.getNodeVersionDao();
     structureVersionDao = daos.getStructureVersionDao();
-  }
-
-  @AfterClass
-  public static void teardownClass() throws SQLException {
-    //dbSource.getConnection().close();
-    dbSource.shutdown();
-  }
-
-  @Before
-  public void setup() throws IOException, InterruptedException, GroundException {
     runScript(DROP_SCRIPT);
     runScript(CREATE_SCHEMA_SCRIPT);
   }

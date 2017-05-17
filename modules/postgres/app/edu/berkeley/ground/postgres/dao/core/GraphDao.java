@@ -33,17 +33,16 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   public Graph create(Graph graph) throws GroundException {
 
-    PostgresStatements postgresStatements = new PostgresStatements();
+    PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();
 
     Graph newGraph = new Graph(uniqueId, graph.getName(), graph
       .getSourceKey(), graph.getTags());
     try {
+      postgresStatements = super.insert(newGraph);
       postgresStatements.append(String.format(
         "insert into graph (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
         uniqueId, graph.getSourceKey(), graph.getName()));
-
-      super.insert(newGraph).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -56,7 +55,10 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
     String sql =
       String.format("select * from graph where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Graph.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Graph with source_key %s does not exist.", sourceKey));
+    }
+    return Json.fromJson(json.get(0), Graph.class);
   }
 
   @Override
@@ -64,7 +66,10 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
     String sql =
       String.format("select * from graph where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Graph.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Graph with id %d does not exist.", id));
+    }
+    return Json.fromJson(json.get(0), Graph.class);
   }
 
   @Override

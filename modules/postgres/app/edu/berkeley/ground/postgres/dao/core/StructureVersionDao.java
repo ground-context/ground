@@ -43,7 +43,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao
       versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
-    TagDao tagDao = new TagDao();
+    TagDao tagDao = new TagDao(dbSource, idGenerator);
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
     PostgresStatements updateVersionList = itemDao.update(newStructureVersion.getStructureId(), newStructureVersion.getId(), parentIds);
 
@@ -67,7 +67,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
     } catch (Exception e) {
       throw new GroundException(e);
     }
-    return structureVersion;
+    return newStructureVersion;
   }
 
   @Override
@@ -94,7 +94,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
       structureId = resultSet.getLong(2);
 
     }catch(Exception e) {
-
+      throw new GroundException(e);
     }
 
     return new StructureVersion(id, structureId, attributes);

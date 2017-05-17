@@ -59,6 +59,9 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     String sql =
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Edge with source_key %s does not exist.", sourceKey));
+    }
     return Json.fromJson(json.get(0), Edge.class);
   }
 
@@ -67,7 +70,10 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     String sql =
       String.format("select * from edge where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Edge.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Edge with id %d does not exist.", id));
+    }
+    return Json.fromJson(json.get(0), Edge.class);
   }
 
   @Override

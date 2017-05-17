@@ -11,6 +11,7 @@
  */
 package edu.berkeley.ground.common.model.core;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.Version;
 
@@ -20,18 +21,23 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class RichVersion extends Version {
+  @JsonProperty("id")
   private long id;
 
   // the map of Keys to Tags associated with this RichVersion
+  @JsonProperty("tags")
   private final Map<String, Tag> tags;
 
   // the StructureVersion associated with this RichVersion
+  @JsonProperty("structureVersionId")
   private final Long structureVersionId;
 
   // the optional reference associated with this RichVersion
+  @JsonProperty("reference")
   private final String reference;
 
   // the optional parameters associated with this RichVersion if there is a reference
+  @JsonProperty("parameters")
   private final Map<String, String> parameters;
 
   /**
@@ -45,11 +51,11 @@ public class RichVersion extends Version {
    */
   @JsonCreator
   public RichVersion(
-    long id,
-    Map<String, Tag> tags,
-    Long structureVersionId,
-    String reference,
-    Map<String, String> referenceParameters) {
+    @JsonProperty("id") long id,
+    @JsonProperty("tags") Map<String, Tag> tags,
+    @JsonProperty("structureVersionId") Long structureVersionId,
+    @JsonProperty("reference") String reference,
+    @JsonProperty("parameters") Map<String, String> referenceParameters) {
 
     super(id);
     this.id = id;

@@ -11,6 +11,7 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.RichVersionFactory;
 import edu.berkeley.ground.common.model.core.RichVersion;
@@ -22,6 +23,7 @@ import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
+import play.libs.Json;
 
 import java.util.List;
 import java.util.Map;
@@ -43,8 +45,14 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   }
 
   @Override
-  public T retrieveFromDatabase(long id) throws GroundException {
-    return null;
+  public RichVersion retrieveFromDatabase(long id) throws GroundException {
+    //TODO This needs to return tags also
+    String sql = String.format("select * from rich_version where id=%d", id);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Rich Version with id %d does not exist.", id));
+    }
+    return Json.fromJson(json.get(0), RichVersion.class);
   }
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {

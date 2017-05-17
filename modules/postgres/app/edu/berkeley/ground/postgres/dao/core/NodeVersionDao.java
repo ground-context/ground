@@ -41,7 +41,7 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
     //TODO: I think we should consider using injection here
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
-    TagDao tagDao = new TagDao();
+    TagDao tagDao = new TagDao(dbSource, idGenerator);
 
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 
@@ -67,6 +67,6 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from node_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, NodeVersion.class);
+    return Json.fromJson(json.get(0), NodeVersion.class);
   }
 }
