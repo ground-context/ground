@@ -23,7 +23,7 @@ public class Node extends Item<NodeVersion> {
   private final String name;
 
   // the source key for this Node
-  @JsonProperty("source_key")
+  @JsonProperty("sourceKey")
   private final String sourceKey;
 
   /**
@@ -35,9 +35,9 @@ public class Node extends Item<NodeVersion> {
    * @param tags the tags associated with the node
    */
   @JsonCreator
-  public Node(@JsonProperty("item_id") long id,
+  public Node(@JsonProperty("itemId") long id,
               @JsonProperty("name") String name,
-              @JsonProperty("source_key") String sourceKey,
+              @JsonProperty("sourceKey") String sourceKey,
               @JsonProperty("tags") Map<String, Tag> tags) {
 
     super(id, tags);

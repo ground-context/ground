@@ -47,14 +47,14 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_graph where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, LineageGraph.class);
+    return Json.fromJson(json.get(0), LineageGraph.class);
   }
 
   @Override
   public LineageGraph retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_graph where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, LineageGraph.class);
+    return Json.fromJson(json.get(0), LineageGraph.class);
   }
 
   @Override

@@ -47,14 +47,14 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, LineageEdge.class);
+    return Json.fromJson(json.get(0), LineageEdge.class);
   }
 
   @Override
   public LineageEdge retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_edge where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, LineageEdge.class);
+    return Json.fromJson(json.get(0), LineageEdge.class);
   }
 
   @Override

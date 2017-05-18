@@ -28,11 +28,10 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
 
     Node newNode = new Node(uniqueId, node.getName(), node.getSourceKey(), node.getTags());
     try {
+      postgresStatements = super.insert(newNode);
       postgresStatements.append(String.format(
         "insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
         uniqueId, node.getSourceKey(), node.getName()));
-
-      super.insert(newNode).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -45,7 +44,10 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
     String sql =
       String.format("select * from node where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Node.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Node with source_key %s does not exist.", sourceKey));
+    }
+    return Json.fromJson(json.get(0), Node.class);
   }
 
   @Override
@@ -53,7 +55,10 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
     String sql =
       String.format("select * from node where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Node.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Node with id %d does not exist.", id));
+    }
+    return Json.fromJson(json.get(0), Node.class);
   }
 
   @Override

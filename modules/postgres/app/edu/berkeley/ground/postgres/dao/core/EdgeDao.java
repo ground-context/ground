@@ -12,6 +12,8 @@
 package edu.berkeley.ground.postgres.dao.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.EdgeFactory;
 import edu.berkeley.ground.common.model.core.Edge;
@@ -34,17 +36,17 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
 
   public Edge create(Edge edge) throws GroundException {
 
-    PostgresStatements postgresStatements = new PostgresStatements();
+    PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();
 
     Edge newEdge = new Edge(uniqueId, edge.getName(), edge
       .getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getTags());
     try {
+      postgresStatements = super.insert(newEdge);
       postgresStatements.append(String.format(
-        "insert into edge (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
-        uniqueId, edge.getSourceKey(), edge.getName()));
+        "insert into edge (item_id, source_key, from_node_id, to_node_id, name) values (%d,\'%s\',%d,%d,\'%s\')",
+        uniqueId, edge.getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getName()));
 
-      super.insert(newEdge).merge(postgresStatements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -57,7 +59,10 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     String sql =
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Edge.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Edge with source_key %s does not exist.", sourceKey));
+    }
+    return Json.fromJson(json.get(0), Edge.class);
   }
 
   @Override
@@ -65,7 +70,10 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     String sql =
       String.format("select * from edge where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Edge.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Edge with id %d does not exist.", id));
+    }
+    return Json.fromJson(json.get(0), Edge.class);
   }
 
   @Override

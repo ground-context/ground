@@ -18,7 +18,6 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Daos {
-
   private final StructureDao structureDao;
   private final StructureVersionDao structureVersionDao;
   private final EdgeDao edgeDao;
@@ -35,17 +34,8 @@ public class Daos {
 
   /**
    * Create the  factories.
-   *
-   * @param configuration the Play app configuration
    */
-  @Inject public Daos(Database dbSource, Configuration configuration) throws GroundException {
-    Configuration dbConf = configuration.getConfig("db");
-    Configuration machineConf = configuration.getConfig("machine");
-
-    int numMachines = machineConf.getInt("count");
-    int machineId = machineConf.getInt("id");
-
-    IdGenerator idGenerator = new IdGenerator(machineId, numMachines, false);
+  @Inject public Daos(Database dbSource, IdGenerator idGenerator) throws GroundException {
 
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
