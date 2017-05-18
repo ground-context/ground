@@ -56,25 +56,36 @@ public class TagDao implements TagFactory {
     return new PostgresStatements(sqlList);
   }
 
-  public Map<String, Tag> retrieveFromDatabaseById(long id, String prefix) throws GroundException, SQLException {
+  public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "rich_version");
+  }
 
-    Connection con = dbSource.getConnection();
-    Statement stmt = con.createStatement();
-    String sql = String.format("select * from %s_tag where %s_id = %d", prefix, prefix, id);
-    ResultSet resultSet = stmt.executeQuery(sql);
+  public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
+    return this.retrieveFromDatabaseById(id, "item");
+  }
+
+  public Map<String, Tag> retrieveFromDatabaseById(long id, String prefix) throws GroundException {
 
     Map<String, Tag> results = new HashMap<>();
+    try {
+      Connection con = dbSource.getConnection();
 
-    do {
-      String key = resultSet.getString(2);
+      Statement stmt = con.createStatement();
+      String sql = String.format("select * from %s_tag where %s_id = %d", prefix, prefix, id);
+      ResultSet resultSet = stmt.executeQuery(sql);
 
-      // these methods will return null if the input is null, so there's no need to check
-      GroundType type = GroundType.fromString(resultSet.getString(4));
-      Object value = this.getValue(type, resultSet, 3);
+      do {
+        String key = resultSet.getString(2);
 
-      results.put(key, new Tag(id, key, value, type));
-    } while (resultSet.next());
+        // these methods will return null if the input is null, so there's no need to check
+        GroundType type = GroundType.fromString(resultSet.getString(4));
+        Object value = this.getValue(type, resultSet, 3);
 
+        results.put(key, new Tag(id, key, value, type));
+      } while (resultSet.next());
+    } catch (SQLException e) {
+      throw new GroundException(e);
+    }
     return results;
   }
 

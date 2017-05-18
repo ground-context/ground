@@ -17,6 +17,7 @@ package edu.berkeley.ground.postgres.dao.version;
   import edu.berkeley.ground.common.exception.GroundException;
   import edu.berkeley.ground.common.model.version.*;
   import edu.berkeley.ground.postgres.dao.PostgresTest;
+  import javafx.geometry.Pos;
   import org.junit.Test;
 
   import java.util.ArrayList;
@@ -26,18 +27,15 @@ package edu.berkeley.ground.postgres.dao.version;
 
   import static org.junit.Assert.*;
 
-public class ItemDaoTest  {
+public class ItemDaoTest extends PostgresTest {
 
-  /*
   private ItemDao itemDao;
   private VersionDao versionDao;
 
-  public PostgresItemFactoryTest() throws GroundException {
+  public ItemDaoTest() throws GroundException {
     super();
-
     this.itemDao = new ItemDao(PostgresTest.dbSource, PostgresTest.idGenerator,
       (VersionHistoryDagDao) PostgresTest.versionHistoryDagDao, PostgresTest.tagDao);
-
     this.versionDao = new VersionDao(PostgresTest.dbSource, PostgresTest.idGenerator);
   }
 
@@ -52,8 +50,8 @@ public class ItemDaoTest  {
       long fromId = 2;
       long toId = 3;
 
-      this.versionDao.(fromId);
-      this.versionDao.insertIntoDatabase(toId);
+      this.versionDao.create(new Version(fromId));
+      this.versionDao.create(new Version(toId));
 
       List<Long> parentIds = new ArrayList<>();
       this.itemDao.update(testId, fromId, parentIds);
@@ -94,9 +92,9 @@ public class ItemDaoTest  {
     try {
       long testId = 1;
 
-      this.itemDao.insertIntoDatabase(testId, new HashMap<>());
+      this.itemDao.create(new Item(testId, new HashMap<>()));
       long toId = 2;
-      this.versionDao.insertIntoDatabase(toId);
+      this.versionDao.create(new Version(toId));
 
       List<Long> parentIds = new ArrayList<>();
 
@@ -124,13 +122,13 @@ public class ItemDaoTest  {
     try {
       long testId = 1;
 
-      this.itemDao.insertIntoDatabase(testId, new HashMap<>());
+      this.itemDao.create(new Item(testId, new HashMap<>()));
 
       long fromId = 2;
       long toId = 3;
 
-      this.versionDao.insertIntoDatabase(fromId);
-      this.versionDao.insertIntoDatabase(toId);
+      this.versionDao.create(new Version(fromId));
+      this.versionDao.create(new Version(toId));
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
@@ -176,9 +174,9 @@ public class ItemDaoTest  {
       long toId = 3;
 
       try {
-        this.itemDao.insertIntoDatabase(testId, new HashMap<>());
+        this.itemDao.create(new Item(testId, new HashMap<>()));
 
-        this.versionDao.insertIntoDatabase(toId);
+        this.versionDao.create(new Version(toId));
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -198,15 +196,15 @@ public class ItemDaoTest  {
     try {
       long testId = 1;
 
-      this.itemDao.insertIntoDatabase(testId, new HashMap<>());
+      this.itemDao.create(new Item(testId, new HashMap<>()));
 
       long parentOne = 2;
       long parentTwo = 3;
       long child = 4;
 
-      this.versionDao.insertIntoDatabase(parentOne);
-      this.versionDao.insertIntoDatabase(parentTwo);
-      this.versionDao.insertIntoDatabase(child);
+      this.versionDao.create(new Version(parentOne));
+      this.versionDao.create(new Version(parentTwo));
+      this.versionDao.create(new Version(child));
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
@@ -264,7 +262,7 @@ public class ItemDaoTest  {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      this.itemDao.insertIntoDatabase(testId, tags);
+      this.itemDao.create(new Item(testId, tags));
 
       Item retrieved = this.itemDao.retrieveFromDatabase(testId);
 
@@ -281,5 +279,4 @@ public class ItemDaoTest  {
       //PostgresTest.postgresClient.abort();
     }
   }
-  */
 }

@@ -20,6 +20,7 @@ import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import javafx.geometry.Pos;
 import play.db.Database;
 
 import java.util.ArrayList;
@@ -76,7 +77,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     }
   }
 
-  public T create(T Item) throws GroundException { return null; }
+  public T create(T Item) throws GroundException {
+    PostgresStatements statements = insert(Item);
+    PostgresUtils.executeSqlList(dbSource, statements);
+    return Item;
+  }
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular
