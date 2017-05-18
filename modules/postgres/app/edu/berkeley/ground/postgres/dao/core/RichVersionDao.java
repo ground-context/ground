@@ -19,12 +19,18 @@ import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,11 +38,14 @@ import java.util.stream.Collectors;
 
 public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
 
+  TagDao tagDao;
+
   public RichVersionDao() {
   }
 
   public RichVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
+    this.tagDao = new TagDao(dbSource, idGenerator);
   }
 
   @Override
@@ -46,13 +55,30 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
 
   @Override
   public RichVersion retrieveFromDatabase(long id) throws GroundException {
-    //TODO This needs to return tags also
+
     String sql = String.format("select * from rich_version where id=%d", id);
-    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    if (json.size() == 0) {
-      throw new GroundException(String.format("Rich Version with id %d does not exist.", id));
+    ResultSet resultSet;
+    String reference;
+    long structureVersionId = 0;
+
+    try (Connection con = dbSource.getConnection()){
+
+      Statement stmt = con.createStatement();
+      resultSet = stmt.executeQuery(sql);
+
+      if (!resultSet.next()) {
+        throw new GroundException(String.format("Rich Version with id %d does not exist.", id));
+      }
+      reference = resultSet.getString(3);
+      structureVersionId = resultSet.getLong(2);
+      stmt.close();
+    } catch (SQLException e){
+      throw new GroundException(e);
     }
-    return Json.fromJson(json.get(0), RichVersion.class);
+    Map<String, Tag> tags = tagDao.retrieveFromDatabaseByVersionId(id);
+    Map<String, String> referenceParams = getReferenceParameters(id);
+    structureVersionId = structureVersionId == 0 ? -1 : structureVersionId;
+    return new RichVersion(id, tags, structureVersionId, reference, referenceParams);
   }
 
   static Map<String, Tag> addIdToTags(long id, Map<String, Tag> tags) throws GroundException {
@@ -68,6 +94,28 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
 
     return tags.values().stream().collect(Collectors.toMap(Tag::getKey, addId));
   }
+
+  public Map<String, String> getReferenceParameters(long id) throws GroundException {
+
+    String sql = String.format("select * from rich_version_external_parameter where rich_version_id = %d", id);
+    Map<String, String> referenceParameters = new HashMap<>();
+
+    try (Connection con = dbSource.getConnection()){
+      Statement stmt = con.createStatement();
+      ResultSet parameterSet = stmt.executeQuery(sql);
+      if (!referenceParameters.keySet().isEmpty()) {
+        do {
+          referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
+        } while (parameterSet.next());
+      }
+
+      stmt.close();
+    } catch (Exception e) {
+      throw new GroundException(e);
+    }
+    return referenceParameters;
+  }
+
 
   /**
    * Validate that the given Tags satisfy the StructureVersion's requirements.
