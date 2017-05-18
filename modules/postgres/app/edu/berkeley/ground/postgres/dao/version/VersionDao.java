@@ -31,6 +31,12 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
     this.idGenerator = idGenerator;
   }
 
+  public T create(T version) throws GroundException {
+    PostgresStatements statements = insert(version);
+    PostgresUtils.executeSqlList(dbSource, statements);
+    return version;
+  }
+
   @Override
   public PostgresStatements insert(T version) throws GroundException {
     PostgresStatements statements = new PostgresStatements();

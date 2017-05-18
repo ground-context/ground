@@ -49,8 +49,10 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
   }
 
   @Override
-  public T create(T RichVersion, List<Long> parentIds) throws GroundException {
-    return null;
+  public T create(T richVersion, List<Long> parentIds) throws GroundException {
+    PostgresStatements statements = this.insert(richVersion);
+    PostgresUtils.executeSqlList(dbSource, statements);
+    return richVersion;
   }
 
   @Override
