@@ -14,6 +14,8 @@ package edu.berkeley.ground.common.model.core;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Tag;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +61,11 @@ public class GraphVersion extends RichVersion {
     this.reference = reference;
     this.referenceParameters = referenceParameters;
     this.graphId = graphId;
-    this.edgeVersionIds = edgeVersionIds;
+    if (edgeVersionIds == null) {
+      this.edgeVersionIds = new ArrayList<Long>();
+    } else {
+      this.edgeVersionIds = edgeVersionIds;
+    }
   }
 
   public Map<String, Tag> getTags() {

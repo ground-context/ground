@@ -6,8 +6,8 @@ env:
   - NEO4J_VERSION=3.1.2
 
 before_script:
-  - sh -e ci/install.sh
-  - sh -e ci/init.sh 
+  - sh -e resources/ci/install.sh
+  - sh -e resources/ci/init.sh
 
 script:
   - sbt test

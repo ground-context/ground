@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import edu.berkeley.ground.common.factory.version.VersionHistoryDagFactory;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.version.*;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
+import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
 
@@ -70,18 +71,21 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
       String.format("select * from version_history_dag where item_id=%d", itemId);
 
     List<VersionSuccessor<T>> edges = new ArrayList<>();
-    try (Connection con = dbSource.getConnection()){
+    try (Connection con = dbSource.getConnection()) {
 
       Statement stmt = con.createStatement();
       final ResultSet resultSet = stmt.executeQuery(sql);
 
+      List<Long> successors = new ArrayList<>();
       while (resultSet.next()) {
-        long versionSuccessorId = resultSet.getLong("version_successor_id");
+        successors.add(resultSet.getLong("version_successor_id"));
+      }
+      stmt.close();
+      con.close();
+      for (Long versionSuccessorId : successors) {
         VersionSuccessor<T> versionSuccessor = versionSuccessorDao.retrieveFromDatabase(versionSuccessorId);
         edges.add(versionSuccessor);
       }
-      stmt.close();
-
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -101,7 +105,7 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
   public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
     throws GroundException {
 
-    VersionSuccessor successor = this.versionSuccessorDao.create(parentId, childId);
+    VersionSuccessor successor = this.versionSuccessorDao.instantiateVersionSuccessor(parentId, childId);
     dag.addEdge(parentId, childId, successor.getId());
     //TODO: Refactor to use SQL statement -- Shouldn't rely on dbClient
     /*
@@ -148,12 +152,12 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
     List<Long> deleteQueue = new ArrayList<>(new HashSet<>(previousLevel));
     Set<Long> deleted = new HashSet<>();
 
-    List<String> sqlList = new ArrayList<>();
+    PostgresStatements statements = new PostgresStatements();
 
     // delete the version successors between the last kept level and the first deleted level
     for (long id : lastLevel) {
       // TODO: Change to take in a sql list
-      this.versionSuccessorDao.deleteFromDestination(sqlList, id, dag.getItemId());
+      this.versionSuccessorDao.deleteFromDestination(statements, id, dag.getItemId());
       this.addEdge(dag, 0, id, dag.getItemId());
     }
 
@@ -166,27 +170,27 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
         tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
 
         if (itemType.equals(Structure.class)) {
-          sqlList.add(String.format("DELETE * FROM structure_version_attribute WHERE structure_version_id = %d;", id));
+          statements.append(String.format("DELETE FROM structure_version_attribute WHERE structure_version_id = %d;", id));
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
           String tableName = tableNamePrefix + "_version_edge";
 
-          sqlList.add(String.format("DELETE * FROM %s WHERE %s_version_id = %d;", tableName,
+          statements.append(String.format("DELETE FROM %s WHERE %s_version_id = %d;", tableName,
             tableNamePrefix, id));
         }
 
-        sqlList.add(String.format("DELETE * FROM %s_version where id = %d;", tableNamePrefix, id));
+        statements.append(String.format("DELETE FROM %s_version where id = %d;", tableNamePrefix, id));
 
         if (!itemType.equals(Structure.class)) {
-          sqlList.add(String.format("DELETE * FROM rich_version where id = %d;", id));
-          sqlList.add(String.format("DELETE * FROM rich_version_tag where rich_version_id = %d;", id));
+          statements.append(String.format("DELETE FROM rich_version where id = %d;", id));
+          statements.append(String.format("DELETE FROM rich_version_tag where rich_version_id = %d;", id));
         }
 
         // TODO: change to take SQL list
-        this.versionSuccessorDao.deleteFromDestination(sqlList, id, dag.getItemId());
+        this.versionSuccessorDao.deleteFromDestination(statements, id, dag.getItemId());
 
-        sqlList.add(String.format("DELETE * FROM version WHERE id = %d;", id));
+        statements.append(String.format("DELETE FROM version WHERE id = %d;", id));
 
         deleted.add(id);
 
@@ -201,6 +205,16 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
 
       deleteQueue.remove(0);
     }
+
+//    List<VersionSuccessor> newSuccessors = new ArrayList<>();
+    for (long id : lastLevel) {
+//      newSuccessors.add(new VersionSuccessor(versionSuccessorDao.getNewSuccessorId(), 0, id));
+      VersionHistoryDagDao newDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+      statements.merge(newDagDao.insert(dag, 0, id, dag.getItemId()));
+    }
+
+    //VersionHistoryDag newDag = new VersionHistoryDag(dag.getItemId(), newSuccessors);
+    PostgresUtils.executeSqlList(dbSource, statements);
 
   }
 }

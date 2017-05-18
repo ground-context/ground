@@ -34,6 +34,11 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     super(dbSource, idGenerator);
   }
 
+  @Override
+  public Class<Edge> getType() {
+    return Edge.class;
+  }
+
   public Edge create(Edge edge) throws GroundException {
 
     PostgresStatements postgresStatements;

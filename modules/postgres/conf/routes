@@ -9,10 +9,10 @@ GET         /                                  edu.berkeley.ground.postgres.cont
 GET         /assets/*file                      controllers.Assets.versioned(path="/public", file: Asset)
 
 # node endpoints
-POST    /nodes                             edu.berkeley.ground.postgres.controllers.NodeController.addNode()
-GET     /nodes/:sourceKey                  edu.berkeley.ground.postgres.controllers.NodeController.getNode(sourceKey: String)
-POST    /versions/nodes                    edu.berkeley.ground.postgres.controllers.NodeVersionController.addNodeVersion()
-GET     /versions/nodes/:id                edu.berkeley.ground.postgres.controllers.NodeVersionController.getNodeVersion(id: Long)
+POST        /nodes                             edu.berkeley.ground.postgres.controllers.NodeController.addNode()
+GET         /nodes/:sourceKey                  edu.berkeley.ground.postgres.controllers.NodeController.getNode(sourceKey: String)
+POST        /versions/nodes                    edu.berkeley.ground.postgres.controllers.NodeController.addNodeVersion()
+GET         /versions/nodes/:id                edu.berkeley.ground.postgres.controllers.NodeController.getNodeVersion(id: Long)
 
 # graph endpoints
 POST        /graphs                            edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
@@ -26,11 +26,11 @@ GET         /structures/:sourceKey             edu.berkeley.ground.postgres.cont
 POST        /versions/structures               edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
 GET         /versions/structures/:id           edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
 
-#Edge
-POST    /edges                         				  	  edu.berkeley.ground.postgres.controllers.EdgeController.addEdge()
-GET     /edges/:sourceKey                                 edu.berkeley.ground.postgres.controllers.EdgeController.getEdge(sourceKey: String)
-POST    /versions/edges                      			  edu.berkeley.ground.postgres.controllers.EdgeController.addEdgeVersion()
-GET     /versions/edges/:id                               edu.berkeley.ground.postgres.controllers.EdgeController.getEdgeVersion(id: Long)
+# edge endpoints
+POST        /edges                             edu.berkeley.ground.postgres.controllers.EdgeController.addEdge()
+GET         /edges/:sourceKey                  edu.berkeley.ground.postgres.controllers.EdgeController.getEdge(sourceKey: String)
+POST        /versions/edges                    edu.berkeley.ground.postgres.controllers.EdgeController.addEdgeVersion()
+GET         /versions/edges/:id                edu.berkeley.ground.postgres.controllers.EdgeController.getEdgeVersion(id: Long)
 
 # lineage edge endpoints
 POST        /lineage_edges                     edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdge()

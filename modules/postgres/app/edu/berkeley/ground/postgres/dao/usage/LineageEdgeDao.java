@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
+import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
@@ -31,13 +32,21 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   }
 
   @Override
+  public Class<LineageEdge> getType() {
+    return LineageEdge.class;
+  }
+
+  @Override
   public LineageEdge create(LineageEdge lineageEdge) throws GroundException {
-    PostgresStatements statements = super.insert(lineageEdge);
+    long uniqueId = idGenerator.generateItemId();
+    LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge.getName(), lineageEdge.getSourceKey(),
+      lineageEdge.getTags());
+    PostgresStatements statements = super.insert(newLineageEdge);
     statements.append(String.format("insert into lineage_edge (item_id, source_key, name) values (%d, '%s', '%s')",
-      lineageEdge.getId(), lineageEdge.getSourceKey(), lineageEdge.getName()));
+      newLineageEdge.getId(), newLineageEdge.getSourceKey(), newLineageEdge.getName()));
     try {
       PostgresUtils.executeSqlList(dbSource, statements);
-      return lineageEdge;
+      return newLineageEdge;
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -47,6 +56,9 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Lineage Edge with sourceKey %s does not exist.", sourceKey));
+    }
     return Json.fromJson(json.get(0), LineageEdge.class);
   }
 
@@ -54,6 +66,9 @@ public class LineageEdgeDao extends ItemDao<LineageEdge> implements LineageEdgeF
   public LineageEdge retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_edge where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Lineage Edge with id %d does not exist.", id));
+    }
     return Json.fromJson(json.get(0), LineageEdge.class);
   }
 

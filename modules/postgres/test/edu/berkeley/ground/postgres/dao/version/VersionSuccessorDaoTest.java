@@ -24,12 +24,10 @@ import static org.junit.Assert.*;
 
 public class VersionSuccessorDaoTest extends PostgresTest {
 
-  private VersionDao versionDao;
-
   public VersionSuccessorDaoTest() throws GroundException {
     super();
 
-    this.versionDao = new VersionDao(PostgresTest.dbSource, PostgresTest.idGenerator);
+    PostgresTest.versionDao = new VersionDao(PostgresTest.dbSource, PostgresTest.idGenerator);
   }
 
   @Test
@@ -38,8 +36,8 @@ public class VersionSuccessorDaoTest extends PostgresTest {
       long fromId = 1;
       long toId = 2;
 
-      this.versionDao.create(new Version(fromId));
-      this.versionDao.create(new Version(toId));
+      PostgresTest.versionDao.create(new Version(fromId));
+      PostgresTest.versionDao.create(new Version(toId));
 
       VersionSuccessor<?> successor = PostgresTest.versionSuccessorDao.create(fromId, toId);
 
@@ -62,7 +60,7 @@ public class VersionSuccessorDaoTest extends PostgresTest {
       // Catch exceptions for these two lines because they should not fal
       try {
         // the main difference is that we're not creating a Version for the toId
-        this.versionDao.create(new Version(fromId));
+        PostgresTest.versionDao.create(new Version(fromId));
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -83,7 +81,7 @@ public class VersionSuccessorDaoTest extends PostgresTest {
     } catch (GroundException e) {
       //PostgresTest.postgresClient.abort();
 
-      if (!e.getMessage().contains("No VersionSuccessor found with id 10.")) {
+      if (!e.getMessage().contains("Version Successor with id 10 does not exist.")) {
         fail();
       }
 

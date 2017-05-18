@@ -11,15 +11,21 @@
  */
 package edu.berkeley.ground.common.model.version;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Map;
 
 public class Item<T extends Version> {
 
+  @JsonProperty("id")
   private final long id;
 
+  @JsonProperty("tags")
   private final Map<String, Tag> tags;
 
-  public Item(long id, Map<String, Tag> tags) {
+  @JsonCreator
+  public Item(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags) {
     this.id = id;
     this.tags = tags;
   }

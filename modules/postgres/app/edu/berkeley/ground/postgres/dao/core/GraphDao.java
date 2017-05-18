@@ -31,6 +31,11 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
     super(dbSource, idGenerator);
   }
 
+  @Override
+  public Class<Graph> getType() {
+    return Graph.class;
+  }
+
   public Graph create(Graph graph) throws GroundException {
 
     PostgresStatements postgresStatements;

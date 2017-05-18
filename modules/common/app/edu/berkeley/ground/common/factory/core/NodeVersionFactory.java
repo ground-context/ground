@@ -11,23 +11,15 @@
  */
 package edu.berkeley.ground.common.factory.core;
 
-import edu.berkeley.ground.lib.exception.GroundException;
-import edu.berkeley.ground.lib.model.core.NodeVersion;
-import edu.berkeley.ground.lib.model.version.Tag;
-import java.util.List;
-import java.util.Map;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.NodeVersion;
+import java.util.List;
 
 public interface NodeVersionFactory extends RichVersionFactory<NodeVersion> {
-  NodeVersion create(
-      Map<String, Tag> tags,
-      long structureVersionId,
-      String reference,
-      Map<String, String> referenceParameters,
-      long nodeId,
-      List<Long> parentIds)
-      throws GroundException;
+
+  @Override
+  NodeVersion create(NodeVersion nodeVersion, List<Long> parentIds)
+    throws GroundException;
 
   @Override
   NodeVersion retrieveFromDatabase(long id) throws GroundException;

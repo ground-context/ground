@@ -11,9 +11,11 @@
  */
 package edu.berkeley.ground.postgres.dao.version;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.ItemFactory;
-import edu.berkeley.ground.common.factory.version.TagFactory;
+import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
@@ -22,14 +24,16 @@ import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import javafx.geometry.Pos;
 import play.db.Database;
+import play.libs.Json;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ItemDao<T extends Item> implements ItemFactory<T> {
   protected VersionHistoryDagDao versionHistoryDagDao;
-  protected TagFactory tagFactory;
+  protected TagDao tagDao;
   protected Database dbSource;
   protected IdGenerator idGenerator;
 
@@ -39,15 +43,18 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   }
 
   public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao
-    versionHistoryDagDao, TagFactory tagFactory) {
+    versionHistoryDagDao, TagDao tagDao) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
     this.versionHistoryDagDao = versionHistoryDagDao;
-    this.tagFactory = tagFactory;
+    this.tagDao = tagDao;
   }
 
+  public Item getItemData(long id) throws GroundException {
+    Map<String, Tag> tags = tagDao.retrieveFromDatabaseByItemId(id);
+    return new Item(id, tags);
+  }
 
-  @Override
   public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
@@ -64,6 +71,9 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
 
   @Override
   public List<Long> getLeaves(long itemId) throws GroundException {
+    if (this.versionHistoryDagDao == null) {
+      this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+    }
     try {
       VersionHistoryDag<?> dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
 
@@ -113,7 +123,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     }
 
     for (long parentId : parentIds) {
-      if (parentId != 0 && !dag.checkItemInDag(parentId)) {
+      if (parentId != 0L && !dag.checkItemInDag(parentId)) {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
         throw new GroundException(errorString);
       }
@@ -132,7 +142,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    */
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    VersionHistoryDag<?> dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+    VersionHistoryDag<?> dag;
+    if (versionHistoryDagDao == null) {
+      versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+    }
+    dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
     //TODO versionHistoryDagDao is null (not passed in)
     this.versionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }
@@ -149,6 +163,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
+        tag.setId(item.getId());
         TagDao tagDao = new TagDao(dbSource, idGenerator);
         postgresStatements.merge(tagDao.insert(tag));
       }

@@ -18,7 +18,7 @@ import java.util.Objects;
 
 public class Tag {
   @JsonProperty("id")
-  private final long id;
+  private long id;
 
   @JsonProperty("key")
   private final String key;
@@ -57,6 +57,10 @@ public class Tag {
     this.key = key;
     this.value = value;
     this.valueType = valueType;
+  }
+
+  public void setId(long id) {
+    this.id = id;
   }
 
   public long getId() {
