@@ -108,31 +108,17 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
 
   @Override
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    ObjectMapper mapper = new ObjectMapper();
     String sql = String.format("select * from edge_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
       throw new GroundException(String.format("Edge Version with id %d does not exist.", id));
     }
-
-    //TODO: Should call super.retrieveRichVersionData or something
     json = json.get(0);
-    sql = String.format("select * from rich_version where id=%d", id);
-    JsonNode richVersionJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    if (richVersionJson.size() == 0) {
-      throw new GroundException(String.format("Rich Version with id %d does not exist.", id));
-    }
-    richVersionJson = richVersionJson.get(0);
-    ((ObjectNode) json).set("structureVersionId", richVersionJson.get("structureVersionId"));
-    ((ObjectNode) json).set("reference", richVersionJson.get("reference"));
-    sql = String.format("select * from rich_version_tag where rich_version_id=%d", id);
-    JsonNode tagsJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    ((ObjectNode) json).set("tags", mapper.createObjectNode());
-    for (int i = 0; i < tagsJson.size(); i++) {
-      ((ObjectNode) json.get("tags")).set(tagsJson.get(i).get("key").toString(), tagsJson.get(i));
-    }
+
     EdgeVersion edgeVersion = Json.fromJson(json, EdgeVersion.class);
-    //RichVersion richVersion = super.retrieveFromDatabase(id);
-    return edgeVersion;
+    RichVersion richVersion = super.retrieveFromDatabase(id);
+    return new EdgeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(),
+      richVersion.getParameters(), edgeVersion.getEdgeId(), edgeVersion.getFromNodeVersionStartId(), edgeVersion.getFromNodeVersionEndId(),
+      edgeVersion.getToNodeVersionStartId(), edgeVersion.getToNodeVersionEndId());
   }
 }
