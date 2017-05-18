@@ -63,6 +63,9 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
 
   @Override
   public List<Long> getLeaves(long itemId) throws GroundException {
+    if (this.versionHistoryDagDao == null) {
+      this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+    }
     try {
       VersionHistoryDag<?> dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
 
@@ -127,7 +130,11 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    */
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    VersionHistoryDag<?> dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+    VersionHistoryDag<?> dag;
+    if (versionHistoryDagDao == null) {
+      versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+    }
+    dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
     //TODO versionHistoryDagDao is null (not passed in)
     this.versionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }

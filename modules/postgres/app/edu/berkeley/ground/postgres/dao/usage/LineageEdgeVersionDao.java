@@ -54,12 +54,10 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
       PostgresStatements statements = super.insert(newLineageEdgeVersion);
       statements.append(String.format(
         "insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id, to_rich_version_id, principal_id) values (%d, %d, %d, %d, %d)",
-        uniqueId, newLineageEdgeVersion.getId(), newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getFromId(),
-        newLineageEdgeVersion.getToId()));
+        uniqueId, newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getFromId(),
+        newLineageEdgeVersion.getToId(), null));
+      // TODO no principal yet
       statements.merge(updateVersionList);
-
-      System.out.println("uniqueId: " + uniqueId);
-      System.out.println("lineageEdgeId: " + newLineageEdgeVersion.getLineageEdgeId());
 
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
@@ -72,6 +70,9 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_edge_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Lineage Edge Version with id %d does not exist.", id));
+    }
     return Json.fromJson(json.get(0), LineageEdgeVersion.class);
   }
 }

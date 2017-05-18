@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.version.Tag;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +49,11 @@ public class LineageGraphVersion extends RichVersion {
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.lineageGraphId = lineageGraphId;
-    this.lineageEdgeVersionIds = lineageEdgeVersionIds;
+    if (lineageEdgeVersionIds == null) {
+      this.lineageEdgeVersionIds = new ArrayList<Long>();
+    } else {
+      this.lineageEdgeVersionIds = lineageEdgeVersionIds;
+    }
   }
 
   public long getLineageGraphId() {
