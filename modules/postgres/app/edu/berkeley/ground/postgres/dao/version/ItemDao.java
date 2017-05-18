@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ItemDao<T extends Item> implements ItemFactory<T> {
-  private VersionHistoryDagDao versionHistoryDagDao;
-  private TagFactory tagFactory;
+  protected VersionHistoryDagDao versionHistoryDagDao;
+  protected TagFactory tagFactory;
   protected Database dbSource;
   protected IdGenerator idGenerator;
 
@@ -87,8 +87,6 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  //TODO: This interface should remain the same, versionHistoryDag should operate the same way
-  //TODO: This should create a sqlList to support rollback
   //Should return sqlList and also add edges to the versionHistoryDag
   @Override
   public PostgresStatements update(long itemId, long childId, List<Long> parentIds) throws GroundException {
@@ -130,6 +128,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
     VersionHistoryDag<?> dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
+    //TODO versionHistoryDagDao is null (not passed in)
     this.versionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }
 

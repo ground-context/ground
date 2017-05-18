@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.Executor;
 
 import com.google.common.base.Enums;
+import edu.berkeley.ground.common.exception.GroundException;
 import play.Logger;
 import play.db.Database;
 import play.libs.concurrent.HttpExecution;
@@ -33,7 +34,7 @@ public final class PostgresUtils {
         (Executor) actorSystem.dispatchers().lookup("ground.db.context"));
   }
 
-  public static String executeQueryToJson(Database dbSource, String sql) {
+  public static String executeQueryToJson(Database dbSource, String sql) throws GroundException {
     Logger.debug("executeQueryToJson sql : {}", sql);
     try {
       try (Connection con = dbSource.getConnection()) {
@@ -58,8 +59,8 @@ public final class PostgresUtils {
                 e.getMessage(),
                 e.getCause(),
                 e.getStackTrace());
-            throw new RuntimeException(
-                String.format("ERROR : executeQueryToJson Message: %s", e.getMessage()), e);
+            throw new GroundException(e);
+            //throw new RuntimeException(String.format("ERROR : executeQueryToJson Message: %s", e.getMessage()), e);
           }
         }
       }
@@ -69,12 +70,12 @@ public final class PostgresUtils {
           sql,
           e.getMessage(),
           e.getStackTrace());
-      throw new RuntimeException(
-          String.format("ERROR : executeQueryToJson Message: %s", e.getMessage()), e);
+      throw new GroundException(e);
+      //throw new RuntimeException(String.format("ERROR : executeQueryToJson Message: %s", e.getMessage()), e);
     }
   }
 
-  public static final String executeSqlList(final Database dbSource, final PostgresStatements statements) {
+  public static final String executeSqlList(final Database dbSource, final PostgresStatements statements) throws GroundException {
     String status = null;
 
     try {
@@ -89,8 +90,8 @@ public final class PostgresUtils {
               } catch (final SQLException e) {
                 con.rollback();
                 Logger.error("error:  Message: {} Trace: {}", e.getMessage(), e.getStackTrace());
-                throw new RuntimeException(
-                    "Trying to execute sql. sql : " + sql + e.getMessage(), e);
+                throw new GroundException(e);
+                //throw new RuntimeException("Trying to execute sql. sql : " + sql + e.getMessage(), e);
               }
             } catch (SQLException e) {
               Logger.error(
@@ -99,8 +100,8 @@ public final class PostgresUtils {
                   e.getMessage(),
                   e.getCause(),
                   e.getStackTrace());
-              throw new RuntimeException(
-                  String.format("error : executeSqlList Message: %s", e.getMessage()), e);
+              throw new GroundException(e);
+              //throw new RuntimeException(String.format("error : executeSqlList Message: %s", e.getMessage()), e);
             }
           }
           con.commit();
@@ -114,7 +115,8 @@ public final class PostgresUtils {
           statements.getAllStatements(),
           e.getMessage(),
           e.getStackTrace());
-      throw new RuntimeException("error :  executeSqlList." + e.getMessage(), e);
+      throw new GroundException(e);
+      //throw new RuntimeException("error :  executeSqlList." + e.getMessage(), e);
     }
   }
 }

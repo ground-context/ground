@@ -64,7 +64,7 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     String sql =
       String.format("select * from structure where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Structure.class);
+    return Json.fromJson(json.get(0), Structure.class);
   }
 
   @Override

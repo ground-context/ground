@@ -17,16 +17,16 @@ import edu.berkeley.ground.common.exception.GroundException;
 import java.util.Objects;
 
 public class Tag {
-  @JsonProperty
+  @JsonProperty("id")
   private final long id;
 
-  @JsonProperty
+  @JsonProperty("key")
   private final String key;
 
-  @JsonProperty
+  @JsonProperty("value")
   private final Object value;
 
-  @JsonProperty
+  @JsonProperty("type")
   private final GroundType valueType;
 
   /**

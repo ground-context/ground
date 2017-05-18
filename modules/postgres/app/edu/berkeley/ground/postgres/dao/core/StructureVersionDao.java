@@ -67,7 +67,7 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
     } catch (Exception e) {
       throw new GroundException(e);
     }
-    return structureVersion;
+    return newStructureVersion;
   }
 
   @Override

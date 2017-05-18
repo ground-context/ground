@@ -23,7 +23,7 @@ public interface RichVersionFactory<T extends RichVersion> extends VersionFactor
 
   T create(T RichVersion, List<Long> parentIds) throws GroundException;
 
-  T retrieveFromDatabase(long id) throws GroundException;
+  RichVersion retrieveFromDatabase(long id) throws GroundException;
 
   DbStatements insert(T richVersion)
       throws GroundException;

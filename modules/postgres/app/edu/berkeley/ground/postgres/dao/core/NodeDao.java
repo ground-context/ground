@@ -44,7 +44,10 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
     String sql =
       String.format("select * from node where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Node.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Node with source_key %s does not exist.", sourceKey));
+    }
+    return Json.fromJson(json.get(0), Node.class);
   }
 
   @Override
@@ -52,7 +55,10 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
     String sql =
       String.format("select * from node where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Node.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Node with id %d does not exist.", id));
+    }
+    return Json.fromJson(json.get(0), Node.class);
   }
 
   @Override
