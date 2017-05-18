@@ -69,8 +69,11 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
 
   @Override
   public LineageGraphVersion retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from node_version where id=%d", id);
+    String sql = String.format("select * from lineage_graph_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Lineage Graph Version with id %d does not exist.", id));
+    }
     return Json.fromJson(json.get(0), LineageGraphVersion.class);
   }
 }

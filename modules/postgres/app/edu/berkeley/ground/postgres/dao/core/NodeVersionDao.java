@@ -57,6 +57,9 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from node_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Node Version with id %d does not exist.", id));
+    }
     return Json.fromJson(json.get(0), NodeVersion.class);
   }
 }

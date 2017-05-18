@@ -14,6 +14,7 @@ package edu.berkeley.ground.common.factory.version;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
+import edu.berkeley.ground.common.utils.DbStatements;
 
 import java.util.List;
 
@@ -22,5 +23,5 @@ public interface VersionSuccessorFactory {
 
   <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId) throws GroundException;
 
-  void deleteFromDestination(List<String> sqlList, long toId, long itemId) throws GroundException;
+  void deleteFromDestination(DbStatements statements, long toId, long itemId) throws GroundException;
 }

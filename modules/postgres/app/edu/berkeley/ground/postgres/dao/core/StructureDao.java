@@ -32,6 +32,11 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     super(dbSource, idGenerator);
   }
 
+  @Override
+  public Class<Structure> getType() {
+    return Structure.class;
+  }
+
   public Structure create(Structure structure) throws GroundException {
 
     PostgresStatements postgresStatements = new PostgresStatements();
@@ -56,7 +61,10 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     String sql =
       String.format("select * from structure where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json, Structure.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Structure with sourceKey %s does not exist.", sourceKey));
+    }
+    return Json.fromJson(json.get(0), Structure.class);
   }
 
   @Override
@@ -64,6 +72,9 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     String sql =
       String.format("select * from structure where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Structure with id %d does not exist.", id));
+    }
     return Json.fromJson(json.get(0), Structure.class);
   }
 

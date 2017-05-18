@@ -51,6 +51,7 @@ public final class PostgresUtils {
               }
               objList.add(rowData);
             }
+            con.close();
             return GroundUtils.listtoJson(objList);
           } catch (SQLException e) {
             Logger.error(

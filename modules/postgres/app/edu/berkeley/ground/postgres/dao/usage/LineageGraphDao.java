@@ -31,13 +31,21 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   }
 
   @Override
+  public Class<LineageGraph> getType() {
+    return LineageGraph.class;
+  }
+
+  @Override
   public LineageGraph create(LineageGraph lineageGraph) throws GroundException {
-    PostgresStatements statements = super.insert(lineageGraph);
+    long uniqueId = idGenerator.generateItemId();
+    LineageGraph newLineageGraph = new LineageGraph(uniqueId, lineageGraph.getName(), lineageGraph.getSourceKey(),
+      lineageGraph.getTags());
+    PostgresStatements statements = super.insert(newLineageGraph);
     statements.append(String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')",
-      lineageGraph.getId(), lineageGraph.getSourceKey(), lineageGraph.getName()));
+      newLineageGraph.getId(), newLineageGraph.getSourceKey(), newLineageGraph.getName()));
     try {
       PostgresUtils.executeSqlList(dbSource, statements);
-      return lineageGraph;
+      return newLineageGraph;
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -47,6 +55,9 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_graph where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Lineage Graph with sourceKey %s does not exist.", sourceKey));
+    }
     return Json.fromJson(json.get(0), LineageGraph.class);
   }
 
@@ -54,6 +65,9 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   public LineageGraph retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_graph where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Lineage Graph with id %d does not exist.", id));
+    }
     return Json.fromJson(json.get(0), LineageGraph.class);
   }
 
