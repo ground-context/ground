@@ -14,9 +14,9 @@ package edu.berkeley.ground.postgres.dao.usage;
   import static org.junit.Assert.assertEquals;
   import static org.junit.Assert.assertTrue;
 
-public class PostgresLineageGraphVersionFactoryTest extends PostgresTest {
+public class LineageGraphVersionDaoTest extends PostgresTest {
 
-  public PostgresLineageGraphVersionFactoryTest() throws GroundException {
+  public LineageGraphVersionDaoTest() throws GroundException {
     super();
   }
 

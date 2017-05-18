@@ -69,7 +69,7 @@ public class TagController extends Controller {
       JsonNode json = request().body().asJson();
       Tag tag = Json.fromJson(json, Tag.class);
       try {
-        new TagDao().create(dbSource, tag, idGenerator);
+        new TagDao(dbSource, idGenerator).create(dbSource, tag, idGenerator);
       } catch (GroundException e) {
         throw new CompletionException(e);
       }

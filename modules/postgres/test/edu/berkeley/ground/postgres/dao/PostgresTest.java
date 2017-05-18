@@ -60,7 +60,7 @@ public class PostgresTest extends DaoTest {
 
     versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     versionHistoryDagDao= new VersionHistoryDagDao(dbSource, (VersionSuccessorDao) versionSuccessorDao);
-    tagDao = new TagDao();
+    tagDao = new TagDao(dbSource, idGenerator);
 
     edgeDao = daos.getEdgeDao();
     graphDao = daos.getGraphDao();
