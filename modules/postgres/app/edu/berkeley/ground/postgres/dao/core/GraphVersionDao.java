@@ -34,7 +34,7 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
     //TODO: I think we should consider using injection here
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
-    TagDao tagDao = new TagDao();
+    TagDao tagDao = new TagDao(dbSource, idGenerator);
 
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 

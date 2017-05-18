@@ -39,7 +39,7 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
     //TODO: I think we should consider using injection here
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
-    TagDao tagDao = new TagDao();
+    TagDao tagDao = new TagDao(dbSource, idGenerator);
 
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
     PostgresStatements updateVersionList = itemDao.update(newEdgeVersion.getEdgeId(), newEdgeVersion.getId(), parentIds);
@@ -76,6 +76,8 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
     if (json.size() == 0) {
       throw new GroundException(String.format("Edge Version with id %d does not exist.", id));
     }
+
+    //TODO: Should call super.retrieveRichVersionData or something
     json = json.get(0);
     sql = String.format("select * from rich_version where id=%d", id);
     JsonNode richVersionJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));

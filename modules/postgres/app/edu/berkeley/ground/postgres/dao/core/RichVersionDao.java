@@ -46,6 +46,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
 
   @Override
   public RichVersion retrieveFromDatabase(long id) throws GroundException {
+    //TODO This needs to return tags also
     String sql = String.format("select * from rich_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
