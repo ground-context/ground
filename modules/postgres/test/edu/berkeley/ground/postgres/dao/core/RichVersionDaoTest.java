@@ -14,46 +14,30 @@
 
 package edu.berkeley.ground.postgres.dao.core;
 
-  import edu.berkeley.ground.common.exception.GroundException;
-  import edu.berkeley.ground.common.model.core.RichVersion;
-  import edu.berkeley.ground.common.model.version.GroundType;
-  import edu.berkeley.ground.common.model.version.Tag;
-  import edu.berkeley.ground.common.utils.IdGenerator;
-  import edu.berkeley.ground.postgres.dao.PostgresTest;
-  import edu.berkeley.ground.postgres.dao.version.TagDao;
-  import org.junit.Test;
-  import play.db.Database;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.RichVersion;
+import edu.berkeley.ground.common.model.version.GroundType;
+import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.PostgresTest;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import javafx.geometry.Pos;
+import org.junit.Test;
+import play.db.Database;
 
-  import java.util.ArrayList;
-  import java.util.HashMap;
-  import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
   import static org.junit.Assert.*;
 
-public class RichVersionDaoTest  {
+public class RichVersionDaoTest extends PostgresTest {
 
-  /*
-  private TestRichVersionDao richVersionFactory;
-
-  private class TestRichVersionDao extends RichVersionDao<RichVersion> {
-
-    private TestRichVersionDao(Database dbSource, IdGenerator idGenerator) {
-      super(dbSource, idGenerator);
-    }
-
-    public Class<RichVersion> getType() {
-      return RichVersion.class;
-    }
-
-    public RichVersion retrieveFromDatabase(long id) throws GroundException {
-      throw new GroundException("This operation should never be called.");
-    }
-  }
+  RichVersionDao richVersionDao;
 
   public RichVersionDaoTest() throws GroundException {
     super();
-
-    this.richVersionFactory = new TestRichVersionDao(PostgresTest.dbSource, PostgresTest.idGenerator);
+    this.richVersionDao = new RichVersionDao(PostgresTest.dbSource, PostgresTest.idGenerator);
   }
 
   @Test
@@ -65,10 +49,10 @@ public class RichVersionDaoTest  {
       parameters.put("http", "GET");
       parameters.put("ftp", "test");
 
-      this.richVersionFactory.insert(id, new HashMap<>(), -1, testReference,
-        parameters);
+      RichVersion richVersion = new RichVersion(id, new HashMap<String, Tag>(), -1L, testReference, parameters);
+      this.richVersionDao.create(richVersion, new ArrayList<>());
 
-      RichVersion retrieved = this.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionDao.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(testReference, retrieved.getReference());
@@ -94,9 +78,10 @@ public class RichVersionDaoTest  {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, -1, null, new HashMap<>());
+      RichVersion richVersion = new RichVersion(id, tags, -1L, null, new HashMap<>());
+      this.richVersionDao.create(richVersion, new ArrayList<>());
 
-      RichVersion retrieved = this.richVersionFactory.retrieveFromDatabase(id);
+      RichVersion retrieved = this.richVersionDao.retrieveFromDatabase(id);
 
       assertEquals(id, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());
@@ -123,11 +108,11 @@ public class RichVersionDaoTest  {
 
       Map<String, Tag> tags = PostgresTest.createTags();
 
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
-        new HashMap<>());
+      RichVersion richVersion = new RichVersion(id, tags, structureVersionId, null, new HashMap<>());
+      this.richVersionDao.create(richVersion, new ArrayList<>());
 
-      RichVersion retrieved = this.richVersionFactory.retrieveFromDatabase(id);
-      assertEquals(retrieved.getStructureVersionId(), structureVersionId);
+      RichVersion retrieved = this.richVersionDao.retrieveFromDatabase(id);
+      assertEquals((long) retrieved.getStructureVersionId(), structureVersionId);
     } finally {
       //PostgresTest.postgresClient.abort();
     }
@@ -156,11 +141,10 @@ public class RichVersionDaoTest  {
       tags.put("intfield", new Tag(-1, "boolfield", true, GroundType.BOOLEAN));
 
       // this should fail
-      this.richVersionFactory.insertIntoDatabase(id, tags, structureVersionId, null,
-        new HashMap<>());
+      RichVersion richVersion = new RichVersion(id, tags, structureVersionId, null, new HashMap<>());
+      this.richVersionDao.create(richVersion, new ArrayList<>());
     } finally {
       //PostgresTest.postgresClient.abort();
     }
   }
-  */
 }

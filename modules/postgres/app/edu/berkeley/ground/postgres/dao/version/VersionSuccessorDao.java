@@ -43,7 +43,6 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     return this.idGenerator.generateSuccessorId();
   }
 
-  //TODO: Create an addToSqlList method
   /**
    * Create a sqlList containing commands that will persist a new version successor
    * @param fromId id of the parent version
