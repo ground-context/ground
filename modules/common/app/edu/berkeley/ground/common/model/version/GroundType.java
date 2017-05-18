@@ -11,6 +11,9 @@
  */
 package edu.berkeley.ground.common.model.version;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import edu.berkeley.ground.common.exception.GroundException;
 import java.sql.Types;
 
@@ -68,6 +71,7 @@ public enum GroundType {
    * @return the corresponding GroundType
    * @throws GroundException no such type
    */
+  @JsonCreator
   public static GroundType fromString(String str) throws GroundException {
     if (str == null) {
       return null;

@@ -20,5 +20,5 @@ import java.util.List;
 public interface VersionFactory<T extends Version> {
   DbStatements insert(T version) throws GroundException;
 
-  T retrieveFromDatabase(long id) throws GroundException;
+  Version retrieveFromDatabase(long id) throws GroundException;
 }

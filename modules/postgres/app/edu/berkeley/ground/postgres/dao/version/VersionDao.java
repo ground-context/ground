@@ -42,7 +42,7 @@ public class VersionDao<T extends Version> implements VersionFactory<T> {
   }
 
   @Override
-  public T retrieveFromDatabase(long id) throws GroundException {
+  public Version retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
 

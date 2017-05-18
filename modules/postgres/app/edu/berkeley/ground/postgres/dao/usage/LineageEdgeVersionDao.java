@@ -11,6 +11,7 @@
  */
 package edu.berkeley.ground.postgres.dao.usage;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
@@ -23,6 +24,7 @@ import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
+import play.libs.Json;
 
 import java.util.List;
 
@@ -64,5 +66,12 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
       throw new GroundException(e);
     }
     return newLineageEdgeVersion;
+  }
+
+  @Override
+  public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
+    String sql = String.format("select * from lineage_edge_version where id=%d", id);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    return Json.fromJson(json.get(0), LineageEdgeVersion.class);
   }
 }
