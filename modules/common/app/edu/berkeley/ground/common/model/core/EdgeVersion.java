@@ -70,9 +70,17 @@ public class EdgeVersion extends RichVersion {
     this.edgeId = edgeId;
 
     this.fromNodeVersionStartId = fromNodeVersionStartId;
-    this.fromNodeVersionEndId = fromNodeVersionEndId;
+    if (fromNodeVersionEndId <= 0) {
+      this.fromNodeVersionEndId = -1L;
+    } else {
+      this.fromNodeVersionEndId = fromNodeVersionEndId;
+    }
     this.toNodeVersionStartId = toNodeVersionStartId;
-    this.toNodeVersionEndId = toNodeVersionEndId;
+    if (toNodeVersionEndId <= 0) {
+      this.toNodeVersionEndId = -1L;
+    } else {
+      this.toNodeVersionEndId= toNodeVersionEndId;
+    }
   }
 
   public long getEdgeId() {

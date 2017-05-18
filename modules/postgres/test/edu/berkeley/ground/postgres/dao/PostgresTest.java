@@ -9,6 +9,7 @@ import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.postgres.utils.Daos;
 import javafx.geometry.Pos;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -40,7 +41,6 @@ public class PostgresTest extends DaoTest {
   @AfterClass
   public static void teardownClass() throws SQLException {
     //dbSource.getConnection().close();
-    dbSource.shutdown();
   }
 
   @Before
@@ -60,7 +60,7 @@ public class PostgresTest extends DaoTest {
 
     versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     versionHistoryDagDao= new VersionHistoryDagDao(dbSource, (VersionSuccessorDao) versionSuccessorDao);
-    tagDao = new TagDao();
+    tagDao = new TagDao(dbSource, idGenerator);
 
     edgeDao = daos.getEdgeDao();
     graphDao = daos.getGraphDao();
@@ -77,6 +77,11 @@ public class PostgresTest extends DaoTest {
     structureVersionDao = daos.getStructureVersionDao();
     runScript(DROP_SCRIPT);
     runScript(CREATE_SCHEMA_SCRIPT);
+  }
+
+  @After
+  public void tearDown() throws IOException, InterruptedException, GroundException {
+    dbSource.shutdown();
   }
 
   private static void runScript(String script)  {

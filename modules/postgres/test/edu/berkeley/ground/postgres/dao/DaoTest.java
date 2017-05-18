@@ -90,6 +90,18 @@ public class DaoTest {
     return edgeVersionDao.create(edgeVersion, parents);
   }
 
+  public static EdgeVersion createEdgeVersion(long edgeId,
+                                              long fromStart,
+                                              long fromEnd,
+                                              long toStart,
+                                              long toEnd,
+                                              List<Long> parents)
+    throws GroundException {
+    EdgeVersion edgeVersion = new EdgeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
+      edgeId, fromStart, fromEnd, toStart, toEnd);
+    return edgeVersionDao.create(edgeVersion, parents);
+  }
+
   public static Graph createGraph(String sourceKey) throws GroundException {
     Graph graph = new Graph(0L, null, sourceKey, new HashMap<>());
     return graphDao.create(graph);

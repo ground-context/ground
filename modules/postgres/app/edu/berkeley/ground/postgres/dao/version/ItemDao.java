@@ -144,7 +144,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
-        TagDao tagDao = new TagDao();
+        TagDao tagDao = new TagDao(dbSource, idGenerator);
         postgresStatements.merge(tagDao.insert(tag));
       }
     }

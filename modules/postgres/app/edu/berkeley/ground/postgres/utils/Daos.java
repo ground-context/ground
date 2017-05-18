@@ -39,7 +39,7 @@ public class Daos {
 
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
-    TagDao tagDao = new TagDao();
+    TagDao tagDao = new TagDao(dbSource, idGenerator);
 
     this.structureDao = new StructureDao(dbSource, idGenerator);
     this.structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
