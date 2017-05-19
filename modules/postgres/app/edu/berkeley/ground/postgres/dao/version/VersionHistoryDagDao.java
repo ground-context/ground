@@ -20,7 +20,6 @@ import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.version.*;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import org.apache.commons.collections.ArrayStack;
 import play.db.Database;
 
 
