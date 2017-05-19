@@ -20,6 +20,7 @@ import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
+import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 
 import java.sql.Connection;
@@ -43,6 +44,7 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     return this.idGenerator.generateSuccessorId();
   }
 
+  //TODO: Create an addToSqlList method
   /**
    * Create a sqlList containing commands that will persist a new version successor
    * @param fromId id of the parent version
@@ -74,6 +76,8 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
 
     //TODO: Don't use dbClient
     long dbId = idGenerator.generateSuccessorId();
+    PostgresStatements postgresStatements = insert(fromId, toId, dbId);
+    PostgresUtils.executeSqlList(dbSource, postgresStatements);
     return new VersionSuccessor<>(dbId, fromId, toId);
   }
 

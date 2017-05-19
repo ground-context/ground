@@ -34,9 +34,6 @@ public class ItemDaoTest extends PostgresTest {
 
   public ItemDaoTest() throws GroundException {
     super();
-    this.itemDao = new ItemDao(PostgresTest.dbSource, PostgresTest.idGenerator,
-      (VersionHistoryDagDao) PostgresTest.versionHistoryDagDao, PostgresTest.tagDao);
-    this.versionDao = new VersionDao(PostgresTest.dbSource, PostgresTest.idGenerator);
   }
 
   @Test
@@ -45,20 +42,20 @@ public class ItemDaoTest extends PostgresTest {
       long testId = 1;
 
       Item item = new Item(testId, new HashMap<>());
-      this.itemDao.create(item);
+      PostgresTest.itemDao.create(item);
 
       long fromId = 2;
       long toId = 3;
 
-      this.versionDao.create(new Version(fromId));
-      this.versionDao.create(new Version(toId));
+      PostgresTest.versionDao.create(new Version(fromId));
+      PostgresTest.versionDao.create(new Version(toId));
 
       List<Long> parentIds = new ArrayList<>();
-      this.itemDao.update(testId, fromId, parentIds);
+      PostgresTest.itemDao.update(testId, fromId, parentIds);
 
       parentIds.clear();
       parentIds.add(fromId);
-      this.itemDao.update(testId, toId, parentIds);
+      PostgresTest.itemDao.update(testId, toId, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
@@ -92,15 +89,15 @@ public class ItemDaoTest extends PostgresTest {
     try {
       long testId = 1;
 
-      this.itemDao.create(new Item(testId, new HashMap<>()));
+      PostgresTest.itemDao.create(new Item(testId, new HashMap<>()));
       long toId = 2;
-      this.versionDao.create(new Version(toId));
+      PostgresTest.versionDao.create(new Version(toId));
 
       List<Long> parentIds = new ArrayList<>();
 
       // No parent is specified, and there is no other version in this Item, we should
       // automatically make this a child of EMPTY
-      this.itemDao.update(testId, toId, parentIds);
+      PostgresTest.itemDao.update(testId, toId, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
@@ -122,22 +119,22 @@ public class ItemDaoTest extends PostgresTest {
     try {
       long testId = 1;
 
-      this.itemDao.create(new Item(testId, new HashMap<>()));
+      PostgresTest.itemDao.create(new Item(testId, new HashMap<>()));
 
       long fromId = 2;
       long toId = 3;
 
-      this.versionDao.create(new Version(fromId));
-      this.versionDao.create(new Version(toId));
+      PostgresTest.versionDao.create(new Version(fromId));
+      PostgresTest.versionDao.create(new Version(toId));
       List<Long> parentIds = new ArrayList<>();
 
       // first, make from a child of EMPTY
-      this.itemDao.update(testId, fromId, parentIds);
+      PostgresTest.itemDao.update(testId, fromId, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(fromId);
-      this.itemDao.update(testId, toId, parentIds);
+      PostgresTest.itemDao.update(testId, toId, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
@@ -174,9 +171,9 @@ public class ItemDaoTest extends PostgresTest {
       long toId = 3;
 
       try {
-        this.itemDao.create(new Item(testId, new HashMap<>()));
+        PostgresTest.itemDao.create(new Item(testId, new HashMap<>()));
 
-        this.versionDao.create(new Version(toId));
+        PostgresTest.versionDao.create(new Version(toId));
       } catch (GroundException ge) {
         fail(ge.getMessage());
       }
@@ -185,7 +182,7 @@ public class ItemDaoTest extends PostgresTest {
       parentIds.add(fromId);
 
       // this should fail because fromId is not a valid version
-      this.itemDao.update(testId, toId, parentIds);
+      PostgresTest.itemDao.update(testId, toId, parentIds);
     } finally {
       //PostgresTest.postgresClient.abort();
     }
@@ -196,26 +193,26 @@ public class ItemDaoTest extends PostgresTest {
     try {
       long testId = 1;
 
-      this.itemDao.create(new Item(testId, new HashMap<>()));
+      PostgresTest.itemDao.create(new Item(testId, new HashMap<>()));
 
       long parentOne = 2;
       long parentTwo = 3;
       long child = 4;
 
-      this.versionDao.create(new Version(parentOne));
-      this.versionDao.create(new Version(parentTwo));
-      this.versionDao.create(new Version(child));
+      PostgresTest.versionDao.create(new Version(parentOne));
+      PostgresTest.versionDao.create(new Version(parentTwo));
+      PostgresTest.versionDao.create(new Version(child));
       List<Long> parentIds = new ArrayList<>();
 
       // first, make the parents children of EMPTY
-      this.itemDao.update(testId, parentOne, parentIds);
-      this.itemDao.update(testId, parentTwo, parentIds);
+      PostgresTest.itemDao.update(testId, parentOne, parentIds);
+      PostgresTest.itemDao.update(testId, parentTwo, parentIds);
 
       // then, add to as a child and make sure that it becomes a child of from
       parentIds.clear();
       parentIds.add(parentOne);
       parentIds.add(parentTwo);
-      this.itemDao.update(testId, child, parentIds);
+      PostgresTest.itemDao.update(testId, child, parentIds);
 
       VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
@@ -262,9 +259,9 @@ public class ItemDaoTest extends PostgresTest {
       tags.put("withstringvalue", new Tag(-1, "withstringvalue", "1", GroundType.STRING));
       tags.put("withboolvalue", new Tag(-1, "withboolvalue", true, GroundType.BOOLEAN));
 
-      this.itemDao.create(new Item(testId, tags));
+      PostgresTest.itemDao.create(new Item(testId, tags));
 
-      Item retrieved = this.itemDao.retrieveFromDatabase(testId);
+      Item retrieved = PostgresTest.itemDao.retrieveFromDatabase(testId);
 
       assertEquals(testId, retrieved.getId());
       assertEquals(tags.size(), retrieved.getTags().size());

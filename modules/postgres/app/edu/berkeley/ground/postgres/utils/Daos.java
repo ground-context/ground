@@ -7,9 +7,7 @@ import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageGraphDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageGraphVersionDao;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
+import edu.berkeley.ground.postgres.dao.version.*;
 import play.Configuration;
 import play.db.Database;
 
@@ -18,6 +16,12 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Daos {
+
+  private final ItemDao itemDao;
+  private final RichVersionDao richVersionDao;
+  private final TagDao tagDao;
+  private final VersionDao versionDao;
+
   private final StructureDao structureDao;
   private final StructureVersionDao structureVersionDao;
   private final EdgeDao edgeDao;
@@ -40,6 +44,11 @@ public class Daos {
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
     TagDao tagDao = new TagDao(dbSource, idGenerator);
+
+    this.tagDao = tagDao;
+    this.richVersionDao = new RichVersionDao(dbSource, idGenerator);
+    this.itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+    this.versionDao = new VersionDao(dbSource, idGenerator);
 
     this.structureDao = new StructureDao(dbSource, idGenerator);
     this.structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
@@ -104,4 +113,16 @@ public class Daos {
   public LineageGraphVersionDao getLineageGraphVersionDao() {
     return this.lineageGraphVersionDao;
   }
+
+  public ItemDao getItemDao() {
+    return this.itemDao;
+  }
+
+  public TagDao getTagDao() { return this.tagDao; }
+
+  public RichVersionDao getRichVersionDao() { return this.richVersionDao; }
+
+  public VersionDao getVersionDao() { return this.versionDao; }
+
+
 }

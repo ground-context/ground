@@ -17,6 +17,10 @@ import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import play.db.Database;
 
 import java.io.IOException;
@@ -34,6 +38,9 @@ public class DaoTest {
 
   protected static Database dbSource;
   protected static IdGenerator idGenerator;
+  protected static ItemDao itemDao;
+  protected static VersionDao versionDao;
+  protected static RichVersionDao richVersionDao;
   protected static VersionSuccessorFactory versionSuccessorDao;
   protected static VersionHistoryDagFactory versionHistoryDagDao;
   protected static TagFactory tagDao;

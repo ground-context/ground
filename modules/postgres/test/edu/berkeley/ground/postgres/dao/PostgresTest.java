@@ -31,7 +31,6 @@ public class PostgresTest extends DaoTest {
 
   public PostgresTest() throws GroundException {
 
-
   }
 
 //  @BeforeClass
@@ -61,6 +60,10 @@ public class PostgresTest extends DaoTest {
     versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     versionHistoryDagDao= new VersionHistoryDagDao(dbSource, (VersionSuccessorDao) versionSuccessorDao);
     tagDao = new TagDao(dbSource, idGenerator);
+
+    itemDao = daos.getItemDao();
+    richVersionDao = daos.getRichVersionDao();
+    versionDao = daos.getVersionDao();
 
     edgeDao = daos.getEdgeDao();
     graphDao = daos.getGraphDao();

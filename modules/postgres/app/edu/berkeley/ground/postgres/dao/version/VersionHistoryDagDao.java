@@ -104,13 +104,6 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
     VersionSuccessor successor = this.versionSuccessorDao.create(parentId, childId);
     dag.addEdge(parentId, childId, successor.getId());
     //TODO: Refactor to use SQL statement -- Shouldn't rely on dbClient
-    /*
-    List<DbDataContainer> insertions = new ArrayList<>();
-    insertions.add(new DbDataContainer("item_id", GroundType.LONG, itemId));
-    insertions.add(new DbDataContainer("version_successor_id", GroundType.LONG, successor.getId()));
-
-    postgresClient.insert("version_history_dag", insertions);
-    */
 
   }
 
