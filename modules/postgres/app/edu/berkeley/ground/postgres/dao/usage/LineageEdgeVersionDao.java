@@ -14,6 +14,7 @@ package edu.berkeley.ground.postgres.dao.usage;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
+import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
@@ -73,6 +74,9 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
     if (json.size() == 0) {
       throw new GroundException(String.format("Lineage Edge Version with id %d does not exist.", id));
     }
-    return Json.fromJson(json.get(0), LineageEdgeVersion.class);
+    LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json.get(0), LineageEdgeVersion.class);
+    RichVersion richVersion = super.retrieveFromDatabase(id);
+    return new LineageEdgeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(),
+      richVersion.getParameters(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId(), lineageEdgeVersion.getLineageEdgeId());
   }
 }

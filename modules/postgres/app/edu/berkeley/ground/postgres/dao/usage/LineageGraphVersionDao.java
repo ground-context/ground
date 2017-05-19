@@ -61,7 +61,8 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
 
       for (Long id: newLineageGraphVersion.getLineageEdgeVersionIds()) {
         statements.append(String.format(
-          "insert into lineage_graph_version_edge (lineage_graph_version_id, lineage_edge_version_id) values (%d, %d)",
+          "insert into lineage_graph_version_edge (lineage_graph_version_id, lineage_edge_version_id) values (%d, %d) " +
+            "on conflict do nothing",
           newLineageGraphVersion.getLineageGraphId(), id));
       }
 

@@ -121,7 +121,6 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     try {
       String sql = String.format("SELECT * FROM version_successor WHERE to_version_id = %d;", toId);
       JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-      System.out.println("");
 
       for (JsonNode result : json) {
         //System.out.println(result.get("version_successor_id").asLong());

@@ -52,7 +52,8 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
 
       for (Long id: newGraphVersion.getEdgeVersionIds()) {
         statements.append(String.format(
-          "insert into graph_version_edge (graph_version_id, edge_version_id) values (%d, %d)",
+          "insert into graph_version_edge (graph_version_id, edge_version_id) values (%d, %d) " +
+            "on conflict do nothing",
           newGraphVersion.getGraphId(), id));
       }
 
