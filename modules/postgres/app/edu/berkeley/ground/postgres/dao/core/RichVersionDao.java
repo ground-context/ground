@@ -63,7 +63,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     String reference;
     long structureVersionId = 0;
 
-    try (Connection con = dbSource.getConnection()){
+    try (Connection con = dbSource.getConnection()) {
 
       Statement stmt = con.createStatement();
       resultSet = stmt.executeQuery(sql);
@@ -74,7 +74,8 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
       reference = resultSet.getString(3);
       structureVersionId = resultSet.getLong(2);
       stmt.close();
-    } catch (SQLException e){
+      con.close();
+    } catch (SQLException e) {
       throw new GroundException(e);
     }
     Map<String, Tag> tags = tagDao.retrieveFromDatabaseByVersionId(id);
@@ -102,16 +103,16 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     String sql = String.format("select * from rich_version_external_parameter where rich_version_id = %d", id);
     Map<String, String> referenceParameters = new HashMap<>();
 
-    try (Connection con = dbSource.getConnection()){
+    try (Connection con = dbSource.getConnection()) {
       Statement stmt = con.createStatement();
       ResultSet parameterSet = stmt.executeQuery(sql);
-      if (!referenceParameters.keySet().isEmpty()) {
-        do {
-          referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
-        } while (parameterSet.next());
-      }
+      if (!parameterSet.next()) return referenceParameters;
+      do {
+        referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
+      } while (parameterSet.next());
 
       stmt.close();
+      con.close();
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -161,9 +162,10 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
     if (richVersion.getStructureVersionId() == -1) {
       structureVersionId = null;
     } else {
+      StructureVersionDao structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
+      StructureVersion structureVersion = structureVersionDao.retrieveFromDatabase(richVersion.getStructureVersionId());
       structureVersionId = richVersion.getStructureVersionId();
-      checkStructureTags(new StructureVersionDao(dbSource, idGenerator)
-        .retrieveFromDatabase(richVersion.getStructureVersionId()), richVersion.getTags());
+      checkStructureTags(structureVersion, richVersion.getTags());
     }
     PostgresStatements statements = super.insert(richVersion);
     statements.append(
@@ -186,6 +188,14 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
               "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, \'%s\', \'%s\', \'%s\')",
               richVersion.getId(), key, null, null));
         }
+      }
+    }
+    Map<String, String> parameters = richVersion.getParameters();
+    if (!parameters.isEmpty()) {
+      for (String key : parameters.keySet()) {
+        statements.append(String.format(
+          "insert into rich_version_external_parameter (rich_version_id, key, value) values (%d, \'%s\', \'%s\')",
+          richVersion.getId(), key, parameters.get(key)));
       }
     }
     return statements;

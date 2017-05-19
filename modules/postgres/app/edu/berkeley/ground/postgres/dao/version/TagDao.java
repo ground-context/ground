@@ -74,6 +74,11 @@ public class TagDao implements TagFactory {
       String sql = String.format("select * from %s_tag where %s_id = %d", prefix, prefix, id);
       ResultSet resultSet = stmt.executeQuery(sql);
 
+      if (!resultSet.next()) {
+        stmt.close();
+        con.close();
+        return results;
+      }
       do {
         String key = resultSet.getString(2);
 
@@ -83,6 +88,8 @@ public class TagDao implements TagFactory {
 
         results.put(key, new Tag(id, key, value, type));
       } while (resultSet.next());
+      stmt.close();
+      con.close();
     } catch (SQLException e) {
       throw new GroundException(e);
     }

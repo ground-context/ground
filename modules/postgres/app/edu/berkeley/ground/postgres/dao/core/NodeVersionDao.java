@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.NodeVersionFactory;
 import edu.berkeley.ground.common.model.core.NodeVersion;
+import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.dao.version.TagDao;
@@ -57,6 +58,12 @@ public class NodeVersionDao extends RichVersionDao<NodeVersion> implements NodeV
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from node_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    return Json.fromJson(json.get(0), NodeVersion.class);
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Node Version with id %d does not exist.", id));
+    }
+    NodeVersion nodeVersion = Json.fromJson(json.get(0), NodeVersion.class);
+    RichVersion richVersion = super.retrieveFromDatabase(id);
+    return new NodeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(),
+      richVersion.getParameters(), nodeVersion.getNodeId());
   }
 }

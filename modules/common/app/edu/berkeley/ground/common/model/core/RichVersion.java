@@ -60,7 +60,7 @@ public class RichVersion extends Version {
     super(id);
     this.id = id;
     this.tags = tags;
-    if (structureVersionId <= 0) {
+    if (structureVersionId == null || structureVersionId <= 0) {
       this.structureVersionId = -1L;
     } else {
       this.structureVersionId = structureVersionId;
