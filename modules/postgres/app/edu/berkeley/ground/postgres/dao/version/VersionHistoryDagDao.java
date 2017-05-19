@@ -105,7 +105,7 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
   public void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
     throws GroundException {
 
-    VersionSuccessor successor = this.versionSuccessorDao.create(parentId, childId);
+    VersionSuccessor successor = this.versionSuccessorDao.instantiateVersionSuccessor(parentId, childId);
     dag.addEdge(parentId, childId, successor.getId());
     //TODO: Refactor to use SQL statement -- Shouldn't rely on dbClient
     /*

@@ -125,11 +125,36 @@ public class TagDao implements TagFactory {
 
   @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundException {
-    return null;
+    return this.getIdsByTag(tag, "rich_version");
   }
+
 
   @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
-    return null;
+    return this.getIdsByTag(tag, "item");
+  }
+
+  private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
+
+    String sql = String.format("select * from %s_tag where key=\'%s\'", keyPrefix, tag);
+    List<Long> result = new ArrayList<>();
+    try {
+      Connection con = dbSource.getConnection();
+      Statement stmt = con.createStatement();
+      ResultSet resultSet = stmt.executeQuery(sql);
+
+      if (!resultSet.next()) {
+        stmt.close();
+        con.close();
+        return result;
+      }
+      do {
+        result.add(resultSet.getLong(1));
+      } while (resultSet.next());
+
+    } catch (SQLException e) {
+      throw new GroundException(e);
+    }
+    return result;
   }
 }

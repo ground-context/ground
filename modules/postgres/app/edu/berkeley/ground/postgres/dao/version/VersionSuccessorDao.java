@@ -63,6 +63,14 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     return statements;
   }
 
+  @Override
+  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId) throws GroundException {
+    long dbId = idGenerator.generateSuccessorId();
+    PostgresStatements statements = insert(fromId, toId, dbId);
+    PostgresUtils.executeSqlList(dbSource, statements);
+    return new VersionSuccessor<>(dbId, fromId, toId);
+  }
+
   /**
    * Create and persist a version successor.
    *
@@ -72,11 +80,9 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
    * @return the created version successor
    * @throws GroundException an error creating the successor
    */
-  @Override
-  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
+  public <T extends Version> VersionSuccessor<T> instantiateVersionSuccessor(long fromId, long toId)
     throws GroundException {
 
-    //TODO: Don't use dbClient
     long dbId = idGenerator.generateSuccessorId();
     return new VersionSuccessor<>(dbId, fromId, toId);
   }
