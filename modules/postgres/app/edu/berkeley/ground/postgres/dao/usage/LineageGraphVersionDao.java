@@ -14,6 +14,8 @@ package edu.berkeley.ground.postgres.dao.usage;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
+import edu.berkeley.ground.common.model.core.RichVersion;
+import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
@@ -26,6 +28,7 @@ import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> implements LineageGraphVersionFactory {
@@ -56,8 +59,11 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
         uniqueId, newLineageGraphVersion.getLineageGraphId()));
       statements.merge(updateVersionList);
 
-      System.out.println("uniqueId: " + uniqueId);
-      System.out.println("lineageGraphId: " + newLineageGraphVersion.getLineageGraphId());
+      for (Long id: newLineageGraphVersion.getLineageEdgeVersionIds()) {
+        statements.append(String.format(
+          "insert into lineage_graph_version_edge (lineage_graph_version_id, lineage_edge_version_id) values (%d, %d)",
+          newLineageGraphVersion.getLineageGraphId(), id));
+      }
 
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
@@ -74,6 +80,19 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
     if (json.size() == 0) {
       throw new GroundException(String.format("Lineage Graph Version with id %d does not exist.", id));
     }
-    return Json.fromJson(json.get(0), LineageGraphVersion.class);
+    LineageGraphVersion lineageGraphVersion = Json.fromJson(json.get(0), LineageGraphVersion.class);
+
+    // Get LineageEdgeIds
+    List<Long> edgeIds = new ArrayList<>();
+    sql = String.format("select * from lineage_graph_version_edge where lineage_graph_version_id=%d", id);
+    JsonNode edgeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    for (JsonNode edge : edgeJson) {
+      edgeIds.add(edge.get("lineageEdgeVersionId").asLong());
+    }
+
+    RichVersion richVersion = super.retrieveFromDatabase(id);
+
+    return new LineageGraphVersion(lineageGraphVersion.getId(), richVersion.getTags(), richVersion.getStructureVersionId(),
+      richVersion.getReference(), richVersion.getParameters(), lineageGraphVersion.getLineageGraphId(), edgeIds);
   }
 }

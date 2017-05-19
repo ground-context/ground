@@ -53,9 +53,9 @@ public class LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion> im
     try {
       PostgresStatements statements = super.insert(newLineageEdgeVersion);
       statements.append(String.format(
-        "insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id, to_rich_version_id, principal_id) values (%d, %d, %d, %d, %d)",
+        "insert into lineage_edge_version (id, lineage_edge_id, from_rich_version_id, to_rich_version_id) values (%d, %d, %d, %d)",
         uniqueId, newLineageEdgeVersion.getLineageEdgeId(), newLineageEdgeVersion.getFromId(),
-        newLineageEdgeVersion.getToId(), null));
+        newLineageEdgeVersion.getToId()));
       // TODO no principal yet
       statements.merge(updateVersionList);
 

@@ -20,6 +20,7 @@ import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.version.*;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import org.apache.commons.collections.ArrayStack;
 import play.db.Database;
 
 
@@ -76,13 +77,16 @@ public class VersionHistoryDagDao implements VersionHistoryDagFactory {
       Statement stmt = con.createStatement();
       final ResultSet resultSet = stmt.executeQuery(sql);
 
+      List<Long> successors = new ArrayList<>();
       while (resultSet.next()) {
-        long versionSuccessorId = resultSet.getLong("version_successor_id");
+        successors.add(resultSet.getLong("version_successor_id"));
+      }
+      stmt.close();
+      con.close();
+      for (Long versionSuccessorId : successors) {
         VersionSuccessor<T> versionSuccessor = versionSuccessorDao.retrieveFromDatabase(versionSuccessorId);
         edges.add(versionSuccessor);
       }
-      stmt.close();
-
     } catch (Exception e) {
       throw new GroundException(e);
     }

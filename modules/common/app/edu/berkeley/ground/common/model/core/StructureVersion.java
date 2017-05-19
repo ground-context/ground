@@ -11,6 +11,7 @@
  */
 package edu.berkeley.ground.common.model.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Version;
@@ -32,6 +33,7 @@ public class StructureVersion extends Version {
    * @param structureId the id of the structure containing this version
    * @param attributes the attributes required by this structure version
    */
+  @JsonCreator
   public StructureVersion(
       @JsonProperty("id") long id,
       @JsonProperty("structureId") long structureId,

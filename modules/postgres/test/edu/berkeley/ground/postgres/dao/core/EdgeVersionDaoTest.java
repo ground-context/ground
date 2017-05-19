@@ -71,8 +71,8 @@ public class EdgeVersionDaoTest extends PostgresTest {
       assertEquals(testReference, retrieved.getReference());
       assertEquals(firstNodeVersionId, retrieved.getFromNodeVersionStartId());
       assertEquals(secondNodeVersionId, retrieved.getToNodeVersionStartId());
-      assertEquals(0, retrieved.getFromNodeVersionEndId());
-      assertEquals(0, retrieved.getToNodeVersionEndId());
+      assertEquals(-1, retrieved.getFromNodeVersionEndId());
+      assertEquals(-1, retrieved.getToNodeVersionEndId());
 
       //assertEquals(parameters.size(), retrieved.getParameters().size());
       assertEquals(tags.size(), retrieved.getTags().size());

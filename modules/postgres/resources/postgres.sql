@@ -148,8 +148,7 @@ CREATE TABLE IF NOT EXISTS lineage_edge_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
     lineage_edge_id bigint NOT NULL REFERENCES lineage_edge(item_id),
     from_rich_version_id bigint NOT NULL REFERENCES rich_version(id),
-    to_rich_version_id bigint NOT NULL REFERENCES rich_version(id),
-    principal_id bigint REFERENCES node_version(id)
+    to_rich_version_id bigint NOT NULL REFERENCES rich_version(id)
 );
 
 CREATE TABLE IF NOT EXISTS lineage_graph (

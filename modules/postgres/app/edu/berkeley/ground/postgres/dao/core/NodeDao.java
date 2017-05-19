@@ -61,7 +61,6 @@ public class NodeDao extends ItemDao<Node> implements NodeFactory {
     JsonNode tagsJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     HashMap<String, Tag> tags = new HashMap<>();
     for (JsonNode tag : tagsJson) {
-      System.out.println(tag.toString());
       GroundType type = GroundType.fromString(tag.get("type").asText());
       // TODO value isn't always text...
       tags.put(tag.get("key").asText(), new Tag(tag.get("itemId").asLong(), tag.get("key").asText(),

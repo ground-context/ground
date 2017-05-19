@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.GraphVersionFactory;
 import edu.berkeley.ground.common.model.core.GraphVersion;
+import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.utils.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.dao.version.TagDao;
@@ -14,6 +15,7 @@ import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GraphVersionDao extends RichVersionDao<GraphVersion> implements GraphVersionFactory {
@@ -48,8 +50,11 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
         uniqueId, graphVersion.getGraphId()));
       statements.merge(updateVersionList);
 
-      System.out.println("uniqueId: " + uniqueId);
-      System.out.println("graphId: " + graphVersion.getGraphId());
+      for (Long id: newGraphVersion.getEdgeVersionIds()) {
+        statements.append(String.format(
+          "insert into graph_version_edge (graph_version_id, edge_version_id) values (%d, %d)",
+          newGraphVersion.getGraphId(), id));
+      }
 
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
@@ -65,7 +70,20 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
     if (json.size() == 0) {
       throw new GroundException(String.format("Graph Version with id %d does not exist.", id));
     }
-    return Json.fromJson(json.get(0), GraphVersion.class);
+    GraphVersion graphVersion = Json.fromJson(json.get(0), GraphVersion.class);
+
+    // Get EdgeIds
+    List<Long> edgeIds = new ArrayList<>();
+    sql = String.format("select * from graph_version_edge where graph_version_id=%d", id);
+    JsonNode edgeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    for (JsonNode edge : edgeJson) {
+      edgeIds.add(edge.get("edgeVersionId").asLong());
+    }
+
+    RichVersion richVersion = super.retrieveFromDatabase(id);
+
+    return new GraphVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(),
+      richVersion.getParameters(), graphVersion.getGraphId(), edgeIds);
   }
 }
 

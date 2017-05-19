@@ -106,6 +106,7 @@ public final class PostgresUtils {
             }
           }
           con.commit();
+          con.close();
           status = "SUCCESS";
           return status;
         }

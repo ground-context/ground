@@ -11,6 +11,7 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
 import edu.berkeley.ground.common.model.core.StructureVersion;
@@ -20,6 +21,7 @@ import edu.berkeley.ground.postgres.dao.version.*;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.db.Database;
+import play.libs.Json;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -76,27 +78,28 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
     long structureId = 0;
     HashMap<String, GroundType> attributes = null;
     try{
-      Connection con = dbSource.getConnection();
-      Statement stmt = con.createStatement();
-      String sql = String.format("select * FROM structure_version WHERE id = %d", id);
-      ResultSet resultSet = stmt.executeQuery(sql);
+      PostgresStatements statements = new PostgresStatements();
+      String resultQuery = String.format("select * FROM structure_version WHERE id = %d", id);
+      JsonNode resultJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, resultQuery));
+      StructureVersion structureVersion = Json.fromJson(resultJson.get(0), StructureVersion.class);
 
       String attributeQuery = String.format("SELECT * FROM structure_version_attribute WHERE "
         + "structure_version_id = %d", id);
-      ResultSet attributeSet = stmt.executeQuery(attributeQuery);
+      JsonNode attributeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, attributeQuery));
 
       attributes = new HashMap<>();
 
-      do {
-        attributes.put(attributeSet.getString(2), GroundType.fromString(attributeSet.getString(3)));
-      } while (attributeSet.next());
+      for (JsonNode attribute: attributeJson) {
+        System.out.println(attribute.toString());
+        GroundType type = GroundType.fromString(attribute.get("type").asText());
+        attributes.put(attribute.get("key").asText(), type);
+      }
 
-      structureId = resultSet.getLong(2);
+      structureVersion = new StructureVersion(structureVersion.getId(), structureVersion.getStructureId(), attributes);
 
+      return structureVersion;
     }catch(Exception e) {
       throw new GroundException(e);
     }
-
-    return new StructureVersion(id, structureId, attributes);
   }
 }

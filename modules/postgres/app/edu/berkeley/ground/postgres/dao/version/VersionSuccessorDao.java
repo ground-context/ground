@@ -96,20 +96,18 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     long fromId = 0L;
     long toId = 0L;
 
-    try (Connection con = dbSource.getConnection()) {
-
-      Statement stmt = con.createStatement();
+    try {
       String sql = String.format("select * from version_successor where id=%d", dbId);
-      final ResultSet resultSet = stmt.executeQuery(sql);
-      if (resultSet.next()) {
-        fromId = resultSet.getLong("from_version_id");
-        toId = resultSet.getLong("to_version_id");
+      JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+      if (json.size() == 0) {
+        throw new GroundException(String.format("Version Successor with id %d does not exist.", dbId));
       }
+      json = json.get(0);
+      return new VersionSuccessor<T>(dbId, json.get("fromVersionId").asLong(), json.get("toVersionId").asLong());
     } catch (Exception e) {
       throw new GroundException(e);
     }
 
-    return new VersionSuccessor<T>(dbId, fromId, toId);
   }
 
   /**
