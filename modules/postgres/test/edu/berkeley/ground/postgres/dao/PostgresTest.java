@@ -68,6 +68,9 @@ public class PostgresTest extends DaoTest {
     lineageGraphDao = daos.getLineageGraphDao();
     nodeDao = daos.getNodeDao();
     structureDao = daos.getStructureDao();
+    richVersionDao = daos.getRichVersionDao();
+    itemDao = daos.getItemDao();
+    versionDao = daos.getVersionDao();
 
     edgeVersionDao = daos.getEdgeVersionDao();
     graphVersionDao = daos.getGraphVersionDao();

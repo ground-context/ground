@@ -17,6 +17,9 @@ import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import play.db.Database;
 
 import java.io.IOException;
@@ -49,6 +52,9 @@ public class DaoTest {
   protected static LineageGraphVersionFactory lineageGraphVersionDao;
   protected static NodeVersionFactory nodeVersionDao;
   protected static StructureVersionFactory structureVersionDao;
+  protected static RichVersionDao richVersionDao;
+  protected static ItemDao itemDao;
+  protected static VersionDao versionDao;
 
   public static Node createNode(String sourceKey) throws GroundException {
     // id should be replaced by output of IdGenerator

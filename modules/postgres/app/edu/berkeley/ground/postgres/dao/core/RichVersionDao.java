@@ -185,7 +185,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
         } else {
           statements.append(
             String.format(
-              "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, \'%s\', \'%s\', \'%s\')",
+              "insert into rich_version_tag (rich_version_id, key, value, type) values (%d, \'%s\', %s, %s)",
               richVersion.getId(), key, null, null));
         }
       }

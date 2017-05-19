@@ -51,8 +51,13 @@ public class TagDao implements TagFactory {
 
   public PostgresStatements insert(final Tag tag) {
     List<String> sqlList = new ArrayList<>();
-    sqlList.add(String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
-      tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+    if (tag.getValue() != null) {
+      sqlList.add(String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
+        tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+    } else {
+      sqlList.add(String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', %s, %s)",
+        tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+    }
     return new PostgresStatements(sqlList);
   }
 

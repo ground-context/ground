@@ -11,9 +11,12 @@
  */
 package edu.berkeley.ground.postgres.dao.version;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.ItemFactory;
 import edu.berkeley.ground.common.factory.version.TagFactory;
+import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
@@ -22,8 +25,10 @@ import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import javafx.geometry.Pos;
 import play.db.Database;
+import play.libs.Json;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,8 +51,28 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     this.tagFactory = tagFactory;
   }
 
+  public Item getItemData(long id) throws GroundException {
+    String sql =
+      String.format("select * from item where id=%d", id);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    if (json.size() == 0) {
+      throw new GroundException(String.format("Itemd with id %d does not exist.", id));
+    }
+    json = json.get(0);
+    Item item = Json.fromJson(json, Item.class);
+    sql = String.format("select * from item_tag where item_id=%d", item.getId());
+    JsonNode tagsJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    HashMap<String, Tag> tags = new HashMap<>();
+    for (JsonNode tag : tagsJson) {
+      GroundType type = GroundType.fromString(tag.get("type").asText());
+      // TODO value isn't always text...
+      tags.put(tag.get("key").asText(), new Tag(tag.get("itemId").asLong(), tag.get("key").asText(),
+        tag.get("value").asText(), type));
+    }
+    item = new Item(item.getId(), tags);
+    return item;
+  }
 
-  @Override
   public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
@@ -116,7 +141,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     }
 
     for (long parentId : parentIds) {
-      if (parentId != 0 && !dag.checkItemInDag(parentId)) {
+      if (parentId != 0L && !dag.checkItemInDag(parentId)) {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
         throw new GroundException(errorString);
       }

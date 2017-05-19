@@ -7,9 +7,7 @@ import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageGraphDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageGraphVersionDao;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
+import edu.berkeley.ground.postgres.dao.version.*;
 import play.Configuration;
 import play.db.Database;
 
@@ -26,11 +24,16 @@ public class Daos {
   private final GraphVersionDao graphVersionDao;
   private final NodeDao nodeDao;
   private final NodeVersionDao nodeVersionDao;
+  private final RichVersionDao richVersionDao;
 
   private final LineageEdgeDao lineageEdgeDao;
   private final LineageEdgeVersionDao lineageEdgeVersionDao;
   private final LineageGraphDao lineageGraphDao;
   private final LineageGraphVersionDao lineageGraphVersionDao;
+
+  private final ItemDao itemDao;
+  private final VersionDao versionDao;
+
 
   /**
    * Create the  factories.
@@ -45,7 +48,7 @@ public class Daos {
     this.structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
     this.edgeDao = new EdgeDao(dbSource, idGenerator);
     this.edgeVersionDao = new EdgeVersionDao(dbSource, idGenerator);
-
+    this.richVersionDao = new RichVersionDao(dbSource, idGenerator);
     this.graphDao = new GraphDao(dbSource, idGenerator);
     this.graphVersionDao = new GraphVersionDao(dbSource, idGenerator);
     this.nodeDao = new NodeDao(dbSource, idGenerator);
@@ -55,6 +58,9 @@ public class Daos {
     this.lineageEdgeVersionDao = new LineageEdgeVersionDao(dbSource, idGenerator);
     this.lineageGraphDao = new LineageGraphDao(dbSource, idGenerator);
     this.lineageGraphVersionDao = new LineageGraphVersionDao(dbSource, idGenerator);
+
+    this.itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
+    this.versionDao = new VersionDao(dbSource, idGenerator);
   }
 
   public EdgeDao getEdgeDao() {
@@ -104,4 +110,11 @@ public class Daos {
   public LineageGraphVersionDao getLineageGraphVersionDao() {
     return this.lineageGraphVersionDao;
   }
+
+  public RichVersionDao getRichVersionDao() { return this.richVersionDao; }
+
+  public ItemDao getItemDao() { return this.itemDao; }
+
+  public VersionDao getVersionDao() { return this.versionDao; }
+
 }
