@@ -62,6 +62,15 @@ public class Edge extends Item {
     this.sourceKey = sourceKey;
   }
 
+  public Edge(long id, Edge other) {
+    super(id, other.getTags());
+
+    this.name = other.name;
+    this.fromNodeId = other.fromNodeId;
+    this.toNodeId = other.toNodeId;
+    this.sourceKey = other.sourceKey;
+  }
+
   public String getName() {
     return this.name;
   }

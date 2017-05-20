@@ -44,6 +44,13 @@ public class LineageGraph extends Item {
     this.sourceKey = sourceKey;
   }
 
+  public LineageGraph(long id, LineageGraph other) {
+    super(id, other.getTags());
+
+    this.name = other.name;
+    this.sourceKey = other.sourceKey;
+  }
+
   public String getName() {
     return this.name;
   }

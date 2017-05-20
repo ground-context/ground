@@ -18,6 +18,7 @@ import edu.berkeley.ground.common.model.version.Version;
 import java.util.Map;
 
 public class StructureVersion extends Version {
+
   // the id of the Structure containing this Version
   @JsonProperty("structureId")
   private final long structureId;
@@ -35,13 +36,20 @@ public class StructureVersion extends Version {
    */
   @JsonCreator
   public StructureVersion(
-      @JsonProperty("id") long id,
-      @JsonProperty("structureId") long structureId,
-      @JsonProperty("attributes") Map<String, GroundType> attributes) {
+                           @JsonProperty("id") long id,
+                           @JsonProperty("structureId") long structureId,
+                           @JsonProperty("attributes") Map<String, GroundType> attributes) {
     super(id);
 
     this.structureId = structureId;
     this.attributes = attributes;
+  }
+
+  public StructureVersion(long id, StructureVersion other) {
+    super(id);
+
+    this.structureId = other.structureId;
+    this.attributes = other.attributes;
   }
 
   public long getStructureId() {
@@ -61,7 +69,7 @@ public class StructureVersion extends Version {
     StructureVersion otherStructureVersion = (StructureVersion) other;
 
     return this.structureId == otherStructureVersion.structureId
-        && this.attributes.equals(otherStructureVersion.attributes)
-        && this.getId() == otherStructureVersion.getId();
+             && this.attributes.equals(otherStructureVersion.attributes)
+             && this.getId() == otherStructureVersion.getId();
   }
 }

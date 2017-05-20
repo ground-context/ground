@@ -47,6 +47,13 @@ public class Node extends Item {
     this.sourceKey = sourceKey;
   }
 
+  public Node(long id, Node other) {
+    super(id, other.getTags());
+
+    this.name = other.name;
+    this.sourceKey = other.sourceKey;
+  }
+
   public long getItemId() {
     return super.getId();
   }

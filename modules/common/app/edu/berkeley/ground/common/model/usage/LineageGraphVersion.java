@@ -15,12 +15,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.version.Tag;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class LineageGraphVersion extends RichVersion {
+
   // the id of the LineageGraph that contains this version
   @JsonProperty("lineageGraphId")
   private final long lineageGraphId;
@@ -41,10 +41,13 @@ public class LineageGraphVersion extends RichVersion {
    * @param lineageEdgeVersionIds the ids of the lineage edges in this lineage graph version
    */
   @JsonCreator
-  public LineageGraphVersion(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags,
-      @JsonProperty("structureVersionId") long structureVersionId, @JsonProperty("reference") String reference,
-      @JsonProperty("referenceParameters") Map<String, String> referenceParameters, @JsonProperty("lineageGraphId") long lineageGraphId,
-      @JsonProperty("lineageEdgeVersionIds") List<Long> lineageEdgeVersionIds) {
+  public LineageGraphVersion(@JsonProperty("id") long id,
+                              @JsonProperty("tags") Map<String, Tag> tags,
+                              @JsonProperty("structureVersionId") long structureVersionId,
+                              @JsonProperty("reference") String reference,
+                              @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+                              @JsonProperty("lineageGraphId") long lineageGraphId,
+                              @JsonProperty("lineageEdgeVersionIds") List<Long> lineageEdgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
@@ -54,6 +57,13 @@ public class LineageGraphVersion extends RichVersion {
     } else {
       this.lineageEdgeVersionIds = lineageEdgeVersionIds;
     }
+  }
+
+  public LineageGraphVersion(long id, LineageGraphVersion other) {
+    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+
+    this.lineageGraphId = other.lineageGraphId;
+    this.lineageEdgeVersionIds = other.lineageEdgeVersionIds;
   }
 
   public long getLineageGraphId() {
@@ -73,7 +83,7 @@ public class LineageGraphVersion extends RichVersion {
     LineageGraphVersion otherLineageGraphVersion = (LineageGraphVersion) other;
 
     return this.lineageGraphId == otherLineageGraphVersion.lineageGraphId
-        && this.lineageEdgeVersionIds.equals(otherLineageGraphVersion.lineageEdgeVersionIds)
-        && super.equals(other);
+             && this.lineageEdgeVersionIds.equals(otherLineageGraphVersion.lineageEdgeVersionIds)
+             && super.equals(other);
   }
 }

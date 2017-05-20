@@ -47,6 +47,13 @@ public class Structure extends Item {
     this.sourceKey = sourceKey;
   }
 
+  public Structure(long id, Structure other) {
+    super(id, other.getTags());
+
+    this.name = other.name;
+    this.sourceKey = other.sourceKey;
+  }
+
   public String getName() {
     return this.name;
   }

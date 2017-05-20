@@ -36,7 +36,6 @@ public class LineageEdge extends Item {
    * @param tags the tags associated with this lineage edge
    */
 
-  //TODO implement tags
   @JsonCreator
   public LineageEdge(@JsonProperty("itemId") long id, @JsonProperty("name") String name,
                       @JsonProperty("sourceKey") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
@@ -44,6 +43,13 @@ public class LineageEdge extends Item {
 
     this.name = name;
     this.sourceKey = sourceKey;
+  }
+
+  public LineageEdge(long id, LineageEdge other) {
+    super(id, other.getTags());
+
+    this.name = other.name;
+    this.sourceKey = other.sourceKey;
   }
 
   public String getName() {

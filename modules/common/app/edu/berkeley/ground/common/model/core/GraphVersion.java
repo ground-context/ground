@@ -20,15 +20,6 @@ import java.util.Map;
 
 public class GraphVersion extends RichVersion {
 
-  @JsonProperty("tags")
-  private final Map<String, Tag> tags;
-
-  @JsonProperty("reference")
-  private final String reference;
-
-  @JsonProperty("referenceParameters")
-  private final Map<String, String> referenceParameters;
-
   @JsonProperty("graphId")
   private final long graphId;
 
@@ -48,39 +39,29 @@ public class GraphVersion extends RichVersion {
    */
   @JsonCreator
   public GraphVersion(
-    @JsonProperty("id") long id,
-    @JsonProperty("tags") Map<String, Tag> tags,
-    @JsonProperty("structureVersionId") long structureVersionId,
-    @JsonProperty("reference") String reference,
-    @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-    @JsonProperty("graphId") long graphId,
-    @JsonProperty("edgeVersionIds") List<Long> edgeVersionIds) {
+                       @JsonProperty("id") long id,
+                       @JsonProperty("tags") Map<String, Tag> tags,
+                       @JsonProperty("structureVersionId") long structureVersionId,
+                       @JsonProperty("reference") String reference,
+                       @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+                       @JsonProperty("graphId") long graphId,
+                       @JsonProperty("edgeVersionIds") List<Long> edgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
-    this.tags = tags;
-    this.reference = reference;
-    this.referenceParameters = referenceParameters;
     this.graphId = graphId;
     if (edgeVersionIds == null) {
-      this.edgeVersionIds = new ArrayList<Long>();
+      this.edgeVersionIds = new ArrayList<>();
     } else {
       this.edgeVersionIds = edgeVersionIds;
     }
   }
 
-  @Override
-  public Map<String, Tag> getTags() {
-    return this.tags;
-  }
+  public GraphVersion(long id, GraphVersion other) {
+    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
 
-  @Override
-  public String getReference() {
-    return this.reference;
-  }
-
-  public Map<String, String> getReferenceParameters() {
-    return this.referenceParameters;
+    this.graphId = other.graphId;
+    this.edgeVersionIds = other.edgeVersionIds;
   }
 
   public long getGraphId() {
@@ -100,7 +81,7 @@ public class GraphVersion extends RichVersion {
     GraphVersion otherGraphVersion = (GraphVersion) other;
 
     return this.graphId == otherGraphVersion.graphId
-      && this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds)
-      && super.equals(other);
+             && this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds)
+             && super.equals(other);
   }
 }

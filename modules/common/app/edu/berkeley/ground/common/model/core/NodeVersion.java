@@ -11,15 +11,14 @@
  */
 package edu.berkeley.ground.common.model.core;
 
-import edu.berkeley.ground.common.model.version.Tag;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import edu.berkeley.ground.common.model.version.Tag;
 import java.util.Map;
 
 public class NodeVersion extends RichVersion {
-  // the id of the Node containing this Version
 
+  // the id of the Node containing this Version
   @JsonProperty("nodeId")
   private final long nodeId;
 
@@ -36,14 +35,20 @@ public class NodeVersion extends RichVersion {
 
   @JsonCreator
   public NodeVersion(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags,
-    @JsonProperty("structureVersionId") long structureVersionId,
-    @JsonProperty("reference") String reference,
-    @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-    @JsonProperty("nodeId") long nodeId) {
+                      @JsonProperty("structureVersionId") long structureVersionId,
+                      @JsonProperty("reference") String reference,
+                      @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+                      @JsonProperty("nodeId") long nodeId) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.nodeId = nodeId;
+  }
+
+  public NodeVersion(long id, NodeVersion other) {
+    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+
+    this.nodeId = other.nodeId;
   }
 
   public long getNodeId() {

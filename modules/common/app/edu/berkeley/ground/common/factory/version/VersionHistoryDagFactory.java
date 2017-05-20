@@ -13,13 +13,14 @@ package edu.berkeley.ground.common.factory.version;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Item;
-import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
+import edu.berkeley.ground.common.util.DbStatements;
 
 public interface VersionHistoryDagFactory {
-  <T extends Version> VersionHistoryDag<T> create(long itemId) throws GroundException;
 
-  <T extends Version> VersionHistoryDag<T> retrieveFromDatabase(long itemId) throws GroundException;
+  VersionHistoryDag create(long itemId) throws GroundException;
+
+  VersionHistoryDag retrieveFromDatabase(long itemId) throws GroundException;
 
   /**
    * Add a new edge between parentId and childId in DAG.
@@ -29,8 +30,7 @@ public interface VersionHistoryDagFactory {
    * @param childId the child's id
    * @param itemId the id of the Item whose DAG we're updating
    */
-  void addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId)
-      throws GroundException;
+  DbStatements<?> addEdge(VersionHistoryDag dag, long parentId, long childId, long itemId) throws GroundException;
 
   /**
    * Truncate the DAG to only have a certain number of levels, removing everything before that.
@@ -40,6 +40,5 @@ public interface VersionHistoryDagFactory {
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
-  void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
-      throws GroundException;
+  void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType) throws GroundException;
 }

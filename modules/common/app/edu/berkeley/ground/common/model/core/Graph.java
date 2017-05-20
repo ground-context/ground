@@ -36,8 +36,7 @@ public class Graph extends Item {
    * @param tags the tags associated with the graph
    */
   @JsonCreator
-  public Graph(
-                @JsonProperty("itemId") long id,
+  public Graph(@JsonProperty("itemId") long id,
                 @JsonProperty("name") String name,
                 @JsonProperty("sourceKey") String sourceKey,
                 @JsonProperty("tags") Map<String, Tag> tags) {
@@ -45,6 +44,13 @@ public class Graph extends Item {
 
     this.name = name;
     this.sourceKey = sourceKey;
+  }
+
+  public Graph(long id, Graph other) {
+    super(id, other.getTags());
+
+    this.name = other.name;
+    this.sourceKey = other.sourceKey;
   }
 
   public String getName() {

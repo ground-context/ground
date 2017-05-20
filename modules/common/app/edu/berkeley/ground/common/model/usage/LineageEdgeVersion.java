@@ -45,18 +45,26 @@ public class LineageEdgeVersion extends RichVersion {
 
   @JsonCreator
   public LineageEdgeVersion(@JsonProperty("id") long id,
-    @JsonProperty("tags") Map<String, Tag> tags,
-    @JsonProperty("structureVersionId") Long structureVersionId,
-    @JsonProperty("reference") String reference,
-    @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-    @JsonProperty("fromRichVersionId") long fromId,
-    @JsonProperty("toRichVersionId") long toId,
-    @JsonProperty("lineageEdgeId") long lineageEdgeId) {
+                             @JsonProperty("tags") Map<String, Tag> tags,
+                             @JsonProperty("structureVersionId") Long structureVersionId,
+                             @JsonProperty("reference") String reference,
+                             @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+                             @JsonProperty("fromRichVersionId") long fromId,
+                             @JsonProperty("toRichVersionId") long toId,
+                             @JsonProperty("lineageEdgeId") long lineageEdgeId) {
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.lineageEdgeId = lineageEdgeId;
     this.fromId = fromId;
     this.toId = toId;
+  }
+
+  public LineageEdgeVersion(long id, LineageEdgeVersion other) {
+    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+
+    this.lineageEdgeId = other.lineageEdgeId;
+    this.fromId = other.fromId;
+    this.toId = other.toId;
   }
 
   public long getLineageEdgeId() {
@@ -80,9 +88,9 @@ public class LineageEdgeVersion extends RichVersion {
     LineageEdgeVersion otherLineageEdgeVersion = (LineageEdgeVersion) other;
 
     return this.lineageEdgeId == otherLineageEdgeVersion.lineageEdgeId
-      && this.fromId == otherLineageEdgeVersion.fromId
-      && this.toId == otherLineageEdgeVersion.toId
-      && this.getId() == otherLineageEdgeVersion.getId()
-      && super.equals(other);
+             && this.fromId == otherLineageEdgeVersion.fromId
+             && this.toId == otherLineageEdgeVersion.toId
+             && this.getId() == otherLineageEdgeVersion.getId()
+             && super.equals(other);
   }
 }
