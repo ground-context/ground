@@ -25,7 +25,7 @@ import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.postgres.dao.PostgresTest;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,12 +61,12 @@ public class ItemDaoTest extends PostgresTest {
     parentIds.add(fromId);
     PostgresUtils.executeSqlList(dbSource, PostgresTest.itemDao.update(testId, toId, parentIds));
 
-    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
+    VersionHistoryDag dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
     assertEquals(2, dag.getEdgeIds().size());
     assertEquals(toId, (long) dag.getLeaves().get(0));
 
-    VersionSuccessor<?> successor = null;
+    VersionSuccessor successor = null;
     for (long id : dag.getEdgeIds()) {
       successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(id);
 
@@ -99,12 +99,12 @@ public class ItemDaoTest extends PostgresTest {
     // automatically make this a child of EMPTY
     PostgresUtils.executeSqlList(dbSource, PostgresTest.itemDao.update(testId, toId, parentIds));
 
-    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
+    VersionHistoryDag dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
     assertEquals(1, dag.getEdgeIds().size());
     assertEquals(toId, (long) dag.getLeaves().get(0));
 
-    VersionSuccessor<?> successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+    VersionSuccessor successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
       dag.getEdgeIds().get(0));
 
     assertEquals(0, successor.getFromId());
@@ -133,19 +133,19 @@ public class ItemDaoTest extends PostgresTest {
     parentIds.add(fromId);
     PostgresUtils.executeSqlList(dbSource, PostgresTest.itemDao.update(testId, toId, parentIds));
 
-    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
+    VersionHistoryDag dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
     assertEquals(2, dag.getEdgeIds().size());
     assertEquals(toId, (long) dag.getLeaves().get(0));
 
-    VersionSuccessor<?> fromSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+    VersionSuccessor fromSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
       dag.getEdgeIds().get(0));
 
-    VersionSuccessor<?> toSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+    VersionSuccessor toSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
       dag.getEdgeIds().get(1));
 
     if (fromSuccessor.getFromId() != 0) {
-      VersionSuccessor<?> tmp = fromSuccessor;
+      VersionSuccessor tmp = fromSuccessor;
       fromSuccessor = toSuccessor;
       toSuccessor = tmp;
     }
@@ -205,24 +205,24 @@ public class ItemDaoTest extends PostgresTest {
     parentIds.add(parentTwo);
     PostgresUtils.executeSqlList(dbSource, PostgresTest.itemDao.update(testId, child, parentIds));
 
-    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
+    VersionHistoryDag dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
     assertEquals(4, dag.getEdgeIds().size());
     assertEquals(child, (long) dag.getLeaves().get(0));
 
     // Retrieve all the version successors and check that they have the correct data.
-    VersionSuccessor<?> parentOneSuccessor = PostgresTest.versionSuccessorDao
-      .retrieveFromDatabase(
-        dag.getEdgeIds().get(0));
+    VersionSuccessor parentOneSuccessor = PostgresTest.versionSuccessorDao
+                                            .retrieveFromDatabase(
+                                              dag.getEdgeIds().get(0));
 
-    VersionSuccessor<?> parentTwoSuccessor = PostgresTest.versionSuccessorDao
-      .retrieveFromDatabase(
-        dag.getEdgeIds().get(1));
+    VersionSuccessor parentTwoSuccessor = PostgresTest.versionSuccessorDao
+                                            .retrieveFromDatabase(
+                                              dag.getEdgeIds().get(1));
 
-    VersionSuccessor<?> childOneSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+    VersionSuccessor childOneSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
       dag.getEdgeIds().get(2));
 
-    VersionSuccessor<?> childTwoSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+    VersionSuccessor childTwoSuccessor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
       dag.getEdgeIds().get(3));
 
     assertEquals(0, parentOneSuccessor.getFromId());
@@ -248,18 +248,16 @@ public class ItemDaoTest extends PostgresTest {
     tags.put("withstringvalue", new Tag(testId, "withstringvalue", "1", GroundType.STRING));
     tags.put("withboolvalue", new Tag(testId, "withboolvalue", true, GroundType.BOOLEAN));
 
-    PostgresTest.itemDao.create(new Item(testId, tags));
+    long itemId = PostgresTest.itemDao.create(new Item(testId, tags)).getId();
 
-    Item retrieved = PostgresTest.itemDao.getItemData(testId);
+    Map<String, Tag> retrievedTags = PostgresTest.tagDao.retrieveFromDatabaseByItemId(itemId);
 
-    assertEquals(testId, retrieved.getId());
-    assertEquals(tags.size(), retrieved.getTags().size());
+    assertEquals(tags.size(), retrievedTags.size());
 
-    Map<String, Tag> retrievedTags = retrieved.getTags();
     for (String key : tags.keySet()) {
       assert (retrievedTags).containsKey(key);
       assertEquals(tags.get(key), retrievedTags.get(key));
-      assertEquals(retrieved.getId(), retrievedTags.get(key).getId());
+      assertEquals(itemId, retrievedTags.get(key).getId());
     }
   }
 }

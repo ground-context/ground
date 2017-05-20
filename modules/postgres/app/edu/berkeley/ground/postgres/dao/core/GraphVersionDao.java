@@ -6,12 +6,8 @@ import edu.berkeley.ground.common.factory.core.GraphVersionFactory;
 import edu.berkeley.ground.common.model.core.GraphVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
 import play.db.Database;
@@ -19,9 +15,11 @@ import play.libs.Json;
 
 public class GraphVersionDao extends RichVersionDao<GraphVersion> implements GraphVersionFactory {
 
+  private GraphDao graphDao;
 
   public GraphVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
+    this.graphDao = new GraphDao(dbSource, idGenerator);
   }
 
   @Override
@@ -29,22 +27,9 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
     throws GroundException {
 
     final long uniqueId = idGenerator.generateVersionId();
-    GraphVersion newGraphVersion = new GraphVersion(uniqueId, graphVersion.getTags(),
-      graphVersion.getStructureVersionId(),
-      graphVersion.getReference(), graphVersion.getParameters(), graphVersion.getGraphId(),
-      graphVersion.getEdgeVersionIds());
+    GraphVersion newGraphVersion = new GraphVersion(uniqueId, graphVersion);
 
-    //TODO: I think we should consider using injection here
-    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
-    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-      versionSuccessorDao);
-    TagDao tagDao = new TagDao(dbSource, idGenerator);
-
-    //TODO: Ideally, I think this should add to the sqlList to support rollback???
-
-    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = itemDao
-      .update(newGraphVersion.getGraphId(), newGraphVersion.getId(), parentIds);
+    PostgresStatements updateVersionList = this.graphDao.update(newGraphVersion.getGraphId(), newGraphVersion.getId(), parentIds);
 
     try {
       PostgresStatements statements = super.insert(newGraphVersion);
@@ -76,20 +61,17 @@ public class GraphVersionDao extends RichVersionDao<GraphVersion> implements Gra
     }
 
     GraphVersion graphVersion = Json.fromJson(json.get(0), GraphVersion.class);
-
-    // Get EdgeIds
     List<Long> edgeIds = new ArrayList<>();
     sql = String.format("select * from graph_version_edge where graph_version_id=%d", id);
     JsonNode edgeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     for (JsonNode edge : edgeJson) {
       edgeIds.add(edge.get("edgeVersionId").asLong());
     }
 
     RichVersion richVersion = super.retrieveFromDatabase(id);
-
-    return new GraphVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(),
-      richVersion.getReference(),
-      richVersion.getParameters(), graphVersion.getGraphId(), edgeIds);
+    return new GraphVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(), richVersion.getParameters(),
+                             graphVersion.getGraphId(), edgeIds);
   }
 }
 

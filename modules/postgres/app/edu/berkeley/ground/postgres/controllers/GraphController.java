@@ -20,9 +20,8 @@ import edu.berkeley.ground.common.model.core.GraphVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.GraphDao;
 import edu.berkeley.ground.postgres.dao.core.GraphVersionDao;
-import edu.berkeley.ground.postgres.utils.ControllerUtils;
-import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.GroundUtils;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -34,112 +33,113 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 
 public class GraphController extends Controller {
 
   private CacheApi cache;
-  private Database dbSource;
   private ActorSystem actorSystem;
-  private IdGenerator idGenerator;
+
+  private GraphDao graphDao;
+  private GraphVersionDao graphVersionDao;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource,
-    final ActorSystem actorSystem, final IdGenerator idGenerator) {
-    this.dbSource = dbSource;
+  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
-    this.idGenerator = idGenerator;
+
+    this.graphDao = new GraphDao(dbSource, idGenerator);
+
+    this.graphVersionDao = new GraphVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getGraph(String sourceKey) {
-    CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
-      String sql = String.format("select * from graph where source_key = \'%s\'", sourceKey);
-      try {
-        return cache.getOrElse("graphs", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-      } catch (Exception e) {
-        throw new CompletionException(e);
-      }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
-      .exceptionally(e -> {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "graphs",
+            () -> Json.toJson(this.graphDao.retrieveFromDatabase(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
   public final CompletionStage<Result> getGraphVersion(Long id) {
-    CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
-      String sql = String.format("select * from graph_version where id = \'%d\'", id);
-      try {
-        return cache.getOrElse("graphs", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-      } catch (Exception e) {
-        throw new CompletionException(e);
-      }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
-      .exceptionally(e -> {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse("graph_versions",
+            () -> Json.toJson(this.graphVersionDao.retrieveFromDatabase(id)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addGraph() {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          JsonNode json = request().body().asJson();
-          Graph graph = Json.fromJson(json, Graph.class);
-          try {
-            new GraphDao(dbSource, idGenerator).create(graph);
-          } catch (GroundException e) {
-            throw new CompletionException(e);
-          }
-          return String.format("New Graph Created Successfully");
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> created(output))
-        .exceptionally(
-          e -> {
-            if (e.getCause() instanceof GroundException) {
-              return badRequest(
-                GroundUtils.getClientError(
-                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-            } else {
-              return internalServerError(GroundUtils.getServerError(request(), e));
-            }
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        JsonNode json = request().body().asJson();
+        Graph graph = Json.fromJson(json, Graph.class);
+
+        try {
+          graph = this.graphDao.create(graph);
+        } catch (GroundException e) {
+          throw new CompletionException(e);
+        }
+
+        return Json.toJson(graph);
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::created)
+             .exceptionally(
+               e -> {
+                 if (e.getCause() instanceof GroundException) {
+                   // TODO: fix
+                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+                 } else {
+                   return internalServerError(GroundUtils.getServerError(request(), e));
+                 }
+               });
   }
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addGraphVersion() {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          JsonNode json = request().body().asJson();
-          List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
-          ((ObjectNode) json).remove("parentIds");
-          GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
-          try {
-            new GraphVersionDao(dbSource, idGenerator).create(graphVersion, parentIds);
-          } catch (GroundException e) {
-            throw new CompletionException(e);
-          }
-          return String.format("New Graph Version Created Successfully");
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> created(output))
-        .exceptionally(
-          e -> {
-            if (e.getCause() instanceof GroundException) {
-              return badRequest(
-                GroundUtils.getClientError(
-                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-            } else {
-              return internalServerError(GroundUtils.getServerError(request(), e));
-            }
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        JsonNode json = request().body().asJson();
+        List<Long> parentIds = GroundUtils.getListFromJson(json, "parentIds");
+        ((ObjectNode) json).remove("parentIds");
+        GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
+
+        try {
+          graphVersion = this.graphVersionDao.create(graphVersion, parentIds);
+        } catch (GroundException e) {
+          throw new CompletionException(e);
+        }
+        return Json.toJson(graphVersion);
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(
+               e -> {
+                 if (e.getCause() instanceof GroundException) {
+                   // TODO: fix
+                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+                 } else {
+                   return internalServerError(GroundUtils.getServerError(request(), e));
+                 }
+               });
   }
 }

@@ -15,9 +15,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.TagFactory;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,31 +28,19 @@ import play.db.Database;
 
 public class TagDao implements TagFactory {
 
-  Database dbSource;
-  IdGenerator idGenerator;
+  private Database dbSource;
 
-  public TagDao(Database dbSource, IdGenerator idGenerator) {
+  public TagDao(Database dbSource) {
     this.dbSource = dbSource;
-    this.idGenerator = idGenerator;
   }
 
-  public final void create(final Database dbSource, final Tag tag, final IdGenerator idGenerator)
-    throws GroundException {
-    long uniqueId = idGenerator.generateItemId();
-    Tag newTag = new Tag(uniqueId, tag.getKey(), tag.getValue(), tag.getValueType());
-    try {
-      PostgresUtils.executeSqlList(dbSource, insert(newTag));
-    } catch (Exception e) {
-      throw new GroundException(e);
-    }
-  }
-
+  @Override
   public PostgresStatements insert(final Tag tag) {
     List<String> sqlList = new ArrayList<>();
     if (tag.getValue() != null) {
       sqlList.add(String
-        .format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
-          tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+                    .format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
+                      tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
     } else {
       sqlList.add(
         String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', %s, %s)",
@@ -63,15 +49,17 @@ public class TagDao implements TagFactory {
     return new PostgresStatements(sqlList);
   }
 
+  @Override
   public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "rich_version");
   }
 
+  @Override
   public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
     return this.retrieveFromDatabaseById(id, "item");
   }
 
-  public Map<String, Tag> retrieveFromDatabaseById(long id, String prefix) throws GroundException {
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String prefix) throws GroundException {
 
     Map<String, Tag> results = new HashMap<>();
     try {
@@ -103,33 +91,10 @@ public class TagDao implements TagFactory {
     return results;
   }
 
-  private Object getValue(GroundType type, ResultSet resultSet, int index)
-    throws GroundException, SQLException {
-
-    if (type == null) {
-      return null;
-    }
-
-    switch (type) {
-      case STRING:
-        return resultSet.getString(index);
-      case INTEGER:
-        return resultSet.getInt(index);
-      case LONG:
-        return resultSet.getLong(index);
-      case BOOLEAN:
-        return resultSet.getBoolean(index);
-      default:
-        // this should never happen because we've listed all types
-        throw new GroundException("Unidentified type: " + type);
-    }
-  }
-
   @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundException {
     return this.getIdsByTag(tag, "rich_version");
   }
-
 
   @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
@@ -158,5 +123,27 @@ public class TagDao implements TagFactory {
       throw new GroundException(e);
     }
     return result;
+  }
+
+  private Object getValue(GroundType type, ResultSet resultSet, int index)
+    throws GroundException, SQLException {
+
+    if (type == null) {
+      return null;
+    }
+
+    switch (type) {
+      case STRING:
+        return resultSet.getString(index);
+      case INTEGER:
+        return resultSet.getInt(index);
+      case LONG:
+        return resultSet.getLong(index);
+      case BOOLEAN:
+        return resultSet.getBoolean(index);
+      default:
+        // this should never happen because we've listed all types
+        throw new GroundException("Unidentified type: " + type);
+    }
   }
 }

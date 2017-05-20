@@ -17,13 +17,11 @@ package edu.berkeley.ground.postgres.dao.version;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionSuccessorFactory;
-import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.common.util.DbStatements;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import java.sql.ResultSet;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import play.db.Database;
 import play.libs.Json;
 
@@ -32,14 +30,9 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
   private final IdGenerator idGenerator;
   private final Database dbSource;
 
-  //TODO: Should take in a Play Database connection instead of dbClient
   public VersionSuccessorDao(Database dbSource, IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
-  }
-
-  public long getNewSuccessorId() {
-    return this.idGenerator.generateSuccessorId();
   }
 
   /**
@@ -54,20 +47,19 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
     throws GroundException {
 
     PostgresStatements statements = new PostgresStatements();
-    String sql = String
-      .format("insert into version_successor (id, from_version_id, to_version_id) " +
-        "values (%d,%d,%d)", versionSuccessorId, fromId, toId);
+    String sql = String.format("insert into version_successor (id, from_version_id, to_version_id) " +
+                                 "values (%d,%d,%d)", versionSuccessorId, fromId, toId);
     statements.append(sql);
     return statements;
   }
 
   @Override
-  public <T extends Version> VersionSuccessor<T> create(long fromId, long toId)
+  public VersionSuccessor create(long fromId, long toId)
     throws GroundException {
     long dbId = idGenerator.generateSuccessorId();
     PostgresStatements statements = insert(fromId, toId, dbId);
     PostgresUtils.executeSqlList(dbSource, statements);
-    return new VersionSuccessor<>(dbId, fromId, toId);
+    return new VersionSuccessor(dbId, fromId, toId);
   }
 
   /**
@@ -75,42 +67,34 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
    *
    * @param fromId the id of the parent version
    * @param toId the id of the child version
-   * @param <T> the types of the connected versions
    * @return the created version successor
    * @throws GroundException an error creating the successor
    */
-  public <T extends Version> VersionSuccessor<T> instantiateVersionSuccessor(long fromId, long toId)
+  protected VersionSuccessor instantiateVersionSuccessor(long fromId, long toId)
     throws GroundException {
 
     long dbId = idGenerator.generateSuccessorId();
-    return new VersionSuccessor<>(dbId, fromId, toId);
+    return new VersionSuccessor(dbId, fromId, toId);
   }
 
   /**
    * Retrieve a version successor from the database.
    *
    * @param dbId the id of the successor to retrieve
-   * @param <T> the types of the connected versions
    * @return the retrieved version successor
    * @throws GroundException either the successor didn't exist or couldn't be retrieved
    */
   @Override
-  public <T extends Version> VersionSuccessor<T> retrieveFromDatabase(long dbId)
-    throws GroundException {
-
-    long fromId = 0L;
-    long toId = 0L;
-
+  public VersionSuccessor retrieveFromDatabase(long dbId) throws GroundException {
     try {
       String sql = String.format("select * from version_successor where id=%d", dbId);
       JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
       if (json.size() == 0) {
-        throw new GroundException(
-          String.format("Version Successor with id %d does not exist.", dbId));
+        throw new GroundException(String.format("Version Successor with id %d does not exist.", dbId));
       }
+
       json = json.get(0);
-      return new VersionSuccessor<T>(dbId, json.get("fromVersionId").asLong(),
-        json.get("toVersionId").asLong());
+      return new VersionSuccessor(dbId, json.get("fromVersionId").asLong(), json.get("toVersionId").asLong());
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -120,12 +104,15 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
   /**
    * Delete a version successor from the database.
    *
+   * @param statementsPointer the list of DB statements to append to
    * @param toId the destination version
+   * @param itemId the id of the item we are deleting from
+   * @throws GroundException an unexpected error while retrieving the version successors to delete
    */
   @Override
-  public void deleteFromDestination(DbStatements statements, long toId, long itemId)
-    throws GroundException {
-    ResultSet resultSet;
+  public void deleteFromDestination(DbStatements statementsPointer, long toId, long itemId) throws GroundException {
+    PostgresStatements statements = (PostgresStatements) statementsPointer;
+
     try {
       String sql = String.format("SELECT * FROM version_successor WHERE to_version_id = %d;", toId);
       JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -133,11 +120,9 @@ public class VersionSuccessorDao implements VersionSuccessorFactory {
       for (JsonNode result : json) {
         Long dbId = result.get("id").asLong();
 
-        statements.append(
-          String.format("DELETE FROM version_history_dag WHERE version_successor_id = %d;", dbId));
+        statements.append(String.format("DELETE FROM version_history_dag WHERE version_successor_id = %d;", dbId));
         statements.append(String.format("DELETE FROM version_successor WHERE id = %d;", dbId));
       }
-      //PostgresUtils.executeSqlList(dbSource, (PostgresStatements) statements);
     } catch (Exception e) {
       throw new GroundException(e);
     }

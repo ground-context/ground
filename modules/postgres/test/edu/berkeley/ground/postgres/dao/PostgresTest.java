@@ -6,7 +6,7 @@ import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.TagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
-import edu.berkeley.ground.postgres.utils.Daos;
+import edu.berkeley.ground.postgres.util.Daos;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -46,7 +46,7 @@ public class PostgresTest extends DaoTest {
 
     versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-      (VersionSuccessorDao) versionSuccessorDao);
+                                                     (VersionSuccessorDao) versionSuccessorDao);
     tagDao = new TagDao(dbSource, idGenerator);
 
     edgeDao = daos.getEdgeDao();
@@ -102,7 +102,7 @@ public class PostgresTest extends DaoTest {
       } catch (SQLException e) {
         String message = e.getMessage();
         if (message.contains("already exists") || message
-          .contains("current transaction is aborted")) {
+                                                    .contains("current transaction is aborted")) {
           System.out.println("Warn: statement [" + statement + "] causes: " + e.getMessage());
           // ignore errors caused by type already existing
         } else {

@@ -6,47 +6,31 @@ import edu.berkeley.ground.common.factory.core.EdgeVersionFactory;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
 
 public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeVersionFactory {
 
+  private EdgeDao edgeDao;
 
   public EdgeVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
+    this.edgeDao = new EdgeDao(dbSource, idGenerator);
   }
 
   @Override
-  public EdgeVersion create(final EdgeVersion edgeVersion, List<Long> parentIds)
-    throws GroundException {
+  public EdgeVersion create(final EdgeVersion edgeVersion, List<Long> parentIds) throws GroundException {
+    final long uniqueId = this.idGenerator.generateVersionId();
+    EdgeVersion newEdgeVersion = new EdgeVersion(uniqueId, edgeVersion);
 
-    final long uniqueId = idGenerator.generateVersionId();
-    EdgeVersion newEdgeVersion = new EdgeVersion(uniqueId, edgeVersion.getTags(),
-      edgeVersion.getStructureVersionId(),
-      edgeVersion.getReference(), edgeVersion.getParameters(), edgeVersion.getEdgeId(),
-      edgeVersion.getFromNodeVersionStartId(), edgeVersion.getFromNodeVersionEndId(), edgeVersion
-      .getToNodeVersionStartId(), edgeVersion.getToNodeVersionEndId());
+    PostgresStatements updateVersionList = this.edgeDao.update(newEdgeVersion.getEdgeId(), newEdgeVersion.getId(), parentIds);
 
-    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
-    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-      versionSuccessorDao);
-    TagDao tagDao = new TagDao(dbSource, idGenerator);
-
-    ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = itemDao
-      .update(newEdgeVersion.getEdgeId(), newEdgeVersion.getId(), parentIds);
     for (long parentId : parentIds) {
       if (parentId != 0) {
-        updateVersionList
-          .merge(updatePreviousVersion(parentId, edgeVersion.getFromNodeVersionStartId(),
-            edgeVersion.getToNodeVersionStartId()));
+        updateVersionList.merge(this.updatePreviousVersion(parentId, edgeVersion.getFromNodeVersionStartId(), edgeVersion.getToNodeVersionStartId()));
       }
     }
 
@@ -54,9 +38,11 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
       PostgresStatements statements = super.insert(newEdgeVersion);
       Long fromEndId = edgeVersion.getFromNodeVersionEndId();
       Long toEndId = edgeVersion.getToNodeVersionEndId();
+
       if (fromEndId == -1) {
         fromEndId = null;
       }
+
       if (toEndId == -1) {
         toEndId = null;
       }
@@ -65,12 +51,14 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
           + "to_node_version_start_id, to_node_version_end_id) values (%d, %d, %d, %d, %d, %d)",
         uniqueId, edgeVersion.getEdgeId(), edgeVersion.getFromNodeVersionStartId(), fromEndId,
         edgeVersion.getToNodeVersionStartId(), toEndId));
+
       statements.merge(updateVersionList);
 
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
+
     return newEdgeVersion;
   }
 
@@ -81,27 +69,24 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
    *
    * @param parentId the ids of the parent of the child
    */
-  private PostgresStatements updatePreviousVersion(long parentId, long fromEndId, long toEndId)
-    throws GroundException {
+  private PostgresStatements updatePreviousVersion(long parentId, long fromEndId, long toEndId) throws GroundException {
     String sql = String.format("select * from version_successor where to_version_id=%d", fromEndId);
     JsonNode fromJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (fromJson.size() == 0) {
-      throw new GroundException(
-        String.format("Version Successor with to_version_id %d does not exist.", fromEndId));
+      throw new GroundException(String.format("Version Successor with to_version_id %d does not exist.", fromEndId));
     }
+
     sql = String.format("select * from version_successor where to_version_id=%d", toEndId);
     JsonNode toJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (toJson.size() == 0) {
-      throw new GroundException(
-        String.format("Version Successor with to_version_id %d does not exist.", toEndId));
+      throw new GroundException(String.format("Version Successor with to_version_id %d does not exist.", toEndId));
     }
 
     PostgresStatements statements = new PostgresStatements();
-    statements.append(
-      String.format(
-        "update edge_version set from_node_version_end_id = %d, to_node_version_end_id = %d where"
-          + " id = %d", fromJson.get(0).get("fromVersionId").asInt(),
-        toJson.get(0).get("fromVersionId").asInt(), parentId));
+    statements.append(String.format("update edge_version set from_node_version_end_id = %d, to_node_version_end_id = %d where"
+                                      + " id = %d", fromJson.get(0).get("fromVersionId").asInt(), toJson.get(0).get("fromVersionId").asInt(),
+      parentId));
+
     return statements;
   }
 
@@ -119,8 +104,8 @@ public class EdgeVersionDao extends RichVersionDao<EdgeVersion> implements EdgeV
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
     return new EdgeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(),
-      richVersion.getReference(), richVersion.getParameters(), edgeVersion.getEdgeId(),
-      edgeVersion.getFromNodeVersionStartId(), edgeVersion.getFromNodeVersionEndId(),
-      edgeVersion.getToNodeVersionStartId(), edgeVersion.getToNodeVersionEndId());
+                            richVersion.getReference(), richVersion.getParameters(), edgeVersion.getEdgeId(),
+                            edgeVersion.getFromNodeVersionStartId(), edgeVersion.getFromNodeVersionEndId(),
+                            edgeVersion.getToNodeVersionStartId(), edgeVersion.getToNodeVersionEndId());
   }
 }

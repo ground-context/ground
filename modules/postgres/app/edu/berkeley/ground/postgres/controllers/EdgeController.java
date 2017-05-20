@@ -9,9 +9,8 @@ import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.EdgeDao;
 import edu.berkeley.ground.postgres.dao.core.EdgeVersionDao;
-import edu.berkeley.ground.postgres.utils.ControllerUtils;
-import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.GroundUtils;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -23,129 +22,116 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 
 public class EdgeController extends Controller {
 
   private CacheApi cache;
-  private Database dbSource;
   private ActorSystem actorSystem;
-  private IdGenerator idGenerator;
+
+  private EdgeDao edgeDao;
+  private EdgeVersionDao edgeVersionDao;
 
   @Inject
-  final void injectUtils(
-    final CacheApi cache, final Database dbSource, final ActorSystem actorSystem,
-    final IdGenerator idGenerator) {
-    this.dbSource = dbSource;
+  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
-    this.idGenerator = idGenerator;
+
+    this.edgeDao = new EdgeDao(dbSource, idGenerator);
+
+    this.edgeVersionDao = new EdgeVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getEdge(final String sourceKey) {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          String sql =
-            String.format("select * from edge where source_key = \'%s\'", sourceKey);
-          //"select * from graph where source_key = \'%s'"
-          try {
-            return cache.getOrElse(
-              "edges",
-              () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-              Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-          } catch (Exception e) {
-            throw new CompletionException(e);
-          }
-        }, PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> ok(output)).exceptionally(e -> {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "edges",
+            () -> Json.toJson(this.edgeDao.retrieveFromDatabase(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addEdge() {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          JsonNode json = request().body().asJson();
-          Edge edge = Json.fromJson(json, Edge.class);
-          try {
-            new EdgeDao(dbSource, idGenerator).create(edge);
-          } catch (GroundException e) {
-            throw new CompletionException(e);
-          }
-          return String.format("New Edge Created Successfully");
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> created(output))
-        .exceptionally(
-          e -> {
-            if (e.getCause() instanceof GroundException) {
-              return badRequest(
-                GroundUtils.getClientError(
-                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-            } else {
-              return internalServerError(GroundUtils.getServerError(request(), e));
-            }
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        JsonNode json = request().body().asJson();
+        Edge edge = Json.fromJson(json, Edge.class);
+
+        try {
+          edge = this.edgeDao.create(edge);
+        } catch (GroundException e) {
+          throw new CompletionException(e);
+        }
+
+        return Json.toJson(edge);
+      },
+      PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::created)
+             .exceptionally(
+               e -> {
+                 if (e.getCause() instanceof GroundException) {
+                   // TODO: huh? wtf.
+                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+                 } else {
+                   return internalServerError(GroundUtils.getServerError(request(), e));
+                 }
+               });
   }
 
   public final CompletionStage<Result> getEdgeVersion(Long id) {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          String sql =
-            String.format(
-              "select * from edge_version where id = %d", id);
-          //"select * from graph where source_key = \'%s'"
-          try {
-            return cache.getOrElse(
-              "edge_verisons",
-              () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-              Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-          } catch (Exception e) {
-            throw new CompletionException(e);
-          }
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> ok(output))
-        .exceptionally(
-          e -> {
-            return internalServerError(GroundUtils.getServerError(request(), e));
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "edge_versions",
+            () -> Json.toJson(this.edgeVersionDao.retrieveFromDatabase(id)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addEdgeVersion() {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          JsonNode json = request().body().asJson();
-          List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
-          ((ObjectNode) json).remove("parentIds");
-          EdgeVersion edgeVersion = Json.fromJson(json, EdgeVersion.class);
-          try {
-            new EdgeVersionDao(dbSource, idGenerator).create(edgeVersion, parentIds);
-          } catch (GroundException e) {
-            throw new CompletionException(e);
-          }
-          return String.format("New Edge Version Created Successfully");
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> created(output))
-        .exceptionally(
-          e -> {
-            if (e.getCause() instanceof GroundException) {
-              return badRequest(
-                GroundUtils.getClientError(
-                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-            } else {
-              return internalServerError(GroundUtils.getServerError(request(), e));
-            }
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        JsonNode json = request().body().asJson();
+        List<Long> parentIds = GroundUtils.getListFromJson(json, "parentIds");
+
+        ((ObjectNode) json).remove("parentIds");
+        EdgeVersion edgeVersion = Json.fromJson(json, EdgeVersion.class);
+
+        try {
+          edgeVersion = this.edgeVersionDao.create(edgeVersion, parentIds);
+        } catch (GroundException e) {
+          throw new CompletionException(e);
+        }
+
+        return Json.toJson(edgeVersion);
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::created)
+             .exceptionally(
+               e -> {
+                 if (e.getCause() instanceof GroundException) {
+                   // TODO: wtf.
+                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+                 } else {
+                   return internalServerError(GroundUtils.getServerError(request(), e));
+                 }
+               });
   }
 }

@@ -17,14 +17,13 @@ import edu.berkeley.ground.common.factory.core.GraphFactory;
 import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
 
 
-// TODO construct me with dbSource and idGenerator thanks
 public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
   public GraphDao(Database dbSource, IdGenerator idGenerator) {
@@ -41,41 +40,41 @@ public class GraphDao extends ItemDao<Graph> implements GraphFactory {
 
     PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();
+    Graph newGraph = new Graph(uniqueId, graph);
 
-    Graph newGraph = new Graph(uniqueId, graph.getName(), graph
-      .getSourceKey(), graph.getTags());
     try {
       postgresStatements = super.insert(newGraph);
-      postgresStatements.append(String.format(
-        "insert into graph (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
+      postgresStatements.append(String.format("insert into graph (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
         uniqueId, graph.getSourceKey(), graph.getName()));
     } catch (Exception e) {
       throw new GroundException(e);
     }
+
     PostgresUtils.executeSqlList(dbSource, postgresStatements);
     return newGraph;
   }
 
   @Override
   public Graph retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql =
-      String.format("select * from graph where source_key=\'%s\'", sourceKey);
+    String sql = String.format("select * from graph where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
-      throw new GroundException(
-        String.format("Graph with source_key %s does not exist.", sourceKey));
+      throw new GroundException(String.format("Graph with source_key %s does not exist.", sourceKey));
     }
+
     return Json.fromJson(json.get(0), Graph.class);
   }
 
   @Override
   public Graph retrieveFromDatabase(long id) throws GroundException {
-    String sql =
-      String.format("select * from graph where item_id=%d", id);
+    String sql = String.format("select * from graph where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
       throw new GroundException(String.format("Graph with id %d does not exist.", id));
     }
+
     return Json.fromJson(json.get(0), Graph.class);
   }
 

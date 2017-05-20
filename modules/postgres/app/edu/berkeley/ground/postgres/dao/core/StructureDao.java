@@ -17,14 +17,13 @@ import edu.berkeley.ground.common.factory.core.StructureFactory;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
 
 
-// TODO construct me with dbSource and idGenerator thanks
 public class StructureDao extends ItemDao<Structure> implements StructureFactory {
 
   public StructureDao(Database dbSource, IdGenerator idGenerator) {
@@ -39,43 +38,44 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
   @Override
   public Structure create(Structure structure) throws GroundException {
 
-    PostgresStatements postgresStatements = new PostgresStatements();
+    PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();
 
-    Structure newStructure = new Structure(uniqueId, structure.getName(), structure
-      .getSourceKey(), structure.getTags());
+    Structure newStructure = new Structure(uniqueId, structure);
+
     try {
       postgresStatements = super.insert(newStructure);
       postgresStatements.append(String.format(
-        "insert into structure (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
-        uniqueId, structure.getSourceKey(), structure.getName()));
+        "insert into structure (item_id, source_key, name) values (%s,\'%s\',\'%s\')", uniqueId, structure.getSourceKey(), structure.getName()));
     } catch (Exception e) {
       throw new GroundException(e);
     }
+
     PostgresUtils.executeSqlList(dbSource, postgresStatements);
     return newStructure;
   }
 
   @Override
   public Structure retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql =
-      String.format("select * from structure where source_key=\'%s\'", sourceKey);
+    String sql = String.format("select * from structure where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
-      throw new GroundException(
-        String.format("Structure with sourceKey %s does not exist.", sourceKey));
+      throw new GroundException(String.format("Structure with sourceKey %s does not exist.", sourceKey));
     }
+
     return Json.fromJson(json.get(0), Structure.class);
   }
 
   @Override
   public Structure retrieveFromDatabase(long id) throws GroundException {
-    String sql =
-      String.format("select * from structure where item_id=%d", id);
+    String sql = String.format("select * from structure where item_id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
       throw new GroundException(String.format("Structure with id %d does not exist.", id));
     }
+
     return Json.fromJson(json.get(0), Structure.class);
   }
 

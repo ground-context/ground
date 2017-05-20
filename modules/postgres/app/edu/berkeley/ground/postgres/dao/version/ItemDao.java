@@ -17,14 +17,14 @@ import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import play.db.Database;
 
-public class ItemDao<T extends Item> implements ItemFactory<T> {
+public abstract class ItemDao<T extends Item> implements ItemFactory<T> {
 
   protected VersionHistoryDagDao versionHistoryDagDao;
   protected TagDao tagDao;
@@ -34,44 +34,17 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   public ItemDao(Database dbSource, IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
-  }
-
-  public ItemDao(Database dbSource, IdGenerator idGenerator, VersionHistoryDagDao
-    versionHistoryDagDao, TagDao tagDao) {
-    this.dbSource = dbSource;
-    this.idGenerator = idGenerator;
-    this.versionHistoryDagDao = versionHistoryDagDao;
-    this.tagDao = tagDao;
-  }
-
-  public Item getItemData(long id) throws GroundException {
-    Map<String, Tag> tags = tagDao.retrieveFromDatabaseByItemId(id);
-    return new Item(id, tags);
-  }
-
-  @Override
-  public T retrieveFromDatabase(long id) throws GroundException {
-    return null;
-  }
-
-  @Override
-  public T retrieveFromDatabase(String sourceKey) throws GroundException {
-    return null;
-  }
-
-  @Override
-  public Class<T> getType() {
-    return null;
+    this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+    this.tagDao = new TagDao(dbSource);
   }
 
   @Override
   public List<Long> getLeaves(long itemId) throws GroundException {
     if (this.versionHistoryDagDao == null) {
-      this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-        new VersionSuccessorDao(dbSource, idGenerator));
+      this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
     }
     try {
-      VersionHistoryDag<?> dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
+      VersionHistoryDag dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
 
       return dag.getLeaves();
     } catch (GroundException e) {
@@ -99,11 +72,9 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    * @param childId the new version's id
    * @param parentIds the ids of the parents of the child
    */
-  //Should return sqlList and also add edges to the versionHistoryDag
   @Override
   public PostgresStatements update(long itemId, long childId, List<Long> parentIds)
     throws GroundException {
-    // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
     }
@@ -125,8 +96,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
         String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
         throw new GroundException(errorString);
       }
-      statements.merge(versionHistoryDagDao.insert(dag, parentId, childId, itemId));
-      this.versionHistoryDagDao.addEdge(dag, parentId, childId, itemId);
+
+      statements.merge(this.versionHistoryDagDao.addEdge(dag, parentId, childId, itemId));
     }
 
     return statements;
@@ -140,46 +111,31 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    */
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
-    VersionHistoryDag<?> dag;
+    VersionHistoryDag dag;
     if (versionHistoryDagDao == null) {
-      versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-        new VersionSuccessorDao(dbSource, idGenerator));
+      versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
     }
+
     dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
-    //TODO versionHistoryDagDao is null (not passed in)
     this.versionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }
 
   @Override
   public PostgresStatements insert(final T item) throws GroundException {
     final List<String> sqlList = new ArrayList<>();
-    sqlList.add(
-      String.format(
-        "insert into item (id) values (%d)",
-        item.getId()));
+    sqlList.add(String.format("insert into item (id) values (%d)", item.getId()));
+
     final Map<String, Tag> tags = item.getTags();
     PostgresStatements postgresStatements = new PostgresStatements(sqlList);
+
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
         tag.setId(item.getId());
-        TagDao tagDao = new TagDao(dbSource, idGenerator);
+        TagDao tagDao = new TagDao(dbSource);
         postgresStatements.merge(tagDao.insert(tag));
       }
     }
     return new PostgresStatements(sqlList);
-  }
-
-  public void delete(final T item) throws GroundException {
-    PostgresStatements statements = new PostgresStatements();
-    statements.append("begin");
-    statements.append(String.format("delete from item where id = %d", item.getId()));
-    final Map<String, Tag> tags = item.getTags();
-    for (String key : tags.keySet()) {
-      Tag tag = tags.get(key);
-      statements.append(String.format("delete from item_tag where item_id = %d", item.getId()));
-    }
-    statements.append("commit");
-    PostgresUtils.executeSqlList(dbSource, statements);
   }
 }

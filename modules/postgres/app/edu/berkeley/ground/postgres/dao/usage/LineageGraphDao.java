@@ -17,8 +17,8 @@ import edu.berkeley.ground.common.factory.usage.LineageGraphFactory;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
@@ -37,13 +37,13 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   @Override
   public LineageGraph create(LineageGraph lineageGraph) throws GroundException {
     long uniqueId = idGenerator.generateItemId();
-    LineageGraph newLineageGraph = new LineageGraph(uniqueId, lineageGraph.getName(),
-      lineageGraph.getSourceKey(),
-      lineageGraph.getTags());
+    LineageGraph newLineageGraph = new LineageGraph(uniqueId, lineageGraph);
+
     PostgresStatements statements = super.insert(newLineageGraph);
-    statements.append(
-      String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')",
-        newLineageGraph.getId(), newLineageGraph.getSourceKey(), newLineageGraph.getName()));
+
+    statements.append(String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')", newLineageGraph.getId(),
+      newLineageGraph.getSourceKey(), newLineageGraph.getName()));
+
     try {
       PostgresUtils.executeSqlList(dbSource, statements);
       return newLineageGraph;
@@ -56,10 +56,11 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql = String.format("select * from lineage_graph where source_key = \'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
-      throw new GroundException(
-        String.format("Lineage Graph with sourceKey %s does not exist.", sourceKey));
+      throw new GroundException(String.format("Lineage Graph with sourceKey %s does not exist.", sourceKey));
     }
+
     return Json.fromJson(json.get(0), LineageGraph.class);
   }
 
@@ -67,9 +68,11 @@ public class LineageGraphDao extends ItemDao<LineageGraph> implements LineageGra
   public LineageGraph retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format("select * from lineage_graph where id = %d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
       throw new GroundException(String.format("Lineage Graph with id %d does not exist.", id));
     }
+
     return Json.fromJson(json.get(0), LineageGraph.class);
   }
 

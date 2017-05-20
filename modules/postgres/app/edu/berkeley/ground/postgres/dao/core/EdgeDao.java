@@ -17,14 +17,13 @@ import edu.berkeley.ground.common.factory.core.EdgeFactory;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.utils.PostgresStatements;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
 
 
-// TODO construct me with dbSource and idGenerator thanks
 public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
 
   public EdgeDao(Database dbSource, IdGenerator idGenerator) {
@@ -42,8 +41,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();
 
-    Edge newEdge = new Edge(uniqueId, edge.getName(), edge
-      .getSourceKey(), edge.getFromNodeId(), edge.getToNodeId(), edge.getTags());
+    Edge newEdge = new Edge(uniqueId, edge);
     try {
       postgresStatements = super.insert(newEdge);
       postgresStatements.append(String.format(
@@ -57,14 +55,14 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     return newEdge;
   }
 
+  // TODO: Retrieve tags...
   @Override
   public Edge retrieveFromDatabase(String sourceKey) throws GroundException {
     String sql =
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
-      throw new GroundException(
-        String.format("Edge with source_key %s does not exist.", sourceKey));
+      throw new GroundException(String.format("Edge with source_key %s does not exist.", sourceKey));
     }
     return Json.fromJson(json.get(0), Edge.class);
   }

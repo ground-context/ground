@@ -20,9 +20,8 @@ import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.StructureDao;
 import edu.berkeley.ground.postgres.dao.core.StructureVersionDao;
-import edu.berkeley.ground.postgres.utils.ControllerUtils;
-import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import edu.berkeley.ground.postgres.util.GroundUtils;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -34,112 +33,113 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 
 public class StructureController extends Controller {
 
   private CacheApi cache;
-  private Database dbSource;
   private ActorSystem actorSystem;
-  private IdGenerator idGenerator;
+
+  private StructureDao structureDao;
+  private StructureVersionDao structureVersionDao;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource,
-    final ActorSystem actorSystem, final IdGenerator idGenerator) {
-    this.dbSource = dbSource;
+  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
-    this.idGenerator = idGenerator;
+
+    this.structureDao = new StructureDao(dbSource, idGenerator);
+    this.structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getStructure(String sourceKey) {
-    CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
-      String sql = String.format("select * from structure where source_key = \'%s\'", sourceKey);
-      try {
-        return cache.getOrElse("structures", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-      } catch (Exception e) {
-        throw new CompletionException(e);
-      }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
-      .exceptionally(e -> {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "structures",
+            () -> Json.toJson(this.structureDao.retrieveFromDatabase(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      }, PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
   public final CompletionStage<Result> getStructureVersion(Long id) {
-    CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
-      String sql = String.format("select * from structure_version where id = \'%d\'", id);
-      try {
-        return cache.getOrElse("structures", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
-      } catch (Exception e) {
-        throw new CompletionException(e);
-      }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
-      .exceptionally(e -> {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "structure_versions",
+            () -> Json.toJson(this.structureVersionDao.retrieveFromDatabase(id)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      }, PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addStructure() {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          JsonNode json = request().body().asJson();
-          Structure structure = Json.fromJson(json, Structure.class);
-          try {
-            new StructureDao(dbSource, idGenerator).create(structure);
-          } catch (GroundException e) {
-            throw new CompletionException(e);
-          }
-          return String.format("New Structure Created Successfully");
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> created(output))
-        .exceptionally(
-          e -> {
-            if (e.getCause() instanceof GroundException) {
-              return badRequest(
-                GroundUtils.getClientError(
-                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-            } else {
-              return internalServerError(GroundUtils.getServerError(request(), e));
-            }
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        JsonNode json = request().body().asJson();
+        Structure structure = Json.fromJson(json, Structure.class);
+
+        try {
+          structure = this.structureDao.create(structure);
+        } catch (GroundException e) {
+          throw new CompletionException(e);
+        }
+        return Json.toJson(structure);
+      },
+
+      PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::created)
+             .exceptionally(
+               e -> {
+                 if (e.getCause() instanceof GroundException) {
+                   // TODO: fix
+                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+                 } else {
+                   return internalServerError(GroundUtils.getServerError(request(), e));
+                 }
+               });
   }
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addStructureVersion() {
-    CompletableFuture<Result> results =
-      CompletableFuture.supplyAsync(
-        () -> {
-          JsonNode json = request().body().asJson();
-          List<Long> parentIds = ControllerUtils.getListFromJson(json, "parentIds");
-          ((ObjectNode) json).remove("parentIds");
-          StructureVersion structureVersion = Json.fromJson(json, StructureVersion.class);
-          try {
-            new StructureVersionDao(dbSource, idGenerator).create(structureVersion, parentIds);
-          } catch (GroundException e) {
-            throw new CompletionException(e);
-          }
-          return String.format("New Structure Version Created Successfully");
-        },
-        PostgresUtils.getDbSourceHttpContext(actorSystem))
-        .thenApply(output -> created(output))
-        .exceptionally(
-          e -> {
-            if (e.getCause() instanceof GroundException) {
-              return badRequest(
-                GroundUtils.getClientError(
-                  request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-            } else {
-              return internalServerError(GroundUtils.getServerError(request(), e));
-            }
-          });
-    return results;
+    return CompletableFuture.supplyAsync(
+      () -> {
+        JsonNode json = request().body().asJson();
+
+        List<Long> parentIds = GroundUtils.getListFromJson(json, "parentIds");
+        ((ObjectNode) json).remove("parentIds");
+
+        StructureVersion structureVersion = Json.fromJson(json, StructureVersion.class);
+
+        try {
+          structureVersion = this.structureVersionDao.create(structureVersion, parentIds);
+        } catch (GroundException e) {
+          throw new CompletionException(e);
+        }
+        return Json.toJson(structureVersion);
+      },
+      PostgresUtils.getDbSourceHttpContext(this.actorSystem))
+             .thenApply(Results::created)
+             .exceptionally(
+               e -> {
+                 if (e.getCause() instanceof GroundException) {
+                   // TODO: fix
+                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+                 } else {
+                   return internalServerError(GroundUtils.getServerError(request(), e));
+                 }
+               });
   }
 }

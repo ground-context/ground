@@ -4,11 +4,11 @@ import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.model.usage.LineageEdge;
-import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
+import edu.berkeley.ground.common.model.usage.LineageGraph;
+import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.LineageGraphDao;
+import edu.berkeley.ground.postgres.dao.usage.LineageGraphVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -24,30 +24,30 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
 
-public class LineageEdgeController extends Controller {
+public class LineageGraphController extends Controller {
 
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private LineageEdgeDao lineageEdgeDao;
-  private LineageEdgeVersionDao lineageEdgeVersionDao;
+  private LineageGraphDao lineageGraphDao;
+  private LineageGraphVersionDao lineageGraphVersionDao;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
+  final void injectUtils(final CacheApi cache, final Database dbSource,
+                          final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.lineageEdgeDao = new LineageEdgeDao(dbSource, idGenerator);
-    this.lineageEdgeVersionDao = new LineageEdgeVersionDao(dbSource, idGenerator);
+    this.lineageGraphDao = new LineageGraphDao(dbSource, idGenerator);
   }
 
-  public final CompletionStage<Result> getLineageEdge(String sourceKey) {
+  public final CompletionStage<Result> getLineageGraph(String sourceKey) {
     return CompletableFuture.supplyAsync(
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_edges",
-            () -> Json.toJson(this.lineageEdgeDao.retrieveFromDatabase(sourceKey)),
+            "lineage_graphs",
+            () -> Json.toJson(this.lineageGraphDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -58,13 +58,13 @@ public class LineageEdgeController extends Controller {
              .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
   }
 
-  public final CompletionStage<Result> getLineageEdgeVersion(Long id) {
+  public final CompletionStage<Result> getLineageGraphVersion(Long id) {
     return CompletableFuture.supplyAsync(
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_edge_versions",
-            () -> Json.toJson(this.lineageEdgeVersionDao.retrieveFromDatabase(id)),
+            "lineage_graph_versions",
+            () -> Json.toJson(this.lineageGraphVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -76,17 +76,17 @@ public class LineageEdgeController extends Controller {
   }
 
   @BodyParser.Of(BodyParser.Json.class)
-  public final CompletionStage<Result> createLineageEdge() {
+  public final CompletionStage<Result> createLineageGraph() {
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
-        LineageEdge lineageEdge = Json.fromJson(json, LineageEdge.class);
+        LineageGraph lineageGraph = Json.fromJson(json, LineageGraph.class);
         try {
-          lineageEdge = this.lineageEdgeDao.create(lineageEdge);
+          lineageGraph = this.lineageGraphDao.create(lineageGraph);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
-        return Json.toJson(lineageEdge);
+        return Json.toJson(lineageGraph);
       },
       PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::created)
@@ -100,7 +100,7 @@ public class LineageEdgeController extends Controller {
              });
   }
 
-  public final CompletionStage<Result> createLineageEdgeVersion() {
+  public final CompletionStage<Result> createLineageGraphVersion() {
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
@@ -108,14 +108,14 @@ public class LineageEdgeController extends Controller {
         List<Long> parentIds = GroundUtils.getListFromJson(json, "parentIds");
         ((ObjectNode) json).remove("parentIds");
 
-        LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json, LineageEdgeVersion.class);
+        LineageGraphVersion lineageGraphVersion = Json.fromJson(json, LineageGraphVersion.class);
 
         try {
-          lineageEdgeVersion = this.lineageEdgeVersionDao.create(lineageEdgeVersion, parentIds);
+          lineageGraphVersion = this.lineageGraphVersionDao.create(lineageGraphVersion, parentIds);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
-        return Json.toJson(lineageEdgeVersion);
+        return Json.toJson(lineageGraphVersion);
       },
       PostgresUtils.getDbSourceHttpContext(actorSystem))
              .thenApply(Results::created)

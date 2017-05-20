@@ -1,12 +1,9 @@
-package edu.berkeley.ground.postgres.utils;
+package edu.berkeley.ground.postgres.util;
 
 import edu.berkeley.ground.common.util.DbStatements;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by hdy332 on 5/11/17.
- */
 public class PostgresStatements implements DbStatements<String> {
 
   List<String> statements;
