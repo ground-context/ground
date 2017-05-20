@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class VersionHistoryDag<T extends Version> {
+public class VersionHistoryDag {
+
   // the id of the Version that's at the rootId of this DAG
   private final long itemId;
 
@@ -35,7 +36,7 @@ public class VersionHistoryDag<T extends Version> {
    * @param itemId the id of the item of this DAG
    * @param edges the version successors in this DAG
    */
-  public VersionHistoryDag(long itemId, List<VersionSuccessor<T>> edges) {
+  public VersionHistoryDag(long itemId, List<VersionSuccessor> edges) {
     this.itemId = itemId;
     this.edgeIds = edges.stream().map(VersionSuccessor::getId).collect(Collectors.toList());
     this.parentChildMap = new HashMap<>();
@@ -80,11 +81,11 @@ public class VersionHistoryDag<T extends Version> {
    */
   public List<Long> getParent(long childId) {
     return this.parentChildMap
-        .entrySet()
-        .stream()
-        .filter(entry -> entry.getValue().contains(childId))
-        .map(Map.Entry::getKey)
-        .collect(Collectors.toList());
+             .entrySet()
+             .stream()
+             .filter(entry -> entry.getValue().contains(childId))
+             .map(Map.Entry::getKey)
+             .collect(Collectors.toList());
   }
 
   /**

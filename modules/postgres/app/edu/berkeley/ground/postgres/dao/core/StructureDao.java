@@ -15,14 +15,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.StructureFactory;
 import edu.berkeley.ground.common.model.core.Structure;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.List;
 import play.db.Database;
 import play.libs.Json;
-
-import java.util.List;
 
 
 // TODO construct me with dbSource and idGenerator thanks
@@ -37,6 +36,7 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
     return Structure.class;
   }
 
+  @Override
   public Structure create(Structure structure) throws GroundException {
 
     PostgresStatements postgresStatements = new PostgresStatements();
@@ -62,7 +62,8 @@ public class StructureDao extends ItemDao<Structure> implements StructureFactory
       String.format("select * from structure where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
-      throw new GroundException(String.format("Structure with sourceKey %s does not exist.", sourceKey));
+      throw new GroundException(
+        String.format("Structure with sourceKey %s does not exist.", sourceKey));
     }
     return Json.fromJson(json.get(0), Structure.class);
   }

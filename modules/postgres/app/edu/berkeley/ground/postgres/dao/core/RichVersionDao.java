@@ -11,21 +11,17 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.RichVersionFactory;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.TagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import play.db.Database;
-import play.libs.Json;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,8 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import play.db.Database;
 
-public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements RichVersionFactory<T> {
+public class RichVersionDao<T extends RichVersion> extends VersionDao<T> implements
+  RichVersionFactory<T> {
 
   TagDao tagDao;
 
@@ -100,13 +98,16 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
 
   public Map<String, String> getReferenceParameters(long id) throws GroundException {
 
-    String sql = String.format("select * from rich_version_external_parameter where rich_version_id = %d", id);
+    String sql = String
+      .format("select * from rich_version_external_parameter where rich_version_id = %d", id);
     Map<String, String> referenceParameters = new HashMap<>();
 
     try (Connection con = dbSource.getConnection()) {
       Statement stmt = con.createStatement();
       ResultSet parameterSet = stmt.executeQuery(sql);
-      if (!parameterSet.next()) return referenceParameters;
+      if (!parameterSet.next()) {
+        return referenceParameters;
+      }
       do {
         referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
       } while (parameterSet.next());
@@ -124,7 +125,7 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
    * Validate that the given Tags satisfy the StructureVersion's requirements.
    *
    * @param structureVersion the StructureVersion to check against
-   * @param tags             the provided tags
+   * @param tags the provided tags
    */
   static void checkStructureTags(StructureVersion structureVersion, Map<String, Tag> tags)
     throws GroundException {
@@ -163,7 +164,8 @@ public class RichVersionDao<T extends RichVersion> extends VersionDao<T> impleme
       structureVersionId = null;
     } else {
       StructureVersionDao structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
-      StructureVersion structureVersion = structureVersionDao.retrieveFromDatabase(richVersion.getStructureVersionId());
+      StructureVersion structureVersion = structureVersionDao
+        .retrieveFromDatabase(richVersion.getStructureVersionId());
       structureVersionId = richVersion.getStructureVersionId();
       checkStructureTags(structureVersion, richVersion.getTags());
     }

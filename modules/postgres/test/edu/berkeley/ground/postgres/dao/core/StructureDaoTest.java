@@ -5,7 +5,7 @@ package edu.berkeley.ground.postgres.dao.core;
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,19 @@ package edu.berkeley.ground.postgres.dao.core;
  * limitations under the License.
  */
 
-  import edu.berkeley.ground.common.exception.GroundException;
-  import edu.berkeley.ground.common.model.core.Structure;
-  import edu.berkeley.ground.common.model.version.VersionHistoryDag;
-  import edu.berkeley.ground.common.model.version.VersionSuccessor;
-  import edu.berkeley.ground.postgres.dao.PostgresTest;
-  import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-  import java.util.ArrayList;
-  import java.util.HashMap;
-  import java.util.List;
-
-  import static org.junit.Assert.*;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.Structure;
+import edu.berkeley.ground.common.model.version.VersionHistoryDag;
+import edu.berkeley.ground.common.model.version.VersionSuccessor;
+import edu.berkeley.ground.postgres.dao.PostgresTest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import org.junit.Test;
 
 public class StructureDaoTest extends PostgresTest {
 
@@ -36,38 +37,30 @@ public class StructureDaoTest extends PostgresTest {
 
   @Test
   public void testStructureCreation() throws GroundException {
-    try {
-      String testName = "test";
-      String sourceKey = "testKey";
+    String testName = "test";
+    String sourceKey = "testKey";
 
-      Structure insertStructure = new Structure(0L, testName, sourceKey, new HashMap<>());
+    Structure insertStructure = new Structure(0L, testName, sourceKey, new HashMap<>());
 
-      PostgresTest.structureDao.create(insertStructure);
-      Structure structure = PostgresTest.structureDao.retrieveFromDatabase(sourceKey);
+    PostgresTest.structureDao.create(insertStructure);
+    Structure structure = PostgresTest.structureDao.retrieveFromDatabase(sourceKey);
 
-      assertEquals(testName, structure.getName());
-      assertEquals(sourceKey, structure.getSourceKey());
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertEquals(testName, structure.getName());
+    assertEquals(sourceKey, structure.getSourceKey());
   }
 
   @Test
   public void testLeafRetrieval() throws GroundException {
-    try {
-      String sourceKey = "testStructure";
-      long structureId = PostgresTest.createStructure(sourceKey).getId();
+    String sourceKey = "testStructure";
+    long structureId = PostgresTest.createStructure(sourceKey).getId();
 
-      long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
-      long secondStructureVersionId = PostgresTest.createStructureVersion(structureId).getId();
+    long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
+    long secondStructureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-      List<Long> leaves = PostgresTest.structureDao.getLeaves(sourceKey);
+    List<Long> leaves = PostgresTest.structureDao.getLeaves(sourceKey);
 
-      assertTrue(leaves.contains(structureVersionId));
-      assertTrue(leaves.contains(secondStructureVersionId));
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertTrue(leaves.contains(structureVersionId));
+    assertTrue(leaves.contains(secondStructureVersionId));
   }
 
   @Test(expected = GroundException.class)
@@ -80,8 +73,6 @@ public class StructureDaoTest extends PostgresTest {
       assertEquals(GroundException.class, e.getClass());
 
       throw e;
-    } finally {
-      //PostgresTest.postgresClient.commit();
     }
   }
 
@@ -91,48 +82,39 @@ public class StructureDaoTest extends PostgresTest {
     String structureKey = "structureKey";
 
     try {
-      try {
-        Structure structure = new Structure(0L, structureName, structureKey, new HashMap<>());
-        PostgresTest.structureDao.create(structure);
-      } catch (GroundException e) {
-        fail(e.getMessage());
-      }
-
-      Structure sameStructure = new Structure(0L, structureName, structureKey, new HashMap<>());
-      PostgresTest.structureDao.create(sameStructure);
-    } finally {
-      //PostgresTest.postgresClient.commit();
+      Structure structure = new Structure(0L, structureName, structureKey, new HashMap<>());
+      PostgresTest.structureDao.create(structure);
+    } catch (GroundException e) {
+      fail(e.getMessage());
     }
+
+    Structure sameStructure = new Structure(0L, structureName, structureKey, new HashMap<>());
+    PostgresTest.structureDao.create(sameStructure);
   }
 
 
   @Test
   public void testTruncate() throws GroundException {
-    try {
-      String structureName = "testStructure1";
-      long structureId = PostgresTest.createStructure(structureName).getId();
+    String structureName = "testStructure1";
+    long structureId = PostgresTest.createStructure(structureName).getId();
 
-      long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
+    long structureVersionId = PostgresTest.createStructureVersion(structureId).getId();
 
-      List<Long> parents = new ArrayList<>();
-      parents.add(structureVersionId);
-      long newStructureVersionId = PostgresTest.createStructureVersion(structureId, parents)
-        .getId();
+    List<Long> parents = new ArrayList<>();
+    parents.add(structureVersionId);
+    long newStructureVersionId = PostgresTest.createStructureVersion(structureId, parents)
+      .getId();
 
-      PostgresTest.structureDao.truncate(structureId, 1);
+    PostgresTest.structureDao.truncate(structureId, 1);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao
-        .retrieveFromDatabase(structureId);
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao
+      .retrieveFromDatabase(structureId);
 
-      assertEquals(1, dag.getEdgeIds().size());
-      VersionSuccessor<?> successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
-        dag.getEdgeIds().get(0));
+    assertEquals(1, dag.getEdgeIds().size());
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+      dag.getEdgeIds().get(0));
 
-      //PostgresTest.postgresClient.commit();
-      assertEquals(0, successor.getFromId());
-      assertEquals(newStructureVersionId, successor.getToId());
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertEquals(0, successor.getFromId());
+    assertEquals(newStructureVersionId, successor.getToId());
   }
 }

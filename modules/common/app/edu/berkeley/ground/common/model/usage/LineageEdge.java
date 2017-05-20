@@ -11,14 +11,14 @@
  */
 package edu.berkeley.ground.common.model.usage;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
+import java.util.Map;
 
-public class LineageEdge extends Item<LineageEdgeVersion> {
+public class LineageEdge extends Item {
+
   // the name of this LineageEdge
   @JsonProperty("name")
   private final String name;
@@ -39,7 +39,7 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
   //TODO implement tags
   @JsonCreator
   public LineageEdge(@JsonProperty("itemId") long id, @JsonProperty("name") String name,
-                     @JsonProperty("sourceKey") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
+                      @JsonProperty("sourceKey") String sourceKey, @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
@@ -63,8 +63,8 @@ public class LineageEdge extends Item<LineageEdgeVersion> {
     LineageEdge otherLineageEdge = (LineageEdge) other;
 
     return this.name.equals(otherLineageEdge.name)
-        && this.getId() == otherLineageEdge.getId()
-        && this.sourceKey.equals(otherLineageEdge.sourceKey)
-        && this.getTags().equals(otherLineageEdge.getTags());
+             && this.getId() == otherLineageEdge.getId()
+             && this.sourceKey.equals(otherLineageEdge.sourceKey)
+             && this.getTags().equals(otherLineageEdge.getTags());
   }
 }

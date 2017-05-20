@@ -1,4 +1,4 @@
-package edu.berkeley.ground.common.utils;
+package edu.berkeley.ground.common.util;
 
 import java.util.List;
 

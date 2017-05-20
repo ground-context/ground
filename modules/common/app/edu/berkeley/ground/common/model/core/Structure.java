@@ -17,7 +17,8 @@ import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.Map;
 
-public class Structure extends Item<StructureVersion> {
+public class Structure extends Item {
+
   // the name of this Structure
   @JsonProperty("name")
   private final String name;
@@ -36,10 +37,10 @@ public class Structure extends Item<StructureVersion> {
    */
   @JsonCreator
   public Structure(
-      @JsonProperty("itemId") long id,
-      @JsonProperty("name") String name,
-      @JsonProperty("sourceKey") String sourceKey,
-      @JsonProperty("tags") Map<String, Tag> tags) {
+                    @JsonProperty("itemId") long id,
+                    @JsonProperty("name") String name,
+                    @JsonProperty("sourceKey") String sourceKey,
+                    @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
@@ -63,8 +64,8 @@ public class Structure extends Item<StructureVersion> {
     Structure otherStructure = (Structure) other;
 
     return this.name.equals(otherStructure.name)
-        && this.getId() == otherStructure.getId()
-        && this.sourceKey.equals(otherStructure.sourceKey)
-        && this.getTags().equals(otherStructure.getTags());
+             && this.getId() == otherStructure.getId()
+             && this.sourceKey.equals(otherStructure.sourceKey)
+             && this.getTags().equals(otherStructure.getTags());
   }
 }

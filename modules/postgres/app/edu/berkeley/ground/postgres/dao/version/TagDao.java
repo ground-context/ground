@@ -15,11 +15,9 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.TagFactory;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import play.db.Database;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public class TagDao implements TagFactory {
 
@@ -39,7 +38,8 @@ public class TagDao implements TagFactory {
     this.idGenerator = idGenerator;
   }
 
-  public final void create(final Database dbSource, final Tag tag, final IdGenerator idGenerator) throws GroundException {
+  public final void create(final Database dbSource, final Tag tag, final IdGenerator idGenerator)
+    throws GroundException {
     long uniqueId = idGenerator.generateItemId();
     Tag newTag = new Tag(uniqueId, tag.getKey(), tag.getValue(), tag.getValueType());
     try {
@@ -52,11 +52,13 @@ public class TagDao implements TagFactory {
   public PostgresStatements insert(final Tag tag) {
     List<String> sqlList = new ArrayList<>();
     if (tag.getValue() != null) {
-      sqlList.add(String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
-        tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+      sqlList.add(String
+        .format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
+          tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
     } else {
-      sqlList.add(String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', %s, %s)",
-        tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+      sqlList.add(
+        String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', %s, %s)",
+          tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
     }
     return new PostgresStatements(sqlList);
   }

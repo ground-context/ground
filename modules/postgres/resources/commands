@@ -1,5 +1,0 @@
-/Applications/Postgres.app/Contents/Versions/9.6/bin/createdb ground
-/Applications/Postgres.app/Contents/Versions/9.6/bin/createuser -d -s -P ground
-/Applications/Postgres.app/Contents/Versions/9.6/bin/psql -d ground -a -f postgres.sql.mssql
-
-

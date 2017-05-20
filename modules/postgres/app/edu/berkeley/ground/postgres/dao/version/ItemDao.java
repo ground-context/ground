@@ -11,27 +11,21 @@
  */
 package edu.berkeley.ground.postgres.dao.version;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.ItemFactory;
-import edu.berkeley.ground.common.model.core.Node;
-import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import javafx.geometry.Pos;
-import play.db.Database;
-import play.libs.Json;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
 
 public class ItemDao<T extends Item> implements ItemFactory<T> {
+
   protected VersionHistoryDagDao versionHistoryDagDao;
   protected TagDao tagDao;
   protected Database dbSource;
@@ -55,6 +49,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     return new Item(id, tags);
   }
 
+  @Override
   public T retrieveFromDatabase(long id) throws GroundException {
     return null;
   }
@@ -72,7 +67,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   @Override
   public List<Long> getLeaves(long itemId) throws GroundException {
     if (this.versionHistoryDagDao == null) {
-      this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+      this.versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
+        new VersionSuccessorDao(dbSource, idGenerator));
     }
     try {
       VersionHistoryDag<?> dag = this.versionHistoryDagDao.retrieveFromDatabase(itemId);
@@ -87,6 +83,7 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
     }
   }
 
+  @Override
   public T create(T Item) throws GroundException {
     PostgresStatements statements = insert(Item);
     PostgresUtils.executeSqlList(dbSource, statements);
@@ -104,7 +101,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
    */
   //Should return sqlList and also add edges to the versionHistoryDag
   @Override
-  public PostgresStatements update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+  public PostgresStatements update(long itemId, long childId, List<Long> parentIds)
+    throws GroundException {
     // If a parent is specified, great. If it's not specified, then make it a child of EMPTY.
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
@@ -144,7 +142,8 @@ public class ItemDao<T extends Item> implements ItemFactory<T> {
   public void truncate(long itemId, int numLevels) throws GroundException {
     VersionHistoryDag<?> dag;
     if (versionHistoryDagDao == null) {
-      versionHistoryDagDao = new VersionHistoryDagDao(dbSource, new VersionSuccessorDao(dbSource, idGenerator));
+      versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
+        new VersionSuccessorDao(dbSource, idGenerator));
     }
     dag = versionHistoryDagDao.retrieveFromDatabase(itemId);
     //TODO versionHistoryDagDao is null (not passed in)

@@ -11,7 +11,7 @@
  */
 package edu.berkeley.ground.common.model.version;
 
-public class VersionSuccessor<T extends Version> {
+public class VersionSuccessor {
 
   private final long id;
 

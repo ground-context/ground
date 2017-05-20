@@ -18,8 +18,7 @@ import java.util.List;
 public interface NodeVersionFactory extends RichVersionFactory<NodeVersion> {
 
   @Override
-  NodeVersion create(NodeVersion nodeVersion, List<Long> parentIds)
-    throws GroundException;
+  NodeVersion create(NodeVersion nodeVersion, List<Long> parentIds) throws GroundException;
 
   @Override
   NodeVersion retrieveFromDatabase(long id) throws GroundException;

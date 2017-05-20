@@ -3,7 +3,7 @@
   info:
     title: "postgres Ground API"
     description: "postgres APIs"
-    version: "1.0.0"
+    version: "0.1"
   consumes:
     - application/json
   produces:

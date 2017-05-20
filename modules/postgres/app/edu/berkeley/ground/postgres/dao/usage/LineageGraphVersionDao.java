@@ -15,9 +15,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.common.model.core.RichVersion;
-import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.dao.version.TagDao;
@@ -25,32 +24,38 @@ import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.ArrayList;
+import java.util.List;
 import play.db.Database;
 import play.libs.Json;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> implements LineageGraphVersionFactory {
+public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> implements
+  LineageGraphVersionFactory {
 
   public LineageGraphVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
   }
 
   @Override
-  public LineageGraphVersion create(LineageGraphVersion lineageGraphVersion, List<Long> parentIds) throws GroundException {
+  public LineageGraphVersion create(LineageGraphVersion lineageGraphVersion, List<Long> parentIds)
+    throws GroundException {
     final long uniqueId = idGenerator.generateVersionId();
-    LineageGraphVersion newLineageGraphVersion = new LineageGraphVersion(uniqueId, lineageGraphVersion.getTags(), lineageGraphVersion.getStructureVersionId(),
-      lineageGraphVersion.getReference(), lineageGraphVersion.getParameters(), lineageGraphVersion.getLineageGraphId(), lineageGraphVersion.getLineageEdgeVersionIds());
+    LineageGraphVersion newLineageGraphVersion = new LineageGraphVersion(uniqueId,
+      lineageGraphVersion.getTags(), lineageGraphVersion.getStructureVersionId(),
+      lineageGraphVersion.getReference(), lineageGraphVersion.getParameters(),
+      lineageGraphVersion.getLineageGraphId(), lineageGraphVersion.getLineageEdgeVersionIds());
 
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
-    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
+      versionSuccessorDao);
     TagDao tagDao = new TagDao(dbSource, idGenerator);
 
     //TODO: Ideally, I think this should add to the sqlList to support rollback???
 
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = itemDao.update(newLineageGraphVersion.getLineageGraphId(), newLineageGraphVersion.getId(), parentIds);
+    PostgresStatements updateVersionList = itemDao
+      .update(newLineageGraphVersion.getLineageGraphId(), newLineageGraphVersion.getId(),
+        parentIds);
 
     try {
       PostgresStatements statements = super.insert(newLineageGraphVersion);
@@ -59,9 +64,10 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
         uniqueId, newLineageGraphVersion.getLineageGraphId()));
       statements.merge(updateVersionList);
 
-      for (Long id: newLineageGraphVersion.getLineageEdgeVersionIds()) {
+      for (Long id : newLineageGraphVersion.getLineageEdgeVersionIds()) {
         statements.append(String.format(
-          "insert into lineage_graph_version_edge (lineage_graph_version_id, lineage_edge_version_id) values (%d, %d) " +
+          "insert into lineage_graph_version_edge (lineage_graph_version_id, lineage_edge_version_id) values (%d, %d) "
+            +
             "on conflict do nothing",
           newLineageGraphVersion.getLineageGraphId(), id));
       }
@@ -79,13 +85,15 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
     String sql = String.format("select * from lineage_graph_version where id=%d", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
-      throw new GroundException(String.format("Lineage Graph Version with id %d does not exist.", id));
+      throw new GroundException(
+        String.format("Lineage Graph Version with id %d does not exist.", id));
     }
     LineageGraphVersion lineageGraphVersion = Json.fromJson(json.get(0), LineageGraphVersion.class);
 
     // Get LineageEdgeIds
     List<Long> edgeIds = new ArrayList<>();
-    sql = String.format("select * from lineage_graph_version_edge where lineage_graph_version_id=%d", id);
+    sql = String
+      .format("select * from lineage_graph_version_edge where lineage_graph_version_id=%d", id);
     JsonNode edgeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     for (JsonNode edge : edgeJson) {
       edgeIds.add(edge.get("lineageEdgeVersionId").asLong());
@@ -93,7 +101,9 @@ public class LineageGraphVersionDao extends RichVersionDao<LineageGraphVersion> 
 
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
-    return new LineageGraphVersion(lineageGraphVersion.getId(), richVersion.getTags(), richVersion.getStructureVersionId(),
-      richVersion.getReference(), richVersion.getParameters(), lineageGraphVersion.getLineageGraphId(), edgeIds);
+    return new LineageGraphVersion(lineageGraphVersion.getId(), richVersion.getTags(),
+      richVersion.getStructureVersionId(),
+      richVersion.getReference(), richVersion.getParameters(),
+      lineageGraphVersion.getLineageGraphId(), edgeIds);
   }
 }

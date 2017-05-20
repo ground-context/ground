@@ -16,54 +16,56 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
-import edu.berkeley.ground.common.utils.IdGenerator;
-import edu.berkeley.ground.postgres.dao.version.*;
+import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionDao;
+import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
-import play.db.Database;
-import play.libs.Json;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import play.db.Database;
+import play.libs.Json;
 
-public class StructureVersionDao extends VersionDao<StructureVersion> implements StructureVersionFactory{
+public class StructureVersionDao extends VersionDao<StructureVersion> implements
+  StructureVersionFactory {
 
   public StructureVersionDao(Database dbSource, IdGenerator idGenerator) {
     super(dbSource, idGenerator);
   }
 
-  public final StructureVersion create(final StructureVersion structureVersion, List<Long> parentIds)
-      throws GroundException {
+  @Override
+  public final StructureVersion create(final StructureVersion structureVersion,
+    List<Long> parentIds)
+    throws GroundException {
     final List<String> sqlList = new ArrayList<>();
     long uniqueId = idGenerator.generateItemId();
-    StructureVersion newStructureVersion = new StructureVersion(uniqueId, structureVersion.getStructureId(), structureVersion.getAttributes());
+    StructureVersion newStructureVersion = new StructureVersion(uniqueId,
+      structureVersion.getStructureId(), structureVersion.getAttributes());
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
     VersionHistoryDagDao
       versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
     TagDao tagDao = new TagDao(dbSource, idGenerator);
     ItemDao itemDao = new ItemDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    PostgresStatements updateVersionList = itemDao.update(newStructureVersion.getStructureId(), newStructureVersion.getId(), parentIds);
+    PostgresStatements updateVersionList = itemDao
+      .update(newStructureVersion.getStructureId(), newStructureVersion.getId(), parentIds);
 
     try {
       PostgresStatements statements = super.insert(newStructureVersion);
       statements.append(String.format(
         "insert into structure_version (id, structure_id) values (%s,%s)",
         uniqueId, structureVersion.getStructureId()));
-      for(Map.Entry<String, GroundType>attribute: structureVersion.getAttributes().entrySet()) {
+      for (Map.Entry<String, GroundType> attribute : structureVersion.getAttributes().entrySet()) {
         statements.append(String.format(
           "insert into structure_version_attribute (structure_version_id, key, type) values (%s,"
             + "\'%s\', \'%s\')",
           uniqueId, attribute.getKey(), attribute.getValue()));
       }
       statements.merge(updateVersionList);
-
-      System.out.println("uniqueId: " + uniqueId);
-      System.out.println("structureId: " + structureVersion.getStructureId());
 
       PostgresUtils.executeSqlList(dbSource, statements);
     } catch (Exception e) {
@@ -73,11 +75,11 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
   }
 
   @Override
-  public StructureVersion retrieveFromDatabase(final long id) throws GroundException{
+  public StructureVersion retrieveFromDatabase(final long id) throws GroundException {
     //String sql = String.format("SELECT * FROM structure_version WHERE id = %d", id);
     long structureId = 0;
     HashMap<String, GroundType> attributes = null;
-    try{
+    try {
       PostgresStatements statements = new PostgresStatements();
       String resultQuery = String.format("select * FROM structure_version WHERE id = %d", id);
       JsonNode resultJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, resultQuery));
@@ -85,20 +87,21 @@ public class StructureVersionDao extends VersionDao<StructureVersion> implements
 
       String attributeQuery = String.format("SELECT * FROM structure_version_attribute WHERE "
         + "structure_version_id = %d", id);
-      JsonNode attributeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, attributeQuery));
+      JsonNode attributeJson = Json
+        .parse(PostgresUtils.executeQueryToJson(dbSource, attributeQuery));
 
       attributes = new HashMap<>();
 
-      for (JsonNode attribute: attributeJson) {
-        System.out.println(attribute.toString());
+      for (JsonNode attribute : attributeJson) {
         GroundType type = GroundType.fromString(attribute.get("type").asText());
         attributes.put(attribute.get("key").asText(), type);
       }
 
-      structureVersion = new StructureVersion(structureVersion.getId(), structureVersion.getStructureId(), attributes);
+      structureVersion = new StructureVersion(structureVersion.getId(),
+        structureVersion.getStructureId(), attributes);
 
       return structureVersion;
-    }catch(Exception e) {
+    } catch (Exception e) {
       throw new GroundException(e);
     }
   }

@@ -17,7 +17,7 @@ import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.Map;
 
-public class Node extends Item<NodeVersion> {
+public class Node extends Item {
 
   // the name of this Node
   @JsonProperty("name")
@@ -37,9 +37,9 @@ public class Node extends Item<NodeVersion> {
    */
   @JsonCreator
   public Node(@JsonProperty("itemId") long id,
-    @JsonProperty("name") String name,
-    @JsonProperty("sourceKey") String sourceKey,
-    @JsonProperty("tags") Map<String, Tag> tags) {
+               @JsonProperty("name") String name,
+               @JsonProperty("sourceKey") String sourceKey,
+               @JsonProperty("tags") Map<String, Tag> tags) {
 
     super(id, tags);
 
@@ -68,8 +68,8 @@ public class Node extends Item<NodeVersion> {
     Node otherNode = (Node) other;
 
     return this.name.equals(otherNode.name)
-      && this.getId() == otherNode.getId()
-      && this.sourceKey.equals(otherNode.sourceKey)
-      && this.getTags().equals(otherNode.getTags());
+             && this.getId() == otherNode.getId()
+             && this.sourceKey.equals(otherNode.sourceKey)
+             && this.getTags().equals(otherNode.getTags());
   }
 }

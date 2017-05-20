@@ -1,21 +1,32 @@
 package edu.berkeley.ground.postgres.utils;
 
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.utils.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.*;
+import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.core.EdgeDao;
+import edu.berkeley.ground.postgres.dao.core.EdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.GraphDao;
+import edu.berkeley.ground.postgres.dao.core.GraphVersionDao;
+import edu.berkeley.ground.postgres.dao.core.NodeDao;
+import edu.berkeley.ground.postgres.dao.core.NodeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
+import edu.berkeley.ground.postgres.dao.core.StructureDao;
+import edu.berkeley.ground.postgres.dao.core.StructureVersionDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageGraphDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageGraphVersionDao;
-import edu.berkeley.ground.postgres.dao.version.*;
-import play.Configuration;
-import play.db.Database;
-
+import edu.berkeley.ground.postgres.dao.version.ItemDao;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionDao;
+import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import play.db.Database;
 
 @Singleton
 public class Daos {
+
   private final StructureDao structureDao;
   private final StructureVersionDao structureVersionDao;
   private final EdgeDao edgeDao;
@@ -38,10 +49,12 @@ public class Daos {
   /**
    * Create the  factories.
    */
-  @Inject public Daos(Database dbSource, IdGenerator idGenerator) throws GroundException {
+  @Inject
+  public Daos(Database dbSource, IdGenerator idGenerator) throws GroundException {
 
     VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
-    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource, versionSuccessorDao);
+    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
+      versionSuccessorDao);
     TagDao tagDao = new TagDao(dbSource, idGenerator);
 
     this.structureDao = new StructureDao(dbSource, idGenerator);
@@ -111,10 +124,16 @@ public class Daos {
     return this.lineageGraphVersionDao;
   }
 
-  public RichVersionDao getRichVersionDao() { return this.richVersionDao; }
+  public RichVersionDao getRichVersionDao() {
+    return this.richVersionDao;
+  }
 
-  public ItemDao getItemDao() { return this.itemDao; }
+  public ItemDao getItemDao() {
+    return this.itemDao;
+  }
 
-  public VersionDao getVersionDao() { return this.versionDao; }
+  public VersionDao getVersionDao() {
+    return this.versionDao;
+  }
 
 }

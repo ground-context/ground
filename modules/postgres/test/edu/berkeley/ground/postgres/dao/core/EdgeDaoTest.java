@@ -5,7 +5,7 @@ package edu.berkeley.ground.postgres.dao.core;
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,18 @@ package edu.berkeley.ground.postgres.dao.core;
  * limitations under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.postgres.dao.PostgresTest;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class EdgeDaoTest extends PostgresTest {
 
@@ -35,28 +35,23 @@ public class EdgeDaoTest extends PostgresTest {
 
   @Test
   public void testEdgeCreation() throws GroundException {
-    try {
-      String testName = "test";
-      String sourceKey = "testKey";
+    String testName = "test";
+    String sourceKey = "testKey";
 
-      String fromNodeName = "testNode1";
-      String toNodeName = "testNode2";
-      long fromNodeId = PostgresTest.createNode(fromNodeName).getId();
-      long toNodeId = PostgresTest.createNode(toNodeName).getId();
-      System.out.println(fromNodeId);
-      System.out.println(toNodeId);
+    String fromNodeName = "testNode1";
+    String toNodeName = "testNode2";
+    long fromNodeId = PostgresTest.createNode(fromNodeName).getId();
+    long toNodeId = PostgresTest.createNode(toNodeName).getId();
 
-      PostgresTest.edgeDao.create(new Edge(0L,testName, sourceKey, fromNodeId, toNodeId, new HashMap<>()));
+    PostgresTest.edgeDao
+      .create(new Edge(0L, testName, sourceKey, fromNodeId, toNodeId, new HashMap<>()));
 
-      Edge edge = PostgresTest.edgeDao.retrieveFromDatabase(sourceKey);
+    Edge edge = PostgresTest.edgeDao.retrieveFromDatabase(sourceKey);
 
-      assertEquals(testName, edge.getName());
-      assertEquals(fromNodeId, edge.getFromNodeId());
-      assertEquals(toNodeId, edge.getToNodeId());
-      assertEquals(sourceKey, edge.getSourceKey());
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertEquals(testName, edge.getName());
+    assertEquals(fromNodeId, edge.getFromNodeId());
+    assertEquals(toNodeId, edge.getToNodeId());
+    assertEquals(sourceKey, edge.getSourceKey());
   }
 
   @Test(expected = GroundException.class)
@@ -69,8 +64,6 @@ public class EdgeDaoTest extends PostgresTest {
       assertEquals(GroundException.class, e.getClass());
 
       throw e;
-    } finally {
-      //PostgresTest.postgresClient.commit();
     }
   }
 
@@ -85,66 +78,59 @@ public class EdgeDaoTest extends PostgresTest {
     long toNodeId = -1;
 
     try {
-      try {
-        fromNodeId = PostgresTest.createNode(fromNode).getId();
-        toNodeId = PostgresTest.createNode(toNode).getId();
+      fromNodeId = PostgresTest.createNode(fromNode).getId();
+      toNodeId = PostgresTest.createNode(toNode).getId();
 
-        PostgresTest.edgeDao.create(new Edge(0L, edgeName, edgeKey, fromNodeId, toNodeId, new HashMap<>()));
-      } catch (GroundException e) {
-        fail(e.getMessage());
-      }
-
-      PostgresTest.edgeDao.create(new Edge(0L, edgeName, edgeKey, fromNodeId, toNodeId, new HashMap<>()));
-    } finally {
-      //PostgresTest.postgresClient.commit();
+      PostgresTest.edgeDao
+        .create(new Edge(0L, edgeName, edgeKey, fromNodeId, toNodeId, new HashMap<>()));
+    } catch (GroundException e) {
+      fail(e.getMessage());
     }
+
+    PostgresTest.edgeDao
+      .create(new Edge(0L, edgeName, edgeKey, fromNodeId, toNodeId, new HashMap<>()));
   }
 
   @Test
   public void testTruncation() throws GroundException {
-    try {
-      String firstTestNode = "firstTestNode";
-      long firstTestNodeId = PostgresTest.createNode(firstTestNode).getId();
-      long firstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId).getId();
+    String firstTestNode = "firstTestNode";
+    long firstTestNodeId = PostgresTest.createNode(firstTestNode).getId();
+    long firstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId).getId();
 
-      String secondTestNode = "secondTestNode";
-      long secondTestNodeId = PostgresTest.createNode(secondTestNode).getId();
-      long secondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId).getId();
+    String secondTestNode = "secondTestNode";
+    long secondTestNodeId = PostgresTest.createNode(secondTestNode).getId();
+    long secondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId).getId();
 
-      String edgeName = "testEdge";
-      long edgeId = PostgresTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
+    String edgeName = "testEdge";
+    long edgeId = PostgresTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
 
-      long edgeVersionId = PostgresTest.createEdgeVersion(edgeId, firstNodeVersionId,
-        secondNodeVersionId).getId();
+    long edgeVersionId = PostgresTest.createEdgeVersion(edgeId, firstNodeVersionId,
+      secondNodeVersionId).getId();
 
-      // create new node versions in each of the nodes
-      List<Long> parents = new ArrayList<>();
-      parents.add(firstNodeVersionId);
-      long newFirstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId, parents).getId();
+    // create new node versions in each of the nodes
+    List<Long> parents = new ArrayList<>();
+    parents.add(firstNodeVersionId);
+    long newFirstNodeVersionId = PostgresTest.createNodeVersion(firstTestNodeId, parents).getId();
 
-      parents.clear();
-      parents.add(secondNodeVersionId);
-      long newSecondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId, parents)
-        .getId();
+    parents.clear();
+    parents.add(secondNodeVersionId);
+    long newSecondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId, parents)
+      .getId();
 
-      parents.clear();
-      parents.add(edgeVersionId);
-      long newEdgeVersionId = PostgresTest.createEdgeVersion(edgeId, newFirstNodeVersionId,
-        newSecondNodeVersionId, parents).getId();
+    parents.clear();
+    parents.add(edgeVersionId);
+    long newEdgeVersionId = PostgresTest.createEdgeVersion(edgeId, newFirstNodeVersionId,
+      newSecondNodeVersionId, parents).getId();
 
-      PostgresTest.edgeDao.truncate(edgeId, 1);
+    PostgresTest.edgeDao.truncate(edgeId, 1);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(edgeId);
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(edgeId);
 
-      assertEquals(1, dag.getEdgeIds().size());
-      VersionSuccessor<?> successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
-        dag.getEdgeIds().get(0));
+    assertEquals(1, dag.getEdgeIds().size());
+    VersionSuccessor<?> successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
+      dag.getEdgeIds().get(0));
 
-      //PostgresTest.postgresClient.commit();
-      assertEquals(0, successor.getFromId());
-      assertEquals(newEdgeVersionId, successor.getToId());
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertEquals(0, successor.getFromId());
+    assertEquals(newEdgeVersionId, successor.getToId());
   }
 }

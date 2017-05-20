@@ -12,13 +12,14 @@
 package edu.berkeley.ground.common.exception;
 
 public class GroundException extends Exception {
+
   private static final long serialVersionUID = 1L;
   private final String message;
 
   public enum exceptionType {
     DB,
     ITEM_NOT_FOUND,
-    ITEM_EXISTS;
+    ITEM_EXISTS
   }
 
   public GroundException(String message) {
@@ -26,7 +27,7 @@ public class GroundException extends Exception {
   }
 
   public GroundException(Exception exception) {
-    this.message = exception.getClass() + ":" + exception.getMessage();
+    this.message = exception.getClass() + ": " + exception.getMessage();
   }
 
   @Override

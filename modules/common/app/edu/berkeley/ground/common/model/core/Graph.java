@@ -17,7 +17,8 @@ import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.Map;
 
-public class Graph extends Item<GraphVersion> {
+public class Graph extends Item {
+
   // the name of this Graph
   @JsonProperty("name")
   private final String name;
@@ -36,10 +37,10 @@ public class Graph extends Item<GraphVersion> {
    */
   @JsonCreator
   public Graph(
-      @JsonProperty("itemId") long id,
-      @JsonProperty("name") String name,
-      @JsonProperty("sourceKey") String sourceKey,
-      @JsonProperty("tags") Map<String, Tag> tags) {
+                @JsonProperty("itemId") long id,
+                @JsonProperty("name") String name,
+                @JsonProperty("sourceKey") String sourceKey,
+                @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
@@ -63,8 +64,8 @@ public class Graph extends Item<GraphVersion> {
     Graph otherGraph = (Graph) other;
 
     return this.name.equals(otherGraph.name)
-        && this.getId() == otherGraph.getId()
-        && this.sourceKey.equals(otherGraph.sourceKey)
-        && this.getTags().equals(otherGraph.getTags());
+             && this.getId() == otherGraph.getId()
+             && this.sourceKey.equals(otherGraph.sourceKey)
+             && this.getTags().equals(otherGraph.getTags());
   }
 }

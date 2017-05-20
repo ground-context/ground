@@ -6,12 +6,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -19,20 +24,16 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import javax.inject.Inject;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-
 public class LineageEdgeController extends Controller {
+
   private CacheApi cache;
   private Database dbSource;
   private ActorSystem actorSystem;
   private IdGenerator idGenerator;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
+  final void injectUtils(final CacheApi cache, final Database dbSource,
+    final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.actorSystem = actorSystem;
     this.cache = cache;
@@ -43,14 +44,16 @@ public class LineageEdgeController extends Controller {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
       try {
-        return cache.getOrElse("lineage_edge", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        return cache
+          .getOrElse("lineage_edge", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
       } catch (Exception e) {
         throw new CompletionException(e);
       }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
-      return internalServerError(GroundUtils.getServerError(request(), e));
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
+      .exceptionally(e -> {
+        return internalServerError(GroundUtils.getServerError(request(), e));
+      });
     return results;
   }
 
@@ -58,14 +61,16 @@ public class LineageEdgeController extends Controller {
     CompletableFuture<Result> results = CompletableFuture.supplyAsync(() -> {
       String sql = String.format("select * from lineage_edge_version where id = \'%d\'", id);
       try {
-        return cache.getOrElse("lineage_edge", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
-          Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        return cache
+          .getOrElse("lineage_edge", () -> PostgresUtils.executeQueryToJson(dbSource, sql),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
       } catch (Exception e) {
         throw new CompletionException(e);
       }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
-      return internalServerError(GroundUtils.getServerError(request(), e));
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
+      .exceptionally(e -> {
+        return internalServerError(GroundUtils.getServerError(request(), e));
+      });
     return results;
   }
 
@@ -80,14 +85,17 @@ public class LineageEdgeController extends Controller {
       } catch (GroundException e) {
         throw new CompletionException(e);
       }
-      return String.format("New Lineage Edge Created Successfully with id = %d", newLineageEdge.getId());
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output)).exceptionally(e -> {
-      if (e.getCause() instanceof GroundException) {
-        return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-      } else {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      }
-    });
+      return String
+        .format("New Lineage Edge Created Successfully with id = %d", newLineageEdge.getId());
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output))
+      .exceptionally(e -> {
+        if (e.getCause() instanceof GroundException) {
+          return badRequest(
+            GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+        } else {
+          return internalServerError(GroundUtils.getServerError(request(), e));
+        }
+      });
     return results;
   }
 
@@ -105,13 +113,15 @@ public class LineageEdgeController extends Controller {
         throw new CompletionException(e);
       }
       return String.format("New Lineage Edge Version Created Successfully");
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output)).exceptionally(e -> {
-      if (e.getCause() instanceof GroundException) {
-        return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-      } else {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      }
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output))
+      .exceptionally(e -> {
+        if (e.getCause() instanceof GroundException) {
+          return badRequest(
+            GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+        } else {
+          return internalServerError(GroundUtils.getServerError(request(), e));
+        }
+      });
     return results;
   }
 }

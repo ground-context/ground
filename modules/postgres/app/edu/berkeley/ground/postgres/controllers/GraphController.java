@@ -17,12 +17,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.model.core.GraphVersion;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.GraphDao;
 import edu.berkeley.ground.postgres.dao.core.GraphVersionDao;
 import edu.berkeley.ground.postgres.utils.ControllerUtils;
 import edu.berkeley.ground.postgres.utils.GroundUtils;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import javax.inject.Inject;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -30,20 +35,16 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import javax.inject.Inject;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-
 public class GraphController extends Controller {
+
   private CacheApi cache;
   private Database dbSource;
   private ActorSystem actorSystem;
   private IdGenerator idGenerator;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
+  final void injectUtils(final CacheApi cache, final Database dbSource,
+    final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.actorSystem = actorSystem;
     this.cache = cache;
@@ -59,9 +60,10 @@ public class GraphController extends Controller {
       } catch (Exception e) {
         throw new CompletionException(e);
       }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
-      return internalServerError(GroundUtils.getServerError(request(), e));
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
+      .exceptionally(e -> {
+        return internalServerError(GroundUtils.getServerError(request(), e));
+      });
     return results;
   }
 
@@ -74,9 +76,10 @@ public class GraphController extends Controller {
       } catch (Exception e) {
         throw new CompletionException(e);
       }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
-      return internalServerError(GroundUtils.getServerError(request(), e));
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
+      .exceptionally(e -> {
+        return internalServerError(GroundUtils.getServerError(request(), e));
+      });
     return results;
   }
 
@@ -119,7 +122,7 @@ public class GraphController extends Controller {
           ((ObjectNode) json).remove("parentIds");
           GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
           try {
-            new GraphVersionDao(dbSource, idGenerator ).create(graphVersion, parentIds);
+            new GraphVersionDao(dbSource, idGenerator).create(graphVersion, parentIds);
           } catch (GroundException e) {
             throw new CompletionException(e);
           }

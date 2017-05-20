@@ -12,19 +12,16 @@
 package edu.berkeley.ground.postgres.dao.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.core.EdgeFactory;
 import edu.berkeley.ground.common.model.core.Edge;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.utils.PostgresStatements;
 import edu.berkeley.ground.postgres.utils.PostgresUtils;
+import java.util.List;
 import play.db.Database;
 import play.libs.Json;
-
-import java.util.List;
 
 
 // TODO construct me with dbSource and idGenerator thanks
@@ -39,6 +36,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
     return Edge.class;
   }
 
+  @Override
   public Edge create(Edge edge) throws GroundException {
 
     PostgresStatements postgresStatements;
@@ -65,7 +63,8 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
       String.format("select * from edge where source_key=\'%s\'", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
-      throw new GroundException(String.format("Edge with source_key %s does not exist.", sourceKey));
+      throw new GroundException(
+        String.format("Edge with source_key %s does not exist.", sourceKey));
     }
     return Json.fromJson(json.get(0), Edge.class);
   }
@@ -83,7 +82,7 @@ public class EdgeDao extends ItemDao<Edge> implements EdgeFactory {
 
   @Override
   public List<Long> getLeaves(String sourceKey) throws GroundException {
-    Edge edge  = retrieveFromDatabase(sourceKey);
+    Edge edge = retrieveFromDatabase(sourceKey);
     return super.getLeaves(edge.getId());
   }
 

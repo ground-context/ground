@@ -1,3 +1,7 @@
+-- noinspection SqlDialectInspectionForFile
+
+-- noinspection SqlNoDataSourceInspectionForFile
+
 -- Licensed under the Apache License, Version 2.0 (the "License");
 -- you may not use this file except in compliance with the License.
 -- You may obtain a copy of the License at
@@ -112,10 +116,10 @@ CREATE TABLE IF NOT EXISTS node_version (
 CREATE TABLE IF NOT EXISTS edge_version (
     id bigint NOT NULL PRIMARY KEY REFERENCES rich_version(id),
     edge_id bigint NOT NULL REFERENCES edge(item_id),
-    from_node_start_id bigint NOT NULL REFERENCES node_version(id),
-    from_node_end_id bigint REFERENCES node_version(id),
-    to_node_start_id bigint NOT NULL REFERENCES node_version(id),
-    to_node_end_id bigint REFERENCES node_version(id)
+    from_node_version_start_id bigint NOT NULL REFERENCES node_version(id),
+    from_node_version_end_id bigint REFERENCES node_version(id),
+    to_node_version_start_id bigint NOT NULL REFERENCES node_version(id),
+    to_node_version_end_id bigint REFERENCES node_version(id)
 );
 
 CREATE TABLE IF NOT EXISTS graph_version (

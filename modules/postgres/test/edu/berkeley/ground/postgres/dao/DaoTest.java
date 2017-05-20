@@ -1,7 +1,14 @@
 package edu.berkeley.ground.postgres.dao;
 
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.factory.core.*;
+import edu.berkeley.ground.common.factory.core.EdgeFactory;
+import edu.berkeley.ground.common.factory.core.EdgeVersionFactory;
+import edu.berkeley.ground.common.factory.core.GraphFactory;
+import edu.berkeley.ground.common.factory.core.GraphVersionFactory;
+import edu.berkeley.ground.common.factory.core.NodeFactory;
+import edu.berkeley.ground.common.factory.core.NodeVersionFactory;
+import edu.berkeley.ground.common.factory.core.StructureFactory;
+import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeFactory;
 import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
 import edu.berkeley.ground.common.factory.usage.LineageGraphFactory;
@@ -9,29 +16,40 @@ import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
 import edu.berkeley.ground.common.factory.version.TagFactory;
 import edu.berkeley.ground.common.factory.version.VersionHistoryDagFactory;
 import edu.berkeley.ground.common.factory.version.VersionSuccessorFactory;
-import edu.berkeley.ground.common.model.core.*;
+import edu.berkeley.ground.common.model.core.Edge;
+import edu.berkeley.ground.common.model.core.EdgeVersion;
+import edu.berkeley.ground.common.model.core.Graph;
+import edu.berkeley.ground.common.model.core.GraphVersion;
+import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.model.core.NodeVersion;
+import edu.berkeley.ground.common.model.core.Structure;
+import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
 import edu.berkeley.ground.postgres.dao.version.ItemDao;
 import edu.berkeley.ground.postgres.dao.version.VersionDao;
-import play.db.Database;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import play.db.Database;
 
 
 public class DaoTest {
+
   private static final String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
   private static final String CREATE_SCHEMA_SCRIPT = "./scripts/postgres/postgres.sql";
 
@@ -67,7 +85,8 @@ public class DaoTest {
 
   public static NodeVersion createNodeVersion(long nodeId, List<Long> parents)
     throws GroundException {
-    NodeVersion nodeVersion = new NodeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(), nodeId);
+    NodeVersion nodeVersion = new NodeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
+      nodeId);
     return nodeVersionDao.create(nodeVersion, parents);
   }
 
@@ -87,9 +106,9 @@ public class DaoTest {
   }
 
   public static EdgeVersion createEdgeVersion(long edgeId,
-                                              long fromStart,
-                                              long toStart,
-                                              List<Long> parents)
+    long fromStart,
+    long toStart,
+    List<Long> parents)
     throws GroundException {
     EdgeVersion edgeVersion = new EdgeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
       edgeId, fromStart, -1, toStart, -1);
@@ -97,11 +116,11 @@ public class DaoTest {
   }
 
   public static EdgeVersion createEdgeVersion(long edgeId,
-                                              long fromStart,
-                                              long fromEnd,
-                                              long toStart,
-                                              long toEnd,
-                                              List<Long> parents)
+    long fromStart,
+    long fromEnd,
+    long toStart,
+    long toEnd,
+    List<Long> parents)
     throws GroundException {
     EdgeVersion edgeVersion = new EdgeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
       edgeId, fromStart, fromEnd, toStart, toEnd);
@@ -120,8 +139,8 @@ public class DaoTest {
   }
 
   public static GraphVersion createGraphVersion(long graphId,
-                                                List<Long> edgeVersionIds,
-                                                List<Long> parents)
+    List<Long> edgeVersionIds,
+    List<Long> parents)
     throws GroundException {
     GraphVersion graphVersion = new GraphVersion(0L, new HashMap<>(), -1, null,
       new HashMap<>(), graphId, edgeVersionIds);
@@ -134,18 +153,19 @@ public class DaoTest {
   }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
-                                                            long fromId,
-                                                            long toId) throws GroundException {
+    long fromId,
+    long toId) throws GroundException {
 
     return createLineageEdgeVersion(lineageEdgeId, fromId, toId, new ArrayList<>());
   }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
-                                                            long fromId,
-                                                            long toId,
-                                                            List<Long> parents)
+    long fromId,
+    long toId,
+    List<Long> parents)
     throws GroundException {
-    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(0L, new HashMap<String, Tag>(), (long) -1,
+    LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(0L, new HashMap<String, Tag>(),
+      (long) -1,
       null, new HashMap<>(), fromId, toId, lineageEdgeId);
     return lineageEdgeVersionDao.create(lineageEdgeVersion, parents);
   }
@@ -156,15 +176,15 @@ public class DaoTest {
   }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
-                                                              List<Long> lineageEdgeVersionIds)
+    List<Long> lineageEdgeVersionIds)
     throws GroundException {
 
     return createLineageGraphVersion(lineageGraphId, lineageEdgeVersionIds, new ArrayList<>());
   }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
-                                                              List<Long> lineageEdgeVersionIds,
-                                                              List<Long> parents)
+    List<Long> lineageEdgeVersionIds,
+    List<Long> parents)
     throws GroundException {
 
     LineageGraphVersion lineageGraphVersion = new LineageGraphVersion(0L, new HashMap<>(), -1, null,
@@ -190,7 +210,8 @@ public class DaoTest {
     structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
-    StructureVersion structureVersion = new StructureVersion(0L, structureId, structureVersionAttributes);
+    StructureVersion structureVersion = new StructureVersion(0L, structureId,
+      structureVersionAttributes);
     return structureVersionDao.create(structureVersion, parents);
   }
 
@@ -221,16 +242,17 @@ public class DaoTest {
     return edgeVersionId;
   }
 
-  protected static void runScript(String scriptFile, Consumer<String> executor)  {
+  protected static void runScript(String scriptFile, Consumer<String> executor) {
     final String SQL_COMMENT_START = "--";
 
     try (Stream<String> lines = Files.lines(Paths.get(scriptFile))) {
-      String data = lines.filter(line -> !line.startsWith(SQL_COMMENT_START)).collect(Collectors.joining());
+      String data = lines.filter(line -> !line.startsWith(SQL_COMMENT_START))
+        .collect(Collectors.joining());
       Arrays.stream(data.split(";"))
         .map(chunk -> chunk + ";")
         .forEach(statement -> executor.accept(statement));
-    }catch (IOException e) {
-      throw new RuntimeException("Unable to read script file: "+ scriptFile);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to read script file: " + scriptFile);
     }
   }
 

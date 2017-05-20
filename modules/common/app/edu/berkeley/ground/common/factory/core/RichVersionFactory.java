@@ -14,18 +14,18 @@ package edu.berkeley.ground.common.factory.core;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.factory.version.VersionFactory;
 import edu.berkeley.ground.common.model.core.RichVersion;
-import edu.berkeley.ground.common.utils.DbStatements;
-import play.db.Database;
-
+import edu.berkeley.ground.common.util.DbStatements;
 import java.util.List;
 
 public interface RichVersionFactory<T extends RichVersion> extends VersionFactory<T> {
 
   T create(T RichVersion, List<Long> parentIds) throws GroundException;
 
+  @Override
   RichVersion retrieveFromDatabase(long id) throws GroundException;
 
+  @Override
   DbStatements insert(T richVersion)
-      throws GroundException;
+    throws GroundException;
 
 }

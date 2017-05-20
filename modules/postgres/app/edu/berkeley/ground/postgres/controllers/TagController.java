@@ -11,21 +11,18 @@
  */
 package edu.berkeley.ground.postgres.controllers;
 
+import akka.actor.ActorSystem;
+import com.fasterxml.jackson.databind.JsonNode;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.version.TagDao;
+import edu.berkeley.ground.postgres.utils.GroundUtils;
+import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
-
 import javax.inject.Inject;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import akka.actor.ActorSystem;
-import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.model.version.Tag;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.utils.GroundUtils;
-import edu.berkeley.ground.common.utils.IdGenerator;
-import edu.berkeley.ground.postgres.utils.PostgresUtils;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -35,13 +32,15 @@ import play.mvc.Result;
 
 // TODO delete this when done. this is just for testing
 public class TagController extends Controller {
+
   private CacheApi cache;
   private Database dbSource;
   private ActorSystem actorSystem;
   private IdGenerator idGenerator;
 
   @Inject
-  final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
+  final void injectUtils(final CacheApi cache, final Database dbSource,
+    final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.actorSystem = actorSystem;
     this.cache = cache;
@@ -57,9 +56,10 @@ public class TagController extends Controller {
       } catch (Exception e) {
         throw new CompletionException(e);
       }
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output)).exceptionally(e -> {
-      return internalServerError(GroundUtils.getServerError(request(), e));
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> ok(output))
+      .exceptionally(e -> {
+        return internalServerError(GroundUtils.getServerError(request(), e));
+      });
     return results;
   }
 
@@ -74,13 +74,15 @@ public class TagController extends Controller {
         throw new CompletionException(e);
       }
       return String.format("New Tag Created Successfully");
-    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output)).exceptionally(e -> {
-      if (e.getCause() instanceof GroundException) {
-        return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-      } else {
-        return internalServerError(GroundUtils.getServerError(request(), e));
-      }
-    });
+    }, PostgresUtils.getDbSourceHttpContext(actorSystem)).thenApply(output -> created(output))
+      .exceptionally(e -> {
+        if (e.getCause() instanceof GroundException) {
+          return badRequest(
+            GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
+        } else {
+          return internalServerError(GroundUtils.getServerError(request(), e));
+        }
+      });
     return results;
   }
 

@@ -13,8 +13,7 @@ package edu.berkeley.ground.common.factory.version;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Item;
-import edu.berkeley.ground.common.utils.DbStatements;
-
+import edu.berkeley.ground.common.util.DbStatements;
 import java.util.List;
 
 
@@ -51,9 +50,9 @@ public interface ItemFactory<T extends Item> {
    */
   void truncate(long itemId, int numLevels) throws GroundException;
 
-  /*default boolean checkIfItemExists(String sourceKey) {
+  default boolean checkIfItemExists(String sourceKey) {
     try {
-      //this.retrieveFromDatabase(new Object(), sourceKey);
+      this.retrieveFromDatabase(sourceKey);
 
       return true;
     } catch (GroundException e) {
@@ -63,8 +62,7 @@ public interface ItemFactory<T extends Item> {
 
   default void verifyItemNotExists(String sourceKey) throws GroundException {
     if (checkIfItemExists(sourceKey)) {
-      // TODO: Remove empty string
       throw new GroundException("");
     }
-  }*/
+  }
 }

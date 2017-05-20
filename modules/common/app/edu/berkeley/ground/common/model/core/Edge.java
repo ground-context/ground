@@ -15,11 +15,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
-
-import java.util.HashMap;
 import java.util.Map;
 
-public class Edge extends Item<EdgeVersion> {
+public class Edge extends Item {
+
   // the name of this Edge
   @JsonProperty("name")
   private final String name;
@@ -48,12 +47,12 @@ public class Edge extends Item<EdgeVersion> {
    */
   @JsonCreator
   public Edge(
-      @JsonProperty("itemId") long id,
-      @JsonProperty("name") String name,
-      @JsonProperty("sourceKey") String sourceKey,
-      @JsonProperty("fromNodeId") long fromNodeId,
-      @JsonProperty("toNodeId") long toNodeId,
-      @JsonProperty("tags") Map<String, Tag> tags) {
+               @JsonProperty("itemId") long id,
+               @JsonProperty("name") String name,
+               @JsonProperty("sourceKey") String sourceKey,
+               @JsonProperty("fromNodeId") long fromNodeId,
+               @JsonProperty("toNodeId") long toNodeId,
+               @JsonProperty("tags") Map<String, Tag> tags) {
 
     super(id, tags);
 
@@ -88,10 +87,10 @@ public class Edge extends Item<EdgeVersion> {
     Edge otherEdge = (Edge) other;
 
     return this.name.equals(otherEdge.name)
-        && this.sourceKey.equals(otherEdge.sourceKey)
-        && this.getId() == otherEdge.getId()
-        && this.fromNodeId == otherEdge.fromNodeId
-        && this.toNodeId == otherEdge.toNodeId
-        && this.getTags().equals(otherEdge.getTags());
+             && this.sourceKey.equals(otherEdge.sourceKey)
+             && this.getId() == otherEdge.getId()
+             && this.fromNodeId == otherEdge.fromNodeId
+             && this.toNodeId == otherEdge.toNodeId
+             && this.getTags().equals(otherEdge.getTags());
   }
 }

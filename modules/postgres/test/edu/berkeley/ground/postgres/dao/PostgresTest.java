@@ -2,7 +2,7 @@ package edu.berkeley.ground.postgres.dao;
 
 import com.google.common.collect.ImmutableMap;
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.utils.IdGenerator;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.version.TagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
 import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
@@ -34,8 +34,8 @@ public class PostgresTest extends DaoTest {
       "org.postgresql.Driver",
       "jdbc:postgresql://localhost:5432/test",
       ImmutableMap.of(
-        "user", "ground",
-        "password", "metadata"
+        "username", "test",
+        "password", "test"
       ));
 
     IdGenerator idGenerator = new IdGenerator(0, 1, false);

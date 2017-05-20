@@ -12,30 +12,33 @@
 package edu.berkeley.ground.postgres.utils;
 
 import akka.actor.ActorSystem;
+import com.google.common.base.CaseFormat;
+import edu.berkeley.ground.common.exception.GroundException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
-
-import com.google.common.base.Enums;
-import edu.berkeley.ground.common.exception.GroundException;
 import play.Logger;
 import play.db.Database;
 import play.libs.concurrent.HttpExecution;
-import com.google.common.base.CaseFormat;
 
 public final class PostgresUtils {
-  private PostgresUtils() {}
+
+  private PostgresUtils() {
+  }
 
   public static Executor getDbSourceHttpContext(final ActorSystem actorSystem) {
     return HttpExecution.fromThread(
-        (Executor) actorSystem.dispatchers().lookup("ground.db.context"));
+      (Executor) actorSystem.dispatchers().lookup("ground.db.context"));
   }
 
   public static String executeQueryToJson(Database dbSource, String sql) throws GroundException {
-    Logger.debug("executeQueryToJson sql : {}", sql);
+    // Logger.debug("executeQueryToJson sql : {}", sql);
     try {
       try (Connection con = dbSource.getConnection()) {
         try (Statement stmt = con.createStatement()) {
@@ -46,7 +49,8 @@ public final class PostgresUtils {
             while (resultSet.next()) {
               final Map<String, Object> rowData = new HashMap<String, Object>();
               for (int column = 1; column <= columnCount; ++column) {
-                String key = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, resultSet.getMetaData().getColumnLabel(column));
+                String key = CaseFormat.LOWER_UNDERSCORE
+                  .to(CaseFormat.LOWER_CAMEL, resultSet.getMetaData().getColumnLabel(column));
                 rowData.put(key, resultSet.getObject(column));
               }
               objList.add(rowData);
@@ -55,28 +59,27 @@ public final class PostgresUtils {
             return GroundUtils.listtoJson(objList);
           } catch (SQLException e) {
             Logger.error(
-                "ERROR: executeQueryToJson SQL : {} Message: {} Cause {}. Trace: {}",
-                sql,
-                e.getMessage(),
-                e.getCause(),
-                e.getStackTrace());
+              "ERROR: executeQueryToJson SQL : {} Message: {} Cause {}. Trace: {}",
+              sql,
+              e.getMessage(),
+              e.getCause(),
+              e.getStackTrace());
             throw new GroundException(e);
-            //throw new RuntimeException(String.format("ERROR : executeQueryToJson Message: %s", e.getMessage()), e);
           }
         }
       }
     } catch (SQLException e) {
       Logger.error(
-          "ERROR:  executeQueryToJson  SQL : {} Message: {} Trace: {}",
-          sql,
-          e.getMessage(),
-          e.getStackTrace());
+        "ERROR:  executeQueryToJson  SQL : {} Message: {} Trace: {}",
+        sql,
+        e.getMessage(),
+        e.getStackTrace());
       throw new GroundException(e);
-      //throw new RuntimeException(String.format("ERROR : executeQueryToJson Message: %s", e.getMessage()), e);
     }
   }
 
-  public static final String executeSqlList(final Database dbSource, final PostgresStatements statements) throws GroundException {
+  public static String executeSqlList(final Database dbSource,
+    final PostgresStatements statements) throws GroundException {
     String status = null;
 
     try {
@@ -85,7 +88,7 @@ public final class PostgresUtils {
         try (Statement stmt = con.createStatement()) {
           for (final String sql : statements.getAllStatements()) {
             try {
-              Logger.debug("executeSqlList sql : {}", sql);
+              // Logger.debug("executeSqlList sql : {}", sql);
               try {
                 stmt.execute(sql);
               } catch (final SQLException e) {
@@ -96,13 +99,12 @@ public final class PostgresUtils {
               }
             } catch (SQLException e) {
               Logger.error(
-                  "error: executeSqlList SQL : {} Message: {} Cause {}. Trace: {}",
-                  sql,
-                  e.getMessage(),
-                  e.getCause(),
-                  e.getStackTrace());
+                "error: executeSqlList SQL : {} Message: {} Cause {}. Trace: {}",
+                sql,
+                e.getMessage(),
+                e.getCause(),
+                e.getStackTrace());
               throw new GroundException(e);
-              //throw new RuntimeException(String.format("error : executeSqlList Message: %s", e.getMessage()), e);
             }
           }
           con.commit();
@@ -113,10 +115,10 @@ public final class PostgresUtils {
       }
     } catch (SQLException e) {
       Logger.error(
-          "error:  executeSqlList SQL : {} Message: {} Trace: {}",
-          statements.getAllStatements(),
-          e.getMessage(),
-          e.getStackTrace());
+        "error:  executeSqlList SQL : {} Message: {} Trace: {}",
+        statements.getAllStatements(),
+        e.getMessage(),
+        e.getStackTrace());
       throw new GroundException(e);
       //throw new RuntimeException("error :  executeSqlList." + e.getMessage(), e);
     }

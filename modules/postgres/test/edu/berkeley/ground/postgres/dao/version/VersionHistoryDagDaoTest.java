@@ -5,7 +5,7 @@ package edu.berkeley.ground.postgres.dao.version;
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,12 +14,12 @@ package edu.berkeley.ground.postgres.dao.version;
  * limitations under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.postgres.dao.PostgresTest;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class VersionHistoryDagDaoTest extends PostgresTest {
 
@@ -29,15 +29,11 @@ public class VersionHistoryDagDaoTest extends PostgresTest {
 
   @Test
   public void testVersionHistoryDAGCreation() throws GroundException {
-    try {
-      long testId = 1;
-      PostgresTest.versionHistoryDagDao.create(testId);
+    long testId = 1;
+    PostgresTest.versionHistoryDagDao.create(testId);
 
-      VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
+    VersionHistoryDag<?> dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(testId);
 
-      assertEquals(0, dag.getEdgeIds().size());
-    } finally {
-      //PostgresTest.postgresClient.abort();
-    }
+    assertEquals(0, dag.getEdgeIds().size());
   }
 }

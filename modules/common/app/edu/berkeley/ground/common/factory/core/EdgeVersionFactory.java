@@ -13,8 +13,12 @@ package edu.berkeley.ground.common.factory.core;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
+import java.util.List;
 
 public interface EdgeVersionFactory extends RichVersionFactory<EdgeVersion> {
+
+  @Override
+  EdgeVersion create(EdgeVersion nodeVersion, List<Long> parentIds) throws GroundException;
 
   @Override
   EdgeVersion retrieveFromDatabase(long id) throws GroundException;

@@ -17,7 +17,8 @@ import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.Map;
 
-public class LineageGraph extends Item<LineageGraphVersion> {
+public class LineageGraph extends Item {
+
   // the name of this graph
   @JsonProperty("name")
   private final String name;
@@ -36,7 +37,7 @@ public class LineageGraph extends Item<LineageGraphVersion> {
    */
   @JsonCreator
   public LineageGraph(@JsonProperty("id") long id, @JsonProperty("name") String name, @JsonProperty("sourceKey") String sourceKey,
-                      @JsonProperty("tags") Map<String, Tag> tags) {
+                       @JsonProperty("tags") Map<String, Tag> tags) {
     super(id, tags);
 
     this.name = name;
@@ -60,8 +61,8 @@ public class LineageGraph extends Item<LineageGraphVersion> {
     LineageGraph otherLineageGraph = (LineageGraph) other;
 
     return this.name.equals(otherLineageGraph.name)
-        && this.getId() == otherLineageGraph.getId()
-        && this.sourceKey.equals(otherLineageGraph.sourceKey)
-        && this.getTags().equals(otherLineageGraph.getTags());
+             && this.getId() == otherLineageGraph.getId()
+             && this.sourceKey.equals(otherLineageGraph.sourceKey)
+             && this.getTags().equals(otherLineageGraph.getTags());
   }
 }

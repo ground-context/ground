@@ -12,11 +12,20 @@
 package edu.berkeley.ground.common.factory.version;
 
 import edu.berkeley.ground.common.exception.GroundException;
-
+import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.common.util.DbStatements;
 import java.util.List;
+import java.util.Map;
 
 public interface TagFactory {
+
   List<Long> getVersionIdsByTag(String tag) throws GroundException;
 
   List<Long> getItemIdsByTag(String tag) throws GroundException;
+
+  Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException;
+
+  Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException;
+
+  DbStatements insert(final Tag tag);
 }

@@ -3,7 +3,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,16 @@
 
 package edu.berkeley.ground.postgres.dao.core;
 
-  import edu.berkeley.ground.common.exception.GroundException;
-  import edu.berkeley.ground.common.model.core.StructureVersion;
-  import edu.berkeley.ground.common.model.version.GroundType;
-  import edu.berkeley.ground.postgres.dao.PostgresTest;
-  import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-  import java.util.ArrayList;
-  import java.util.HashMap;
-  import java.util.Map;
-
-
-  import static org.junit.Assert.*;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.StructureVersion;
+import edu.berkeley.ground.common.model.version.GroundType;
+import edu.berkeley.ground.postgres.dao.PostgresTest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Test;
 
 public class StructureVersionDaoTest extends PostgresTest {
 
@@ -36,30 +34,28 @@ public class StructureVersionDaoTest extends PostgresTest {
 
   @Test
   public void testStructureVersionCreation() throws GroundException {
-    try {
-      String structureName = "testStructure";
-      long structureId = PostgresTest.createStructure(structureName).getId();
+    String structureName = "testStructure";
+    long structureId = PostgresTest.createStructure(structureName).getId();
 
-      Map<String, GroundType> structureVersionAttributes = new HashMap<>();
-      structureVersionAttributes.put("intfield", GroundType.INTEGER);
-      structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
-      structureVersionAttributes.put("strfield", GroundType.STRING);
+    Map<String, GroundType> structureVersionAttributes = new HashMap<>();
+    structureVersionAttributes.put("intfield", GroundType.INTEGER);
+    structureVersionAttributes.put("boolfield", GroundType.BOOLEAN);
+    structureVersionAttributes.put("strfield", GroundType.STRING);
 
-      StructureVersion structureVersion = new StructureVersion(0L, structureId, structureVersionAttributes)
-;      long structureVersionId = PostgresTest.structureVersionDao.create(structureVersion, new ArrayList<>()).getId();
+    StructureVersion structureVersion = new StructureVersion(0L, structureId,
+      structureVersionAttributes);
+    long structureVersionId = PostgresTest.structureVersionDao
+      .create(structureVersion, new ArrayList<>()).getId();
 
-      StructureVersion retrieved = PostgresTest.structureVersionDao
-        .retrieveFromDatabase(structureVersionId);
+    StructureVersion retrieved = PostgresTest.structureVersionDao
+      .retrieveFromDatabase(structureVersionId);
 
-      assertEquals(structureId, retrieved.getStructureId());
-      Map<String, GroundType> retrievedAttributes = retrieved.getAttributes();
+    assertEquals(structureId, retrieved.getStructureId());
+    Map<String, GroundType> retrievedAttributes = retrieved.getAttributes();
 
-      for (String key : structureVersionAttributes.keySet()) {
-        assert (retrievedAttributes).containsKey(key);
-        assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
-      }
-    } finally {
-      //PostgresTest.postgresClient.commit();
+    for (String key : structureVersionAttributes.keySet()) {
+      assert (retrievedAttributes).containsKey(key);
+      assertEquals(structureVersionAttributes.get(key), retrievedAttributes.get(key));
     }
   }
 
@@ -73,8 +69,6 @@ public class StructureVersionDaoTest extends PostgresTest {
       assertEquals(GroundException.class, e.getClass());
 
       throw e;
-    } finally {
-      //PostgresTest.postgresClient.commit();
     }
   }
 }

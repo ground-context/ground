@@ -14,22 +14,24 @@ package edu.berkeley.ground.common.model.core;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Tag;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class GraphVersion extends RichVersion {
+
   @JsonProperty("tags")
   private final Map<String, Tag> tags;
-  @JsonProperty("structureVersionId")
-  private final long structureVersionId;
+
   @JsonProperty("reference")
   private final String reference;
+
   @JsonProperty("referenceParameters")
   private final Map<String, String> referenceParameters;
+
   @JsonProperty("graphId")
   private final long graphId;
+
   @JsonProperty("edgeVersionIds")
   private final List<Long> edgeVersionIds;
 
@@ -46,18 +48,17 @@ public class GraphVersion extends RichVersion {
    */
   @JsonCreator
   public GraphVersion(
-      @JsonProperty("id") long id,
-      @JsonProperty("tags") Map<String, Tag> tags,
-      @JsonProperty("structureVersionId") long structureVersionId,
-      @JsonProperty("reference") String reference,
-      @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
-      @JsonProperty("graphId") long graphId,
-      @JsonProperty("edgeVersionIds") List<Long> edgeVersionIds) {
+    @JsonProperty("id") long id,
+    @JsonProperty("tags") Map<String, Tag> tags,
+    @JsonProperty("structureVersionId") long structureVersionId,
+    @JsonProperty("reference") String reference,
+    @JsonProperty("referenceParameters") Map<String, String> referenceParameters,
+    @JsonProperty("graphId") long graphId,
+    @JsonProperty("edgeVersionIds") List<Long> edgeVersionIds) {
 
     super(id, tags, structureVersionId, reference, referenceParameters);
 
     this.tags = tags;
-    this.structureVersionId = structureVersionId;
     this.reference = reference;
     this.referenceParameters = referenceParameters;
     this.graphId = graphId;
@@ -68,14 +69,12 @@ public class GraphVersion extends RichVersion {
     }
   }
 
+  @Override
   public Map<String, Tag> getTags() {
     return this.tags;
   }
 
-  public Long getStructureVersionId() {
-    return this.structureVersionId;
-  }
-
+  @Override
   public String getReference() {
     return this.reference;
   }
@@ -101,7 +100,7 @@ public class GraphVersion extends RichVersion {
     GraphVersion otherGraphVersion = (GraphVersion) other;
 
     return this.graphId == otherGraphVersion.graphId
-        && this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds)
-        && super.equals(other);
+      && this.edgeVersionIds.equals(otherGraphVersion.edgeVersionIds)
+      && super.equals(other);
   }
 }

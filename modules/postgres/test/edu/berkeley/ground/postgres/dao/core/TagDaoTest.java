@@ -3,7 +3,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,20 +13,19 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
+import static org.junit.Assert.assertTrue;
+
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Node;
 import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.postgres.dao.PostgresTest;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class TagDaoTest extends PostgresTest {
 
@@ -36,43 +35,35 @@ public class TagDaoTest extends PostgresTest {
 
   @Test
   public void testGetItemIdsByTag() throws GroundException {
-    try {
-      Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-      long nodeId1 = PostgresTest.nodeDao.create(new Node(0L, null, "test1", tagsMap)).getId();
-      long nodeId2 = PostgresTest.nodeDao.create(new Node(0L, null, "test2", tagsMap)).getId();
+    long nodeId1 = PostgresTest.nodeDao.create(new Node(0L, null, "test1", tagsMap)).getId();
+    long nodeId2 = PostgresTest.nodeDao.create(new Node(0L, null, "test2", tagsMap)).getId();
 
-      List<Long> ids = PostgresTest.tagDao.getItemIdsByTag("testtag");
+    List<Long> ids = PostgresTest.tagDao.getItemIdsByTag("testtag");
 
-      //PostgresTest.postgresClient.commit();
-
-      assertTrue(ids.contains(nodeId1));
-      assertTrue(ids.contains(nodeId2));
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertTrue(ids.contains(nodeId1));
+    assertTrue(ids.contains(nodeId2));
   }
 
   @Test
   public void testGetVersionIdsByTag() throws GroundException {
-    try {
-      Map<String, Tag> tagsMap = new HashMap<>();
-      tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag", new Tag(1, "testtag", "tag", GroundType.STRING));
 
-      long nodeId = PostgresTest.createNode("testNode").getId();
+    long nodeId = PostgresTest.createNode("testNode").getId();
 
-      NodeVersion nodeVersion1 = new NodeVersion(0L, tagsMap, -1, null, new HashMap<>(), nodeId);
-      long nodeVersionId1 = PostgresTest.nodeVersionDao.create(nodeVersion1, new ArrayList<>()).getId();
-      NodeVersion nodeVersion2 = new NodeVersion(0L, tagsMap, -1, null, new HashMap<>(), nodeId);
-      long nodeVersionId2 = PostgresTest.nodeVersionDao.create(nodeVersion2, new ArrayList<>()).getId();
+    NodeVersion nodeVersion1 = new NodeVersion(0L, tagsMap, -1, null, new HashMap<>(), nodeId);
+    long nodeVersionId1 = PostgresTest.nodeVersionDao.create(nodeVersion1, new ArrayList<>())
+      .getId();
+    NodeVersion nodeVersion2 = new NodeVersion(0L, tagsMap, -1, null, new HashMap<>(), nodeId);
+    long nodeVersionId2 = PostgresTest.nodeVersionDao.create(nodeVersion2, new ArrayList<>())
+      .getId();
 
-      List<Long> ids = PostgresTest.tagDao.getVersionIdsByTag("testtag");
+    List<Long> ids = PostgresTest.tagDao.getVersionIdsByTag("testtag");
 
-      assertTrue(ids.contains(nodeVersionId1));
-      assertTrue(ids.contains(nodeVersionId2));
-    } finally {
-      //PostgresTest.postgresClient.commit();
-    }
+    assertTrue(ids.contains(nodeVersionId1));
+    assertTrue(ids.contains(nodeVersionId2));
   }
 }
