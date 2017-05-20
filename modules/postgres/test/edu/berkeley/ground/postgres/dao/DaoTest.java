@@ -1,27 +1,31 @@
 package edu.berkeley.ground.postgres.dao;
 
+import edu.berkeley.ground.common.dao.core.EdgeDao;
+import edu.berkeley.ground.common.dao.core.EdgeVersionDao;
+import edu.berkeley.ground.common.dao.core.GraphDao;
+import edu.berkeley.ground.common.dao.core.GraphVersionDao;
+import edu.berkeley.ground.common.dao.core.NodeDao;
+import edu.berkeley.ground.common.dao.core.NodeVersionDao;
+import edu.berkeley.ground.common.dao.core.RichVersionDao;
+import edu.berkeley.ground.common.dao.core.StructureDao;
+import edu.berkeley.ground.common.dao.core.StructureVersionDao;
+import edu.berkeley.ground.common.dao.usage.LineageEdgeDao;
+import edu.berkeley.ground.common.dao.usage.LineageEdgeVersionDao;
+import edu.berkeley.ground.common.dao.usage.LineageGraphDao;
+import edu.berkeley.ground.common.dao.usage.LineageGraphVersionDao;
+import edu.berkeley.ground.common.dao.version.ItemDao;
+import edu.berkeley.ground.common.dao.version.TagDao;
+import edu.berkeley.ground.common.dao.version.VersionDao;
+import edu.berkeley.ground.common.dao.version.VersionHistoryDagDao;
+import edu.berkeley.ground.common.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.factory.core.EdgeFactory;
-import edu.berkeley.ground.common.factory.core.EdgeVersionFactory;
-import edu.berkeley.ground.common.factory.core.GraphFactory;
-import edu.berkeley.ground.common.factory.core.GraphVersionFactory;
-import edu.berkeley.ground.common.factory.core.NodeFactory;
-import edu.berkeley.ground.common.factory.core.NodeVersionFactory;
-import edu.berkeley.ground.common.factory.core.StructureFactory;
-import edu.berkeley.ground.common.factory.core.StructureVersionFactory;
-import edu.berkeley.ground.common.factory.usage.LineageEdgeFactory;
-import edu.berkeley.ground.common.factory.usage.LineageEdgeVersionFactory;
-import edu.berkeley.ground.common.factory.usage.LineageGraphFactory;
-import edu.berkeley.ground.common.factory.usage.LineageGraphVersionFactory;
-import edu.berkeley.ground.common.factory.version.TagFactory;
-import edu.berkeley.ground.common.factory.version.VersionHistoryDagFactory;
-import edu.berkeley.ground.common.factory.version.VersionSuccessorFactory;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.model.core.GraphVersion;
 import edu.berkeley.ground.common.model.core.Node;
 import edu.berkeley.ground.common.model.core.NodeVersion;
+import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
@@ -29,11 +33,10 @@ import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
+import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.RichVersionDao;
-import edu.berkeley.ground.postgres.dao.version.ItemDao;
-import edu.berkeley.ground.postgres.dao.version.VersionDao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -50,29 +53,26 @@ import play.db.Database;
 
 public class DaoTest {
 
-  private static final String DROP_SCRIPT = "./scripts/postgres/drop_postgres.sql";
-  private static final String CREATE_SCHEMA_SCRIPT = "./scripts/postgres/postgres.sql";
-
   protected static Database dbSource;
   protected static IdGenerator idGenerator;
-  protected static VersionSuccessorFactory versionSuccessorDao;
-  protected static VersionHistoryDagFactory versionHistoryDagDao;
-  protected static TagFactory tagDao;
-  protected static EdgeFactory edgeDao;
-  protected static GraphFactory graphDao;
-  protected static LineageEdgeFactory lineageEdgeDao;
-  protected static LineageGraphFactory lineageGraphDao;
-  protected static NodeFactory nodeDao;
-  protected static StructureFactory structureDao;
-  protected static EdgeVersionFactory edgeVersionDao;
-  protected static GraphVersionFactory graphVersionDao;
-  protected static LineageEdgeVersionFactory lineageEdgeVersionDao;
-  protected static LineageGraphVersionFactory lineageGraphVersionDao;
-  protected static NodeVersionFactory nodeVersionDao;
-  protected static StructureVersionFactory structureVersionDao;
-  protected static RichVersionDao richVersionDao;
-  protected static ItemDao itemDao;
-  protected static VersionDao versionDao;
+  protected static VersionSuccessorDao versionSuccessorDao;
+  protected static VersionHistoryDagDao versionHistoryDagDao;
+  protected static TagDao tagDao;
+  protected static EdgeDao edgeDao;
+  protected static GraphDao graphDao;
+  protected static LineageEdgeDao lineageEdgeDao;
+  protected static LineageGraphDao lineageGraphDao;
+  protected static NodeDao nodeDao;
+  protected static StructureDao structureDao;
+  protected static EdgeVersionDao edgeVersionDao;
+  protected static GraphVersionDao graphVersionDao;
+  protected static LineageEdgeVersionDao lineageEdgeVersionDao;
+  protected static LineageGraphVersionDao lineageGraphVersionDao;
+  protected static NodeVersionDao nodeVersionDao;
+  protected static StructureVersionDao structureVersionDao;
+  protected static RichVersionDao<RichVersion> postgresRichVersionDao;
+  protected static ItemDao<Item> postgresItemDao;
+  protected static VersionDao<Version> postgresVersionDao;
 
   public static Node createNode(String sourceKey) throws GroundException {
     // id should be replaced by output of IdGenerator
@@ -86,7 +86,7 @@ public class DaoTest {
   public static NodeVersion createNodeVersion(long nodeId, List<Long> parents)
     throws GroundException {
     NodeVersion nodeVersion = new NodeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
-      nodeId);
+                                               nodeId);
     return nodeVersionDao.create(nodeVersion, parents);
   }
 
@@ -106,24 +106,24 @@ public class DaoTest {
   }
 
   public static EdgeVersion createEdgeVersion(long edgeId,
-    long fromStart,
-    long toStart,
-    List<Long> parents)
+                                               long fromStart,
+                                               long toStart,
+                                               List<Long> parents)
     throws GroundException {
     EdgeVersion edgeVersion = new EdgeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
-      edgeId, fromStart, -1, toStart, -1);
+                                               edgeId, fromStart, -1, toStart, -1);
     return edgeVersionDao.create(edgeVersion, parents);
   }
 
   public static EdgeVersion createEdgeVersion(long edgeId,
-    long fromStart,
-    long fromEnd,
-    long toStart,
-    long toEnd,
-    List<Long> parents)
+                                               long fromStart,
+                                               long fromEnd,
+                                               long toStart,
+                                               long toEnd,
+                                               List<Long> parents)
     throws GroundException {
     EdgeVersion edgeVersion = new EdgeVersion(0L, new HashMap<>(), -1, null, new HashMap<>(),
-      edgeId, fromStart, fromEnd, toStart, toEnd);
+                                               edgeId, fromStart, fromEnd, toStart, toEnd);
     return edgeVersionDao.create(edgeVersion, parents);
   }
 
@@ -139,11 +139,11 @@ public class DaoTest {
   }
 
   public static GraphVersion createGraphVersion(long graphId,
-    List<Long> edgeVersionIds,
-    List<Long> parents)
+                                                 List<Long> edgeVersionIds,
+                                                 List<Long> parents)
     throws GroundException {
     GraphVersion graphVersion = new GraphVersion(0L, new HashMap<>(), -1, null,
-      new HashMap<>(), graphId, edgeVersionIds);
+                                                  new HashMap<>(), graphId, edgeVersionIds);
     return graphVersionDao.create(graphVersion, parents);
   }
 
@@ -153,20 +153,20 @@ public class DaoTest {
   }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
-    long fromId,
-    long toId) throws GroundException {
+                                                             long fromId,
+                                                             long toId) throws GroundException {
 
     return createLineageEdgeVersion(lineageEdgeId, fromId, toId, new ArrayList<>());
   }
 
   public static LineageEdgeVersion createLineageEdgeVersion(long lineageEdgeId,
-    long fromId,
-    long toId,
-    List<Long> parents)
+                                                             long fromId,
+                                                             long toId,
+                                                             List<Long> parents)
     throws GroundException {
     LineageEdgeVersion lineageEdgeVersion = new LineageEdgeVersion(0L, new HashMap<String, Tag>(),
-      (long) -1,
-      null, new HashMap<>(), fromId, toId, lineageEdgeId);
+                                                                    (long) -1,
+                                                                    null, new HashMap<>(), fromId, toId, lineageEdgeId);
     return lineageEdgeVersionDao.create(lineageEdgeVersion, parents);
   }
 
@@ -176,19 +176,19 @@ public class DaoTest {
   }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
-    List<Long> lineageEdgeVersionIds)
+                                                               List<Long> lineageEdgeVersionIds)
     throws GroundException {
 
     return createLineageGraphVersion(lineageGraphId, lineageEdgeVersionIds, new ArrayList<>());
   }
 
   public static LineageGraphVersion createLineageGraphVersion(long lineageGraphId,
-    List<Long> lineageEdgeVersionIds,
-    List<Long> parents)
+                                                               List<Long> lineageEdgeVersionIds,
+                                                               List<Long> parents)
     throws GroundException {
 
     LineageGraphVersion lineageGraphVersion = new LineageGraphVersion(0L, new HashMap<>(), -1, null,
-      new HashMap<>(), lineageGraphId, lineageEdgeVersionIds);
+                                                                       new HashMap<>(), lineageGraphId, lineageEdgeVersionIds);
     return lineageGraphVersionDao.create(lineageGraphVersion, parents);
   }
 
@@ -211,7 +211,7 @@ public class DaoTest {
     structureVersionAttributes.put("strfield", GroundType.STRING);
 
     StructureVersion structureVersion = new StructureVersion(0L, structureId,
-      structureVersionAttributes);
+                                                              structureVersionAttributes);
     return structureVersionDao.create(structureVersion, parents);
   }
 
@@ -247,7 +247,7 @@ public class DaoTest {
 
     try (Stream<String> lines = Files.lines(Paths.get(scriptFile))) {
       String data = lines.filter(line -> !line.startsWith(SQL_COMMENT_START))
-        .collect(Collectors.joining());
+                      .collect(Collectors.joining());
       Arrays.stream(data.split(";"))
         .map(chunk -> chunk + ";")
         .forEach(statement -> executor.accept(statement));

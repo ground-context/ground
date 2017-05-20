@@ -7,8 +7,8 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.usage.LineageGraphDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageGraphVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -29,8 +29,8 @@ public class LineageGraphController extends Controller {
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private LineageGraphDao lineageGraphDao;
-  private LineageGraphVersionDao lineageGraphVersionDao;
+  private PostgresLineageGraphDao postgresLineageGraphDao;
+  private PostgresLineageGraphVersionDao postgresLineageGraphVersionDao;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource,
@@ -38,7 +38,7 @@ public class LineageGraphController extends Controller {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.lineageGraphDao = new LineageGraphDao(dbSource, idGenerator);
+    this.postgresLineageGraphDao = new PostgresLineageGraphDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getLineageGraph(String sourceKey) {
@@ -47,7 +47,7 @@ public class LineageGraphController extends Controller {
         try {
           return this.cache.getOrElse(
             "lineage_graphs",
-            () -> Json.toJson(this.lineageGraphDao.retrieveFromDatabase(sourceKey)),
+            () -> Json.toJson(this.postgresLineageGraphDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -64,7 +64,7 @@ public class LineageGraphController extends Controller {
         try {
           return this.cache.getOrElse(
             "lineage_graph_versions",
-            () -> Json.toJson(this.lineageGraphVersionDao.retrieveFromDatabase(id)),
+            () -> Json.toJson(this.postgresLineageGraphVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -82,7 +82,7 @@ public class LineageGraphController extends Controller {
         JsonNode json = request().body().asJson();
         LineageGraph lineageGraph = Json.fromJson(json, LineageGraph.class);
         try {
-          lineageGraph = this.lineageGraphDao.create(lineageGraph);
+          lineageGraph = this.postgresLineageGraphDao.create(lineageGraph);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
@@ -111,7 +111,7 @@ public class LineageGraphController extends Controller {
         LineageGraphVersion lineageGraphVersion = Json.fromJson(json, LineageGraphVersion.class);
 
         try {
-          lineageGraphVersion = this.lineageGraphVersionDao.create(lineageGraphVersion, parentIds);
+          lineageGraphVersion = this.postgresLineageGraphVersionDao.create(lineageGraphVersion, parentIds);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }

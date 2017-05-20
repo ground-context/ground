@@ -7,8 +7,8 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -29,16 +29,16 @@ public class LineageEdgeController extends Controller {
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private LineageEdgeDao lineageEdgeDao;
-  private LineageEdgeVersionDao lineageEdgeVersionDao;
+  private PostgresLineageEdgeDao postgresLineageEdgeDao;
+  private PostgresLineageEdgeVersionDao postgresLineageEdgeVersionDao;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.lineageEdgeDao = new LineageEdgeDao(dbSource, idGenerator);
-    this.lineageEdgeVersionDao = new LineageEdgeVersionDao(dbSource, idGenerator);
+    this.postgresLineageEdgeDao = new PostgresLineageEdgeDao(dbSource, idGenerator);
+    this.postgresLineageEdgeVersionDao = new PostgresLineageEdgeVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getLineageEdge(String sourceKey) {
@@ -47,7 +47,7 @@ public class LineageEdgeController extends Controller {
         try {
           return this.cache.getOrElse(
             "lineage_edges",
-            () -> Json.toJson(this.lineageEdgeDao.retrieveFromDatabase(sourceKey)),
+            () -> Json.toJson(this.postgresLineageEdgeDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -64,7 +64,7 @@ public class LineageEdgeController extends Controller {
         try {
           return this.cache.getOrElse(
             "lineage_edge_versions",
-            () -> Json.toJson(this.lineageEdgeVersionDao.retrieveFromDatabase(id)),
+            () -> Json.toJson(this.postgresLineageEdgeVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -82,7 +82,7 @@ public class LineageEdgeController extends Controller {
         JsonNode json = request().body().asJson();
         LineageEdge lineageEdge = Json.fromJson(json, LineageEdge.class);
         try {
-          lineageEdge = this.lineageEdgeDao.create(lineageEdge);
+          lineageEdge = this.postgresLineageEdgeDao.create(lineageEdge);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
@@ -111,7 +111,7 @@ public class LineageEdgeController extends Controller {
         LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json, LineageEdgeVersion.class);
 
         try {
-          lineageEdgeVersion = this.lineageEdgeVersionDao.create(lineageEdgeVersion, parentIds);
+          lineageEdgeVersion = this.postgresLineageEdgeVersionDao.create(lineageEdgeVersion, parentIds);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }

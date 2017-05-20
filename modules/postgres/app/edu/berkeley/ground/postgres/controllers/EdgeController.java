@@ -7,8 +7,8 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.EdgeDao;
-import edu.berkeley.ground.postgres.dao.core.EdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -29,17 +29,17 @@ public class EdgeController extends Controller {
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private EdgeDao edgeDao;
-  private EdgeVersionDao edgeVersionDao;
+  private PostgresEdgeDao postgresEdgeDao;
+  private PostgresEdgeVersionDao postgresEdgeVersionDao;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.edgeDao = new EdgeDao(dbSource, idGenerator);
+    this.postgresEdgeDao = new PostgresEdgeDao(dbSource, idGenerator);
 
-    this.edgeVersionDao = new EdgeVersionDao(dbSource, idGenerator);
+    this.postgresEdgeVersionDao = new PostgresEdgeVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getEdge(final String sourceKey) {
@@ -48,7 +48,7 @@ public class EdgeController extends Controller {
         try {
           return this.cache.getOrElse(
             "edges",
-            () -> Json.toJson(this.edgeDao.retrieveFromDatabase(sourceKey)),
+            () -> Json.toJson(this.postgresEdgeDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -67,7 +67,7 @@ public class EdgeController extends Controller {
         Edge edge = Json.fromJson(json, Edge.class);
 
         try {
-          edge = this.edgeDao.create(edge);
+          edge = this.postgresEdgeDao.create(edge);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
@@ -93,7 +93,7 @@ public class EdgeController extends Controller {
         try {
           return this.cache.getOrElse(
             "edge_versions",
-            () -> Json.toJson(this.edgeVersionDao.retrieveFromDatabase(id)),
+            () -> Json.toJson(this.postgresEdgeVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -115,7 +115,7 @@ public class EdgeController extends Controller {
         EdgeVersion edgeVersion = Json.fromJson(json, EdgeVersion.class);
 
         try {
-          edgeVersion = this.edgeVersionDao.create(edgeVersion, parentIds);
+          edgeVersion = this.postgresEdgeVersionDao.create(edgeVersion, parentIds);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }

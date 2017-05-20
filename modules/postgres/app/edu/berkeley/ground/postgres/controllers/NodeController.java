@@ -7,8 +7,8 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Node;
 import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.NodeDao;
-import edu.berkeley.ground.postgres.dao.core.NodeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -29,16 +29,16 @@ public class NodeController extends Controller {
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private NodeDao nodeDao;
-  private NodeVersionDao nodeVersionDao;
+  private PostgresNodeDao postgresNodeDao;
+  private PostgresNodeVersionDao postgresNodeVersionDao;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.nodeDao = new NodeDao(dbSource, idGenerator);
-    this.nodeVersionDao = new NodeVersionDao(dbSource, idGenerator);
+    this.postgresNodeDao = new PostgresNodeDao(dbSource, idGenerator);
+    this.postgresNodeVersionDao = new PostgresNodeVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getNode(String sourceKey) {
@@ -47,7 +47,7 @@ public class NodeController extends Controller {
         try {
           return this.cache.getOrElse(
             "nodes",
-            () -> Json.toJson(this.nodeDao.retrieveFromDatabase(sourceKey)),
+            () -> Json.toJson(this.postgresNodeDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -65,7 +65,7 @@ public class NodeController extends Controller {
         JsonNode json = request().body().asJson();
         Node node = Json.fromJson(json, Node.class);
         try {
-          node = this.nodeDao.create(node);
+          node = this.postgresNodeDao.create(node);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
@@ -90,7 +90,7 @@ public class NodeController extends Controller {
         try {
           return this.cache.getOrElse(
             "node_versions",
-            () -> Json.toJson(this.nodeVersionDao.retrieveFromDatabase(id)),
+            () -> Json.toJson(this.postgresNodeVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -112,7 +112,7 @@ public class NodeController extends Controller {
         NodeVersion nodeVersion = Json.fromJson(json, NodeVersion.class);
 
         try {
-          nodeVersion = this.nodeVersionDao.create(nodeVersion, parentIds);
+          nodeVersion = this.postgresNodeVersionDao.create(nodeVersion, parentIds);
         } catch (GroundException e) {
           e.printStackTrace();
           throw new CompletionException(e);

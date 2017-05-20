@@ -2,21 +2,21 @@ package edu.berkeley.ground.postgres.util;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.EdgeDao;
-import edu.berkeley.ground.postgres.dao.core.EdgeVersionDao;
-import edu.berkeley.ground.postgres.dao.core.GraphDao;
-import edu.berkeley.ground.postgres.dao.core.GraphVersionDao;
-import edu.berkeley.ground.postgres.dao.core.NodeDao;
-import edu.berkeley.ground.postgres.dao.core.NodeVersionDao;
-import edu.berkeley.ground.postgres.dao.core.StructureDao;
-import edu.berkeley.ground.postgres.dao.core.StructureVersionDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageEdgeDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageEdgeVersionDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageGraphDao;
-import edu.berkeley.ground.postgres.dao.usage.LineageGraphVersionDao;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphVersionDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresTagDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresVersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresVersionSuccessorDao;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import play.db.Database;
@@ -24,88 +24,88 @@ import play.db.Database;
 @Singleton
 public class Daos {
 
-  private final StructureDao structureDao;
-  private final StructureVersionDao structureVersionDao;
-  private final EdgeDao edgeDao;
-  private final EdgeVersionDao edgeVersionDao;
-  private final GraphDao graphDao;
-  private final GraphVersionDao graphVersionDao;
-  private final NodeDao nodeDao;
-  private final NodeVersionDao nodeVersionDao;
+  private final PostgresStructureDao postgresStructureDao;
+  private final PostgresStructureVersionDao postgresStructureVersionDao;
+  private final PostgresEdgeDao postgresEdgeDao;
+  private final PostgresEdgeVersionDao postgresEdgeVersionDao;
+  private final PostgresGraphDao postgresGraphDao;
+  private final PostgresGraphVersionDao postgresGraphVersionDao;
+  private final PostgresNodeDao postgresNodeDao;
+  private final PostgresNodeVersionDao postgresNodeVersionDao;
 
-  private final LineageEdgeDao lineageEdgeDao;
-  private final LineageEdgeVersionDao lineageEdgeVersionDao;
-  private final LineageGraphDao lineageGraphDao;
-  private final LineageGraphVersionDao lineageGraphVersionDao;
+  private final PostgresLineageEdgeDao postgresLineageEdgeDao;
+  private final PostgresLineageEdgeVersionDao postgresLineageEdgeVersionDao;
+  private final PostgresLineageGraphDao postgresLineageGraphDao;
+  private final PostgresLineageGraphVersionDao postgresLineageGraphVersionDao;
 
   @Inject
   public Daos(Database dbSource, IdGenerator idGenerator) throws GroundException {
 
-    VersionSuccessorDao versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
-    VersionHistoryDagDao versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-                                                                          versionSuccessorDao);
-    TagDao tagDao = new TagDao(dbSource);
+    PostgresVersionSuccessorDao postgresVersionSuccessorDao = new PostgresVersionSuccessorDao(dbSource, idGenerator);
+    PostgresVersionHistoryDagDao postgresVersionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource,
+                                                                                                  postgresVersionSuccessorDao);
+    PostgresTagDao postgresTagDao = new PostgresTagDao(dbSource);
 
-    this.structureDao = new StructureDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    this.structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
-    this.edgeDao = new EdgeDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    this.edgeVersionDao = new EdgeVersionDao(dbSource, idGenerator);
-    this.graphDao = new GraphDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    this.graphVersionDao = new GraphVersionDao(dbSource, idGenerator);
-    this.nodeDao = new NodeDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    this.nodeVersionDao = new NodeVersionDao(dbSource, idGenerator);
+    this.postgresStructureDao = new PostgresStructureDao(dbSource, idGenerator);
+    this.postgresStructureVersionDao = new PostgresStructureVersionDao(dbSource, idGenerator);
+    this.postgresEdgeDao = new PostgresEdgeDao(dbSource, idGenerator);
+    this.postgresEdgeVersionDao = new PostgresEdgeVersionDao(dbSource, idGenerator);
+    this.postgresGraphDao = new PostgresGraphDao(dbSource, idGenerator);
+    this.postgresGraphVersionDao = new PostgresGraphVersionDao(dbSource, idGenerator);
+    this.postgresNodeDao = new PostgresNodeDao(dbSource, idGenerator);
+    this.postgresNodeVersionDao = new PostgresNodeVersionDao(dbSource, idGenerator);
 
-    this.lineageEdgeDao = new LineageEdgeDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    this.lineageEdgeVersionDao = new LineageEdgeVersionDao(dbSource, idGenerator);
-    this.lineageGraphDao = new LineageGraphDao(dbSource, idGenerator, versionHistoryDagDao, tagDao);
-    this.lineageGraphVersionDao = new LineageGraphVersionDao(dbSource, idGenerator);
+    this.postgresLineageEdgeDao = new PostgresLineageEdgeDao(dbSource, idGenerator);
+    this.postgresLineageEdgeVersionDao = new PostgresLineageEdgeVersionDao(dbSource, idGenerator);
+    this.postgresLineageGraphDao = new PostgresLineageGraphDao(dbSource, idGenerator);
+    this.postgresLineageGraphVersionDao = new PostgresLineageGraphVersionDao(dbSource, idGenerator);
   }
 
-  public EdgeDao getEdgeDao() {
-    return this.edgeDao;
+  public PostgresEdgeDao getPostgresEdgeDao() {
+    return this.postgresEdgeDao;
   }
 
-  public EdgeVersionDao getEdgeVersionDao() {
-    return this.edgeVersionDao;
+  public PostgresEdgeVersionDao getPostgresEdgeVersionDao() {
+    return this.postgresEdgeVersionDao;
   }
 
-  public GraphDao getGraphDao() {
-    return this.graphDao;
+  public PostgresGraphDao getPostgresGraphDao() {
+    return this.postgresGraphDao;
   }
 
-  public GraphVersionDao getGraphVersionDao() {
-    return this.graphVersionDao;
+  public PostgresGraphVersionDao getPostgresGraphVersionDao() {
+    return this.postgresGraphVersionDao;
   }
 
-  public NodeDao getNodeDao() {
-    return this.nodeDao;
+  public PostgresNodeDao getPostgresNodeDao() {
+    return this.postgresNodeDao;
   }
 
-  public NodeVersionDao getNodeVersionDao() {
-    return this.nodeVersionDao;
+  public PostgresNodeVersionDao getPostgresNodeVersionDao() {
+    return this.postgresNodeVersionDao;
   }
 
-  public LineageEdgeDao getLineageEdgeDao() {
-    return this.lineageEdgeDao;
+  public PostgresLineageEdgeDao getPostgresLineageEdgeDao() {
+    return this.postgresLineageEdgeDao;
   }
 
-  public LineageEdgeVersionDao getLineageEdgeVersionDao() {
-    return this.lineageEdgeVersionDao;
+  public PostgresLineageEdgeVersionDao getPostgresLineageEdgeVersionDao() {
+    return this.postgresLineageEdgeVersionDao;
   }
 
-  public StructureDao getStructureDao() {
-    return this.structureDao;
+  public PostgresStructureDao getPostgresStructureDao() {
+    return this.postgresStructureDao;
   }
 
-  public StructureVersionDao getStructureVersionDao() {
-    return this.structureVersionDao;
+  public PostgresStructureVersionDao getPostgresStructureVersionDao() {
+    return this.postgresStructureVersionDao;
   }
 
-  public LineageGraphDao getLineageGraphDao() {
-    return this.lineageGraphDao;
+  public PostgresLineageGraphDao getPostgresLineageGraphDao() {
+    return this.postgresLineageGraphDao;
   }
 
-  public LineageGraphVersionDao getLineageGraphVersionDao() {
-    return this.lineageGraphVersionDao;
+  public PostgresLineageGraphVersionDao getPostgresLineageGraphVersionDao() {
+    return this.postgresLineageGraphVersionDao;
   }
 }

@@ -3,9 +3,12 @@ package edu.berkeley.ground.postgres.dao;
 import com.google.common.collect.ImmutableMap;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.version.TagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.VersionSuccessorDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresTagDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresVersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresVersionSuccessorDao;
+import edu.berkeley.ground.postgres.dao.version.mock.TestPostgresItemDao;
+import edu.berkeley.ground.postgres.dao.version.mock.TestPostgresRichVersionDao;
+import edu.berkeley.ground.postgres.dao.version.mock.TestPostgresVersionDao;
 import edu.berkeley.ground.postgres.util.Daos;
 import java.io.IOException;
 import java.sql.Connection;
@@ -22,7 +25,7 @@ public class PostgresTest extends DaoTest {
   private static final String DROP_SCRIPT = "../../resources/scripts/postgres/drop_postgres.sql";
   private static final String CREATE_SCHEMA_SCRIPT = "../../resources/scripts/postgres/postgres.sql";
 
-  protected static Daos daos;
+  private static Daos daos;
 
   public PostgresTest() throws GroundException {
 
@@ -44,27 +47,26 @@ public class PostgresTest extends DaoTest {
     PostgresTest.idGenerator = idGenerator;
     PostgresTest.daos = new Daos(dbSource, idGenerator);
 
-    versionSuccessorDao = new VersionSuccessorDao(dbSource, idGenerator);
-    versionHistoryDagDao = new VersionHistoryDagDao(dbSource,
-                                                     (VersionSuccessorDao) versionSuccessorDao);
-    tagDao = new TagDao(dbSource, idGenerator);
+    PostgresTest.postgresVersionDao = new TestPostgresVersionDao(dbSource, idGenerator);
+    PostgresTest.versionSuccessorDao = new PostgresVersionSuccessorDao(dbSource, idGenerator);
+    PostgresTest.versionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, (PostgresVersionSuccessorDao) PostgresTest.versionSuccessorDao);
+    PostgresTest.postgresItemDao = new TestPostgresItemDao(dbSource, idGenerator);
+    PostgresTest.tagDao = new PostgresTagDao(dbSource);
 
-    edgeDao = daos.getEdgeDao();
-    graphDao = daos.getGraphDao();
-    lineageEdgeDao = daos.getLineageEdgeDao();
-    lineageGraphDao = daos.getLineageGraphDao();
-    nodeDao = daos.getNodeDao();
-    structureDao = daos.getStructureDao();
-    richVersionDao = daos.getRichVersionDao();
-    itemDao = daos.getItemDao();
-    versionDao = daos.getVersionDao();
+    PostgresTest.postgresRichVersionDao = new TestPostgresRichVersionDao(dbSource, idGenerator);
+    PostgresTest.edgeDao = PostgresTest.daos.getPostgresEdgeDao();
+    PostgresTest.edgeVersionDao = PostgresTest.daos.getPostgresEdgeVersionDao();
+    PostgresTest.graphDao = PostgresTest.daos.getPostgresGraphDao();
+    PostgresTest.graphVersionDao = PostgresTest.daos.getPostgresGraphVersionDao();
+    PostgresTest.nodeDao = PostgresTest.daos.getPostgresNodeDao();
+    PostgresTest.nodeVersionDao = PostgresTest.daos.getPostgresNodeVersionDao();
+    PostgresTest.structureDao = PostgresTest.daos.getPostgresStructureDao();
+    PostgresTest.structureVersionDao = PostgresTest.daos.getPostgresStructureVersionDao();
 
-    edgeVersionDao = daos.getEdgeVersionDao();
-    graphVersionDao = daos.getGraphVersionDao();
-    lineageEdgeVersionDao = daos.getLineageEdgeVersionDao();
-    lineageGraphVersionDao = daos.getLineageGraphVersionDao();
-    nodeVersionDao = daos.getNodeVersionDao();
-    structureVersionDao = daos.getStructureVersionDao();
+    PostgresTest.lineageEdgeDao = PostgresTest.daos.getPostgresLineageEdgeDao();
+    PostgresTest.lineageEdgeVersionDao = PostgresTest.daos.getPostgresLineageEdgeVersionDao();
+    PostgresTest.lineageGraphDao = PostgresTest.daos.getPostgresLineageGraphDao();
+    PostgresTest.lineageGraphVersionDao = PostgresTest.daos.getPostgresLineageGraphVersionDao();
 
     runScript(DROP_SCRIPT);
     runScript(CREATE_SCHEMA_SCRIPT);

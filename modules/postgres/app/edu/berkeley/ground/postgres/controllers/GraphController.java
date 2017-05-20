@@ -18,8 +18,8 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.model.core.GraphVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.GraphDao;
-import edu.berkeley.ground.postgres.dao.core.GraphVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -40,17 +40,17 @@ public class GraphController extends Controller {
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private GraphDao graphDao;
-  private GraphVersionDao graphVersionDao;
+  private PostgresGraphDao postgresGraphDao;
+  private PostgresGraphVersionDao postgresGraphVersionDao;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.graphDao = new GraphDao(dbSource, idGenerator);
+    this.postgresGraphDao = new PostgresGraphDao(dbSource, idGenerator);
 
-    this.graphVersionDao = new GraphVersionDao(dbSource, idGenerator);
+    this.postgresGraphVersionDao = new PostgresGraphVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getGraph(String sourceKey) {
@@ -59,7 +59,7 @@ public class GraphController extends Controller {
         try {
           return this.cache.getOrElse(
             "graphs",
-            () -> Json.toJson(this.graphDao.retrieveFromDatabase(sourceKey)),
+            () -> Json.toJson(this.postgresGraphDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -75,7 +75,7 @@ public class GraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse("graph_versions",
-            () -> Json.toJson(this.graphVersionDao.retrieveFromDatabase(id)),
+            () -> Json.toJson(this.postgresGraphVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -94,7 +94,7 @@ public class GraphController extends Controller {
         Graph graph = Json.fromJson(json, Graph.class);
 
         try {
-          graph = this.graphDao.create(graph);
+          graph = this.postgresGraphDao.create(graph);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
@@ -124,7 +124,7 @@ public class GraphController extends Controller {
         GraphVersion graphVersion = Json.fromJson(json, GraphVersion.class);
 
         try {
-          graphVersion = this.graphVersionDao.create(graphVersion, parentIds);
+          graphVersion = this.postgresGraphVersionDao.create(graphVersion, parentIds);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }

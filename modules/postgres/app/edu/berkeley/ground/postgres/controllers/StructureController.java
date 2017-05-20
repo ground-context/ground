@@ -18,8 +18,8 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.postgres.dao.core.StructureDao;
-import edu.berkeley.ground.postgres.dao.core.StructureVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureVersionDao;
 import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -40,16 +40,16 @@ public class StructureController extends Controller {
   private CacheApi cache;
   private ActorSystem actorSystem;
 
-  private StructureDao structureDao;
-  private StructureVersionDao structureVersionDao;
+  private PostgresStructureDao postgresStructureDao;
+  private PostgresStructureVersionDao postgresStructureVersionDao;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
 
-    this.structureDao = new StructureDao(dbSource, idGenerator);
-    this.structureVersionDao = new StructureVersionDao(dbSource, idGenerator);
+    this.postgresStructureDao = new PostgresStructureDao(dbSource, idGenerator);
+    this.postgresStructureVersionDao = new PostgresStructureVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getStructure(String sourceKey) {
@@ -58,7 +58,7 @@ public class StructureController extends Controller {
         try {
           return this.cache.getOrElse(
             "structures",
-            () -> Json.toJson(this.structureDao.retrieveFromDatabase(sourceKey)),
+            () -> Json.toJson(this.postgresStructureDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -74,7 +74,7 @@ public class StructureController extends Controller {
         try {
           return this.cache.getOrElse(
             "structure_versions",
-            () -> Json.toJson(this.structureVersionDao.retrieveFromDatabase(id)),
+            () -> Json.toJson(this.postgresStructureVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
@@ -92,7 +92,7 @@ public class StructureController extends Controller {
         Structure structure = Json.fromJson(json, Structure.class);
 
         try {
-          structure = this.structureDao.create(structure);
+          structure = this.postgresStructureDao.create(structure);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
@@ -124,7 +124,7 @@ public class StructureController extends Controller {
         StructureVersion structureVersion = Json.fromJson(json, StructureVersion.class);
 
         try {
-          structureVersion = this.structureVersionDao.create(structureVersion, parentIds);
+          structureVersion = this.postgresStructureVersionDao.create(structureVersion, parentIds);
         } catch (GroundException e) {
           throw new CompletionException(e);
         }
