@@ -24,4 +24,9 @@ public interface LineageGraphVersionDao extends RichVersionDao<LineageGraphVersi
 
   @Override
   LineageGraphVersion retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  default Class<LineageGraphVersion> getType() {
+    return LineageGraphVersion.class;
+  }
 }

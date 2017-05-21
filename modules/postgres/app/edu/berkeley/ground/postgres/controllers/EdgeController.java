@@ -38,7 +38,6 @@ public class EdgeController extends Controller {
     this.cache = cache;
 
     this.postgresEdgeDao = new PostgresEdgeDao(dbSource, idGenerator);
-
     this.postgresEdgeVersionDao = new PostgresEdgeVersionDao(dbSource, idGenerator);
   }
 
@@ -56,7 +55,7 @@ public class EdgeController extends Controller {
       },
       PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::ok)
-             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
@@ -76,15 +75,7 @@ public class EdgeController extends Controller {
       },
       PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::created)
-             .exceptionally(
-               e -> {
-                 if (e.getCause() instanceof GroundException) {
-                   // TODO: huh? wtf.
-                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-                 } else {
-                   return internalServerError(GroundUtils.getServerError(request(), e));
-                 }
-               });
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 
   public final CompletionStage<Result> getEdgeVersion(Long id) {
@@ -101,7 +92,7 @@ public class EdgeController extends Controller {
       },
       PostgresUtils.getDbSourceHttpContext(actorSystem))
              .thenApply(Results::ok)
-             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
@@ -124,14 +115,6 @@ public class EdgeController extends Controller {
       },
       PostgresUtils.getDbSourceHttpContext(actorSystem))
              .thenApply(Results::created)
-             .exceptionally(
-               e -> {
-                 if (e.getCause() instanceof GroundException) {
-                   // TODO: wtf.
-                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-                 } else {
-                   return internalServerError(GroundUtils.getServerError(request(), e));
-                 }
-               });
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 }

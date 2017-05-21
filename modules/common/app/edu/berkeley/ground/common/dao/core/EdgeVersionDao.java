@@ -22,4 +22,9 @@ public interface EdgeVersionDao extends RichVersionDao<EdgeVersion> {
 
   @Override
   EdgeVersion retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  default Class<EdgeVersion> getType() {
+    return EdgeVersion.class;
+  }
 }

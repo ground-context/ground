@@ -17,6 +17,7 @@ package edu.berkeley.ground.postgres.dao.version;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.version.VersionSuccessorDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.common.util.DbStatements;
 import edu.berkeley.ground.common.util.IdGenerator;
@@ -77,7 +78,7 @@ public class PostgresVersionSuccessorDao implements VersionSuccessorDao {
       JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
       if (json.size() == 0) {
-        throw new GroundException(String.format("Version Successor with id %d does not exist.", dbId));
+        throw new GroundException(ExceptionType.OTHER, String.format("Version Successor with id %d does not exist.", dbId));
       }
 
       json = json.get(0);

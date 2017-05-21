@@ -65,7 +65,7 @@ public class StructureController extends Controller {
         }
       }, PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::ok)
-             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 
   public final CompletionStage<Result> getStructureVersion(Long id) {
@@ -81,7 +81,7 @@ public class StructureController extends Controller {
         }
       }, PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::ok)
-             .exceptionally(e -> internalServerError(GroundUtils.getServerError(request(), e)));
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
@@ -101,15 +101,7 @@ public class StructureController extends Controller {
 
       PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::created)
-             .exceptionally(
-               e -> {
-                 if (e.getCause() instanceof GroundException) {
-                   // TODO: fix
-                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-                 } else {
-                   return internalServerError(GroundUtils.getServerError(request(), e));
-                 }
-               });
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 
   @BodyParser.Of(BodyParser.Json.class)
@@ -132,14 +124,6 @@ public class StructureController extends Controller {
       },
       PostgresUtils.getDbSourceHttpContext(this.actorSystem))
              .thenApply(Results::created)
-             .exceptionally(
-               e -> {
-                 if (e.getCause() instanceof GroundException) {
-                   // TODO: fix
-                   return badRequest(GroundUtils.getClientError(request(), e, GroundException.exceptionType.ITEM_NOT_FOUND));
-                 } else {
-                   return internalServerError(GroundUtils.getServerError(request(), e));
-                 }
-               });
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 }

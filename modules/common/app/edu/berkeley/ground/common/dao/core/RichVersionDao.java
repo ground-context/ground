@@ -17,7 +17,6 @@ import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.util.DbStatements;
 import java.util.List;
 
-// TODO: put get type back
 public interface RichVersionDao<T extends RichVersion> extends VersionDao<T> {
 
   T create(T RichVersion, List<Long> parentIds) throws GroundException;
@@ -27,5 +26,4 @@ public interface RichVersionDao<T extends RichVersion> extends VersionDao<T> {
 
   @Override
   DbStatements insert(T richVersion) throws GroundException;
-
 }

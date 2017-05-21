@@ -1,6 +1,7 @@
 package edu.berkeley.ground.common.util;
 
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -14,7 +15,7 @@ public class ModelTestUtils {
 
       return content;
     } catch (FileNotFoundException e) {
-      throw new GroundException("File " + filename + " not found");
+      throw new GroundException(ExceptionType.OTHER, String.format("File %s not found", filename));
     }
   }
 

@@ -1,9 +1,13 @@
 package edu.berkeley.ground.postgres.util;
 
+import static play.mvc.Results.badRequest;
+import static play.mvc.Results.internalServerError;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import edu.berkeley.ground.common.exception.GroundException.exceptionType;
+import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,38 +15,43 @@ import java.util.Map;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.Http.Request;
+import play.mvc.Result;
 
 public final class GroundUtils {
 
   private GroundUtils() {
   }
 
-  public static ObjectNode getServerError(final Request request, final Throwable e) {
-    Logger.error(
-      "error: Path: {}  Message: {} Trace: {}",
-      request.path(),
-      e.getMessage(),
-      e.getStackTrace());
+  public static Result handleException(Throwable e, Request request) {
+    if (e.getCause() instanceof GroundException) {
+      return badRequest(GroundUtils.getClientError(request, e, ExceptionType.ITEM_NOT_FOUND));
+    } else {
+      return internalServerError(GroundUtils.getServerError(request, e));
+    }
+  }
+
+  private static ObjectNode getServerError(final Request request, final Throwable e) {
+    Logger.error("Error! Request Path: {}\nError Message: {}\n Stack Trace: {}", request.path(), e.getMessage(), e.getStackTrace());
+
     ObjectNode result = Json.newObject();
-    result.put("groundExceptionMessage", "ERROR: Processing Request");
-    result.put(
-      "message",
-      String.format("Path:%s Trace: %s", request.path(), e.getStackTrace().toString()));
+    result.put("Error", "Unexpected error while processing request.");
+    result.put("Request Path", request.path());
+    result.put("Stack Trace", e.getStackTrace().toString());
     return result;
   }
 
-  public static ObjectNode getClientError(final Request request, final Throwable e, exceptionType type) {
-    Logger.error("error:  ctx: {}  Message: {} Trace: {}", request, e.getMessage(), e.getStackTrace());
+  private static ObjectNode getClientError(final Request request, final Throwable e, ExceptionType type) {
+    Logger.error("Error! Request Path: {}\nError Message: {}\n Stack Trace: {}", request.path(), e.getMessage(), e.getStackTrace());
+
     ObjectNode result = Json.newObject();
 
-    result.put("groundExceptionMessage", String.format("Exception: Type: %s, Message: %s", type, e.getMessage()));
-    result.put("groundExceptionType", type.toString());
-    result.put("message", String.format("Context:%s Cause: %s", request, e.getCause().toString()));
+    result.put("Error", String.format("The request to %s was invalid.", request.path()));
+    result.put("Message", String.format("%s", e.getMessage()));
 
     return result;
   }
 
-  public static String listToJson(final List<Map<String, Object>> objList) {
+  static String listToJson(final List<Map<String, Object>> objList) {
     try {
       return new ObjectMapper().writeValueAsString(objList);
     } catch (IOException e) {

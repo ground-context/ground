@@ -12,28 +12,31 @@
 package edu.berkeley.ground.common.model.version;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import java.sql.Types;
 
 public enum GroundType {
   STRING(String.class, "string", Types.VARCHAR) {
+    @Override
     public Object parse(String str) {
       return str;
     }
   },
   INTEGER(Integer.class, "integer", Types.INTEGER) {
+    @Override
     public Object parse(String str) {
       return Integer.parseInt(str);
     }
   },
   BOOLEAN(Boolean.class, "boolean", Types.BOOLEAN) {
+    @Override
     public Object parse(String str) {
       return Boolean.parseBoolean(str);
     }
   },
   LONG(Long.class, "long", Types.BIGINT) {
+    @Override
     public Object parse(String str) {
       return Long.parseLong(str);
     }
@@ -79,7 +82,7 @@ public enum GroundType {
     try {
       return GroundType.valueOf(str.toUpperCase());
     } catch (IllegalArgumentException iae) {
-      throw new GroundException("Invalid type: " + str + ".");
+      throw new GroundException(ExceptionType.OTHER, String.format("Invalid type: %s.", str));
     }
   }
 

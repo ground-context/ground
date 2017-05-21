@@ -14,20 +14,38 @@ package edu.berkeley.ground.common.exception;
 public class GroundException extends Exception {
 
   private static final long serialVersionUID = 1L;
-  private final String message;
 
-  public enum exceptionType {
-    DB,
-    ITEM_NOT_FOUND,
-    ITEM_EXISTS
+  private final String message;
+  private final ExceptionType exceptionType;
+
+  public enum ExceptionType {
+    DB("Database Exception:", "%s"),
+    ITEM_NOT_FOUND("GroundItemNotFoundException", "No %s %s found."),
+    VERSION_NOT_FOUND("GroundVersionNotFoundException", "No %s %s found."),
+    ITEM_ALREADY_EXISTS("GroundItemAlreadyExistsException", "%s %s already exists."),
+    OTHER("GroundException", "%s");
+
+    String name;
+    String description;
+
+    ExceptionType(String name, String description) {
+      this.name = name;
+      this.description = description;
+    }
+
+    public String format(String... values) {
+      return String.format(this.description, values);
+    }
   }
 
-  public GroundException(String message) {
-    this.message = message;
+  public GroundException(ExceptionType exceptionType, String... values) {
+    this.exceptionType = exceptionType;
+    this.message = this.exceptionType.format(values);
   }
 
   public GroundException(Exception exception) {
-    this.message = exception.getClass() + ": " + exception.getMessage();
+    this.exceptionType = ExceptionType.OTHER;
+    this.message = this.exceptionType.format(exception.getMessage());
   }
 
   @Override

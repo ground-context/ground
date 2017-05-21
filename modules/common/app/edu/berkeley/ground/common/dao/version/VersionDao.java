@@ -20,4 +20,6 @@ public interface VersionDao<T extends Version> {
   DbStatements insert(T version) throws GroundException;
 
   Version retrieveFromDatabase(long id) throws GroundException;
+
+  Class<T> getType();
 }

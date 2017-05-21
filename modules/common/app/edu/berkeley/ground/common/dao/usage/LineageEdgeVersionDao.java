@@ -23,4 +23,9 @@ public interface LineageEdgeVersionDao extends RichVersionDao<LineageEdgeVersion
 
   @Override
   LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  default Class<LineageEdgeVersion> getType() {
+    return LineageEdgeVersion.class;
+  }
 }

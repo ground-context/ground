@@ -14,6 +14,7 @@ package edu.berkeley.ground.common.model.version;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import java.util.Objects;
 
 public class Tag {
@@ -46,8 +47,7 @@ public class Tag {
     if (!((value != null) == (valueType != null))
           || (value != null && !(value.getClass().equals(valueType.getTypeClass())))) {
 
-      throw new GroundException(
-                                 "Mismatch between value (" + value + ") and given type (" + valueType.toString() + ").");
+      throw new GroundException(ExceptionType.OTHER, "Mismatch between value (" + value + ") and given type (" + valueType.toString() + ").");
     }
 
     if (value != null) {

@@ -20,4 +20,9 @@ public class TestPostgresRichVersionDao extends PostgresRichVersionDao<RichVersi
 
     return richVersion;
   }
+
+  @Override
+  public Class<RichVersion> getType() {
+    return RichVersion.class;
+  }
 }

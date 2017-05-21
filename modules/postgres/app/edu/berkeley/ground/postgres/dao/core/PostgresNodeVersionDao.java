@@ -3,6 +3,7 @@ package edu.berkeley.ground.postgres.dao.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.NodeVersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
@@ -50,8 +51,7 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
-      // TODO: throw version not found exception
-      throw new GroundException(String.format("Node Version with id %d does not exist.", id));
+      throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));
     }
 
     NodeVersion nodeVersion = Json.fromJson(json.get(0), NodeVersion.class);

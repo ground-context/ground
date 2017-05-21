@@ -18,4 +18,9 @@ public interface GraphVersionDao extends RichVersionDao<GraphVersion> {
 
   @Override
   GraphVersion retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  default Class<GraphVersion> getType() {
+    return GraphVersion.class;
+  }
 }

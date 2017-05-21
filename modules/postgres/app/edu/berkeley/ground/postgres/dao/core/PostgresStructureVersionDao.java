@@ -14,6 +14,7 @@ package edu.berkeley.ground.postgres.dao.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.StructureVersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.util.IdGenerator;
@@ -68,6 +69,11 @@ public class PostgresStructureVersionDao extends PostgresVersionDao<StructureVer
     try {
       String resultQuery = String.format(SqlConstants.SELECT_STAR_BY_ID, "structure_version", id);
       JsonNode resultJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, resultQuery));
+
+      if (resultJson.size() == 0) {
+        throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));
+      }
+
       StructureVersion structureVersion = Json.fromJson(resultJson.get(0), StructureVersion.class);
 
       String attributeQuery = String.format(SqlConstants.SELECT_STRUCTURE_VERSION_ATTRIBUTES, id);

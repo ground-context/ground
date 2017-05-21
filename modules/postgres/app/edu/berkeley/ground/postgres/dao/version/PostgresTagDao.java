@@ -13,6 +13,7 @@ package edu.berkeley.ground.postgres.dao.version;
 
 import edu.berkeley.ground.common.dao.version.TagDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
@@ -158,7 +159,7 @@ public class PostgresTagDao implements TagDao {
         return resultSet.getBoolean(index);
       default:
         // this should never happen because we've listed all types
-        throw new GroundException("Unidentified type: " + type);
+        throw new GroundException(ExceptionType.OTHER, String.format("Unidentified type: %s", type));
     }
   }
 }

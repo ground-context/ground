@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.CaseFormat;
 import edu.berkeley.ground.common.dao.version.ItemDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
@@ -124,8 +125,7 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
 
     for (long parentId : parentIds) {
       if (parentId != 0L && !dag.checkItemInDag(parentId)) {
-        String errorString = "Parent " + parentId + " is not in Item " + itemId + ".";
-        throw new GroundException(errorString);
+        throw new GroundException(ExceptionType.OTHER, String.format("Parent %d is not in Item %d.", parentId, itemId));
       }
 
       statements.merge(this.postgresVersionHistoryDagDao.addEdge(dag, parentId, childId, itemId));
@@ -155,7 +155,7 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
-      throw new GroundException(String.format("%s with source_key %s does not exist.", this.getType().getName(), field.toString()));
+      throw new GroundException(ExceptionType.ITEM_NOT_FOUND, this.getType().getSimpleName(), field.toString());
     }
 
     Class<T> type = this.getType();
@@ -171,7 +171,8 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
       constructor = type.getConstructor(long.class, String.class, String.class, Map.class);
       return constructor.newInstance(args);
     } catch (Exception e) {
-      throw new GroundException(String.format("Catastrophic failure: Unable to instantiate Item.\n%s: %s.", e.getClass().getName(), e.getMessage()));
+      throw new GroundException(ExceptionType.OTHER, String.format("Catastrophic failure: Unable to instantiate Item.\n%s: %s.",
+        e.getClass().getName(), e.getMessage()));
     }
   }
 }

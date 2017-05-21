@@ -3,6 +3,7 @@ package edu.berkeley.ground.postgres.dao.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.EdgeVersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
@@ -113,7 +114,7 @@ public class PostgresEdgeVersionDao extends PostgresRichVersionDao<EdgeVersion> 
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
-      throw new GroundException(String.format("Edge Version with id %d does not exist.", id));
+      throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));
     }
 
     json = json.get(0);

@@ -13,6 +13,7 @@ package edu.berkeley.ground.postgres.dao.core;
 
 import edu.berkeley.ground.common.dao.core.RichVersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
@@ -87,7 +88,7 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
       resultSet = stmt.executeQuery(sql);
 
       if (!resultSet.next()) {
-        throw new GroundException(String.format("Rich Version with id %d does not exist.", id));
+        throw new GroundException(ExceptionType.VERSION_NOT_FOUND, RichVersion.class.getSimpleName(), String.format("%d", id));
       }
 
       reference = resultSet.getString(3);
@@ -140,25 +141,22 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
     Map<String, GroundType> structureVersionAttributes = structureVersion.getAttributes();
 
     if (tags.isEmpty()) {
-      throw new GroundException("No tags were specified");
+      throw new GroundException(ExceptionType.OTHER, String.format("No tags were specified even though a StructureVersion (%d) was.",
+        structureVersion.getId()));
     }
 
     for (String key : structureVersionAttributes.keySet()) {
       if (!tags.keySet().contains(key)) {
         // check if such a tag exists
-        throw new GroundException("No tag with key " + key + " was specified.");
+        throw new GroundException(ExceptionType.OTHER, String.format("No tag with key %s was specified.", key));
       } else if (tags.get(key).getValueType() == null) {
         // check that value type is specified
-        throw new GroundException("Tag with key " + key + " did not have a value.");
+        throw new GroundException(ExceptionType.OTHER, String.format("Tag with key %s did not have a value.", key));
       } else if (!tags.get(key).getValueType().equals(structureVersionAttributes.get(key))) {
         // check that the value type is the same
-        throw new GroundException("Tag with key "
-                                    + key
-                                    + " did not have a value of the correct type: expected ["
-                                    + structureVersionAttributes.get(key)
-                                    + "] but found ["
-                                    + tags.get(key).getValueType()
-                                    + "].");
+        throw new GroundException(ExceptionType.OTHER, String.format(
+          "Tag with key %s did not have a value of the correct type: expected [%s] but found [%s].", key, structureVersionAttributes.get(key),
+          tags.get(key).getValueType()));
       }
     }
   }

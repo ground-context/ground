@@ -14,6 +14,7 @@ package edu.berkeley.ground.postgres.dao.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.EdgeDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
@@ -60,7 +61,7 @@ public class PostgresEdgeDao extends PostgresItemDao<Edge> implements EdgeDao {
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
-      throw new GroundException(String.format("Edge with source_key %s does not exist.", field.toString()));
+      throw new GroundException(ExceptionType.ITEM_NOT_FOUND, this.getType().getSimpleName(), field.toString());
     }
 
     Edge edge = Json.fromJson(json.get(0), Edge.class);

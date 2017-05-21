@@ -22,4 +22,9 @@ public interface StructureVersionDao extends VersionDao<StructureVersion> {
 
   @Override
   StructureVersion retrieveFromDatabase(long id) throws GroundException;
+
+  @Override
+  default Class<StructureVersion> getType() {
+    return StructureVersion.class;
+  }
 }
