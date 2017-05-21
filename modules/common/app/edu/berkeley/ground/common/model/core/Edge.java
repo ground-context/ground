@@ -46,8 +46,7 @@ public class Edge extends Item {
    * @param tags the tags associated with this edge
    */
   @JsonCreator
-  public Edge(
-               @JsonProperty("itemId") long id,
+  public Edge(@JsonProperty("itemId") long id,
                @JsonProperty("name") String name,
                @JsonProperty("sourceKey") String sourceKey,
                @JsonProperty("fromNodeId") long fromNodeId,

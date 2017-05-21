@@ -36,10 +36,4 @@ public abstract class PostgresVersionDao<T extends Version> implements VersionDa
     statements.append(String.format(SqlConstants.INSERT_VERSION, version.getId()));
     return statements;
   }
-
-  @Override
-  public Version retrieveFromDatabase(long id) throws GroundException {
-    return null;
-  }
-
 }

@@ -140,10 +140,9 @@ public class DaoTest {
 
   public static GraphVersion createGraphVersion(long graphId,
                                                  List<Long> edgeVersionIds,
-                                                 List<Long> parents)
-    throws GroundException {
-    GraphVersion graphVersion = new GraphVersion(0L, new HashMap<>(), -1, null,
-                                                  new HashMap<>(), graphId, edgeVersionIds);
+                                                 List<Long> parents) throws GroundException {
+
+    GraphVersion graphVersion = new GraphVersion(0L, new HashMap<>(), -1, null, new HashMap<>(), graphId, edgeVersionIds);
     return graphVersionDao.create(graphVersion, parents);
   }
 

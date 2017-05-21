@@ -3,10 +3,14 @@ package edu.berkeley.ground.postgres.dao.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.EdgeVersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
+import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
+import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
+import edu.berkeley.ground.postgres.dao.version.PostgresVersionHistoryDagDao;
+import edu.berkeley.ground.postgres.dao.version.PostgresVersionSuccessorDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -31,7 +35,7 @@ public class PostgresEdgeVersionDao extends PostgresRichVersionDao<EdgeVersion> 
 
     for (long parentId : parentIds) {
       if (parentId != 0) {
-        updateVersionList.merge(this.updatePreviousVersion(parentId, edgeVersion.getFromNodeVersionStartId(), edgeVersion.getToNodeVersionStartId()));
+        updateVersionList.merge(this.updatePreviousVersion(newEdgeVersion, newEdgeVersion.getEdgeId(), parentId));
       }
     }
 
@@ -64,15 +68,41 @@ public class PostgresEdgeVersionDao extends PostgresRichVersionDao<EdgeVersion> 
   /**
    * Set the from and to end versions of a previous edge version.
    *
-   * @param id the id of the version to update
-   * @param fromEndId the new from end version
-   * @param toEndId the new to end version
+   * @param currentVersion the new version created
+   * @param edgeId the id of the edge we're updating
+   * @param parentId the id of the parent we're updating
    * @return a set of statements to set the end versions
    */
-  @Override
-  public PostgresStatements updatePreviousVersion(long id, long fromEndId, long toEndId) {
+  private PostgresStatements updatePreviousVersion(EdgeVersion currentVersion, long edgeId, long parentId) throws GroundException {
     PostgresStatements statements = new PostgresStatements();
-    statements.append(String.format(SqlConstants.UPDATE_EDGE_VERSION, fromEndId, toEndId, id));
+
+    PostgresVersionHistoryDagDao versionHistoryDagDao =
+      new PostgresVersionHistoryDagDao(this.dbSource, new PostgresVersionSuccessorDao(this.dbSource, this.idGenerator));
+
+    EdgeVersion parentVersion = this.retrieveFromDatabase(parentId);
+    Edge edge = this.postgresEdgeDao.retrieveFromDatabase(edgeId);
+
+    long fromNodeId = edge.getFromNodeId();
+    long toNodeId = edge.getToNodeId();
+
+    long fromEndId = -1;
+    long toEndId = -1;
+
+    if (parentVersion.getFromNodeVersionEndId() == -1) {
+      // update from end id
+      VersionHistoryDag dag = versionHistoryDagDao.retrieveFromDatabase(fromNodeId);
+      fromEndId = dag.getParent(currentVersion.getFromNodeVersionStartId()).get(0);
+    }
+
+    if (parentVersion.getToNodeVersionEndId() == -1) {
+      // update to end id
+      VersionHistoryDag dag = versionHistoryDagDao.retrieveFromDatabase(toNodeId);
+      toEndId = dag.getParent(currentVersion.getToNodeVersionStartId()).get(0);
+    }
+
+    if (fromEndId != -1 || toEndId != -1) {
+      statements.append(String.format(SqlConstants.UPDATE_EDGE_VERSION, fromEndId, toEndId, parentId));
+    }
 
     return statements;
   }

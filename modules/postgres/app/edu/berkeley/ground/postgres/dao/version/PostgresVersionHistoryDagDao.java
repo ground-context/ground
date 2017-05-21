@@ -111,8 +111,7 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
    * @param numLevels the number of levels to keep
    */
   @Override
-  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType)
-    throws GroundException {
+  public void truncate(VersionHistoryDag dag, int numLevels, Class<? extends Item> itemType) throws GroundException {
 
     int keptLevels = 1;
     List<Long> lastLevel = new ArrayList<>();
@@ -144,9 +143,7 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
       long id = deleteQueue.get(0);
 
       if (id != 0) {
-        String[] splits = itemType.getName().split("\\.");
-        String tableNamePrefix = splits[splits.length - 1];
-        tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
+        String tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, itemType.getSimpleName());
 
         if (itemType.equals(Structure.class)) {
           statements.append(String.format(SqlConstants.DELETE_STRUCTURE_VERSION_ATTRIBUTES, id));

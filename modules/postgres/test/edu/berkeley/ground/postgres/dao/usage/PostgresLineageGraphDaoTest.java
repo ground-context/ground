@@ -75,21 +75,18 @@ public class PostgresLineageGraphDaoTest extends PostgresTest {
 
     String lineageEdgeName = "testLineageEdge";
     long lineageEdgeId = PostgresTest.createLineageEdge(lineageEdgeName).getId();
-    long lineageEdgeVersionId = PostgresTest.createLineageEdgeVersion(lineageEdgeId,
-      firstNodeVersionId, secondNodeVersionId).getId();
+    long lineageEdgeVersionId = PostgresTest.createLineageEdgeVersion(lineageEdgeId, firstNodeVersionId, secondNodeVersionId).getId();
 
     List<Long> lineageEdgeVersionIds = new ArrayList<>();
     lineageEdgeVersionIds.add(lineageEdgeVersionId);
 
     String lineageGraphName = "testLineageGraph";
     long lineageGraphId = PostgresTest.createLineageGraph(lineageGraphName).getId();
-    long lineageGraphVersionId = PostgresTest.createLineageGraphVersion(lineageGraphId,
-      lineageEdgeVersionIds).getId();
+    long lineageGraphVersionId = PostgresTest.createLineageGraphVersion(lineageGraphId, lineageEdgeVersionIds).getId();
 
     List<Long> parents = new ArrayList<>();
     parents.add(lineageGraphVersionId);
-    long newLineageGraphVersionId = PostgresTest.createLineageGraphVersion(lineageGraphId,
-      lineageEdgeVersionIds, parents).getId();
+    long newLineageGraphVersionId = PostgresTest.createLineageGraphVersion(lineageGraphId, lineageEdgeVersionIds, parents).getId();
 
     PostgresTest.lineageGraphDao.truncate(lineageGraphId, 1);
 

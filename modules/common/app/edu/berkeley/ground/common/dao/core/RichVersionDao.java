@@ -26,7 +26,6 @@ public interface RichVersionDao<T extends RichVersion> extends VersionDao<T> {
   RichVersion retrieveFromDatabase(long id) throws GroundException;
 
   @Override
-  DbStatements insert(T richVersion)
-    throws GroundException;
+  DbStatements insert(T richVersion) throws GroundException;
 
 }

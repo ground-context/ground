@@ -38,7 +38,7 @@ public class PostgresGraphVersionDao extends PostgresRichVersionDao<GraphVersion
       statements.merge(updateVersionList);
 
       for (Long id : newGraphVersion.getEdgeVersionIds()) {
-        statements.append(String.format(SqlConstants.INSERT_GRAPH_VERSION_EDGE, newGraphVersion.getGraphId(), id));
+        statements.append(String.format(SqlConstants.INSERT_GRAPH_VERSION_EDGE, newGraphVersion.getId(), id));
       }
 
       PostgresUtils.executeSqlList(dbSource, statements);

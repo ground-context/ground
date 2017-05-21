@@ -87,7 +87,7 @@ public class PostgresItemDaoTest extends PostgresTest {
   public void testCorrectUpdateWithoutParent() throws GroundException {
     long testId = 1;
 
-    PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.postgresItemDao.insert(new Item(testId, new HashMap<>())));
+    PostgresTest.postgresItemDao.create(new Item(testId, new HashMap<>()));
     long toId = 2;
     PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.postgresVersionDao.insert(new Version(toId)));
 
@@ -161,8 +161,7 @@ public class PostgresItemDaoTest extends PostgresTest {
     long toId = 3;
 
     try {
-      PostgresUtils.executeSqlList(PostgresTest.dbSource,
-        (PostgresStatements) PostgresTest.postgresItemDao.insert(new Item(testId, new HashMap<>())));
+      PostgresTest.postgresItemDao.create(new Item(testId, new HashMap<>()));
 
       PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.postgresVersionDao.insert(new Version(toId)));
     } catch (GroundException ge) {

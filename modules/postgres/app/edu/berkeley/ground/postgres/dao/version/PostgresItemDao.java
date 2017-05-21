@@ -11,6 +11,8 @@
  */
 package edu.berkeley.ground.postgres.dao.version;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.CaseFormat;
 import edu.berkeley.ground.common.dao.version.ItemDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Item;
@@ -19,15 +21,18 @@ import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
+import edu.berkeley.ground.postgres.util.PostgresUtils;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import play.db.Database;
+import play.libs.Json;
 
 public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
 
-  private PostgresTagDao postgresTagDao;
-  protected PostgresVersionHistoryDagDao postgresVersionHistoryDagDao;
+  private PostgresVersionHistoryDagDao postgresVersionHistoryDagDao;
+  protected PostgresTagDao postgresTagDao;
   protected Database dbSource;
   protected IdGenerator idGenerator;
 
@@ -36,6 +41,38 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
     this.idGenerator = idGenerator;
     this.postgresVersionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, new PostgresVersionSuccessorDao(dbSource, idGenerator));
     this.postgresTagDao = new PostgresTagDao(dbSource);
+  }
+
+  @Override
+  public PostgresStatements insert(final T item) throws GroundException {
+    long id = item.getId();
+
+    final List<String> sqlList = new ArrayList<>();
+    sqlList.add(String.format(SqlConstants.INSERT_ITEM, id));
+
+    final Map<String, Tag> tags = item.getTags();
+    PostgresStatements postgresStatements = new PostgresStatements(sqlList);
+
+    if (tags != null) {
+      for (String key : tags.keySet()) {
+        Tag tag = tags.get(key);
+        postgresStatements.merge(this.postgresTagDao.insertItemTag(new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
+      }
+    }
+
+    return new PostgresStatements(sqlList);
+  }
+
+  @Override
+  public T retrieveFromDatabase(String sourceKey) throws GroundException {
+    return this.retrieve(String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,
+      this.getType().getSimpleName()), sourceKey), sourceKey);
+  }
+
+  @Override
+  public T retrieveFromDatabase(long id) throws GroundException {
+    return this.retrieve(String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,
+      this.getType().getSimpleName()), id), id);
   }
 
   @Override
@@ -66,8 +103,8 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
    * @param parentIds the ids of the parents of the child
    */
   @Override
-  public PostgresStatements update(long itemId, long childId, List<Long> parentIds)
-    throws GroundException {
+  public PostgresStatements update(long itemId, long childId, List<Long> parentIds) throws GroundException {
+
     if (parentIds.isEmpty()) {
       parentIds.add(0L);
     }
@@ -77,6 +114,7 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
     try {
       dag = this.postgresVersionHistoryDagDao.retrieveFromDatabase(itemId);
     } catch (GroundException e) {
+      // TODO: Cleanup
       if (!e.getMessage().contains("No results found for query:")) {
         throw e;
       }
@@ -113,23 +151,27 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
     this.postgresVersionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }
 
-  @Override
-  public PostgresStatements insert(final T item) throws GroundException {
-    long id = item.getId();
+  protected T retrieve(String sql, Object field) throws GroundException {
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
-    final List<String> sqlList = new ArrayList<>();
-    sqlList.add(String.format(SqlConstants.INSERT_ITEM, id));
-
-    final Map<String, Tag> tags = item.getTags();
-    PostgresStatements postgresStatements = new PostgresStatements(sqlList);
-
-    if (tags != null) {
-      for (String key : tags.keySet()) {
-        Tag tag = tags.get(key);
-        postgresStatements.merge(this.postgresTagDao.insertItemTag(new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
-      }
+    if (json.size() == 0) {
+      throw new GroundException(String.format("%s with source_key %s does not exist.", this.getType().getName(), field.toString()));
     }
 
-    return new PostgresStatements(sqlList);
+    Class<T> type = this.getType();
+    JsonNode itemJson = json.get(0);
+    long id = itemJson.get("itemId").asLong();
+    String name = itemJson.get("name").asText();
+    String sourceKey = itemJson.get("sourceKey").asText();
+
+    Object[] args = {id, name, sourceKey, this.postgresTagDao.retrieveFromDatabaseByItemId(id)};
+
+    Constructor<T> constructor;
+    try {
+      constructor = type.getConstructor(long.class, String.class, String.class, Map.class);
+      return constructor.newInstance(args);
+    } catch (Exception e) {
+      throw new GroundException(String.format("Catastrophic failure: Unable to instantiate Item.\n%s: %s.", e.getClass().getName(), e.getMessage()));
+    }
   }
 }

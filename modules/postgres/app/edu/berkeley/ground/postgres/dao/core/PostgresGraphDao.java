@@ -11,7 +11,6 @@
  */
 package edu.berkeley.ground.postgres.dao.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.GraphDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Graph;
@@ -22,7 +21,6 @@ import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
-import play.libs.Json;
 
 
 public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao {
@@ -52,30 +50,6 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
 
     PostgresUtils.executeSqlList(dbSource, postgresStatements);
     return newGraph;
-  }
-
-  @Override
-  public Graph retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "graph", sourceKey);
-    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-
-    if (json.size() == 0) {
-      throw new GroundException(String.format("Graph with source_key %s does not exist.", sourceKey));
-    }
-
-    return Json.fromJson(json.get(0), Graph.class);
-  }
-
-  @Override
-  public Graph retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "graph", id);
-    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-
-    if (json.size() == 0) {
-      throw new GroundException(String.format("Graph with id %d does not exist.", id));
-    }
-
-    return Json.fromJson(json.get(0), Graph.class);
   }
 
   @Override

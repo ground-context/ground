@@ -40,9 +40,44 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
   }
 
   @Override
-  public RichVersion retrieveFromDatabase(long id) throws GroundException {
+  public PostgresStatements insert(final T richVersion) throws GroundException {
+    long id = richVersion.getId();
+    Long structureVersionId;
 
+    if (richVersion.getStructureVersionId() == -1) {
+      structureVersionId = null;
+    } else {
+      PostgresStructureVersionDao postgresStructureVersionDao = new PostgresStructureVersionDao(dbSource, idGenerator);
+      StructureVersion structureVersion = postgresStructureVersionDao.retrieveFromDatabase(richVersion.getStructureVersionId());
+      structureVersionId = richVersion.getStructureVersionId();
+      checkStructureTags(structureVersion, richVersion.getTags());
+    }
+
+    PostgresStatements statements = super.insert(richVersion);
+    statements.append(String.format(SqlConstants.INSERT_RICH_VERSION, id, structureVersionId, richVersion.getReference()));
+
+    final Map<String, Tag> tags = richVersion.getTags();
+    for (String tagKey : tags.keySet()) {
+      Tag tag = tags.get(tagKey);
+
+      statements.merge(this.postgresTagDao.insertRichVersionTag(new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
+    }
+
+    Map<String, String> parameters = richVersion.getParameters();
+    if (!parameters.isEmpty()) {
+      for (String key : parameters.keySet()) {
+        statements.append(String.format(SqlConstants.INSERT_RICH_VERSION_EXTERNAL_PARAMETER, richVersion.getId(), key, parameters.get(key)));
+      }
+    }
+
+    return statements;
+  }
+
+
+  @Override
+  public RichVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "rich_version", id);
+
     ResultSet resultSet;
     String reference;
     long structureVersionId;
@@ -71,7 +106,6 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
   }
 
   private Map<String, String> getReferenceParameters(long id) throws GroundException {
-
     String sql = String.format(SqlConstants.SELECT_RICH_VERSION_EXTERNAL_PARAMETERS, id);
     Map<String, String> referenceParameters = new HashMap<>();
 
@@ -118,50 +152,14 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
         throw new GroundException("Tag with key " + key + " did not have a value.");
       } else if (!tags.get(key).getValueType().equals(structureVersionAttributes.get(key))) {
         // check that the value type is the same
-        throw new GroundException(
-                                   "Tag with key "
-                                     + key
-                                     + " did not have a value of the correct type: expected ["
-                                     + structureVersionAttributes.get(key)
-                                     + "] but found ["
-                                     + tags.get(key).getValueType()
-                                     + "].");
+        throw new GroundException("Tag with key "
+                                    + key
+                                    + " did not have a value of the correct type: expected ["
+                                    + structureVersionAttributes.get(key)
+                                    + "] but found ["
+                                    + tags.get(key).getValueType()
+                                    + "].");
       }
     }
   }
-
-  @Override
-  public PostgresStatements insert(final T richVersion) throws GroundException {
-    long id = richVersion.getId();
-    Long structureVersionId;
-
-    if (richVersion.getStructureVersionId() == -1) {
-      structureVersionId = null;
-    } else {
-      PostgresStructureVersionDao postgresStructureVersionDao = new PostgresStructureVersionDao(dbSource, idGenerator);
-      StructureVersion structureVersion = postgresStructureVersionDao.retrieveFromDatabase(richVersion.getStructureVersionId());
-      structureVersionId = richVersion.getStructureVersionId();
-      checkStructureTags(structureVersion, richVersion.getTags());
-    }
-
-    PostgresStatements statements = super.insert(richVersion);
-    statements.append(String.format(SqlConstants.INSERT_RICH_VERSION, id, structureVersionId, richVersion.getReference()));
-
-    final Map<String, Tag> tags = richVersion.getTags();
-    for (String tagKey : tags.keySet()) {
-      Tag tag = tags.get(tagKey);
-
-      this.postgresTagDao.insertRichVersionTag(new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType()));
-    }
-
-    Map<String, String> parameters = richVersion.getParameters();
-    if (!parameters.isEmpty()) {
-      for (String key : parameters.keySet()) {
-        statements.append(String.format(SqlConstants.INSERT_RICH_VERSION_EXTERNAL_PARAMETER, richVersion.getId(), key, parameters.get(key)));
-      }
-    }
-
-    return statements;
-  }
-
 }

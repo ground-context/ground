@@ -69,6 +69,7 @@ public class PostgresTagDao implements TagDao {
     return this.retrieveFromDatabaseById(id, "item");
   }
 
+  // TODO: cleanup
   private Map<String, Tag> retrieveFromDatabaseById(long id, String prefix) throws GroundException {
 
     Map<String, Tag> results = new HashMap<>();
@@ -84,6 +85,7 @@ public class PostgresTagDao implements TagDao {
         con.close();
         return results;
       }
+
       do {
         String key = resultSet.getString(2);
 
@@ -93,11 +95,13 @@ public class PostgresTagDao implements TagDao {
 
         results.put(key, new Tag(id, key, value, type));
       } while (resultSet.next());
+
       stmt.close();
       con.close();
     } catch (SQLException e) {
       throw new GroundException(e);
     }
+
     return results;
   }
 
@@ -112,9 +116,9 @@ public class PostgresTagDao implements TagDao {
   }
 
   private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
-
     String sql = String.format("select * from %s_tag where key=\'%s\'", keyPrefix, tag);
     List<Long> result = new ArrayList<>();
+
     try {
       Connection con = dbSource.getConnection();
       Statement stmt = con.createStatement();
@@ -125,6 +129,7 @@ public class PostgresTagDao implements TagDao {
         con.close();
         return result;
       }
+
       do {
         result.add(resultSet.getLong(1));
       } while (resultSet.next());

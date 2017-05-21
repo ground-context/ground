@@ -11,7 +11,6 @@
  */
 package edu.berkeley.ground.postgres.dao.usage;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
@@ -22,7 +21,6 @@ import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
 import play.db.Database;
-import play.libs.Json;
 
 public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> implements LineageEdgeDao {
 
@@ -50,30 +48,6 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
     } catch (Exception e) {
       throw new GroundException(e);
     }
-  }
-
-  @Override
-  public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "lineage_edge", sourceKey);
-    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-
-    if (json.size() == 0) {
-      throw new GroundException(String.format("Lineage Edge with sourceKey %s does not exist.", sourceKey));
-    }
-
-    return Json.fromJson(json.get(0), LineageEdge.class);
-  }
-
-  @Override
-  public LineageEdge retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "item_id", id);
-    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-
-    if (json.size() == 0) {
-      throw new GroundException(String.format("Lineage Edge with id %d does not exist.", id));
-    }
-
-    return Json.fromJson(json.get(0), LineageEdge.class);
   }
 
   @Override

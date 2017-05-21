@@ -52,7 +52,7 @@ public class PostgresLineageGraphVersionDao extends PostgresRichVersionDao<Linea
       statements.merge(updateVersionList);
 
       for (Long id : newLineageGraphVersion.getLineageEdgeVersionIds()) {
-        statements.append(String.format(SqlConstants.INSERT_LINEAGE_GRAPH_VERSION_EDGE, newLineageGraphVersion.getLineageGraphId(), id));
+        statements.append(String.format(SqlConstants.INSERT_LINEAGE_GRAPH_VERSION_EDGE, newLineageGraphVersion.getId(), id));
       }
 
       PostgresUtils.executeSqlList(dbSource, statements);

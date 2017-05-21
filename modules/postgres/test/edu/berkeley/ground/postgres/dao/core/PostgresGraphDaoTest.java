@@ -87,18 +87,15 @@ public class PostgresGraphDaoTest extends PostgresTest {
 
     List<Long> parents = new ArrayList<>();
     parents.add(graphVersionId);
-    long newGraphVersionId = PostgresTest.createGraphVersion(graphId, edgeVersionIds, parents)
-                               .getId();
+    long newGraphVersionId = PostgresTest.createGraphVersion(graphId, edgeVersionIds, parents).getId();
 
     PostgresTest.graphDao.truncate(graphId, 1);
 
-    VersionHistoryDag dag = PostgresTest.versionHistoryDagDao
-                              .retrieveFromDatabase(graphId);
+    VersionHistoryDag dag = PostgresTest.versionHistoryDagDao.retrieveFromDatabase(graphId);
 
     assertEquals(1, dag.getEdgeIds().size());
 
-    VersionSuccessor successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
-      dag.getEdgeIds().get(0));
+    VersionSuccessor successor = PostgresTest.versionSuccessorDao.retrieveFromDatabase(dag.getEdgeIds().get(0));
 
     assertEquals(0, successor.getFromId());
     assertEquals(newGraphVersionId, successor.getToId());

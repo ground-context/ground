@@ -104,8 +104,7 @@ public class PostgresEdgeDaoTest extends PostgresTest {
     String edgeName = "testEdge";
     long edgeId = PostgresTest.createEdge(edgeName, firstTestNode, secondTestNode).getId();
 
-    long edgeVersionId = PostgresTest.createEdgeVersion(edgeId, firstNodeVersionId,
-      secondNodeVersionId).getId();
+    long edgeVersionId = PostgresTest.createEdgeVersion(edgeId, firstNodeVersionId, secondNodeVersionId).getId();
 
     // create new node versions in each of the nodes
     List<Long> parents = new ArrayList<>();
@@ -114,8 +113,7 @@ public class PostgresEdgeDaoTest extends PostgresTest {
 
     parents.clear();
     parents.add(secondNodeVersionId);
-    long newSecondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId, parents)
-                                    .getId();
+    long newSecondNodeVersionId = PostgresTest.createNodeVersion(secondTestNodeId, parents).getId();
 
     parents.clear();
     parents.add(edgeVersionId);
