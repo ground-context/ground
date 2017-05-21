@@ -40,7 +40,7 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
   public PostgresItemDao(Database dbSource, IdGenerator idGenerator) {
     this.dbSource = dbSource;
     this.idGenerator = idGenerator;
-    this.postgresVersionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, new PostgresVersionSuccessorDao(dbSource, idGenerator));
+    this.postgresVersionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, idGenerator);
     this.postgresTagDao = new PostgresTagDao(dbSource);
   }
 
@@ -78,9 +78,6 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
 
   @Override
   public List<Long> getLeaves(long itemId) throws GroundException {
-    if (this.postgresVersionHistoryDagDao == null) {
-      this.postgresVersionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, new PostgresVersionSuccessorDao(dbSource, idGenerator));
-    }
     try {
       VersionHistoryDag dag = this.postgresVersionHistoryDagDao.retrieveFromDatabase(itemId);
 
@@ -110,18 +107,8 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
       parentIds.add(0L);
     }
 
-    VersionHistoryDag dag;
+    VersionHistoryDag dag = this.postgresVersionHistoryDagDao.retrieveFromDatabase(itemId);
     PostgresStatements statements = new PostgresStatements();
-    try {
-      dag = this.postgresVersionHistoryDagDao.retrieveFromDatabase(itemId);
-    } catch (GroundException e) {
-      // TODO: Cleanup
-      if (!e.getMessage().contains("No results found for query:")) {
-        throw e;
-      }
-
-      dag = this.postgresVersionHistoryDagDao.create(itemId);
-    }
 
     for (long parentId : parentIds) {
       if (parentId != 0L && !dag.checkItemInDag(parentId)) {
@@ -143,10 +130,6 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
   @Override
   public void truncate(long itemId, int numLevels) throws GroundException {
     VersionHistoryDag dag;
-    if (postgresVersionHistoryDagDao == null) {
-      postgresVersionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, new PostgresVersionSuccessorDao(dbSource, idGenerator));
-    }
-
     dag = postgresVersionHistoryDagDao.retrieveFromDatabase(itemId);
     this.postgresVersionHistoryDagDao.truncate(dag, numLevels, this.getType());
   }

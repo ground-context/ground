@@ -52,4 +52,8 @@ public class GroundException extends Exception {
   public String getMessage() {
     return this.message;
   }
+
+  public ExceptionType getExceptionType() {
+    return this.exceptionType;
+  }
 }

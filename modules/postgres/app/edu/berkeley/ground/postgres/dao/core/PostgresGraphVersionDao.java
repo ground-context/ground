@@ -50,6 +50,17 @@ public class PostgresGraphVersionDao extends PostgresRichVersionDao<GraphVersion
   }
 
   @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(String.format(SqlConstants.DELETE_ALL_GRAPH_VERSION_EDGES, "graph_version_edge", "graph_version_id", id));
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "graph_version", id));
+
+    PostgresStatements superStatements = super.delete(id);
+    superStatements.merge(statements);
+    return superStatements;
+  }
+
+  @Override
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "graph_version", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));

@@ -33,7 +33,6 @@ public class PostgresEdgeDaoTest extends PostgresTest {
     super();
   }
 
-  // TODO: Add tags to this
   @Test
   public void testEdgeCreation() throws GroundException {
     String testName = "test";

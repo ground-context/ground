@@ -35,6 +35,8 @@ public class PostgresLineageGraphDao extends PostgresItemDao<LineageGraph> imple
 
   @Override
   public LineageGraph create(LineageGraph lineageGraph) throws GroundException {
+    super.verifyItemNotExists(lineageGraph.getSourceKey());
+
     long uniqueId = idGenerator.generateItemId();
     LineageGraph newLineageGraph = new LineageGraph(uniqueId, lineageGraph);
 

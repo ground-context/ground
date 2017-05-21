@@ -25,6 +25,7 @@ public class PostgresNodeDao extends PostgresItemDao<Node> implements NodeDao {
 
   @Override
   public Node create(Node node) throws GroundException {
+    super.verifyItemNotExists(node.getSourceKey());
 
     PostgresStatements statements;
     long uniqueId = idGenerator.generateItemId();
@@ -43,7 +44,7 @@ public class PostgresNodeDao extends PostgresItemDao<Node> implements NodeDao {
 
   @Override
   public List<Long> getLeaves(String sourceKey) throws GroundException {
-    Node node = retrieveFromDatabase(sourceKey);
+    Node node = this.retrieveFromDatabase(sourceKey);
     return super.getLeaves(node.getId());
   }
 

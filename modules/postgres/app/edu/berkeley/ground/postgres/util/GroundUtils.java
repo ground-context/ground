@@ -6,13 +6,28 @@ import static play.mvc.Results.internalServerError;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import edu.berkeley.ground.common.dao.version.VersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
+import edu.berkeley.ground.common.model.core.Edge;
+import edu.berkeley.ground.common.model.core.Graph;
+import edu.berkeley.ground.common.model.core.Node;
+import edu.berkeley.ground.common.model.core.Structure;
+import edu.berkeley.ground.common.model.usage.LineageEdge;
+import edu.berkeley.ground.common.model.usage.LineageGraph;
+import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphVersionDao;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import play.Logger;
+import play.db.Database;
 import play.libs.Json;
 import play.mvc.Http.Request;
 import play.mvc.Result;
@@ -68,5 +83,23 @@ public final class GroundUtils {
     }
 
     return parents;
+  }
+
+  public static VersionDao<?> getVersionDaoFromItemType(Class<?> klass, Database dbSource, IdGenerator idGenerator) throws GroundException {
+    if (klass.equals(Node.class)) {
+      return new PostgresNodeVersionDao(dbSource, idGenerator);
+    } else if (klass.equals(Edge.class)) {
+      return new PostgresEdgeVersionDao(dbSource, idGenerator);
+    } else if (klass.equals(Graph.class)) {
+      return new PostgresGraphVersionDao(dbSource, idGenerator);
+    } else if (klass.equals(Structure.class)) {
+      return new PostgresStructureVersionDao(dbSource, idGenerator);
+    } else if (klass.equals(LineageEdge.class)) {
+      return new PostgresLineageEdgeVersionDao(dbSource, idGenerator);
+    } else if (klass.equals(LineageGraph.class)) {
+      return new PostgresLineageGraphVersionDao(dbSource, idGenerator);
+    } else {
+      throw new GroundException(ExceptionType.OTHER, String.format("Unknown class :%s.", klass.getSimpleName()));
+    }
   }
 }

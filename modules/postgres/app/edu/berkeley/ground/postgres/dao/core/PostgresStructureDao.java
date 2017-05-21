@@ -36,6 +36,7 @@ public class PostgresStructureDao extends PostgresItemDao<Structure> implements 
 
   @Override
   public Structure create(Structure structure) throws GroundException {
+    super.verifyItemNotExists(structure.getSourceKey());
 
     PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();

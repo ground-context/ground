@@ -62,32 +62,26 @@ public class PostgresTagDao implements TagDao {
 
   @Override
   public Map<String, Tag> retrieveFromDatabaseByVersionId(long id) throws GroundException {
-    return this.retrieveFromDatabaseById(id, "rich_version");
+    String sql = String.format(SqlConstants.SELECT_RICH_VERSION_TAGS, id);
+    return this.retrieveFromDatabaseById(id, sql);
   }
 
   @Override
   public Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException {
-    return this.retrieveFromDatabaseById(id, "item");
+    String sql = String.format(SqlConstants.SELECT_ITEM_TAGS, id);
+    return this.retrieveFromDatabaseById(id, sql);
   }
 
-  // TODO: cleanup
-  private Map<String, Tag> retrieveFromDatabaseById(long id, String prefix) throws GroundException {
-
+  private Map<String, Tag> retrieveFromDatabaseById(long id, String sql) throws GroundException {
     Map<String, Tag> results = new HashMap<>();
-    try {
-      Connection con = dbSource.getConnection();
 
+    try {
+      Connection con = this.dbSource.getConnection();
       Statement stmt = con.createStatement();
-      String sql = String.format("select * from %s_tag where %s_id = %d", prefix, prefix, id);
+
       ResultSet resultSet = stmt.executeQuery(sql);
 
-      if (!resultSet.next()) {
-        stmt.close();
-        con.close();
-        return results;
-      }
-
-      do {
+      while (resultSet.next()) {
         String key = resultSet.getString(2);
 
         // these methods will return null if the input is null, so there's no need to check
@@ -95,7 +89,7 @@ public class PostgresTagDao implements TagDao {
         Object value = this.getValue(type, resultSet, 3);
 
         results.put(key, new Tag(id, key, value, type));
-      } while (resultSet.next());
+      }
 
       stmt.close();
       con.close();
@@ -108,36 +102,32 @@ public class PostgresTagDao implements TagDao {
 
   @Override
   public List<Long> getVersionIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "rich_version");
+    String sql = String.format(SqlConstants.SELECT_RICH_VERSION_TAGS_BY_KEY, tag);
+    return this.getIdsByTag(sql);
   }
 
   @Override
   public List<Long> getItemIdsByTag(String tag) throws GroundException {
-    return this.getIdsByTag(tag, "item");
+    String sql = String.format(SqlConstants.SELECT_ITEM_TAGS_BY_KEY, tag);
+    return this.getIdsByTag(sql);
   }
 
-  private List<Long> getIdsByTag(String tag, String keyPrefix) throws GroundException {
-    String sql = String.format("select * from %s_tag where key=\'%s\'", keyPrefix, tag);
+  private List<Long> getIdsByTag(String sql) throws GroundException {
     List<Long> result = new ArrayList<>();
 
     try {
-      Connection con = dbSource.getConnection();
+      Connection con = this.dbSource.getConnection();
       Statement stmt = con.createStatement();
       ResultSet resultSet = stmt.executeQuery(sql);
 
-      if (!resultSet.next()) {
-        stmt.close();
-        con.close();
-        return result;
-      }
-
-      do {
+      while (resultSet.next()) {
         result.add(resultSet.getLong(1));
-      } while (resultSet.next());
+      }
 
     } catch (SQLException e) {
       throw new GroundException(e);
     }
+
     return result;
   }
 

@@ -58,7 +58,12 @@ public class GraphVersion extends RichVersion {
   }
 
   public GraphVersion(long id, GraphVersion other) {
-    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+    this(id, other, other);
+
+  }
+
+  public GraphVersion(long id, RichVersion otherRichVersion, GraphVersion other) {
+    super(id, otherRichVersion);
 
     this.graphId = other.graphId;
     this.edgeVersionIds = other.edgeVersionIds;

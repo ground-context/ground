@@ -30,6 +30,8 @@ public class SqlConstants {
   public static final String INSERT_ITEM_TAG_WITH_VALUE =
     "INSERT INTO item_tag (item_id, key, value, type) VALUES (%d, " + "\'%s\', \'%s\', \'%s\');";
   public static final String INSERT_ITEM_TAG_NO_VALUE = "INSERT INTO item_tag (item_id, key, value, type) VALUES (%d, \'%s\', null, null);";
+  public static final String SELECT_ITEM_TAGS = "SELECT * FROM item_tag WHERE item_id = %d;";
+  public static final String SELECT_ITEM_TAGS_BY_KEY = "SELECT * FROM item_tag WHERE key = \'%s\';";
 
   /* Edge-specific statements */
   public static final String INSERT_EDGE =
@@ -57,7 +59,10 @@ public class SqlConstants {
   public static final String INSERT_RICH_VERSION_EXTERNAL_PARAMETER = "INSERT INTO rich_version_external_parameter (rich_version_id, key, value) "
                                                                         + "VALUES (%d, \'%s\', \'%s\');";
   public static final String SELECT_RICH_VERSION_EXTERNAL_PARAMETERS = "SELECT * FROM rich_version_external_parameter WHERE rich_version_id = %d;";
+  public static final String SELECT_RICH_VERSION_TAGS = "SELECT * FROM rich_version_tag WHERE rich_version_id = %d;";
+  public static final String SELECT_RICH_VERSION_TAGS_BY_KEY = "SELECT * FROM rich_version_tag WHERE key = \'%s\';";
   public static final String DELETE_RICH_VERSION_TAGS = "DELETE FROM rich_version_tag WHERE rich_version_id = %d";
+  public static final String DELETE_RICH_EXTERNAL_PARAMETERS = "DELETE FROM rich_version_external_parameter WHERE rich_version_id = %d";
 
   /* Structure-specific statements */
   public static final String INSERT_STRUCTURE_VERSION = "INSERT INTO structure_version (id, structure_id) VALUES (%d, %d);";

@@ -11,7 +11,6 @@ import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresVersionHistoryDagDao;
-import edu.berkeley.ground.postgres.dao.version.PostgresVersionSuccessorDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -66,6 +65,16 @@ public class PostgresEdgeVersionDao extends PostgresRichVersionDao<EdgeVersion> 
     return newEdgeVersion;
   }
 
+  @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "edge_version", id));
+
+    PostgresStatements superStatements = super.delete(id);
+    superStatements.merge(statements);
+    return superStatements;
+  }
+
   /**
    * Set the from and to end versions of a previous edge version.
    *
@@ -78,7 +87,7 @@ public class PostgresEdgeVersionDao extends PostgresRichVersionDao<EdgeVersion> 
     PostgresStatements statements = new PostgresStatements();
 
     PostgresVersionHistoryDagDao versionHistoryDagDao =
-      new PostgresVersionHistoryDagDao(this.dbSource, new PostgresVersionSuccessorDao(this.dbSource, this.idGenerator));
+      new PostgresVersionHistoryDagDao(this.dbSource, this.idGenerator);
 
     EdgeVersion parentVersion = this.retrieveFromDatabase(parentId);
     Edge edge = this.postgresEdgeDao.retrieveFromDatabase(edgeId);
@@ -121,9 +130,6 @@ public class PostgresEdgeVersionDao extends PostgresRichVersionDao<EdgeVersion> 
     EdgeVersion edgeVersion = Json.fromJson(json, EdgeVersion.class);
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
-    // TODO: clean this up
-    return new EdgeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(), richVersion.getParameters(),
-                            edgeVersion.getEdgeId(), edgeVersion.getFromNodeVersionStartId(), edgeVersion.getFromNodeVersionEndId(),
-                            edgeVersion.getToNodeVersionStartId(), edgeVersion.getToNodeVersionEndId());
+    return new EdgeVersion(id, richVersion, edgeVersion);
   }
 }

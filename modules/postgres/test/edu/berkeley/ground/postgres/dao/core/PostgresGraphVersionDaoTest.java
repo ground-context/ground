@@ -54,13 +54,10 @@ public class PostgresGraphVersionDaoTest extends PostgresTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("http", "GET");
 
-    GraphVersion graphVersion = new GraphVersion(0L, tags, structureVersionId, testReference,
-                                                  parameters, graphId, edgeVersionIds);
-    long graphVersionId = PostgresTest.graphVersionDao.create(graphVersion, new ArrayList<>())
-                            .getId();
+    GraphVersion graphVersion = new GraphVersion(0L, tags, structureVersionId, testReference, parameters, graphId, edgeVersionIds);
+    long graphVersionId = PostgresTest.graphVersionDao.create(graphVersion, new ArrayList<>()).getId();
 
-    GraphVersion retrieved = PostgresTest.graphVersionDao
-                               .retrieveFromDatabase(graphVersionId);
+    GraphVersion retrieved = PostgresTest.graphVersionDao.retrieveFromDatabase(graphVersionId);
 
     assertEquals(graphId, retrieved.getGraphId());
     assertEquals(structureVersionId, (long) retrieved.getStructureVersionId());

@@ -60,7 +60,11 @@ public class LineageGraphVersion extends RichVersion {
   }
 
   public LineageGraphVersion(long id, LineageGraphVersion other) {
-    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+    this(id, other, other);
+  }
+
+  public LineageGraphVersion(long id, RichVersion otherRichVersion, LineageGraphVersion other) {
+    super(id, other);
 
     this.lineageGraphId = other.lineageGraphId;
     this.lineageEdgeVersionIds = other.lineageEdgeVersionIds;

@@ -11,18 +11,14 @@
  */
 package edu.berkeley.ground.common.model.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.Version;
-
 import java.util.Map;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
 public class RichVersion extends Version {
-  @JsonProperty("id")
-  private long id;
 
   // the map of Keys to Tags associated with this RichVersion
   @JsonProperty("tags")
@@ -51,14 +47,13 @@ public class RichVersion extends Version {
    */
   @JsonCreator
   public RichVersion(
-    @JsonProperty("id") long id,
-    @JsonProperty("tags") Map<String, Tag> tags,
-    @JsonProperty("structureVersionId") Long structureVersionId,
-    @JsonProperty("reference") String reference,
-    @JsonProperty("parameters") Map<String, String> referenceParameters) {
+                      @JsonProperty("id") long id,
+                      @JsonProperty("tags") Map<String, Tag> tags,
+                      @JsonProperty("structureVersionId") Long structureVersionId,
+                      @JsonProperty("reference") String reference,
+                      @JsonProperty("parameters") Map<String, String> referenceParameters) {
 
     super(id);
-    this.id = id;
     this.tags = tags;
     if (structureVersionId == null || structureVersionId <= 0) {
       this.structureVersionId = -1L;
@@ -73,8 +68,13 @@ public class RichVersion extends Version {
     this.parameters = referenceParameters;
   }
 
-  public long getId() {
-    return this.id;
+  public RichVersion(long id, RichVersion other) {
+    super(id);
+
+    this.tags = other.tags;
+    this.structureVersionId = other.structureVersionId;
+    this.reference = other.reference;
+    this.parameters = other.parameters;
   }
 
   public Map<String, Tag> getTags() {
@@ -102,9 +102,9 @@ public class RichVersion extends Version {
     RichVersion otherRichVersion = (RichVersion) other;
 
     return this.getId() == otherRichVersion.getId()
-      && this.tags.equals(otherRichVersion.tags)
-      && this.structureVersionId == otherRichVersion.structureVersionId
-      && Objects.equals(this.reference, otherRichVersion.reference)
-      && Objects.equals(this.parameters, otherRichVersion.parameters);
+             && this.tags.equals(otherRichVersion.tags)
+             && this.structureVersionId == otherRichVersion.structureVersionId
+             && Objects.equals(this.reference, otherRichVersion.reference)
+             && Objects.equals(this.parameters, otherRichVersion.parameters);
   }
 }

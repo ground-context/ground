@@ -84,7 +84,11 @@ public class EdgeVersion extends RichVersion {
   }
 
   public EdgeVersion(long id, EdgeVersion other) {
-    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+    this(id, other, other);
+  }
+
+  public EdgeVersion(long id, RichVersion otherRichVersion, EdgeVersion other) {
+    super(id, otherRichVersion);
 
     this.edgeId = other.edgeId;
     this.fromNodeVersionStartId = other.fromNodeVersionStartId;

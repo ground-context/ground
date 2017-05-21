@@ -74,6 +74,19 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
     return statements;
   }
 
+  @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+
+    statements.append(String.format(SqlConstants.DELETE_RICH_VERSION_TAGS, id));
+    statements.append(String.format(SqlConstants.DELETE_RICH_EXTERNAL_PARAMETERS, id));
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "rich_version", id));
+
+    PostgresStatements superStatements = super.delete(id);
+    superStatements.merge(statements);
+    return superStatements;
+  }
+
 
   @Override
   public RichVersion retrieveFromDatabase(long id) throws GroundException {

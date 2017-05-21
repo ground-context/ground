@@ -46,7 +46,11 @@ public class NodeVersion extends RichVersion {
   }
 
   public NodeVersion(long id, NodeVersion other) {
-    super(id, other.getTags(), other.getStructureVersionId(), other.getReference(), other.getParameters());
+    this(id, other, other);
+  }
+
+  public NodeVersion(long id, RichVersion otherRichVersion, NodeVersion other) {
+    super(id, otherRichVersion);
 
     this.nodeId = other.nodeId;
   }

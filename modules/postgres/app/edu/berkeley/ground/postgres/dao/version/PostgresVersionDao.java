@@ -36,4 +36,12 @@ public abstract class PostgresVersionDao<T extends Version> implements VersionDa
     statements.append(String.format(SqlConstants.INSERT_VERSION, version.getId()));
     return statements;
   }
+
+  @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "version", id));
+
+    return statements;
+  }
 }

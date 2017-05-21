@@ -35,6 +35,8 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
 
   @Override
   public LineageEdge create(LineageEdge lineageEdge) throws GroundException {
+    super.verifyItemNotExists(lineageEdge.getSourceKey());
+
     long uniqueId = this.idGenerator.generateItemId();
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge);
     PostgresStatements statements = super.insert(newLineageEdge);

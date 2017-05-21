@@ -36,6 +36,7 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
 
   @Override
   public Graph create(Graph graph) throws GroundException {
+    super.verifyItemNotExists(graph.getSourceKey());
 
     PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();

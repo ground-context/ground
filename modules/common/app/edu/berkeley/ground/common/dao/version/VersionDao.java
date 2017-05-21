@@ -22,4 +22,6 @@ public interface VersionDao<T extends Version> {
   Version retrieveFromDatabase(long id) throws GroundException;
 
   Class<T> getType();
+
+  DbStatements delete(long id);
 }

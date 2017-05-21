@@ -13,14 +13,14 @@
  */
 package edu.berkeley.ground.postgres.dao.version;
 
-import com.google.common.base.CaseFormat;
 import edu.berkeley.ground.common.dao.version.VersionHistoryDagDao;
 import edu.berkeley.ground.common.exception.GroundException;
-import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
+import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
+import edu.berkeley.ground.postgres.util.GroundUtils;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.sql.Connection;
@@ -36,10 +36,13 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
 
   private PostgresVersionSuccessorDao postgresVersionSuccessorDao;
   private Database dbSource;
+  private IdGenerator idGenerator;
 
-  public PostgresVersionHistoryDagDao(Database dbSource, PostgresVersionSuccessorDao postgresVersionSuccessorDao) {
-    this.postgresVersionSuccessorDao = postgresVersionSuccessorDao;
+  public PostgresVersionHistoryDagDao(Database dbSource, IdGenerator idGenerator) {
     this.dbSource = dbSource;
+    this.idGenerator = idGenerator;
+
+    this.postgresVersionSuccessorDao = new PostgresVersionSuccessorDao(this.dbSource, this.idGenerator);
   }
 
   @Override
@@ -105,8 +108,6 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
   /**
    * Truncate the DAG to only have a certain number of levels, removing everything before that.
    *
-   * TODO: refactor to move specific logic into those classes.
-   *
    * @param dag the DAG to truncate
    * @param numLevels the number of levels to keep
    */
@@ -143,31 +144,10 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
       long id = deleteQueue.get(0);
 
       if (id != 0) {
-        String tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, itemType.getSimpleName());
-
-        if (itemType.equals(Structure.class)) {
-          statements.append(String.format(SqlConstants.DELETE_STRUCTURE_VERSION_ATTRIBUTES, id));
-        }
-
-        if (itemType.getName().toLowerCase().contains("graph")) {
-          String tableName = tableNamePrefix + "_version_edge";
-
-          statements.append(String.format(SqlConstants.DELETE_ALL_GRAPH_VERSION_EDGES, tableName, tableNamePrefix, id));
-        }
-
-        statements.append(String.format(SqlConstants.DELETE_BY_ID, tableNamePrefix + "_version", id));
-
-        if (!itemType.equals(Structure.class)) {
-          statements.append(String.format(SqlConstants.DELETE_BY_ID, "rich_version", id));
-          statements.append(String.format(SqlConstants.DELETE_RICH_VERSION_TAGS, id));
-        }
-
         this.postgresVersionSuccessorDao.deleteFromDestination(statements, id, dag.getItemId());
-
-        statements.append(String.format(SqlConstants.DELETE_BY_ID, "version", id));
+        GroundUtils.getVersionDaoFromItemType(itemType, this.dbSource, this.idGenerator).delete(id);
 
         deleted.add(id);
-
         List<Long> parents = dag.getParent(id);
 
         parents.forEach(parentId -> {

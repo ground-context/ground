@@ -64,6 +64,17 @@ public class PostgresStructureVersionDao extends PostgresVersionDao<StructureVer
   }
 
   @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(String.format(SqlConstants.DELETE_STRUCTURE_VERSION_ATTRIBUTES, id));
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "structure_version", id));
+
+    PostgresStatements superStatements = super.delete(id);
+    superStatements.merge(statements);
+    return superStatements;
+  }
+
+  @Override
   public StructureVersion retrieveFromDatabase(final long id) throws GroundException {
     HashMap<String, GroundType> attributes;
     try {

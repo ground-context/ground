@@ -3,13 +3,24 @@ package edu.berkeley.ground.postgres.dao;
 import com.google.common.collect.ImmutableMap;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresGraphVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresNodeVersionDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureDao;
+import edu.berkeley.ground.postgres.dao.core.PostgresStructureVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeVersionDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphDao;
+import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphVersionDao;
 import edu.berkeley.ground.postgres.dao.version.PostgresTagDao;
 import edu.berkeley.ground.postgres.dao.version.PostgresVersionHistoryDagDao;
 import edu.berkeley.ground.postgres.dao.version.PostgresVersionSuccessorDao;
 import edu.berkeley.ground.postgres.dao.version.mock.TestPostgresItemDao;
 import edu.berkeley.ground.postgres.dao.version.mock.TestPostgresRichVersionDao;
 import edu.berkeley.ground.postgres.dao.version.mock.TestPostgresVersionDao;
-import edu.berkeley.ground.postgres.util.Daos;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -24,8 +35,6 @@ public class PostgresTest extends DaoTest {
 
   private static final String DROP_SCRIPT = "../../resources/scripts/postgres/drop_postgres.sql";
   private static final String CREATE_SCHEMA_SCRIPT = "../../resources/scripts/postgres/postgres.sql";
-
-  private static Daos daos;
 
   public PostgresTest() throws GroundException {
 
@@ -45,28 +54,26 @@ public class PostgresTest extends DaoTest {
 
     PostgresTest.dbSource = dbSource;
     PostgresTest.idGenerator = idGenerator;
-    PostgresTest.daos = new Daos(dbSource, idGenerator);
 
     PostgresTest.postgresVersionDao = new TestPostgresVersionDao(dbSource, idGenerator);
     PostgresTest.versionSuccessorDao = new PostgresVersionSuccessorDao(dbSource, idGenerator);
-    PostgresTest.versionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, (PostgresVersionSuccessorDao) PostgresTest.versionSuccessorDao);
+    PostgresTest.versionHistoryDagDao = new PostgresVersionHistoryDagDao(dbSource, idGenerator);
     PostgresTest.postgresItemDao = new TestPostgresItemDao(dbSource, idGenerator);
     PostgresTest.tagDao = new PostgresTagDao(dbSource);
 
     PostgresTest.postgresRichVersionDao = new TestPostgresRichVersionDao(dbSource, idGenerator);
-    PostgresTest.edgeDao = PostgresTest.daos.getPostgresEdgeDao();
-    PostgresTest.edgeVersionDao = PostgresTest.daos.getPostgresEdgeVersionDao();
-    PostgresTest.graphDao = PostgresTest.daos.getPostgresGraphDao();
-    PostgresTest.graphVersionDao = PostgresTest.daos.getPostgresGraphVersionDao();
-    PostgresTest.nodeDao = PostgresTest.daos.getPostgresNodeDao();
-    PostgresTest.nodeVersionDao = PostgresTest.daos.getPostgresNodeVersionDao();
-    PostgresTest.structureDao = PostgresTest.daos.getPostgresStructureDao();
-    PostgresTest.structureVersionDao = PostgresTest.daos.getPostgresStructureVersionDao();
-
-    PostgresTest.lineageEdgeDao = PostgresTest.daos.getPostgresLineageEdgeDao();
-    PostgresTest.lineageEdgeVersionDao = PostgresTest.daos.getPostgresLineageEdgeVersionDao();
-    PostgresTest.lineageGraphDao = PostgresTest.daos.getPostgresLineageGraphDao();
-    PostgresTest.lineageGraphVersionDao = PostgresTest.daos.getPostgresLineageGraphVersionDao();
+    PostgresTest.structureDao = new PostgresStructureDao(dbSource, idGenerator);
+    PostgresTest.structureVersionDao = new PostgresStructureVersionDao(dbSource, idGenerator);
+    PostgresTest.edgeDao = new PostgresEdgeDao(dbSource, idGenerator);
+    PostgresTest.edgeVersionDao = new PostgresEdgeVersionDao(dbSource, idGenerator);
+    PostgresTest.graphDao = new PostgresGraphDao(dbSource, idGenerator);
+    PostgresTest.graphVersionDao = new PostgresGraphVersionDao(dbSource, idGenerator);
+    PostgresTest.nodeDao = new PostgresNodeDao(dbSource, idGenerator);
+    PostgresTest.nodeVersionDao = new PostgresNodeVersionDao(dbSource, idGenerator);
+    PostgresTest.lineageEdgeDao = new PostgresLineageEdgeDao(dbSource, idGenerator);
+    PostgresTest.lineageEdgeVersionDao = new PostgresLineageEdgeVersionDao(dbSource, idGenerator);
+    PostgresTest.lineageGraphDao = new PostgresLineageGraphDao(dbSource, idGenerator);
+    PostgresTest.lineageGraphVersionDao = new PostgresLineageGraphVersionDao(dbSource, idGenerator);
 
     runScript(DROP_SCRIPT);
     runScript(CREATE_SCHEMA_SCRIPT);

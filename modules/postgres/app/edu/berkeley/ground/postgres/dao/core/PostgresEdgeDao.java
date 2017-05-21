@@ -39,6 +39,7 @@ public class PostgresEdgeDao extends PostgresItemDao<Edge> implements EdgeDao {
 
   @Override
   public Edge create(Edge edge) throws GroundException {
+    super.verifyItemNotExists(edge.getSourceKey());
 
     PostgresStatements postgresStatements;
     long uniqueId = idGenerator.generateItemId();

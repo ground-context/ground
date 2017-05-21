@@ -46,6 +46,16 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
   }
 
   @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "node_version", id));
+
+    PostgresStatements superStatements = super.delete(id);
+    superStatements.merge(statements);
+    return superStatements;
+  }
+
+  @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "node_version", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -57,7 +67,6 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
     NodeVersion nodeVersion = Json.fromJson(json.get(0), NodeVersion.class);
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
-    return new NodeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(), richVersion.getParameters(),
-                            nodeVersion.getNodeId());
+    return new NodeVersion(id, richVersion, nodeVersion);
   }
 }

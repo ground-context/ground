@@ -59,6 +59,17 @@ public class PostgresLineageEdgeVersionDao extends PostgresRichVersionDao<Lineag
   }
 
   @Override
+  public PostgresStatements delete(long id) {
+    PostgresStatements statements = new PostgresStatements();
+    statements.append(String.format(SqlConstants.DELETE_BY_ID, "lineage_edge_version", id));
+
+    PostgresStatements superStatements = super.delete(id);
+    superStatements.merge(statements);
+    return superStatements;
+  }
+
+
+  @Override
   public LineageEdgeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "lineage_edge_version", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
@@ -70,8 +81,6 @@ public class PostgresLineageEdgeVersionDao extends PostgresRichVersionDao<Lineag
     LineageEdgeVersion lineageEdgeVersion = Json.fromJson(json.get(0), LineageEdgeVersion.class);
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
-    return new LineageEdgeVersion(id, richVersion.getTags(), richVersion.getStructureVersionId(), richVersion.getReference(),
-                                   richVersion.getParameters(), lineageEdgeVersion.getFromId(), lineageEdgeVersion.getToId(),
-                                   lineageEdgeVersion.getLineageEdgeId());
+    return new LineageEdgeVersion(id, richVersion, lineageEdgeVersion);
   }
 }
