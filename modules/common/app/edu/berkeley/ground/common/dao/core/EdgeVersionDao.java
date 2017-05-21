@@ -13,6 +13,7 @@ package edu.berkeley.ground.common.dao.core;
 
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
+import edu.berkeley.ground.common.util.DbStatements;
 import java.util.List;
 
 public interface EdgeVersionDao extends RichVersionDao<EdgeVersion> {
@@ -22,4 +23,6 @@ public interface EdgeVersionDao extends RichVersionDao<EdgeVersion> {
 
   @Override
   EdgeVersion retrieveFromDatabase(long id) throws GroundException;
+
+  DbStatements updatePreviousVersion(long id, long fromEndId, long toEndId);
 }

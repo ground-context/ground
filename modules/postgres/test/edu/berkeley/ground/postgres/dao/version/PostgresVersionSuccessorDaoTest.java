@@ -39,10 +39,10 @@ public class PostgresVersionSuccessorDaoTest extends PostgresTest {
     PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.postgresVersionDao.insert(new Version(fromId)));
     PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.postgresVersionDao.insert(new Version(toId)));
 
-    VersionSuccessor successor = PostgresTest.versionSuccessorDao.create(fromId, toId);
+    VersionSuccessor successor = ((PostgresVersionSuccessorDao) PostgresTest.versionSuccessorDao).instantiateVersionSuccessor(fromId, toId);
+    PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.versionSuccessorDao.insert(successor));
 
-    VersionSuccessor retrieved = PostgresTest.versionSuccessorDao.retrieveFromDatabase(
-      successor.getId());
+    VersionSuccessor retrieved = PostgresTest.versionSuccessorDao.retrieveFromDatabase(successor.getId());
 
     assertEquals(fromId, retrieved.getFromId());
     assertEquals(toId, retrieved.getToId());
@@ -62,7 +62,8 @@ public class PostgresVersionSuccessorDaoTest extends PostgresTest {
     }
 
     // This statement should fail because toId is not in the database
-    PostgresTest.versionSuccessorDao.create(fromId, toId);
+    VersionSuccessor successor = ((PostgresVersionSuccessorDao) PostgresTest.versionSuccessorDao).instantiateVersionSuccessor(fromId, toId);
+    PostgresUtils.executeSqlList(PostgresTest.dbSource, (PostgresStatements) PostgresTest.versionSuccessorDao.insert(successor));
   }
 
   @Test(expected = GroundException.class)

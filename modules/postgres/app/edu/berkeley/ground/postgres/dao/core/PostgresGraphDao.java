@@ -16,6 +16,7 @@ import edu.berkeley.ground.common.dao.core.GraphDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Graph;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
@@ -44,8 +45,7 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
 
     try {
       postgresStatements = super.insert(newGraph);
-      postgresStatements.append(String.format("insert into graph (item_id, source_key, name) values (%s,\'%s\',\'%s\')",
-        uniqueId, graph.getSourceKey(), graph.getName()));
+      postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "graph", uniqueId, graph.getSourceKey(), graph.getName()));
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -56,7 +56,7 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
 
   @Override
   public Graph retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format("select * from graph where source_key=\'%s\'", sourceKey);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "graph", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
@@ -68,7 +68,7 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
 
   @Override
   public Graph retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from graph where item_id=%d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "graph", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {

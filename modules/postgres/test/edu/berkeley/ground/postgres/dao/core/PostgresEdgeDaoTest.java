@@ -33,6 +33,7 @@ public class PostgresEdgeDaoTest extends PostgresTest {
     super();
   }
 
+  // TODO: Add tags to this
   @Test
   public void testEdgeCreation() throws GroundException {
     String testName = "test";
@@ -43,8 +44,7 @@ public class PostgresEdgeDaoTest extends PostgresTest {
     long fromNodeId = PostgresTest.createNode(fromNodeName).getId();
     long toNodeId = PostgresTest.createNode(toNodeName).getId();
 
-    PostgresTest.edgeDao
-      .create(new Edge(0L, testName, sourceKey, fromNodeId, toNodeId, new HashMap<>()));
+    PostgresTest.edgeDao.create(new Edge(0L, testName, sourceKey, fromNodeId, toNodeId, new HashMap<>()));
 
     Edge edge = PostgresTest.edgeDao.retrieveFromDatabase(sourceKey);
 

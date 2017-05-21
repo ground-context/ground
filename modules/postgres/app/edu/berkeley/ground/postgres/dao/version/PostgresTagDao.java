@@ -15,6 +15,7 @@ import edu.berkeley.ground.common.dao.version.TagDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -35,17 +36,26 @@ public class PostgresTagDao implements TagDao {
   }
 
   @Override
-  public PostgresStatements insert(final Tag tag) {
+  public PostgresStatements insertItemTag(final Tag tag) {
     List<String> sqlList = new ArrayList<>();
     if (tag.getValue() != null) {
-      sqlList.add(String
-                    .format("insert into item_tag (item_id, key, value, type) values (%d, '%s', '%s', '%s')",
-                      tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+      sqlList.add(String.format(SqlConstants.INSERT_ITEM_TAG_WITH_VALUE, tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
     } else {
       sqlList.add(
-        String.format("insert into item_tag (item_id, key, value, type) values (%d, '%s', %s, %s)",
-          tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+        String.format(SqlConstants.INSERT_ITEM_TAG_NO_VALUE, tag.getId(), tag.getKey()));
     }
+    return new PostgresStatements(sqlList);
+  }
+
+  @Override
+  public PostgresStatements insertRichVersionTag(final Tag tag) {
+    List<String> sqlList = new ArrayList<>();
+    if (tag.getValue() != null) {
+      sqlList.add(String.format(SqlConstants.INSERT_RICH_VERSION_TAG_WITH_VALUE, tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
+    } else {
+      sqlList.add(String.format(SqlConstants.INSERT_RICH_VERSION_TAG_NO_VALUE, tag.getId(), tag.getKey()));
+    }
+
     return new PostgresStatements(sqlList);
   }
 

@@ -20,6 +20,7 @@ import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.sql.Connection;
@@ -55,8 +56,7 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
    */
   @Override
   public VersionHistoryDag retrieveFromDatabase(long itemId) throws GroundException {
-
-    String sql = String.format("select * from version_history_dag where item_id=%d", itemId);
+    String sql = String.format(SqlConstants.SELECT_VERSION_HISTORY_DAG, itemId);
 
     List<VersionSuccessor> edges = new ArrayList<>();
     try (Connection con = dbSource.getConnection()) {
@@ -68,8 +68,10 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
       while (resultSet.next()) {
         successors.add(resultSet.getLong("version_successor_id"));
       }
+
       stmt.close();
       con.close();
+
       for (Long versionSuccessorId : successors) {
         VersionSuccessor versionSuccessor = postgresVersionSuccessorDao.retrieveFromDatabase(versionSuccessorId);
         edges.add(versionSuccessor);
@@ -94,9 +96,8 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
     VersionSuccessor successor = this.postgresVersionSuccessorDao.instantiateVersionSuccessor(parentId, childId);
     dag.addEdge(parentId, childId, successor.getId());
 
-    long versionSuccessorId = successor.getId();
-    PostgresStatements statements = postgresVersionSuccessorDao.insert(parentId, childId, versionSuccessorId);
-    statements.append(String.format("insert into version_history_dag (item_id, version_successor_id) values(%d, %d)", itemId, versionSuccessorId));
+    PostgresStatements statements = postgresVersionSuccessorDao.insert(successor);
+    statements.append(String.format(SqlConstants.INSERT_VERSION_HISTORY_DAG_EDGE, itemId, successor.getId()));
     return statements;
   }
 
@@ -120,9 +121,7 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
     while (keptLevels <= numLevels) {
       List<Long> currentLevel = new ArrayList<>();
 
-      previousLevel.forEach(id ->
-                              currentLevel.addAll(dag.getParent(id))
-      );
+      previousLevel.forEach(id -> currentLevel.addAll(dag.getParent(id)));
 
       lastLevel = previousLevel;
       previousLevel = currentLevel;
@@ -150,26 +149,25 @@ public class PostgresVersionHistoryDagDao implements VersionHistoryDagDao {
         tableNamePrefix = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tableNamePrefix);
 
         if (itemType.equals(Structure.class)) {
-          statements.append(String.format("DELETE FROM structure_version_attribute WHERE structure_version_id = %d;", id));
+          statements.append(String.format(SqlConstants.DELETE_STRUCTURE_VERSION_ATTRIBUTES, id));
         }
 
         if (itemType.getName().toLowerCase().contains("graph")) {
           String tableName = tableNamePrefix + "_version_edge";
 
-          statements.append(String.format("DELETE FROM %s WHERE %s_version_id = %d;", tableName,
-            tableNamePrefix, id));
+          statements.append(String.format(SqlConstants.DELETE_ALL_GRAPH_VERSION_EDGES, tableName, tableNamePrefix, id));
         }
 
-        statements.append(String.format("DELETE FROM %s_version where id = %d;", tableNamePrefix, id));
+        statements.append(String.format(SqlConstants.DELETE_BY_ID, tableNamePrefix + "_version", id));
 
         if (!itemType.equals(Structure.class)) {
-          statements.append(String.format("DELETE FROM rich_version where id = %d;", id));
-          statements.append(String.format("DELETE FROM rich_version_tag where rich_version_id = %d;", id));
+          statements.append(String.format(SqlConstants.DELETE_BY_ID, "rich_version", id));
+          statements.append(String.format(SqlConstants.DELETE_RICH_VERSION_TAGS, id));
         }
 
         this.postgresVersionSuccessorDao.deleteFromDestination(statements, id, dag.getItemId());
 
-        statements.append(String.format("DELETE FROM version WHERE id = %d;", id));
+        statements.append(String.format(SqlConstants.DELETE_BY_ID, "version", id));
 
         deleted.add(id);
 

@@ -60,6 +60,7 @@ public interface ItemDao<T extends Item> {
     }
   }
 
+  // TODO: Use this in DAOs
   default void verifyItemNotExists(String sourceKey) throws GroundException {
     if (checkIfItemExists(sourceKey)) {
       throw new GroundException("");

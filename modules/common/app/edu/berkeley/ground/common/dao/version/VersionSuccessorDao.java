@@ -17,10 +17,9 @@ import edu.berkeley.ground.common.util.DbStatements;
 
 public interface VersionSuccessorDao {
 
-  VersionSuccessor create(long fromId, long toId) throws GroundException;
+  DbStatements insert(VersionSuccessor successor);
 
   VersionSuccessor retrieveFromDatabase(long dbId) throws GroundException;
 
-  void deleteFromDestination(DbStatements statements, long toId, long itemId)
-    throws GroundException;
+  void deleteFromDestination(DbStatements statements, long toId, long itemId) throws GroundException;
 }

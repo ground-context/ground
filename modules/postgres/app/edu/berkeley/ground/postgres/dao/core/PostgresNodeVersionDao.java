@@ -6,6 +6,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.NodeVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
@@ -32,7 +33,7 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
 
     try {
       PostgresStatements statements = super.insert(newNodeVersion);
-      statements.append(String.format("insert into node_version (id, node_id) values (%d,%d)", uniqueId, nodeVersion.getNodeId()));
+      statements.append(String.format(SqlConstants.INSERT_NODE_VERSION, uniqueId, nodeVersion.getNodeId()));
       statements.merge(updateVersionList);
 
       PostgresUtils.executeSqlList(dbSource, statements);
@@ -45,10 +46,11 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
 
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from node_version where id=%d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "node_version", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
+      // TODO: throw version not found exception
       throw new GroundException(String.format("Node Version with id %d does not exist.", id));
     }
 

@@ -6,6 +6,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.GraphVersion;
 import edu.berkeley.ground.common.model.core.RichVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.ArrayList;
@@ -33,16 +34,11 @@ public class PostgresGraphVersionDao extends PostgresRichVersionDao<GraphVersion
 
     try {
       PostgresStatements statements = super.insert(newGraphVersion);
-      statements.append(String.format(
-        "insert into graph_version (id, graph_id) values (%s,%s)",
-        uniqueId, graphVersion.getGraphId()));
+      statements.append(String.format(SqlConstants.INSERT_GRAPH_VERSION, uniqueId, graphVersion.getGraphId()));
       statements.merge(updateVersionList);
 
       for (Long id : newGraphVersion.getEdgeVersionIds()) {
-        statements.append(String.format(
-          "insert into graph_version_edge (graph_version_id, edge_version_id) values (%d, %d) " +
-            "on conflict do nothing",
-          newGraphVersion.getGraphId(), id));
+        statements.append(String.format(SqlConstants.INSERT_GRAPH_VERSION_EDGE, newGraphVersion.getGraphId(), id));
       }
 
       PostgresUtils.executeSqlList(dbSource, statements);
@@ -54,7 +50,7 @@ public class PostgresGraphVersionDao extends PostgresRichVersionDao<GraphVersion
 
   @Override
   public GraphVersion retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from graph_version where id=%d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "graph_version", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     if (json.size() == 0) {
       throw new GroundException(String.format("Graph Version with id %d does not exist.", id));
@@ -62,9 +58,9 @@ public class PostgresGraphVersionDao extends PostgresRichVersionDao<GraphVersion
 
     GraphVersion graphVersion = Json.fromJson(json.get(0), GraphVersion.class);
     List<Long> edgeIds = new ArrayList<>();
-    sql = String.format("select * from graph_version_edge where graph_version_id=%d", id);
-    JsonNode edgeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    sql = String.format(SqlConstants.SELECT_GRAPH_VERSION_EDGES, id);
 
+    JsonNode edgeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
     for (JsonNode edge : edgeJson) {
       edgeIds.add(edge.get("edgeVersionId").asLong());
     }

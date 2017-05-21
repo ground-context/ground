@@ -20,6 +20,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.VersionSuccessor;
 import edu.berkeley.ground.common.util.DbStatements;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import play.db.Database;
@@ -38,28 +39,16 @@ public class PostgresVersionSuccessorDao implements VersionSuccessorDao {
   /**
    * Create a sqlList containing commands that will persist a new version successor
    *
-   * @param fromId id of the parent version
-   * @param toId id of the child version
-   * @return List of one sql expression
-   * @throws GroundException an error creating the sql list
+   * @param successor the successor to insert
+   * @return List of SQL expressions to insert version successor
    */
-  public PostgresStatements insert(long fromId, long toId, long versionSuccessorId)
-    throws GroundException {
-
-    PostgresStatements statements = new PostgresStatements();
-    String sql = String.format("insert into version_successor (id, from_version_id, to_version_id) " +
-                                 "values (%d,%d,%d)", versionSuccessorId, fromId, toId);
-    statements.append(sql);
-    return statements;
-  }
-
   @Override
-  public VersionSuccessor create(long fromId, long toId)
-    throws GroundException {
-    long dbId = idGenerator.generateSuccessorId();
-    PostgresStatements statements = insert(fromId, toId, dbId);
-    PostgresUtils.executeSqlList(dbSource, statements);
-    return new VersionSuccessor(dbId, fromId, toId);
+  public PostgresStatements insert(VersionSuccessor successor) {
+    PostgresStatements statements = new PostgresStatements();
+    String sql = String.format(SqlConstants.INSERT_VERSION_SUCCESSOR, successor.getId(), successor.getFromId(), successor.getToId());
+    statements.append(sql);
+
+    return statements;
   }
 
   /**
@@ -68,11 +57,8 @@ public class PostgresVersionSuccessorDao implements VersionSuccessorDao {
    * @param fromId the id of the parent version
    * @param toId the id of the child version
    * @return the created version successor
-   * @throws GroundException an error creating the successor
    */
-  protected VersionSuccessor instantiateVersionSuccessor(long fromId, long toId)
-    throws GroundException {
-
+  VersionSuccessor instantiateVersionSuccessor(long fromId, long toId) {
     long dbId = idGenerator.generateSuccessorId();
     return new VersionSuccessor(dbId, fromId, toId);
   }
@@ -87,8 +73,9 @@ public class PostgresVersionSuccessorDao implements VersionSuccessorDao {
   @Override
   public VersionSuccessor retrieveFromDatabase(long dbId) throws GroundException {
     try {
-      String sql = String.format("select * from version_successor where id=%d", dbId);
+      String sql = String.format(SqlConstants.SELECT_VERSION_SUCCESSOR, dbId);
       JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
       if (json.size() == 0) {
         throw new GroundException(String.format("Version Successor with id %d does not exist.", dbId));
       }
@@ -114,14 +101,14 @@ public class PostgresVersionSuccessorDao implements VersionSuccessorDao {
     PostgresStatements statements = (PostgresStatements) statementsPointer;
 
     try {
-      String sql = String.format("SELECT * FROM version_successor WHERE to_version_id = %d;", toId);
+      String sql = String.format(SqlConstants.SELECT_VERSION_SUCCESSOR_BY_ENDPOINT, toId);
       JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
       for (JsonNode result : json) {
         Long dbId = result.get("id").asLong();
 
-        statements.append(String.format("DELETE FROM version_history_dag WHERE version_successor_id = %d;", dbId));
-        statements.append(String.format("DELETE FROM version_successor WHERE id = %d;", dbId));
+        statements.append(String.format(SqlConstants.DELETE_SUCCESSOR_FROM_DAG, dbId));
+        statements.append(String.format(SqlConstants.DELETE_VERSION_SUCCESSOR, dbId));
       }
     } catch (Exception e) {
       throw new GroundException(e);

@@ -16,6 +16,7 @@ import edu.berkeley.ground.common.dao.core.StructureDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Structure;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
@@ -45,8 +46,8 @@ public class PostgresStructureDao extends PostgresItemDao<Structure> implements 
 
     try {
       postgresStatements = super.insert(newStructure);
-      postgresStatements.append(String.format(
-        "insert into structure (item_id, source_key, name) values (%s,\'%s\',\'%s\')", uniqueId, structure.getSourceKey(), structure.getName()));
+      postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "structure", uniqueId, structure.getSourceKey(),
+        structure.getName()));
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -57,7 +58,7 @@ public class PostgresStructureDao extends PostgresItemDao<Structure> implements 
 
   @Override
   public Structure retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format("select * from structure where source_key=\'%s\'", sourceKey);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "structure", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
@@ -69,7 +70,7 @@ public class PostgresStructureDao extends PostgresItemDao<Structure> implements 
 
   @Override
   public Structure retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from structure where item_id=%d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "structure", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {

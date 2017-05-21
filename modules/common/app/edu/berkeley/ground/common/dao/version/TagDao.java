@@ -27,5 +27,7 @@ public interface TagDao {
 
   Map<String, Tag> retrieveFromDatabaseByItemId(long id) throws GroundException;
 
-  DbStatements insert(final Tag tag);
+  DbStatements insertItemTag(final Tag tag);
+
+  DbStatements insertRichVersionTag(final Tag tag);
 }

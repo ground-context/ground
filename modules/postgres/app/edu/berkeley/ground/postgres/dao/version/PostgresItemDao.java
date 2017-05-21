@@ -17,8 +17,8 @@ import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.VersionHistoryDag;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
-import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ import play.db.Database;
 public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
 
   private PostgresTagDao postgresTagDao;
-  private PostgresVersionHistoryDagDao postgresVersionHistoryDagDao;
+  protected PostgresVersionHistoryDagDao postgresVersionHistoryDagDao;
   protected Database dbSource;
   protected IdGenerator idGenerator;
 
@@ -54,13 +54,6 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
 
       return new ArrayList<>();
     }
-  }
-
-  @Override
-  public T create(T Item) throws GroundException {
-    PostgresStatements statements = insert(Item);
-    PostgresUtils.executeSqlList(dbSource, statements);
-    return Item;
   }
 
   /**
@@ -122,8 +115,10 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
 
   @Override
   public PostgresStatements insert(final T item) throws GroundException {
+    long id = item.getId();
+
     final List<String> sqlList = new ArrayList<>();
-    sqlList.add(String.format("insert into item (id) values (%d)", item.getId()));
+    sqlList.add(String.format(SqlConstants.INSERT_ITEM, id));
 
     final Map<String, Tag> tags = item.getTags();
     PostgresStatements postgresStatements = new PostgresStatements(sqlList);
@@ -131,10 +126,10 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
     if (tags != null) {
       for (String key : tags.keySet()) {
         Tag tag = tags.get(key);
-        tag.setId(item.getId());
-        postgresStatements.merge(this.postgresTagDao.insert(tag));
+        postgresStatements.merge(this.postgresTagDao.insertItemTag(new Tag(id, tag.getKey(), tag.getValue(), tag.getValueType())));
       }
     }
+
     return new PostgresStatements(sqlList);
   }
 }

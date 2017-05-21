@@ -16,6 +16,7 @@ import edu.berkeley.ground.common.dao.usage.LineageEdgeDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageEdge;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
@@ -40,8 +41,8 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge);
     PostgresStatements statements = super.insert(newLineageEdge);
 
-    statements.append(String.format("insert into lineage_edge (item_id, source_key, name) values (%d, '%s', '%s')", newLineageEdge.getId(),
-      newLineageEdge.getSourceKey(), newLineageEdge.getName()));
+    statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "lineage_edge", newLineageEdge.getId(), newLineageEdge.getSourceKey(),
+      newLineageEdge.getName()));
 
     try {
       PostgresUtils.executeSqlList(this.dbSource, statements);
@@ -53,7 +54,7 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
 
   @Override
   public LineageEdge retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format("select * from lineage_edge where source_key = \'%s\'", sourceKey);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "lineage_edge", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
@@ -65,7 +66,7 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
 
   @Override
   public LineageEdge retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from lineage_edge where id = %d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "item_id", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {

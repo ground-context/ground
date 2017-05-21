@@ -16,6 +16,7 @@ import edu.berkeley.ground.common.dao.usage.LineageGraphDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
@@ -41,7 +42,7 @@ public class PostgresLineageGraphDao extends PostgresItemDao<LineageGraph> imple
 
     PostgresStatements statements = super.insert(newLineageGraph);
 
-    statements.append(String.format("insert into lineage_graph (item_id, source_key, name) values (%d, '%s', '%s')", newLineageGraph.getId(),
+    statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "lineage_graph", newLineageGraph.getId(),
       newLineageGraph.getSourceKey(), newLineageGraph.getName()));
 
     try {
@@ -54,7 +55,7 @@ public class PostgresLineageGraphDao extends PostgresItemDao<LineageGraph> imple
 
   @Override
   public LineageGraph retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format("select * from lineage_graph where source_key = \'%s\'", sourceKey);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "lineage_graph", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
@@ -66,7 +67,7 @@ public class PostgresLineageGraphDao extends PostgresItemDao<LineageGraph> imple
 
   @Override
   public LineageGraph retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from lineage_graph where id = %d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "lineage_graph", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {

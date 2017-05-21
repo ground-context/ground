@@ -17,6 +17,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresVersionDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
@@ -45,13 +46,10 @@ public class PostgresStructureVersionDao extends PostgresVersionDao<StructureVer
 
     try {
       PostgresStatements statements = super.insert(newStructureVersion);
-      statements
-        .append(String.format("insert into structure_version (id, structure_id) values (%s,%s)", uniqueId, structureVersion.getStructureId()));
+      statements.append(String.format(SqlConstants.INSERT_STRUCTURE_VERSION, uniqueId, structureVersion.getStructureId()));
 
       for (Map.Entry<String, GroundType> attribute : structureVersion.getAttributes().entrySet()) {
-        statements.append(String
-                            .format("insert into structure_version_attribute (structure_version_id, key, type) values (%s,\'%s\', \'%s\')", uniqueId,
-                              attribute.getKey(), attribute.getValue()));
+        statements.append(String.format(SqlConstants.INSERT_STRUCTURE_VERSION_ATTRIBUTE, uniqueId, attribute.getKey(), attribute.getValue()));
       }
 
       statements.merge(updateVersionList);
@@ -68,11 +66,11 @@ public class PostgresStructureVersionDao extends PostgresVersionDao<StructureVer
   public StructureVersion retrieveFromDatabase(final long id) throws GroundException {
     HashMap<String, GroundType> attributes;
     try {
-      String resultQuery = String.format("SELECT * FROM structure_version WHERE id = %d", id);
+      String resultQuery = String.format(SqlConstants.SELECT_STAR_BY_ID, "structure_version", id);
       JsonNode resultJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, resultQuery));
       StructureVersion structureVersion = Json.fromJson(resultJson.get(0), StructureVersion.class);
 
-      String attributeQuery = String.format("SELECT * FROM structure_version_attribute WHERE " + "structure_version_id = %d", id);
+      String attributeQuery = String.format(SqlConstants.SELECT_STRUCTURE_VERSION_ATTRIBUTES, id);
       JsonNode attributeJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, attributeQuery));
 
       attributes = new HashMap<>();
@@ -83,7 +81,6 @@ public class PostgresStructureVersionDao extends PostgresVersionDao<StructureVer
       }
 
       structureVersion = new StructureVersion(structureVersion.getId(), structureVersion.getStructureId(), attributes);
-
       return structureVersion;
     } catch (Exception e) {
       throw new GroundException(e);

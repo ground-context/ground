@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.berkeley.ground.common.dao.core.NodeDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Node;
-import edu.berkeley.ground.common.model.version.GroundType;
-import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
-import java.util.HashMap;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
@@ -30,16 +28,13 @@ public class PostgresNodeDao extends PostgresItemDao<Node> implements NodeDao {
   @Override
   public Node create(Node node) throws GroundException {
 
-    PostgresStatements statements = new PostgresStatements();
+    PostgresStatements statements;
     long uniqueId = idGenerator.generateItemId();
-    statements.append(
-      String.format("insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')", node.getItemId(), node.getSourceKey(), node.getName()));
 
     Node newNode = new Node(uniqueId, node);
     try {
       statements = super.insert(newNode);
-      statements.append(
-        String.format("insert into node (item_id, source_key, name) values (%s,\'%s\',\'%s\')", uniqueId, node.getSourceKey(), node.getName()));
+      statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "node", uniqueId, node.getSourceKey(), node.getName()));
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -50,37 +45,29 @@ public class PostgresNodeDao extends PostgresItemDao<Node> implements NodeDao {
 
   @Override
   public Node retrieveFromDatabase(String sourceKey) throws GroundException {
-    String sql = String.format("select * from node where source_key=\'%s\'", sourceKey);
+    String sql = String.format(SqlConstants.SELECT_STAR_BY_SOURCE_KEY, "node", sourceKey);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
 
     if (json.size() == 0) {
+      // TODO: throw item not found exception
       throw new GroundException(String.format("Node with source_key %s does not exist.", sourceKey));
     }
 
-    json = json.get(0);
-    Node node = Json.fromJson(json, Node.class);
-
-    // TODO: Refactor this up, and call it in all methods lol
-    sql = String.format("select * from item_tag where item_id=%d", node.getId());
-    JsonNode tagsJson = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
-    HashMap<String, Tag> tags = new HashMap<>();
-    for (JsonNode tag : tagsJson) {
-      GroundType type = GroundType.fromString(tag.get("type").asText());
-      tags.put(tag.get("key").asText(), new Tag(tag.get("itemId").asLong(), tag.get("key").asText(), tag.get("value").asText(), type));
-    }
-    node = new Node(node.getId(), node.getName(), node.getSourceKey(), tags);
-    return node;
+    return Json.fromJson(json.get(0), Node.class);
   }
 
   @Override
   public Node retrieveFromDatabase(long id) throws GroundException {
-    String sql = String.format("select * from node where item_id=%d", id);
+    String sql = String.format(SqlConstants.SELECT_STAR_ITEM_BY_ID, "node", id);
     JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+
     if (json.size() == 0) {
       throw new GroundException(String.format("Node with id %d does not exist.", id));
     }
+
     return Json.fromJson(json.get(0), Node.class);
   }
+
 
   @Override
   public List<Long> getLeaves(String sourceKey) throws GroundException {

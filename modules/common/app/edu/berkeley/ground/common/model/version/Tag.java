@@ -17,6 +17,7 @@ import edu.berkeley.ground.common.exception.GroundException;
 import java.util.Objects;
 
 public class Tag {
+
   @JsonProperty("id")
   private long id;
 
@@ -39,14 +40,14 @@ public class Tag {
    */
   @JsonCreator
   public Tag(@JsonProperty("item_id") long id, @JsonProperty("key") String key, @JsonProperty("value") Object value,
-             @JsonProperty("type") GroundType valueType)
-      throws edu.berkeley.ground.common.exception.GroundException {
+              @JsonProperty("type") GroundType valueType)
+    throws edu.berkeley.ground.common.exception.GroundException {
 
     if (!((value != null) == (valueType != null))
-        || (value != null && !(value.getClass().equals(valueType.getTypeClass())))) {
+          || (value != null && !(value.getClass().equals(valueType.getTypeClass())))) {
 
       throw new GroundException(
-          "Mismatch between value (" + value + ") and given type (" + valueType.toString() + ").");
+                                 "Mismatch between value (" + value + ") and given type (" + valueType.toString() + ").");
     }
 
     if (value != null) {
@@ -57,10 +58,6 @@ public class Tag {
     this.key = key;
     this.value = value;
     this.valueType = valueType;
-  }
-
-  public void setId(long id) {
-    this.id = id;
   }
 
   public long getId() {
@@ -88,7 +85,7 @@ public class Tag {
     Tag otherTag = (Tag) other;
 
     return this.key.equals(otherTag.key)
-        && Objects.equals(this.value, otherTag.value)
-        && Objects.equals(this.valueType, otherTag.valueType);
+             && Objects.equals(this.value, otherTag.value)
+             && Objects.equals(this.valueType, otherTag.valueType);
   }
 }

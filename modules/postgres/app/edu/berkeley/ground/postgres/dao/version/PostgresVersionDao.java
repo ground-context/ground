@@ -15,6 +15,7 @@ import edu.berkeley.ground.common.dao.version.VersionDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.version.Version;
 import edu.berkeley.ground.common.util.IdGenerator;
+import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import play.db.Database;
 
@@ -32,7 +33,7 @@ public abstract class PostgresVersionDao<T extends Version> implements VersionDa
   public PostgresStatements insert(T version) throws GroundException {
     PostgresStatements statements = new PostgresStatements();
 
-    statements.append(String.format("insert into version (id) values (%d)", version.getId()));
+    statements.append(String.format(SqlConstants.INSERT_VERSION, version.getId()));
     return statements;
   }
 
