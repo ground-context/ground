@@ -1,15 +1,10 @@
 import de.johoop.jacoco4sbt.XMLReport
 
 name := """ground"""
-organization := "edu.berkeley.ground"
-
-version := "0.1"
-
-scalaVersion := "2.11.8"
 
 lazy val commonSettings = Seq(
   organization := "edu.berkeley.ground",
-  version := "0.1",
+  version := "0.2.0-SNAPSHOT",
   scalaVersion := "2.11.8"
 )
 
