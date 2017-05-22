@@ -2,9 +2,6 @@ language: java
 jdk: oraclejdk8
 sudo: required
 
-env:
-  - NEO4J_VERSION=3.1.2
-
 before_script:
   - sh -e resources/ci/install.sh
   - sh -e resources/ci/init.sh
@@ -15,4 +12,3 @@ script:
 after_success:
   - sbt jacoco:cover
   - bash <(curl -s https://codecov.io/bash)
-  - sh -e ci/server.sh

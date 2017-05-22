@@ -1,3 +1,5 @@
+import de.johoop.jacoco4sbt.XMLReport
+
 name := """ground"""
 organization := "edu.berkeley.ground"
 
@@ -7,7 +9,7 @@ scalaVersion := "2.11.8"
 
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava
-  //  , SwaggerPlugin
+  // SwaggerPlugin
 )
   .settings(
     name := "ground"
@@ -18,11 +20,15 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava
 lazy val common = (project in file("modules/common"))
   .enablePlugins(PlayJava, JavaAppPackaging)
   .settings(
-    name := "ground-common-lib",
-    organization := "edu.berkeley.ground.lib",
+    name := "ground-common",
+    organization := "edu.berkeley.ground.common",
     version := "0.1-SNAPSHOT",
     scalaVersion := "2.11.8",
-    libraryDependencies += javaJdbc
+    libraryDependencies += javaJdbc,
+    jacoco.settings,
+    parallelExecution in jacoco.Config := false,
+    Keys.fork in jacoco.Config := true,
+    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
   )
 
 lazy val postgres = (project in file("modules/postgres"))
@@ -37,13 +43,15 @@ lazy val postgres = (project in file("modules/postgres"))
     libraryDependencies += javaJdbc,
     libraryDependencies += cache,
     libraryDependencies += "org.postgresql" % "postgresql" % "42.0.0",
-    libraryDependencies += "commons-beanutils" % "commons-beanutils-core" % "1.8.3"
+    libraryDependencies += "commons-beanutils" % "commons-beanutils-core" % "1.8.3",
+    jacoco.settings,
+    parallelExecution in jacoco.Config := false,
+    Keys.fork in jacoco.Config := true,
+    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
   ).dependsOn(common)
 
 
-EclipseKeys.preTasks := Seq(compile in Compile)
+jacoco.settings
+parallelExecution in jacoco.Config := false
 
-EclipseKeys.projectFlavor := EclipseProjectFlavor.Java // Java project. Don't expect Scala IDE
-EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources) // Use .class files instead of generated .scala files for views and routes
-
-//swaggerDomainNameSpaces := Seq("models")
+jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))

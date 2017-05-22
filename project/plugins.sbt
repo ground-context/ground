@@ -7,3 +7,5 @@ addSbtPlugin("com.iheart" % "sbt-play-swagger" % "0.6.0")
 
 // SBT Eclipse plugin.
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
+
+addSbtPlugin("de.johoop" % "jacoco4sbt" % "2.2.0")
