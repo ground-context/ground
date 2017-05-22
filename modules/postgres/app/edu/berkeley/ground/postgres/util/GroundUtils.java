@@ -23,6 +23,8 @@ import edu.berkeley.ground.postgres.dao.core.PostgresStructureVersionDao;
 import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeVersionDao;
 import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphVersionDao;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,13 @@ public final class GroundUtils {
   }
 
   public static Result handleException(Throwable e, Request request) {
-    if (e.getCause() instanceof GroundException) {
-      return badRequest(GroundUtils.getClientError(request, e, ExceptionType.ITEM_NOT_FOUND));
+    System.out.println(e.getClass().getSimpleName());
+    System.out.println(e.getCause().getClass().getSimpleName());
+    System.out.println(e.getCause().getCause().getClass().getSimpleName());
+    if (e.getCause().getCause() instanceof GroundException) {
+      return badRequest(GroundUtils.getClientError(request, e.getCause().getCause(), ExceptionType.ITEM_NOT_FOUND));
     } else {
-      return internalServerError(GroundUtils.getServerError(request, e));
+      return internalServerError(GroundUtils.getServerError(request, e.getCause().getCause()));
     }
   }
 
@@ -51,7 +56,10 @@ public final class GroundUtils {
     ObjectNode result = Json.newObject();
     result.put("Error", "Unexpected error while processing request.");
     result.put("Request Path", request.path());
-    result.put("Stack Trace", e.getStackTrace().toString());
+
+    StringWriter sw = new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    result.put("Stack Trace", sw.toString());
     return result;
   }
 

@@ -20,8 +20,8 @@ public class GroundException extends Exception {
 
   public enum ExceptionType {
     DB("Database Exception:", "%s"),
-    ITEM_NOT_FOUND("GroundItemNotFoundException", "No %s %s found."),
-    VERSION_NOT_FOUND("GroundVersionNotFoundException", "No %s %s found."),
+    ITEM_NOT_FOUND("GroundItemNotFoundException", "No %s \'%s\' found."),
+    VERSION_NOT_FOUND("GroundVersionNotFoundException", "No %s \'%s\' found."),
     ITEM_ALREADY_EXISTS("GroundItemAlreadyExistsException", "%s %s already exists."),
     OTHER("GroundException", "%s");
 
