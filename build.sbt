@@ -3,15 +3,20 @@ import de.johoop.jacoco4sbt.XMLReport
 name := """ground"""
 organization := "edu.berkeley.ground"
 
-version := "0.1-SNAPSHOT"
+version := "0.1"
 
 scalaVersion := "2.11.8"
 
-
-lazy val root = (project in file(".")).enablePlugins(PlayJava
-  // SwaggerPlugin
+lazy val commonSettings = Seq(
+  organization := "edu.berkeley.ground",
+  version := "0.1",
+  scalaVersion := "2.11.8"
 )
+
+
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
   .settings(
+    commonSettings,
     name := "ground"
   )
   .aggregate(common, postgres)
@@ -20,10 +25,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava
 lazy val common = (project in file("modules/common"))
   .enablePlugins(PlayJava, JavaAppPackaging)
   .settings(
+    commonSettings,
     name := "ground-common",
-    organization := "edu.berkeley.ground.common",
-    version := "0.1-SNAPSHOT",
-    scalaVersion := "2.11.8",
     libraryDependencies += javaJdbc,
     jacoco.settings,
     parallelExecution in jacoco.Config := false,
@@ -32,14 +35,10 @@ lazy val common = (project in file("modules/common"))
   )
 
 lazy val postgres = (project in file("modules/postgres"))
-  .enablePlugins(PlayJava, JavaAppPackaging
-    //  , SwaggerPlugin
-  )
+  .enablePlugins(PlayJava, JavaAppPackaging)
   .settings(
+    commonSettings,
     name := "ground-postgres",
-    organization := "edu.berkeley.ground.postgres",
-    version := "0.1-SNAPSHOT",
-    scalaVersion := "2.11.8",
     libraryDependencies += javaJdbc,
     libraryDependencies += cache,
     libraryDependencies += "org.postgresql" % "postgresql" % "42.0.0",
