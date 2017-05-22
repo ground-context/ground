@@ -5,10 +5,11 @@ sudo: required
 before_script:
   - sh -e resources/ci/install.sh
   - sh -e resources/ci/init.sh
+  - chmod +x sbt-dist/bin/sbt
 
 script:
-  - sbt test
+  - ./sbt-dist/bin/sbt test
 
 after_success:
-  - sbt jacoco:cover
+  - ./sbt-dist/bin/sbt jacoco:cover
   - bash <(curl -s https://codecov.io/bash)
