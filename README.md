@@ -6,22 +6,16 @@
 
 Ground is an open-source data context service under development in UC Berkeley's [RISE Lab](https://rise.cs.berkeley.edu/). Ground serves as a central model, API, and repository for capturing the broad context in which data is used. Our goal is to address practical problems for the Big Data community in the short term and to open up opportunities for long-term research and innovation.
 
-For the vision behind Ground as well as a more detailed description of the state of the project, please see our [CIDR '17](http://cidrdb.org/cidr2017/) [publication](docs/CIDR17.pdf).
+For the vision behind Ground, please see our [CIDR '17](http://cidrdb.org/cidr2017/) [publication](docs/CIDR17.pdf).
 
 ## Getting Started
+You can download the latest version of Ground from our [releases page](https://github.com/ground-context/ground/releases).
+The most recent version of Ground is [**v0.1**](https://github.com/ground-context/ground/releases/tag/v0.1.0).
 
-Please take a look at our [Getting Started](https://github.com/ground-context/ground/wiki/Getting-Started) docs. We lead you through an example scenario, enabling Ground as the Hive Metastore and loading metadata across common big data tools (HDFS, Hive, and git).
+Once you have downloaded the latest version of Ground, you can start the Ground server by running `./bin/ground-postgres`.*
+This starts a local Ground server running on port 9000.
 
-Once you have completed the Getting Started docs, please take a look at our Next Steps docs.
-
-We'd love to hear any feedback you have!
-
-## Building and Running Ground
-
-If you'd like to build Ground from source:
-`mvn clean package -DskipTests`.
-
-To start a Ground server: `java -jar target/ground-0.1-SNAPSHOT.jar server conf/config.yml`.
+For more information, see [Hit the Ground Running](http://ground-context.org/wiki/), our getting started guide.
 
 ## License
 
