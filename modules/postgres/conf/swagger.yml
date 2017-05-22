@@ -1,0 +1,10 @@
+---
+  swagger: "2.0"
+  info:
+    title: "postgres Ground API"
+    description: "postgres APIs"
+    version: "0.1"
+  consumes:
+    - application/json
+  produces:
+    - application/json

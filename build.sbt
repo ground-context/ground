@@ -1,26 +1,57 @@
 import de.johoop.jacoco4sbt.XMLReport
 
 name := """ground"""
-organization := "edu.berkeley"
+organization := "edu.berkeley.ground"
 
 version := "0.1-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayJava)
-
 scalaVersion := "2.11.8"
 
-libraryDependencies += filters
-libraryDependencies += "com.datastax.cassandra" % "cassandra-driver-core" % "3.1.4"
-libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1208"
-libraryDependencies += "org.neo4j.driver" % "neo4j-java-driver" % "1.2.0"
-libraryDependencies += "org.mockito" % "mockito-core" % "2.7.22" % "test"
-libraryDependencies += "org.assertj" % "assertj-core" % "3.6.2" % "test"
 
-// disable parallel execution of tests
-parallelExecution in Test := false
+lazy val root = (project in file(".")).enablePlugins(PlayJava
+  // SwaggerPlugin
+)
+  .settings(
+    name := "ground"
+  )
+  .aggregate(common, postgres)
+
+
+lazy val common = (project in file("modules/common"))
+  .enablePlugins(PlayJava, JavaAppPackaging)
+  .settings(
+    name := "ground-common",
+    organization := "edu.berkeley.ground.common",
+    version := "0.1-SNAPSHOT",
+    scalaVersion := "2.11.8",
+    libraryDependencies += javaJdbc,
+    jacoco.settings,
+    parallelExecution in jacoco.Config := false,
+    Keys.fork in jacoco.Config := true,
+    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
+  )
+
+lazy val postgres = (project in file("modules/postgres"))
+  .enablePlugins(PlayJava, JavaAppPackaging
+    //  , SwaggerPlugin
+  )
+  .settings(
+    name := "ground-postgres",
+    organization := "edu.berkeley.ground.postgres",
+    version := "0.1-SNAPSHOT",
+    scalaVersion := "2.11.8",
+    libraryDependencies += javaJdbc,
+    libraryDependencies += cache,
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.0.0",
+    libraryDependencies += "commons-beanutils" % "commons-beanutils-core" % "1.8.3",
+    jacoco.settings,
+    parallelExecution in jacoco.Config := false,
+    Keys.fork in jacoco.Config := true,
+    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
+  ).dependsOn(common)
+
 
 jacoco.settings
 parallelExecution in jacoco.Config := false
 
-jacoco.reportFormats in jacoco.Config := Seq(
-  XMLReport(encoding = "utf-8"))
+jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
