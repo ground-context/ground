@@ -39,6 +39,7 @@ public class LineageGraphController extends Controller {
     this.cache = cache;
 
     this.postgresLineageGraphDao = new PostgresLineageGraphDao(dbSource, idGenerator);
+    this.postgresLineageGraphVersionDao = new PostgresLineageGraphVersionDao(dbSource, idGenerator);
   }
 
   public final CompletionStage<Result> getLineageGraph(String sourceKey) {
