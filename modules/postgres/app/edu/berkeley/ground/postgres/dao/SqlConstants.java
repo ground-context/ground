@@ -3,7 +3,8 @@ package edu.berkeley.ground.postgres.dao;
 public class SqlConstants {
 
   /* General insert statements */
-  public static final String INSERT_GENERIC_ITEM = "INSERT INTO %s (item_id, source_key, name) VALUES (%d, \'%s\', \'%s\');";
+  public static final String INSERT_GENERIC_ITEM_WITH_NAME = "INSERT INTO %s (item_id, source_key, name) VALUES (%d, \'%s\', \'%s\');";
+  public static final String INSERT_GENERIC_ITEM_WITHOUT_NAME = "INSERT INTO %s (item_id, source_key, name) VALUES (%d, \'%s\', null);";
 
   /* General select statements */
   public static final String SELECT_STAR_BY_SOURCE_KEY = "SELECT * FROM %s WHERE source_key = \'%s\'";
@@ -34,8 +35,10 @@ public class SqlConstants {
   public static final String SELECT_ITEM_TAGS_BY_KEY = "SELECT * FROM item_tag WHERE key = \'%s\';";
 
   /* Edge-specific statements */
-  public static final String INSERT_EDGE =
+  public static final String INSERT_EDGE_WITH_NAME =
     "INSERT INTO edge (item_id, source_key, from_node_id, to_node_id, name) VALUES (%d, \'%s\', %d, %d, \'%s\');";
+  public static final String INSERT_EDGE_WITHOUT_NAME =
+    "INSERT INTO edge (item_id, source_key, from_node_id, to_node_id, name) VALUES (%d, \'%s\', %d, %d, null);";
   public static final String INSERT_EDGE_VERSION = "INSERT INTO edge_version (id, edge_id, from_node_version_start_id, from_node_version_end_id, "
                                                      + "to_node_version_start_id, to_node_version_end_id) VALUES (%d, %d, %d, %d, %d, %d);";
   public static final String UPDATE_EDGE_VERSION = "UPDATE edge_version SET from_node_version_end_id = %d, to_node_version_end_id = %d WHERE id = "
@@ -51,7 +54,10 @@ public class SqlConstants {
   public static final String INSERT_NODE_VERSION = "INSERT INTO node_version (id, node_id) VALUES (%d, %d);";
 
   /* Rich Version-specific statements */
-  public static final String INSERT_RICH_VERSION = "INSERT INTO rich_version (id, structure_version_id, reference) VALUES (%d, %d, \'%s\');";
+  public static final String INSERT_RICH_VERSION_WITH_REFERENCE = "INSERT INTO rich_version (id, structure_version_id, reference) VALUES (%d, %d, "
+                                                                    + "\'%s\');";
+  public static final String INSERT_RICH_VERSION_WITHOUT_REFERENCE = "INSERT INTO rich_version (id, structure_version_id, reference) VALUES (%d, %d, "
+                                                                       + "null);";
   public static final String INSERT_RICH_VERSION_TAG_WITH_VALUE = "INSERT INTO rich_version_tag (rich_version_id, key, value, type) VALUES (%d, "
                                                                     + "\'%s\', \'%s\', \'%s\');";
   public static final String INSERT_RICH_VERSION_TAG_NO_VALUE = "INSERT INTO rich_version_tag (rich_version_id, key, value, type) VALUES (%d, "

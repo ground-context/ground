@@ -55,7 +55,13 @@ public abstract class PostgresRichVersionDao<T extends RichVersion> extends Post
     }
 
     PostgresStatements statements = super.insert(richVersion);
-    statements.append(String.format(SqlConstants.INSERT_RICH_VERSION, id, structureVersionId, richVersion.getReference()));
+
+    String reference = richVersion.getReference();
+    if (reference != null) {
+      statements.append(String.format(SqlConstants.INSERT_RICH_VERSION_WITH_REFERENCE, id, structureVersionId, reference));
+    } else {
+      statements.append(String.format(SqlConstants.INSERT_RICH_VERSION_WITHOUT_REFERENCE, id, structureVersionId));
+    }
 
     final Map<String, Tag> tags = richVersion.getTags();
     for (String tagKey : tags.keySet()) {

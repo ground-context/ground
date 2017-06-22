@@ -45,8 +45,16 @@ public class PostgresStructureDao extends PostgresItemDao<Structure> implements 
 
     try {
       postgresStatements = super.insert(newStructure);
-      postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "structure", uniqueId, structure.getSourceKey(),
-        structure.getName()));
+
+      String name = structure.getName();
+
+      if (name != null) {
+        postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "structure", uniqueId, structure.getSourceKey(), name));
+      } else {
+        postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "structure", uniqueId, structure.getSourceKey()));
+      }
+    } catch (GroundException e) {
+      throw e;
     } catch (Exception e) {
       throw new GroundException(e);
     }
