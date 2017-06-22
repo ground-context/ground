@@ -44,7 +44,13 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
 
     try {
       postgresStatements = super.insert(newGraph);
-      postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "graph", uniqueId, graph.getSourceKey(), graph.getName()));
+
+      String name = graph.getName();
+      if (name != null) {
+        postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "graph", uniqueId, graph.getSourceKey(), name));
+      } else {
+        postgresStatements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "graph", uniqueId, graph.getSourceKey()));
+      }
     } catch (Exception e) {
       throw new GroundException(e);
     }

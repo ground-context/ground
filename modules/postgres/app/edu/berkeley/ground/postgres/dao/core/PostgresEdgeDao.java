@@ -47,8 +47,16 @@ public class PostgresEdgeDao extends PostgresItemDao<Edge> implements EdgeDao {
     Edge newEdge = new Edge(uniqueId, edge);
     try {
       postgresStatements = super.insert(newEdge);
-      postgresStatements.append(String.format(SqlConstants.INSERT_EDGE, uniqueId, edge.getSourceKey(), edge.getFromNodeId(),
-        edge.getToNodeId(), edge.getName()));
+
+      String name = edge.getName();
+
+      if (name != null) {
+        postgresStatements.append(String.format(SqlConstants.INSERT_EDGE_WITH_NAME, uniqueId, edge.getSourceKey(), edge.getFromNodeId(),
+          edge.getToNodeId(), name));
+      } else {
+        postgresStatements.append(String.format(SqlConstants.INSERT_EDGE_WITHOUT_NAME, uniqueId, edge.getSourceKey(), edge.getFromNodeId(),
+          edge.getToNodeId()));
+      }
 
     } catch (Exception e) {
       throw new GroundException(e);

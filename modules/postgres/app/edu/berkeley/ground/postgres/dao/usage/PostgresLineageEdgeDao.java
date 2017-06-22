@@ -41,8 +41,15 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
     LineageEdge newLineageEdge = new LineageEdge(uniqueId, lineageEdge);
     PostgresStatements statements = super.insert(newLineageEdge);
 
-    statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "lineage_edge", newLineageEdge.getId(), newLineageEdge.getSourceKey(),
-      newLineageEdge.getName()));
+    String name = lineageEdge.getName();
+
+    if (name != null) {
+      statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "lineage_edge", newLineageEdge.getId(),
+        newLineageEdge.getSourceKey(), name));
+    } else {
+      statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "lineage_edge", newLineageEdge.getId(),
+        newLineageEdge.getSourceKey()));
+    }
 
     try {
       PostgresUtils.executeSqlList(this.dbSource, statements);

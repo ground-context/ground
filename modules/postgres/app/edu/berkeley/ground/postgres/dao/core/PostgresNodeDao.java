@@ -33,7 +33,14 @@ public class PostgresNodeDao extends PostgresItemDao<Node> implements NodeDao {
     Node newNode = new Node(uniqueId, node);
     try {
       statements = super.insert(newNode);
-      statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "node", uniqueId, node.getSourceKey(), node.getName()));
+
+      String name = node.getName();
+
+      if (name != null) {
+        statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "node", uniqueId, node.getSourceKey(), name));
+      } else {
+        statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "node", uniqueId, node.getSourceKey()));
+      }
     } catch (Exception e) {
       throw new GroundException(e);
     }

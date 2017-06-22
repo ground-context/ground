@@ -13,6 +13,7 @@ package edu.berkeley.ground.common.model.version;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Item {
@@ -26,7 +27,12 @@ public class Item {
   @JsonCreator
   public Item(@JsonProperty("id") long id, @JsonProperty("tags") Map<String, Tag> tags) {
     this.id = id;
-    this.tags = tags;
+
+    if (tags == null) {
+      this.tags = new HashMap<>();
+    } else {
+      this.tags = tags;
+    }
   }
 
   public long getId() {

@@ -42,8 +42,14 @@ public class PostgresLineageGraphDao extends PostgresItemDao<LineageGraph> imple
 
     PostgresStatements statements = super.insert(newLineageGraph);
 
-    statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM, "lineage_graph", newLineageGraph.getId(),
-      newLineageGraph.getSourceKey(), newLineageGraph.getName()));
+    String name = lineageGraph.getName();
+    if (name != null) {
+      statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "lineage_graph", newLineageGraph.getId(),
+        newLineageGraph.getSourceKey(), name));
+    } else {
+      statements.append(String.format(SqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "lineage_graph", newLineageGraph.getId(),
+        newLineageGraph.getSourceKey()));
+    }
 
     try {
       PostgresUtils.executeSqlList(dbSource, statements);

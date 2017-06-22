@@ -7,6 +7,7 @@ sudo rm -rf /etc/postgresql-common/
 sudo rm -rf /var/lib/postgresql/
 
 # install postgres
+sudo apt-get update
 sudo apt-get install -y postgresql
 sudo sed -i "s|peer|trust|g" /etc/postgresql/9.6/main/pg_hba.conf
 sudo sed -i "s|md5|trust|g" /etc/postgresql/9.6/main/pg_hba.conf
