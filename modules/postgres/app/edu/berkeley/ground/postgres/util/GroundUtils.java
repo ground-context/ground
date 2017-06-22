@@ -40,9 +40,6 @@ public final class GroundUtils {
   }
 
   public static Result handleException(Throwable e, Request request) {
-    System.out.println(e.getClass().getSimpleName());
-    System.out.println(e.getCause().getClass().getSimpleName());
-    System.out.println(e.getCause().getCause().getClass().getSimpleName());
     if (e.getCause().getCause() instanceof GroundException) {
       return badRequest(GroundUtils.getClientError(request, e.getCause().getCause(), ExceptionType.ITEM_NOT_FOUND));
     } else {
