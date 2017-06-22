@@ -75,7 +75,7 @@ public final class GroundUtils {
     try {
       return new ObjectMapper().writeValueAsString(objList);
     } catch (IOException e) {
-      throw new RuntimeException("ERROR : listToJson Converting List to Json." + e.getMessage(), e);
+      throw new RuntimeException("ERROR : listToJson Converting List to JSON." + e.getMessage(), e);
     }
   }
 

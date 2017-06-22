@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.common.model.version.Version;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -54,18 +55,30 @@ public class RichVersion extends Version {
                       @JsonProperty("parameters") Map<String, String> referenceParameters) {
 
     super(id);
-    this.tags = tags;
+
+    if (tags == null) {
+      this.tags = new HashMap<>();
+    } else {
+      this.tags = tags;
+    }
+
     if (structureVersionId == null || structureVersionId <= 0) {
       this.structureVersionId = -1L;
     } else {
       this.structureVersionId = structureVersionId;
     }
+
     if (reference == null || reference.equals("null")) {
       this.reference = null;
     } else {
       this.reference = reference;
     }
-    this.parameters = referenceParameters;
+
+    if (referenceParameters == null) {
+      this.parameters = new HashMap<>();
+    } else {
+      this.parameters = referenceParameters;
+    }
   }
 
   public RichVersion(long id, RichVersion other) {
