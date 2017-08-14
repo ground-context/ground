@@ -6,7 +6,7 @@
 
 Ground is an open-source data context service under development in UC Berkeley's [RISE Lab](https://rise.cs.berkeley.edu/). Ground serves as a central model, API, and repository for capturing the broad context in which data is used. Our goal is to address practical problems for the Big Data community in the short term and to open up opportunities for long-term research and innovation.
 
-For the vision behind Ground, please see our [CIDR '17](http://cidrdb.org/cidr2017/) [publication](docs/CIDR17.pdf).
+For the vision behind Ground, please see our [CIDR '17](http://cidrdb.org/cidr2017/) [publication](resources/docs/CIDR17.pdf).
 
 ## Getting Started
 You can download the latest version of Ground from our [releases page](https://github.com/ground-context/ground/releases).
