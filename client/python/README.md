@@ -16,7 +16,7 @@ pip install git+https://github.com/GIT_USER_ID/GIT_REPO_ID.git
 
 Then import the package:
 ```python
-import swagger_client 
+import groundclient 
 ```
 
 ### Setuptools
@@ -30,7 +30,7 @@ python setup.py install --user
 
 Then import the package:
 ```python
-import swagger_client
+import groundclient
 ```
 
 ## Getting Started
@@ -40,11 +40,11 @@ Please follow the [installation procedure](#installation--usage) and then run th
 ```python
 from __future__ import print_function
 import time
-import swagger_client
-from swagger_client.rest import ApiException
+import groundclient
+from groundclient.rest import ApiException
 from pprint import pprint
 # create an instance of the API class
-api_instance = swagger_client.DefaultApi()
+api_instance = groundclient.DefaultApi()
 
 try:
     api_instance.edges_post()
