@@ -82,19 +82,7 @@
             </goals>
             <configuration>
               <sources>
-                <source>src/main/java</source>
-              </sources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>add_test_sources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/test/java</source>
+                <source>src</source>
               </sources>
             </configuration>
           </execution>
