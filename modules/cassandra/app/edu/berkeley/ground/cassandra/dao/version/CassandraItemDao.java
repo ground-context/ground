@@ -54,7 +54,6 @@ public abstract class CassandraItemDao<T extends Item> implements ItemDao<T> {
 
     final Map<String, Tag> tags = item.getTags();
     CassandraStatements statements = new CassandraStatements(cqlList);
-    // statements.intendToCreateId(id); // Andre - added for modified statements
 
     if (tags != null) {
       for (String key : tags.keySet()) {

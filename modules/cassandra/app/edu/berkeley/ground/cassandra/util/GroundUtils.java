@@ -73,7 +73,6 @@ public final class GroundUtils {
 
   static String listToJson(final List<Map<String, Object>> objList) {
     try {
-      Logger.debug("Andre: " + new ObjectMapper().writeValueAsString(objList));
       return new ObjectMapper().writeValueAsString(objList);
     } catch (IOException e) {
       throw new RuntimeException("ERROR : listToJson Converting List to JSON." + e.getMessage(), e);
