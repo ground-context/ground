@@ -1,4 +1,4 @@
-# swagger-java-client
+# Ground Java Client
 
 ## Requirements
 
@@ -31,14 +31,6 @@ Add this dependency to your project's POM:
     <version>1.0.0</version>
     <scope>compile</scope>
 </dependency>
-```
-
-### Gradle users
-
-Add this dependency to your project's build file:
-
-```groovy
-compile "io.swagger:swagger-java-client:1.0.0"
 ```
 
 ### Others
@@ -86,49 +78,35 @@ public class DefaultApiExample {
 
 All URIs are relative to *http://localhost:9000*
 
-Class | Method | HTTP request | Description
------------- | ------------- | ------------- | -------------
-*DefaultApi* | [**edgesPost**](docs/DefaultApi.md#edgesPost) | **POST** /edges | 
-*DefaultApi* | [**edgesSourceKeyGet**](docs/DefaultApi.md#edgesSourceKeyGet) | **GET** /edges/{sourceKey} | 
-*DefaultApi* | [**graphsPost**](docs/DefaultApi.md#graphsPost) | **POST** /graphs | 
-*DefaultApi* | [**graphsSourceKeyGet**](docs/DefaultApi.md#graphsSourceKeyGet) | **GET** /graphs/{sourceKey} | 
-*DefaultApi* | [**lineageEdgesPost**](docs/DefaultApi.md#lineageEdgesPost) | **POST** /lineage_edges | 
-*DefaultApi* | [**lineageEdgesSourceKeyGet**](docs/DefaultApi.md#lineageEdgesSourceKeyGet) | **GET** /lineage_edges/{sourceKey} | 
-*DefaultApi* | [**lineageGraphsPost**](docs/DefaultApi.md#lineageGraphsPost) | **POST** /lineage_graphs | 
-*DefaultApi* | [**lineageGraphsSourceKeyGet**](docs/DefaultApi.md#lineageGraphsSourceKeyGet) | **GET** /lineage_graphs/{sourceKey} | 
-*DefaultApi* | [**nodesPost**](docs/DefaultApi.md#nodesPost) | **POST** /nodes | 
-*DefaultApi* | [**nodesSourceKeyGet**](docs/DefaultApi.md#nodesSourceKeyGet) | **GET** /nodes/{sourceKey} | 
-*DefaultApi* | [**rootGet**](docs/DefaultApi.md#rootGet) | **GET** / | 
-*DefaultApi* | [**structuresPost**](docs/DefaultApi.md#structuresPost) | **POST** /structures | 
-*DefaultApi* | [**structuresSourceKeyGet**](docs/DefaultApi.md#structuresSourceKeyGet) | **GET** /structures/{sourceKey} | 
-*DefaultApi* | [**versionsEdgesIdGet**](docs/DefaultApi.md#versionsEdgesIdGet) | **GET** /versions/edges/{id} | 
-*DefaultApi* | [**versionsEdgesPost**](docs/DefaultApi.md#versionsEdgesPost) | **POST** /versions/edges | 
-*DefaultApi* | [**versionsGraphsIdGet**](docs/DefaultApi.md#versionsGraphsIdGet) | **GET** /versions/graphs/{id} | 
-*DefaultApi* | [**versionsGraphsPost**](docs/DefaultApi.md#versionsGraphsPost) | **POST** /versions/graphs | 
-*DefaultApi* | [**versionsLineageEdgesIdGet**](docs/DefaultApi.md#versionsLineageEdgesIdGet) | **GET** /versions/lineage_edges/{id} | 
-*DefaultApi* | [**versionsLineageEdgesPost**](docs/DefaultApi.md#versionsLineageEdgesPost) | **POST** /versions/lineage_edges | 
-*DefaultApi* | [**versionsLineageGraphsIdGet**](docs/DefaultApi.md#versionsLineageGraphsIdGet) | **GET** /versions/lineage_graphs/{id} | 
-*DefaultApi* | [**versionsLineageGraphsPost**](docs/DefaultApi.md#versionsLineageGraphsPost) | **POST** /versions/lineage_graphs | 
-*DefaultApi* | [**versionsNodesIdGet**](docs/DefaultApi.md#versionsNodesIdGet) | **GET** /versions/nodes/{id} | 
-*DefaultApi* | [**versionsNodesPost**](docs/DefaultApi.md#versionsNodesPost) | **POST** /versions/nodes | 
-*DefaultApi* | [**versionsStructuresIdGet**](docs/DefaultApi.md#versionsStructuresIdGet) | **GET** /versions/structures/{id} | 
-*DefaultApi* | [**versionsStructuresPost**](docs/DefaultApi.md#versionsStructuresPost) | **POST** /versions/structures | 
-
-
-## Documentation for Models
-
-
-
-## Documentation for Authorization
-
-All endpoints do not require authorization.
-Authentication schemes defined for the API:
+Method | HTTP request
+------------- | -------------
+[**edgesPost**](docs/DefaultApi.md#edgesPost) | **POST** /edges
+[**edgesSourceKeyGet**](docs/DefaultApi.md#edgesSourceKeyGet) | **GET** /edges/{sourceKey}
+[**graphsPost**](docs/DefaultApi.md#graphsPost) | **POST** /graphs
+[**graphsSourceKeyGet**](docs/DefaultApi.md#graphsSourceKeyGet) | **GET** /graphs/{sourceKey}
+[**lineageEdgesPost**](docs/DefaultApi.md#lineageEdgesPost) | **POST** /lineage_edges
+[**lineageEdgesSourceKeyGet**](docs/DefaultApi.md#lineageEdgesSourceKeyGet) | **GET** /lineage_edges/{sourceKey}
+[**lineageGraphsPost**](docs/DefaultApi.md#lineageGraphsPost) | **POST** /lineage_graphs
+[**lineageGraphsSourceKeyGet**](docs/DefaultApi.md#lineageGraphsSourceKeyGet) | **GET** /lineage_graphs/{sourceKey}
+[**nodesPost**](docs/DefaultApi.md#nodesPost) | **POST** /nodes
+[**nodesSourceKeyGet**](docs/DefaultApi.md#nodesSourceKeyGet) | **GET** /nodes/{sourceKey}
+[**rootGet**](docs/DefaultApi.md#rootGet) | **GET** /
+[**structuresPost**](docs/DefaultApi.md#structuresPost) | **POST** /structures
+[**structuresSourceKeyGet**](docs/DefaultApi.md#structuresSourceKeyGet) | **GET** /structures/{sourceKey}
+[**versionsEdgesIdGet**](docs/DefaultApi.md#versionsEdgesIdGet) | **GET** /versions/edges/{id}
+[**versionsEdgesPost**](docs/DefaultApi.md#versionsEdgesPost) | **POST** /versions/edges
+[**versionsGraphsIdGet**](docs/DefaultApi.md#versionsGraphsIdGet) | **GET** /versions/graphs/{id}
+[**versionsGraphsPost**](docs/DefaultApi.md#versionsGraphsPost) | **POST** /versions/graphs
+[**versionsLineageEdgesIdGet**](docs/DefaultApi.md#versionsLineageEdgesIdGet) | **GET** /versions/lineage_edges/{id}
+[**versionsLineageEdgesPost**](docs/DefaultApi.md#versionsLineageEdgesPost) | **POST** /versions/lineage_edges
+[**versionsLineageGraphsIdGet**](docs/DefaultApi.md#versionsLineageGraphsIdGet) | **GET** /versions/lineage_graphs/{id}
+[**versionsLineageGraphsPost**](docs/DefaultApi.md#versionsLineageGraphsPost) | **POST** /versions/lineage_graphs
+[**versionsNodesIdGet**](docs/DefaultApi.md#versionsNodesIdGet) | **GET** /versions/nodes/{id}
+[**versionsNodesPost**](docs/DefaultApi.md#versionsNodesPost) | **POST** /versions/nodes
+[**versionsStructuresIdGet**](docs/DefaultApi.md#versionsStructuresIdGet) | **GET** /versions/structures/{id}
+[**versionsStructuresPost**](docs/DefaultApi.md#versionsStructuresPost) | **POST** /versions/structures
 
 ## Recommendation
 
 It's recommended to create an instance of `ApiClient` per thread in a multithreaded environment to avoid any potential issues.
-
-## Author
-
-andreaskari@berkeley.edu
 

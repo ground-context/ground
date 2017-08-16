@@ -1,6 +1,6 @@
 import de.johoop.jacoco4sbt.XMLReport
 
-name := """ground""" 
+name := """ground"""
 
 lazy val commonSettings = Seq(
   organization := "edu.berkeley.ground",
