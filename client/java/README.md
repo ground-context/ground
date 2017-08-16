@@ -41,7 +41,7 @@ At first generate the JAR by executing:
 
 Then manually install the following JARs:
 
-* target/swagger-java-client-1.0.0.jar
+* target/ground-java-client-1.0.0.jar
 * target/lib/*.jar
 
 ## Getting Started
@@ -50,10 +50,10 @@ Please follow the [installation](#installation) instruction and execute the foll
 
 ```java
 
-import io.swagger.client.*;
-import io.swagger.client.auth.*;
-import io.swagger.client.model.*;
-import io.swagger.client.api.DefaultApi;
+import edu.berkeley.ground.client.*;
+import edu.berkeley.ground.client.auth.*;
+import edu.berkeley.ground.client.model.*;
+import edu.berkeley.ground.client.api.DefaultApi;
 
 import java.io.File;
 import java.util.*;
