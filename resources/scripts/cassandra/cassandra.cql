@@ -115,10 +115,10 @@ CREATE TABLE IF NOT EXISTS node_version (
 CREATE TABLE IF NOT EXISTS edge_version (
     id bigint PRIMARY KEY,
     edge_id bigint,
-    from_node_start_id bigint,
-    from_node_end_id bigint,
-    to_node_start_id bigint,
-    to_node_end_id bigint
+    from_node_version_start_id bigint,
+    from_node_version_end_id bigint,
+    to_node_version_start_id bigint,
+    to_node_version_end_id bigint
 );
 
 CREATE TABLE IF NOT EXISTS graph_version (
