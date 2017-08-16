@@ -21,7 +21,6 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
-// import play.db.Database;
 
 
 public class CassandraStructureDao extends CassandraItemDao<Structure> implements StructureDao {
@@ -49,7 +48,7 @@ public class CassandraStructureDao extends CassandraItemDao<Structure> implement
 
       String name = structure.getName();
 
-      if (name != null) { // Andre - Make into CQL statements
+      if (name != null) {
         cassandraStatements.append(String.format(CqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "structure", uniqueId, structure.getSourceKey(), name));
       } else {
         cassandraStatements.append(String.format(CqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "structure", uniqueId, structure.getSourceKey()));
@@ -60,7 +59,7 @@ public class CassandraStructureDao extends CassandraItemDao<Structure> implement
       throw new GroundException(e);
     }
 
-    CassandraUtils.executeCqlList(dbSource, cassandraStatements); // Andre - Batch CQL?
+    CassandraUtils.executeCqlList(dbSource, cassandraStatements);
     return newStructure;
   }
 

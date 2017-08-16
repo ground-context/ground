@@ -24,21 +24,14 @@ import edu.berkeley.ground.cassandra.dao.version.CassandraTagDao;
 import edu.berkeley.ground.cassandra.dao.version.CassandraVersionDao;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-
-// import java.sql.Connection; // Andre - what to do here
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import play.Logger; // Not necessary
-// import play.db.Database;
+
 
 public abstract class CassandraRichVersionDao<T extends RichVersion> extends CassandraVersionDao<T> implements RichVersionDao<T> {
 
@@ -86,7 +79,7 @@ public abstract class CassandraRichVersionDao<T extends RichVersion> extends Cas
       }
     }
 
-    return statements; // Andre - What happens to these statements that are returned?
+    return statements;
   }
 
   @Override
@@ -107,12 +100,8 @@ public abstract class CassandraRichVersionDao<T extends RichVersion> extends Cas
   public RichVersion retrieveFromDatabase(long id) throws GroundException {
     String cql = String.format(CqlConstants.SELECT_STAR_BY_ID, "rich_version", id);
 
-    // ResultSet resultSet;
     String reference;
     long structureVersionId;
-
-    // Cluster cluster = this.dbSource.getCluster();
-    // Session session = this.dbSource.getSession(cluster);
 
     Session session = this.dbSource.getSession();
 
@@ -126,36 +115,12 @@ public abstract class CassandraRichVersionDao<T extends RichVersion> extends Cas
 
       Row nextRow = resultSet.one();
 
-      // Logger.debug("Andre: nextRow: " + nextRow.getColumnDefinitions().size());
-      // for (int i = 0; i < nextRow.getColumnDefinitions().size(); i++) {
-      //   Logger.debug("Andre: nextRow: " + nextRow.getColumnDefinitions().getName(i));
-      // }
-
-      reference = nextRow.getString("reference"); // Andre - Modified index
-      structureVersionId = nextRow.getLong("structure_version_id"); // Andre - Modified index
+      reference = nextRow.getString("reference");
+      structureVersionId = nextRow.getLong("structure_version_id");
       
     } catch (QueryExecutionException e) {
       throw new GroundException(e);
     }
-
-    // session.close();
-    // cluster.close();
-
-    // try (Connection con = dbSource.getConnection()) {
-    //   Statement stmt = con.createStatement();
-    //   resultSet = stmt.executeQuery(cql);
-
-    //   if (!resultSet.next()) {
-    //     throw new GroundException(ExceptionType.VERSION_NOT_FOUND, RichVersion.class.getSimpleName(), String.format("%d", id));
-    //   }
-
-    //   reference = resultSet.getString(3);
-    //   structureVersionId = resultSet.getLong(2);
-    //   stmt.close();
-    //   con.close();
-    // } catch (SQLException e) { // Andre - WTF DO I DO HERE! CQLException????
-    //   throw new GroundException(e);
-    // }
 
     Map<String, Tag> tags = this.cassandraTagDao.retrieveFromDatabaseByVersionId(id);
     Map<String, String> referenceParams = getReferenceParameters(id);
@@ -168,40 +133,17 @@ public abstract class CassandraRichVersionDao<T extends RichVersion> extends Cas
     String cql = String.format(CqlConstants.SELECT_RICH_VERSION_EXTERNAL_PARAMETERS, id);
     Map<String, String> referenceParameters = new HashMap<>();
 
-    // Cluster cluster = this.dbSource.getCluster();
-    // Session session = this.dbSource.getSession(cluster);
-    
     Session session = this.dbSource.getSession();
 
     ResultSet parameterSet = session.execute(cql);
-    // Row nextRow = parameterSet.one();
     if (parameterSet.isExhausted()) {
       return referenceParameters;
     }
 
-    // referenceParameters.put(nextRow.getString("key"), nextRow.getString("value")); // Andre - Modified index
     for (Row row: parameterSet.all()) {
-      referenceParameters.put(row.getString("key"), row.getString("value")); // Andre - Modified index
+      referenceParameters.put(row.getString("key"), row.getString("value"));
     }
 
-    // session.close();
-    // cluster.close();
-
-    // try (Connection con = dbSource.getConnection()) {
-    //   Statement stmt = con.createStatement();
-    //   ResultSet parameterSet = stmt.executeQuery(cql);
-    //   if (!parameterSet.next()) {
-    //     return referenceParameters;
-    //   }
-    //   do {
-    //     referenceParameters.put(parameterSet.getString(2), parameterSet.getString(3));
-    //   } while (parameterSet.next());
-
-    //   stmt.close();
-    //   con.close();
-    // } catch (Exception e) {
-    //   throw new GroundException(e);
-    // }
     return referenceParameters;
   }
 

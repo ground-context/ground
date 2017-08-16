@@ -26,7 +26,6 @@ import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import play.db.Database;
 import play.libs.Json;
 
 public class CassandraStructureVersionDao extends CassandraVersionDao<StructureVersion> implements StructureVersionDao {
@@ -47,14 +46,14 @@ public class CassandraStructureVersionDao extends CassandraVersionDao<StructureV
                                              .update(newStructureVersion.getStructureId(), newStructureVersion.getId(), parentIds);
 
     try {
-      CassandraStatements statements = super.insert(newStructureVersion); // Andre - Get statements from insertion?
+      CassandraStatements statements = super.insert(newStructureVersion);
       statements.append(String.format(CqlConstants.INSERT_STRUCTURE_VERSION, uniqueId, structureVersion.getStructureId()));
 
-      for (Map.Entry<String, GroundType> attribute : structureVersion.getAttributes().entrySet()) { // Andre - Change to CQL
+      for (Map.Entry<String, GroundType> attribute : structureVersion.getAttributes().entrySet()) {
         statements.append(String.format(CqlConstants.INSERT_STRUCTURE_VERSION_ATTRIBUTE, uniqueId, attribute.getKey(), attribute.getValue()));
       }
 
-      statements.merge(updateVersionList); // Andre - Update some type of lineage tree of versions?
+      statements.merge(updateVersionList);
 
       CassandraUtils.executeCqlList(dbSource, statements);
     } catch (Exception e) {
@@ -67,7 +66,7 @@ public class CassandraStructureVersionDao extends CassandraVersionDao<StructureV
   @Override
   public CassandraStatements delete(long id) {
     CassandraStatements statements = new CassandraStatements();
-    statements.append(String.format(CqlConstants.DELETE_STRUCTURE_VERSION_ATTRIBUTES, id)); // Andre - CQL
+    statements.append(String.format(CqlConstants.DELETE_STRUCTURE_VERSION_ATTRIBUTES, id));
     statements.append(String.format(CqlConstants.DELETE_BY_ID, "structure_version", id));
 
     CassandraStatements superStatements = super.delete(id);
@@ -80,7 +79,7 @@ public class CassandraStructureVersionDao extends CassandraVersionDao<StructureV
     HashMap<String, GroundType> attributes;
     try {
       String resultQuery = String.format(CqlConstants.SELECT_STAR_BY_ID, "structure_version", id);
-      JsonNode resultJson = Json.parse(CassandraUtils.executeQueryToJson(dbSource, resultQuery)); // Andre - Async call? May be blocking/waiting?
+      JsonNode resultJson = Json.parse(CassandraUtils.executeQueryToJson(dbSource, resultQuery));
 
       if (resultJson.size() == 0) {
         throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));

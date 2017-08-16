@@ -25,8 +25,8 @@ import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.ArrayList;
 import java.util.List;
-// import play.db.Database;
 import play.libs.Json;
+
 
 public class CassandraLineageGraphVersionDao extends CassandraRichVersionDao<LineageGraphVersion> implements LineageGraphVersionDao {
 

@@ -24,8 +24,8 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
-// import play.db.Database;
 import play.libs.Json;
+
 
 public class CassandraLineageEdgeVersionDao extends CassandraRichVersionDao<LineageEdgeVersion> implements LineageEdgeVersionDao {
 

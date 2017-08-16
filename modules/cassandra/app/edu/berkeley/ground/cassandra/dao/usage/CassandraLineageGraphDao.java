@@ -21,7 +21,7 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
-// import play.db.Database;
+
 
 public class CassandraLineageGraphDao extends CassandraItemDao<LineageGraph> implements LineageGraphDao {
 

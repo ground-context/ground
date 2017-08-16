@@ -24,7 +24,6 @@ import edu.berkeley.ground.cassandra.dao.CassandraTest;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import org.junit.Test;
-import play.Logger; // Andre - unnecessary
 
 public class CassandraVersionSuccessorDaoTest extends CassandraTest {
 
@@ -51,26 +50,19 @@ public class CassandraVersionSuccessorDaoTest extends CassandraTest {
 
   @Test(expected = GroundException.class)
   public void testBadVersionSuccessorCreation() throws GroundException {
-    Logger.debug("\n\n\nBEGINNING TEST\n");
-
     long fromId = 123;
     long toId = 456;
 
-    Logger.debug("A");
-    // Catch exceptions for these two lines because they should not fal
     try {
       // the main difference is that we're not creating a Version for the toId
       CassandraTest.cassandraVersionDao.insert(new Version(fromId));
     } catch (GroundException ge) {
       fail(ge.getMessage());
     }
-    Logger.debug("B");
 
     // This statement should cause a GroundException because toId is not in the database
     VersionSuccessor successor = ((CassandraVersionSuccessorDao) CassandraTest.versionSuccessorDao).instantiateVersionSuccessor(fromId, toId);
-    Logger.debug("C");
     CassandraUtils.executeCqlList(CassandraTest.dbSource, (CassandraStatements) CassandraTest.versionSuccessorDao.insert(successor));
-    Logger.debug("D");
   }
 
   @Test(expected = GroundException.class)

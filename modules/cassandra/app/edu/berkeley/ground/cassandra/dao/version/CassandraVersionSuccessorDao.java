@@ -25,18 +25,15 @@ import edu.berkeley.ground.cassandra.dao.CqlConstants;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
-// import play.db.Database;
-import play.libs.Json;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.exceptions.QueryExecutionException; // Andre - may want to get rid of
+import com.datastax.driver.core.exceptions.QueryExecutionException;
+import play.libs.Json;
 
-import play.Logger; // Andre - unnecessary
 
-public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
+public class CassandraVersionSuccessorDao {
 
   private final IdGenerator idGenerator;
   private final CassandraDatabase dbSource;
@@ -52,11 +49,10 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
    * @param successor the successor to insert
    * @return List of CQL expressions to insert version successor
    */
-  @Override
-  public CassandraStatements insert(VersionSuccessor successor) {
+  public CassandraStatements insert(VersionSuccessor successor) throws GroundException {
     // Check to see if both are valid ids since we don't have foreign key constraints
-    // verifyVersion(successor.getFromId()); // Andre - not working for now
-    // verifyVersion(successor.getFromId());
+    verifyVersion(successor.getFromId());
+    verifyVersion(successor.getFromId());
        
     CassandraStatements statements = new CassandraStatements();
     String cql = String.format(CqlConstants.INSERT_VERSION_SUCCESSOR, successor.getId(), successor.getFromId(), successor.getToId());
@@ -73,11 +69,6 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
    * @return the created version successor
    */
   VersionSuccessor instantiateVersionSuccessor(long fromId, long toId) throws GroundException {
-    // Check to see if both are valid ids since we don't have foreign key constraints
-    // Logger.debug("Andre: checking versions exist");
-    // verifyVersion(fromId); // Andre - not working for now
-    // verifyVersion(toId);
-
     long dbId = idGenerator.generateSuccessorId();
     return new VersionSuccessor(dbId, fromId, toId);
   }
@@ -89,7 +80,6 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
    * @return the retrieved version successor
    * @throws GroundException either the successor didn't exist or couldn't be retrieved
    */
-  @Override
   public VersionSuccessor retrieveFromDatabase(long dbId) throws GroundException {
     try {
       String cql = String.format(CqlConstants.SELECT_VERSION_SUCCESSOR, dbId);
@@ -115,7 +105,6 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
    * @param itemId the id of the item we are deleting from
    * @throws GroundException an unexpected error while retrieving the version successors to delete
    */
-  @Override
   public void deleteFromDestination(DbStatements statementsPointer, long toId, long itemId) throws GroundException {
     CassandraStatements statements = (CassandraStatements) statementsPointer;
 
@@ -126,11 +115,8 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
       for (JsonNode result : json) {
         Long dbId = result.get("id").asLong();
 
-        statements.append(String.format(CqlConstants.DELETE_SUCCESSOR_FROM_DAG, itemId, dbId)); // Andre
+        statements.append(String.format(CqlConstants.DELETE_SUCCESSOR_FROM_DAG, itemId, dbId));
         statements.append(String.format(CqlConstants.DELETE_VERSION_SUCCESSOR, dbId));
-
-        // statements.append(String.format(CqlConstants.DELETE_SUCCESSOR_FROM_DAG, dbId));
-        // statements.append(String.format(CqlConstants.DELETE_VERSION_SUCCESSOR, dbId));
       }
     } catch (Exception e) {
       throw new GroundException(e);
@@ -143,8 +129,6 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
    * @param id an idea of a version
    */
   private void verifyVersion(long id) throws GroundException {
-    // List<DbDataContainer> predicate = new ArrayList<>();
-    // predicate.add(new DbDataContainer("id", GroundType.LONG, id));
     if (id == 0L ) {
       return;
     }
@@ -157,12 +141,5 @@ public class CassandraVersionSuccessorDao implements VersionSuccessorDao {
     if (resultSet.isExhausted()) {
       throw new GroundException(ExceptionType.VERSION_NOT_FOUND, "version", String.valueOf(id));
     }
-
-    // ResultSet resultSet = this.dbClient.equalitySelect("version", DbClient.SELECT_STAR,
-        // predicate);
-
-    // if (resultSet.isEmpty()) {
-    //   throw new GroundException("Version id " + id + " is not valid.");
-    // }
   }
 }

@@ -28,9 +28,8 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-//import play.db.Database;
 import play.libs.Json;
-import play.Logger; // Andre
+
 
 public abstract class CassandraItemDao<T extends Item> implements ItemDao<T> {
 
@@ -113,12 +112,7 @@ public abstract class CassandraItemDao<T extends Item> implements ItemDao<T> {
     VersionHistoryDag dag = this.cassandraVersionHistoryDagDao.retrieveFromDatabase(itemId);
     CassandraStatements statements = new CassandraStatements();
 
-    for (String s: statements.getAllStatements()) {
-      Logger.debug("Andre statement: " + s);
-    }
-
     for (long parentId : parentIds) {
-      Logger.debug("Andre: PARENTID: " + parentId);
       if (parentId != 0L && !dag.checkItemInDag(parentId)) {
         throw new GroundException(ExceptionType.OTHER, String.format("Parent %d is not in Item %d.", parentId, itemId));
       }

@@ -18,7 +18,6 @@ import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.cassandra.dao.CqlConstants;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
-//import play.db.Database;
 
 public abstract class CassandraVersionDao<T extends Version> implements VersionDao<T> {
 

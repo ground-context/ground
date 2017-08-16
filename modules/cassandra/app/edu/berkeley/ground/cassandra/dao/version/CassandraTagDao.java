@@ -19,24 +19,15 @@ import edu.berkeley.ground.common.model.version.Tag;
 import edu.berkeley.ground.cassandra.dao.CqlConstants;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.QueryExecutionException;
-
-// import java.sql.Connection; // Andre - what do to here?
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import play.db.Database;
-import play.Logger; // Andre unnecessary
 
 public class CassandraTagDao implements TagDao {
 
@@ -85,51 +76,18 @@ public class CassandraTagDao implements TagDao {
   private Map<String, Tag> retrieveFromDatabaseById(long id, String cql) throws GroundException {
     Map<String, Tag> results = new HashMap<>();
 
-    // Cluster cluster = this.dbSource.getCluster();
-    // Session session = this.dbSource.getSession(cluster);
-
     Session session = this.dbSource.getSession();
-    // Logger.debug
 
     ResultSet resultSet = session.execute(cql);
     for (Row row: resultSet.all()) {
-      String key = row.getString("key"); // Andre - Modified index
+      String key = row.getString("key");
 
       // these methods will return null if the input is null, so there's no need to check
-      GroundType type = GroundType.fromString(row.getString("type")); // Andre - Modified index
-      Object value = this.getValue(type, row, "value"); // Andre - Modified index
-      // Logger.debug("id: " + id);
-      // Logger.debug("key: " + key);
-      // Logger.debug("value: " + value);
-      // Logger.debug("type: " + type);
+      GroundType type = GroundType.fromString(row.getString("type"));
+      Object value = this.getValue(type, row, "value");
 
       results.put(key, new Tag(id, key, value, type));
     }
-
-    // session.close();
-    // cluster.close();
-
-    // try {
-    //   Connection con = this.dbSource.getConnection();
-    //   Statement stmt = con.createStatement();
-
-    //   ResultSet resultSet = stmt.executeQuery(cql);
-
-    //   while (resultSet.next()) {
-    //     String key = resultSet.getString(2);
-
-    //     // these methods will return null if the input is null, so there's no need to check
-    //     GroundType type = GroundType.fromString(resultSet.getString(4));
-    //     Object value = this.getValue(type, resultSet, 3);
-
-    //     results.put(key, new Tag(id, key, value, type));
-    //   }
-
-      // stmt.close();
-      // con.close();
-    // } catch (SQLException e) { // Andre - CQLException????
-      // throw new GroundException(e);
-    // }
 
     return results;
   }
@@ -149,62 +107,36 @@ public class CassandraTagDao implements TagDao {
   private List<Long> getIdsByTag(String cql, String idColumn) throws GroundException {
     List<Long> result = new ArrayList<>();
 
-    // Cluster cluster = this.dbSource.getCluster();
-    // Session session = this.dbSource.getSession(cluster);
-
     Session session = this.dbSource.getSession();
 
     try {
       ResultSet resultSet = session.execute(cql);
       for (Row row: resultSet.all()) {
-        result.add(row.getLong(idColumn)); // Andre - Modified
+        result.add(row.getLong(idColumn));
       }
-    } catch (QueryExecutionException e) { // Andre - CQLException??
+    } catch (QueryExecutionException e) {
       throw new GroundException(e);
     }
-
-    // session.close();
-    // cluster.close();
-
-    // try {
-    //   Connection con = this.dbSource.getConnection();
-    //   Statement stmt = con.createStatement();
-    //   ResultSet resultSet = stmt.executeQuery(cql);
-
-    //   while (resultSet.next()) {
-    //     result.add(resultSet.getLong(1));
-    //   }
-
-    // } catch (SQLException e) { // Andre - CQLException??
-    //   throw new GroundException(e);
-    // }
 
     return result;
   }
 
-  // private Object getValue(GroundType type, ResultSet resultSet, String columnName) throws GroundException, SQLException { // Andre - CQLException??
-  private Object getValue(GroundType type, Row row, String columnName) throws GroundException { // Andre - CQLException??
+  private Object getValue(GroundType type, Row row, String columnName) throws GroundException {
 
     if (type == null) {
       return null;
     }
 
-    Logger.debug(type.toString());
-    Logger.debug(row.getString(columnName));
 
     switch (type) {
       case STRING:
-        // return row.getString(columnName);
-        return row.getString(columnName); // Andre
+        return row.getString(columnName);
       case INTEGER:
-        // return row.getInt(columnName);
-        return Integer.valueOf(row.getString(columnName)); // Andre
+        return Integer.valueOf(row.getString(columnName));
       case LONG:
-        // return row.getLong(columnName);
-        return Long.valueOf(row.getString(columnName)); // Andre
+        return Long.valueOf(row.getString(columnName));
       case BOOLEAN:
-        // return row.getBool(columnName);
-        return Boolean.valueOf(row.getString(columnName)); // Andre
+        return Boolean.valueOf(row.getString(columnName));
       default:
         // this should never happen because we've listed all types
         throw new GroundException(ExceptionType.OTHER, String.format("Unidentified type: %s", type));

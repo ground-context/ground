@@ -17,7 +17,8 @@ import edu.berkeley.ground.common.dao.version.ItemDao;
 import edu.berkeley.ground.common.dao.version.TagDao;
 import edu.berkeley.ground.common.dao.version.VersionDao;
 import edu.berkeley.ground.common.dao.version.VersionHistoryDagDao;
-import edu.berkeley.ground.common.dao.version.VersionSuccessorDao;
+// import edu.berkeley.ground.common.dao.version.VersionSuccessorDao;
+import edu.berkeley.ground.cassandra.dao.version.CassandraVersionSuccessorDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Edge;
 import edu.berkeley.ground.common.model.core.EdgeVersion;
@@ -56,7 +57,8 @@ public class DaoTest {
 
   protected static CassandraDatabase dbSource;
   protected static IdGenerator idGenerator;
-  protected static VersionSuccessorDao versionSuccessorDao;
+  // protected static VersionSuccessorDao versionSuccessorDao;
+  protected static CassandraVersionSuccessorDao versionSuccessorDao;
   protected static VersionHistoryDagDao versionHistoryDagDao;
   protected static TagDao tagDao;
   protected static EdgeDao edgeDao;

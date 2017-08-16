@@ -4,13 +4,12 @@ import edu.berkeley.ground.common.dao.core.NodeDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Node;
 import edu.berkeley.ground.common.util.IdGenerator;
-import edu.berkeley.ground.cassandra.dao.CqlConstants; // Andre - What is this - CQL needed
+import edu.berkeley.ground.cassandra.dao.CqlConstants;
 import edu.berkeley.ground.cassandra.dao.version.CassandraItemDao;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
-//import play.db.Database;
 
 
 public class CassandraNodeDao extends CassandraItemDao<Node> implements NodeDao {
@@ -37,7 +36,6 @@ public class CassandraNodeDao extends CassandraItemDao<Node> implements NodeDao 
 
       String name = node.getName();
 
-      // Andre -- SQL to CQL
       if (name != null) {
         statements.append(String.format(CqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "node", uniqueId, node.getSourceKey(), name));
       } else {
@@ -47,7 +45,6 @@ public class CassandraNodeDao extends CassandraItemDao<Node> implements NodeDao 
       throw new GroundException(e);
     }
 
-    // Andre -- SQL to CQL
     CassandraUtils.executeCqlList(dbSource, statements);
     return newNode;
   }

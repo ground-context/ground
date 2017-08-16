@@ -13,8 +13,8 @@ import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.ArrayList;
 import java.util.List;
-//import play.db.Database;
 import play.libs.Json;
+
 
 public class CassandraGraphVersionDao extends CassandraRichVersionDao<GraphVersion> implements GraphVersionDao {
 
@@ -36,14 +36,14 @@ public class CassandraGraphVersionDao extends CassandraRichVersionDao<GraphVersi
 
     try {
       CassandraStatements statements = super.insert(newGraphVersion);
-      statements.append(String.format(CqlConstants.INSERT_GRAPH_VERSION, uniqueId, graphVersion.getGraphId())); // Andre - CQL its lit
+      statements.append(String.format(CqlConstants.INSERT_GRAPH_VERSION, uniqueId, graphVersion.getGraphId()));
       statements.merge(updateVersionList);
 
       for (Long id : newGraphVersion.getEdgeVersionIds()) {
-        statements.append(String.format(CqlConstants.INSERT_GRAPH_VERSION_EDGE, newGraphVersion.getId(), id)); // Andre - CQL
+        statements.append(String.format(CqlConstants.INSERT_GRAPH_VERSION_EDGE, newGraphVersion.getId(), id));
       }
 
-      CassandraUtils.executeCqlList(dbSource, statements); // Andre - executeCqlList
+      CassandraUtils.executeCqlList(dbSource, statements);
     } catch (Exception e) {
       throw new GroundException(e);
     }

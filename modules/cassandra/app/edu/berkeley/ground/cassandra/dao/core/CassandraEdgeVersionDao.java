@@ -15,8 +15,8 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
-// import play.db.Database;
 import play.libs.Json;
+
 
 public class CassandraEdgeVersionDao extends CassandraRichVersionDao<EdgeVersion> implements EdgeVersionDao {
 
@@ -54,11 +54,11 @@ public class CassandraEdgeVersionDao extends CassandraRichVersionDao<EdgeVersion
       }
 
       statements.append(String.format(CqlConstants.INSERT_EDGE_VERSION, uniqueId, edgeVersion.getEdgeId(), edgeVersion.getFromNodeVersionStartId(),
-        fromEndId, edgeVersion.getToNodeVersionStartId(), toEndId));  // Andre - CQL
+        fromEndId, edgeVersion.getToNodeVersionStartId(), toEndId));
 
       statements.merge(updateVersionList);
 
-      CassandraUtils.executeCqlList(dbSource, statements); // Andre - Make into executeCqlList() - BATCH
+      CassandraUtils.executeCqlList(dbSource, statements);
     } catch (Exception e) {
       throw new GroundException(e);
     }
@@ -69,7 +69,7 @@ public class CassandraEdgeVersionDao extends CassandraRichVersionDao<EdgeVersion
   @Override
   public CassandraStatements delete(long id) {
     CassandraStatements statements = new CassandraStatements();
-    statements.append(String.format(CqlConstants.DELETE_BY_ID, "edge_version", id)); // Andre - CQL
+    statements.append(String.format(CqlConstants.DELETE_BY_ID, "edge_version", id));
 
     CassandraStatements superStatements = super.delete(id);
     superStatements.merge(statements);
@@ -120,8 +120,8 @@ public class CassandraEdgeVersionDao extends CassandraRichVersionDao<EdgeVersion
 
   @Override
   public EdgeVersion retrieveFromDatabase(long id) throws GroundException {
-    String cql = String.format(CqlConstants.SELECT_STAR_BY_ID, "edge_version", id); // Andre - CQL
-    JsonNode json = Json.parse(CassandraUtils.executeQueryToJson(dbSource, cql)); // Andre - executeCqlList
+    String cql = String.format(CqlConstants.SELECT_STAR_BY_ID, "edge_version", id);
+    JsonNode json = Json.parse(CassandraUtils.executeQueryToJson(dbSource, cql));
 
     if (json.size() == 0) {
       throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));

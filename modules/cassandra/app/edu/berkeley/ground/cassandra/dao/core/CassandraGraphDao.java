@@ -21,7 +21,6 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
-// import play.db.Database;
 
 
 public class CassandraGraphDao extends CassandraItemDao<Graph> implements GraphDao {
@@ -47,7 +46,7 @@ public class CassandraGraphDao extends CassandraItemDao<Graph> implements GraphD
       statements = super.insert(newGraph);
 
       String name = graph.getName();
-      if (name != null) { // Andre - CQL u know it
+      if (name != null) {
         statements.append(String.format(CqlConstants.INSERT_GENERIC_ITEM_WITH_NAME, "graph", uniqueId, graph.getSourceKey(), name));
       } else {
         statements.append(String.format(CqlConstants.INSERT_GENERIC_ITEM_WITHOUT_NAME, "graph", uniqueId, graph.getSourceKey()));

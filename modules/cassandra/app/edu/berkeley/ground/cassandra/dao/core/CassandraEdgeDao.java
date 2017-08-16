@@ -50,7 +50,7 @@ public class CassandraEdgeDao extends CassandraItemDao<Edge> implements EdgeDao 
 
       String name = edge.getName();
 
-      if (name != null) { // Andre - Again CQL
+      if (name != null) {
         statements.append(String.format(CqlConstants.INSERT_EDGE_WITH_NAME, uniqueId, edge.getSourceKey(), edge.getFromNodeId(),
           edge.getToNodeId(), name));
       } else {

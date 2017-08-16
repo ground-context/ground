@@ -24,20 +24,14 @@ import edu.berkeley.ground.cassandra.util.GroundUtils;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-
-// import java.sql.Connection; // Andre - what do I do here...
-// import java.sql.ResultSet;
-// import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-// import play.db.Database;
 
 public class CassandraVersionHistoryDagDao implements VersionHistoryDagDao {
 
@@ -70,9 +64,6 @@ public class CassandraVersionHistoryDagDao implements VersionHistoryDagDao {
 
     List<VersionSuccessor> edges = new ArrayList<>();
     
-    // Cluster cluster = this.dbSource.getCluster();
-    // Session session = this.dbSource.getSession(cluster);
-
     Session session = this.dbSource.getSession();
 
     final ResultSet resultSet = session.execute(cql);
@@ -86,29 +77,6 @@ public class CassandraVersionHistoryDagDao implements VersionHistoryDagDao {
       edges.add(versionSuccessor);
     }
 
-    // session.close();
-    // cluster.close();
-
-    // try (Connection con = dbSource.getConnection()) {
-
-    //   Statement stmt = con.createStatement();
-    //   final ResultSet resultSet = stmt.executeQuery(cql);
-
-    //   List<Long> successors = new ArrayList<>();
-    //   while (resultSet.next()) {
-    //     successors.add(resultSet.getLong("version_successor_id"));
-    //   }
-
-    //   stmt.close();
-    //   con.close();
-
-    //   for (Long versionSuccessorId : successors) {
-    //     VersionSuccessor versionSuccessor = cassandraVersionSuccessorDao.retrieveFromDatabase(versionSuccessorId);
-    //     edges.add(versionSuccessor);
-    //   }
-    // } catch (Exception e) {
-    //   throw new GroundException(e);
-    // }
     return new VersionHistoryDag(itemId, edges);
   }
 
