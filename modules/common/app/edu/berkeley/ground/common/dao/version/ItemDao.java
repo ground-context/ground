@@ -16,6 +16,7 @@ import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import edu.berkeley.ground.common.model.version.Item;
 import edu.berkeley.ground.common.util.DbStatements;
 import java.util.List;
+import java.util.Map;
 
 
 public interface ItemDao<T extends Item> {
@@ -31,6 +32,8 @@ public interface ItemDao<T extends Item> {
   Class<T> getType();
 
   List<Long> getLeaves(long itemId) throws GroundException;
+
+  Map<Long, Long> getHistory(long itemId) throws GroundException;
 
   /**
    * Add a new Version to this Item. The provided parentIds will be the parents of this particular

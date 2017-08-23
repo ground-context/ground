@@ -88,6 +88,20 @@ public class VersionHistoryDag {
              .collect(Collectors.toList());
   }
 
+  public Map<Long, Long> getParentChildPairs() {
+    Map<Long, Long> result = new HashMap<>();
+
+    for (Long parent : this.parentChildMap.keySet()) {
+      List<Long> children = this.parentChildMap.get(parent);
+
+      for (Long child : children) {
+        result.put(parent, child);
+      }
+    }
+
+    return result;
+  }
+
   /**
    * Returns the leaves of the DAG (i.e., any version id that is not a parent of another version
    * id).

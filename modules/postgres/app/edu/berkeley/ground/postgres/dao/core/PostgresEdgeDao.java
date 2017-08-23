@@ -22,6 +22,7 @@ import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
+import java.util.Map;
 import play.db.Database;
 import play.libs.Json;
 
@@ -83,6 +84,12 @@ public class PostgresEdgeDao extends PostgresItemDao<Edge> implements EdgeDao {
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Edge edge = retrieveFromDatabase(sourceKey);
     return super.getLeaves(edge.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Edge edge = retrieveFromDatabase(sourceKey);
+    return super.getHistory(edge.getId());
   }
 
   @Override

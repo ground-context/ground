@@ -9,6 +9,7 @@ import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
+import java.util.Map;
 import play.db.Database;
 
 
@@ -53,6 +54,12 @@ public class PostgresNodeDao extends PostgresItemDao<Node> implements NodeDao {
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Node node = this.retrieveFromDatabase(sourceKey);
     return super.getLeaves(node.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Node node = retrieveFromDatabase(sourceKey);
+    return super.getHistory(node.getId());
   }
 
   @Override

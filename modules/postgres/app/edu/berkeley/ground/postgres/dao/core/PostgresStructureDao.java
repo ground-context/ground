@@ -20,6 +20,7 @@ import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
+import java.util.Map;
 import play.db.Database;
 
 
@@ -67,6 +68,12 @@ public class PostgresStructureDao extends PostgresItemDao<Structure> implements 
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Structure structure = retrieveFromDatabase(sourceKey);
     return super.getLeaves(structure.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Structure structure = retrieveFromDatabase(sourceKey);
+    return super.getHistory(structure.getId());
   }
 
   @Override
