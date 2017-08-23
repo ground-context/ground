@@ -121,8 +121,25 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_leaves",
+            "lineage_graph__leaves",
             () -> Json.toJson(this.postgresLineageGraphDao.getLeaves(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
+  public final CompletionStage<Result> getHistory(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "lineage_graph__history",
+            () -> Json.toJson(this.postgresLineageGraphDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);

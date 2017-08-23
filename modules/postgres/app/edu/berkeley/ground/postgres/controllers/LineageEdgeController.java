@@ -120,8 +120,25 @@ public class LineageEdgeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_leaves",
+            "lineage_edge_leaves",
             () -> Json.toJson(this.postgresLineageEdgeDao.getLeaves(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
+  public final CompletionStage<Result> getHistory(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "lineage_edge_history",
+            () -> Json.toJson(this.postgresLineageEdgeDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);

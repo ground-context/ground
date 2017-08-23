@@ -134,4 +134,21 @@ public class EdgeController extends Controller {
              .thenApply(Results::ok)
              .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
+
+  public final CompletionStage<Result> getHistory(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "edge_history",
+            () -> Json.toJson(this.postgresEdgeDao.getHistory(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
 }

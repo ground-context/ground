@@ -132,8 +132,25 @@ public class StructureController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_leaves",
+            "structure_leaves",
             () -> Json.toJson(this.postgresStructureDao.getLeaves(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
+  public final CompletionStage<Result> getHistory(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "structure_history",
+            () -> Json.toJson(this.postgresStructureDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);

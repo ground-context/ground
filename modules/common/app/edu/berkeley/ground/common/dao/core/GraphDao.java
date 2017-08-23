@@ -15,6 +15,7 @@ import edu.berkeley.ground.common.dao.version.ItemDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Graph;
 import java.util.List;
+import java.util.Map;
 
 public interface GraphDao extends ItemDao<Graph> {
 
@@ -33,4 +34,6 @@ public interface GraphDao extends ItemDao<Graph> {
 
   @Override
   void truncate(long itemId, int numLevels) throws GroundException;
+
+  Map<Long, Long> getHistory(String sourceKye) throws GroundException;
 }

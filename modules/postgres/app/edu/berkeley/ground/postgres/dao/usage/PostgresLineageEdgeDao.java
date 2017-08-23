@@ -20,6 +20,7 @@ import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
+import java.util.Map;
 import play.db.Database;
 
 public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> implements LineageEdgeDao {
@@ -63,6 +64,12 @@ public class PostgresLineageEdgeDao extends PostgresItemDao<LineageEdge> impleme
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     LineageEdge lineageEdge = retrieveFromDatabase(sourceKey);
     return super.getLeaves(lineageEdge.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    LineageEdge lineageEdge = retrieveFromDatabase(sourceKey);
+    return super.getHistory(lineageEdge.getId());
   }
 
   @Override

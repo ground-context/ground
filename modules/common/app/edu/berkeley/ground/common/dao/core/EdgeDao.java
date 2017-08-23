@@ -15,6 +15,7 @@ import edu.berkeley.ground.common.dao.version.ItemDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.core.Edge;
 import java.util.List;
+import java.util.Map;
 
 public interface EdgeDao extends ItemDao<Edge> {
 
@@ -30,4 +31,6 @@ public interface EdgeDao extends ItemDao<Edge> {
   Edge retrieveFromDatabase(long id) throws GroundException;
 
   List<Long> getLeaves(String sourceKey) throws GroundException;
+
+  Map<Long, Long> getHistory(String sourceKye) throws GroundException;
 }

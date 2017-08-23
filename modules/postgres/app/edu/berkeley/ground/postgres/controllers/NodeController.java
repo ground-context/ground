@@ -121,8 +121,25 @@ public class NodeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_leaves",
+            "node_leaves",
             () -> Json.toJson(this.postgresNodeDao.getLeaves(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
+  public final CompletionStage<Result> getHistory(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "node_history",
+            () -> Json.toJson(this.postgresNodeDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
           throw new CompletionException(e);
