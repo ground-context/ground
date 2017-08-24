@@ -46,7 +46,7 @@ public class EdgeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edges",
+            "edges." + sourceKey,
             () -> Json.toJson(this.postgresEdgeDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -83,7 +83,7 @@ public class EdgeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_versions",
+            "edge_versions." + id,
             () -> Json.toJson(this.postgresEdgeVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -123,7 +123,7 @@ public class EdgeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_leaves",
+            "edge_leaves." + sourceKey,
             () -> Json.toJson(this.postgresEdgeDao.getLeaves(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -140,7 +140,7 @@ public class EdgeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "edge_history",
+            "edge_history." + sourceKey,
             () -> Json.toJson(this.postgresEdgeDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {

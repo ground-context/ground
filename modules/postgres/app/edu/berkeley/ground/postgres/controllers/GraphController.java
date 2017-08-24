@@ -58,7 +58,7 @@ public class GraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "graphs",
+            "graphs." + sourceKey,
             () -> Json.toJson(this.postgresGraphDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -74,7 +74,7 @@ public class GraphController extends Controller {
     return CompletableFuture.supplyAsync(
       () -> {
         try {
-          return this.cache.getOrElse("graph_versions",
+          return this.cache.getOrElse("graph_versions." + id,
             () -> Json.toJson(this.postgresGraphVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -132,7 +132,7 @@ public class GraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "graph_leaves",
+            "graph_leaves." + sourceKey,
             () -> Json.toJson(this.postgresGraphDao.getLeaves(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -149,7 +149,7 @@ public class GraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "graph_history",
+            "graph_history." + sourceKey,
             () -> Json.toJson(this.postgresGraphDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {

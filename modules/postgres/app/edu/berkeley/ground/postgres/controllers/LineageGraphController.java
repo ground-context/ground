@@ -47,7 +47,7 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_graphs",
+            "lineage_graphs." + sourceKey,
             () -> Json.toJson(this.postgresLineageGraphDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -64,7 +64,7 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_graph_versions",
+            "lineage_graph_versions." + id,
             () -> Json.toJson(this.postgresLineageGraphVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -121,7 +121,7 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_graph__leaves",
+            "lineage_graph_leaves." + sourceKey,
             () -> Json.toJson(this.postgresLineageGraphDao.getLeaves(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -138,7 +138,7 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_graph__history",
+            "lineage_graph_history." + sourceKey,
             () -> Json.toJson(this.postgresLineageGraphDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
