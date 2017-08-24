@@ -57,7 +57,7 @@ public class StructureController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "structures",
+            "structures." + sourceKey,
             () -> Json.toJson(this.postgresStructureDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -73,7 +73,7 @@ public class StructureController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "structure_versions",
+            "structure_versions." + id,
             () -> Json.toJson(this.postgresStructureVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -132,7 +132,7 @@ public class StructureController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "structure_leaves",
+            "structure_leaves." + sourceKey,
             () -> Json.toJson(this.postgresStructureDao.getLeaves(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -149,7 +149,7 @@ public class StructureController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "structure_history",
+            "structure_history." + sourceKey,
             () -> Json.toJson(this.postgresStructureDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {

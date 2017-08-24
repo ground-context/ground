@@ -46,7 +46,7 @@ public class NodeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "nodes",
+            "nodes." + sourceKey,
             () -> Json.toJson(this.postgresNodeDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -81,7 +81,7 @@ public class NodeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "node_versions",
+            "node_versions." + id,
             () -> Json.toJson(this.postgresNodeVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -121,7 +121,7 @@ public class NodeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "node_leaves",
+            "node_leaves." + sourceKey,
             () -> Json.toJson(this.postgresNodeDao.getLeaves(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -138,7 +138,7 @@ public class NodeController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "node_history",
+            "node_history." + sourceKey,
             () -> Json.toJson(this.postgresNodeDao.getHistory(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
