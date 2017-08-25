@@ -15,18 +15,13 @@ before_cache:
 
 before_install:
   - sh -e resources/ci/install.sh
-  - chmod a+x ./client/java/gradlew
 
 before_script:
   - sh -e resources/ci/init.sh
   - chmod +x sbt-dist/bin/sbt
 
-install:
-  - pip install -r client/python/requirements.txt
-
 script:
   - ./sbt-dist/bin/sbt test
-  - client/python/nosetests
 
 after_success:
   - ./sbt-dist/bin/sbt jacoco:cover
