@@ -2,11 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.berkeley.ground</groupId>
-  <artifactId>java-client</artifactId>
+  <artifactId>ground-java-client</artifactId>
   <packaging>jar</packaging>
-  <name>sjava-client</name>
+  <name>ground-java-client</name>
   <version>1.0.0</version>
-  <description>Jav Client</description>
+  <description>Java Client</description>
   <prerequisites>
     <maven>2.2.0</maven>
   </prerequisites>
@@ -83,6 +83,18 @@
             <configuration>
               <sources>
                 <source>src</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add_test_sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>test</source>
               </sources>
             </configuration>
           </execution>
