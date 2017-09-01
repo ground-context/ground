@@ -1,15 +1,5 @@
-language: 
-  - java
-  - python  # For Python client library
-jdk: 
-  - oraclejdk8
-  - oraclejdk7
-python:     # For Python client library
-  - "2.7"
-  - "3.2"
-  - "3.3"
-  - "3.4"
-  - "3.5"
+language: java
+jdk: oraclejdk8
 sudo: required
 
 cache:
@@ -26,16 +16,12 @@ before_cache:
 before_install:
   - sh -e resources/ci/install.sh
 
-install: "pip install -r requirements.txt" # For Python client library
-
 before_script:
   - sh -e resources/ci/init.sh
   - chmod +x sbt-dist/bin/sbt
 
 script:
   - ./sbt-dist/bin/sbt test
-  - client/python/nosetests # For Python client library
-  # - mvn client/java/test # For Java client library
 
 after_success:
   - ./sbt-dist/bin/sbt jacoco:cover
