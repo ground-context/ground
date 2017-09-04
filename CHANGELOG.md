@@ -1,5 +1,10 @@
 # Changelog
 
+##[0.1.2](https://github.com/ground-context/ground/releases/tag/v0.1.2)
+* Add API to retrieve the latest version(s) of an `Item`.
+* Add API to retrieve the history of an `Item`. 
+* Add API that retrieves lineage edge versions adjacent to a particular node version.
+
 ## [0.1.1](https://github.com/ground-context/ground/releases/tag/v0.1.1)
 ### Fixed
 
