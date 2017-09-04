@@ -10,6 +10,7 @@ import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.SqlConstants;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
+import java.util.ArrayList;
 import java.util.List;
 import play.db.Database;
 import play.libs.Json;
@@ -58,7 +59,7 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String sql = String.format(SqlConstants.SELECT_STAR_BY_ID, "node_version", id);
-    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(dbSource, sql));
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(this.dbSource, sql));
 
     if (json.size() == 0) {
       throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));
@@ -68,5 +69,16 @@ public class PostgresNodeVersionDao extends PostgresRichVersionDao<NodeVersion> 
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
     return new NodeVersion(id, richVersion, nodeVersion);
+  }
+
+  @Override
+  public List<Long> retrieveAdjacentLineageEdgeVersion(long startId) throws GroundException {
+    String sql = String.format(SqlConstants.SELECT_NODE_VERSION_ADJACENT_LINEAGE, startId);
+    JsonNode json = Json.parse(PostgresUtils.executeQueryToJson(this.dbSource, sql));
+
+    List<Long> result = new ArrayList<>();
+    json.forEach(x -> result.add(x.get("id").asLong()));
+
+    return result;
   }
 }

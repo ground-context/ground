@@ -149,4 +149,22 @@ public class NodeController extends Controller {
              .thenApply(Results::ok)
              .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
+
+  public final CompletionStage<Result> getAdjacentLineage(Long id) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "node_version_adj_lineage." + id,
+            () -> Json.toJson(this.postgresNodeVersionDao.retrieveAdjacentLineageEdgeVersion(id)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
 }

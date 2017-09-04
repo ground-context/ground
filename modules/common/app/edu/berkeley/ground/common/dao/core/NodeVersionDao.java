@@ -23,6 +23,8 @@ public interface NodeVersionDao extends RichVersionDao<NodeVersion> {
   @Override
   NodeVersion retrieveFromDatabase(long id) throws GroundException;
 
+  List<Long> retrieveAdjacentLineageEdgeVersion(long startId) throws GroundException;
+
   @Override
   default Class<NodeVersion> getType() {
     return NodeVersion.class;
