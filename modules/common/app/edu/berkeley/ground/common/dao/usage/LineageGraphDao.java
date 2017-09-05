@@ -15,6 +15,7 @@ import edu.berkeley.ground.common.dao.version.ItemDao;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.model.usage.LineageGraph;
 import java.util.List;
+import java.util.Map;
 
 public interface LineageGraphDao extends ItemDao<LineageGraph> {
 
@@ -33,4 +34,6 @@ public interface LineageGraphDao extends ItemDao<LineageGraph> {
   LineageGraph retrieveFromDatabase(long id) throws GroundException;
 
   List<Long> getLeaves(String sourceKey) throws GroundException;
+
+  Map<Long, Long> getHistory(String sourceKye) throws GroundException;
 }

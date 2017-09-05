@@ -33,8 +33,8 @@ import play.db.Databases;
 
 public class PostgresTest extends DaoTest {
 
-  private static final String DROP_SCRIPT = "../../resources/scripts/postgres/drop_postgres.sql";
-  private static final String CREATE_SCHEMA_SCRIPT = "../../resources/scripts/postgres/postgres.sql";
+  private static final String DROP_SCRIPT = "dist/db/drop_postgres.sql";
+  private static final String CREATE_SCHEMA_SCRIPT = "dist/db/postgres.sql";
 
   public PostgresTest() throws GroundException {
 

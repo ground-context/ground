@@ -25,6 +25,7 @@ import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import play.db.Database;
@@ -88,6 +89,21 @@ public abstract class PostgresItemDao<T extends Item> implements ItemDao<T> {
       }
 
       return new ArrayList<>();
+    }
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(long itemId) throws GroundException {
+    try {
+      VersionHistoryDag dag = this.postgresVersionHistoryDagDao.retrieveFromDatabase(itemId);
+
+      return dag.getParentChildPairs();
+    } catch (GroundException e) {
+      if (!e.getMessage().contains("No results found for query:")) {
+        throw e;
+      }
+
+      return new HashMap<>();
     }
   }
 

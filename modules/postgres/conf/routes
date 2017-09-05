@@ -3,43 +3,57 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET         /                                   edu.berkeley.ground.postgres.controllers.HomeController.index
+GET         /                                           edu.berkeley.ground.postgres.controllers.HomeController.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                       controllers.Assets.versioned(path="/public", file: Asset)
-
-# node endpoints
-POST        /nodes                              edu.berkeley.ground.postgres.controllers.NodeController.addNode()
-GET         /nodes/:sourceKey                   edu.berkeley.ground.postgres.controllers.NodeController.getNode(sourceKey: String)
-POST        /versions/nodes                     edu.berkeley.ground.postgres.controllers.NodeController.addNodeVersion()
-GET         /versions/nodes/:id                 edu.berkeley.ground.postgres.controllers.NodeController.getNodeVersion(id: Long)
-
-# graph endpoints
-POST        /graphs                             edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
-GET         /graphs/:sourceKey                  edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
-POST        /versions/graphs                    edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
-GET         /versions/graphs/:id                edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
-
-# structure endpoints
-POST        /structures                         edu.berkeley.ground.postgres.controllers.StructureController.addStructure()
-GET         /structures/:sourceKey              edu.berkeley.ground.postgres.controllers.StructureController.getStructure(sourceKey: String)
-POST        /versions/structures                edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
-GET         /versions/structures/:id            edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
+GET         /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
 
 # edge endpoints
-POST        /edges                              edu.berkeley.ground.postgres.controllers.EdgeController.addEdge()
-GET         /edges/:sourceKey                   edu.berkeley.ground.postgres.controllers.EdgeController.getEdge(sourceKey: String)
-POST        /versions/edges                     edu.berkeley.ground.postgres.controllers.EdgeController.addEdgeVersion()
-GET         /versions/edges/:id                 edu.berkeley.ground.postgres.controllers.EdgeController.getEdgeVersion(id: Long)
+POST        /edges                                      edu.berkeley.ground.postgres.controllers.EdgeController.addEdge()
+GET         /edges/:sourceKey                           edu.berkeley.ground.postgres.controllers.EdgeController.getEdge(sourceKey: String)
+POST        /versions/edges                             edu.berkeley.ground.postgres.controllers.EdgeController.addEdgeVersion()
+GET         /versions/edges/:id                         edu.berkeley.ground.postgres.controllers.EdgeController.getEdgeVersion(id: Long)
+GET         /edges/:sourceKey/latest                    edu.berkeley.ground.postgres.controllers.EdgeController.getLatest(sourceKey: String)
+GET         /edges/:sourceKey/history                   edu.berkeley.ground.postgres.controllers.EdgeController.getHistory(sourceKey: String)
+
+# graph endpoints
+POST        /graphs                                     edu.berkeley.ground.postgres.controllers.GraphController.addGraph()
+GET         /graphs/:sourceKey                          edu.berkeley.ground.postgres.controllers.GraphController.getGraph(sourceKey: String)
+POST        /versions/graphs                            edu.berkeley.ground.postgres.controllers.GraphController.addGraphVersion()
+GET         /versions/graphs/:id                        edu.berkeley.ground.postgres.controllers.GraphController.getGraphVersion(id: Long)
+GET         /graphs/:sourceKey/latest                   edu.berkeley.ground.postgres.controllers.GraphController.getLatest(sourceKey: String)
+GET         /graphs/:sourceKey/history                  edu.berkeley.ground.postgres.controllers.GraphController.getHistory(sourceKey: String)
 
 # lineage edge endpoints
-POST        /lineage_edges                      edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdge()
-GET         /lineage_edges/:sourceKey           edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdge(sourceKey: String)
-POST        /versions/lineage_edges             edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdgeVersion()
-GET         /versions/lineage_edges/:id         edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdgeVersion(id: Long)
+POST        /lineage_edges                              edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdge()
+GET         /lineage_edges/:sourceKey                   edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdge(sourceKey: String)
+POST        /versions/lineage_edges                     edu.berkeley.ground.postgres.controllers.LineageEdgeController.createLineageEdgeVersion()
+GET         /versions/lineage_edges/:id                 edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLineageEdgeVersion(id: Long)
+GET         /lineage_edges/:sourceKey/latest            edu.berkeley.ground.postgres.controllers.LineageEdgeController.getLatest(sourceKey: String)
+GET         /lineage_edges/:sourceKey/history           edu.berkeley.ground.postgres.controllers.LineageEdgeController.getHistory(sourceKey: String)
 
 # lineage graph endpoints
-POST        /lineage_graphs                     edu.berkeley.ground.postgres.controllers.LineageGraphController.createLineageGraph()
-GET         /lineage_graphs/:sourceKey          edu.berkeley.ground.postgres.controllers.LineageGraphController.getLineageGraph(sourceKey: String)
-POST        /versions/lineage_graphs            edu.berkeley.ground.postgres.controllers.LineageGraphController.createLineageGraphVersion()
-GET         /versions/lineage_graphs/:id        edu.berkeley.ground.postgres.controllers.LineageGraphController.getLineageGraphVersion(id: Long)
+POST        /lineage_graphs                             edu.berkeley.ground.postgres.controllers.LineageGraphController.createLineageGraph()
+GET         /lineage_graphs/:sourceKey                  edu.berkeley.ground.postgres.controllers.LineageGraphController.getLineageGraph(sourceKey: String)
+POST        /versions/lineage_graphs                    edu.berkeley.ground.postgres.controllers.LineageGraphController.createLineageGraphVersion()
+GET         /versions/lineage_graphs/:id                edu.berkeley.ground.postgres.controllers.LineageGraphController.getLineageGraphVersion(id: Long)
+GET         /lineage_graphs/:sourceKey/latest           edu.berkeley.ground.postgres.controllers.LineageGraphController.getLatest(sourceKey: String)
+GET         /lineage_graphs/:sourceKey/history          edu.berkeley.ground.postgres.controllers.LineageGraphController.getHistory(sourceKey: String)
+
+# node endpoints
+POST        /nodes                                      edu.berkeley.ground.postgres.controllers.NodeController.addNode()
+GET         /nodes/:sourceKey                           edu.berkeley.ground.postgres.controllers.NodeController.getNode(sourceKey: String)
+POST        /versions/nodes                             edu.berkeley.ground.postgres.controllers.NodeController.addNodeVersion()
+GET         /versions/nodes/:id                         edu.berkeley.ground.postgres.controllers.NodeController.getNodeVersion(id: Long)
+GET         /nodes/:sourceKey/latest                    edu.berkeley.ground.postgres.controllers.NodeController.getLatest(sourceKey: String)
+GET         /nodes/:sourceKey/history                   edu.berkeley.ground.postgres.controllers.NodeController.getHistory(sourceKey: String)
+GET         /versions/nodes/adjacent/lineage/:id        edu.berkeley.ground.postgres.controllers.NodeController.getAdjacentLineage(id: Long)
+
+# structure endpoints
+POST        /structures                                 edu.berkeley.ground.postgres.controllers.StructureController.addStructure()
+GET         /structures/:sourceKey                      edu.berkeley.ground.postgres.controllers.StructureController.getStructure(sourceKey: String)
+POST        /versions/structures                        edu.berkeley.ground.postgres.controllers.StructureController.addStructureVersion()
+GET         /versions/structures/:id                    edu.berkeley.ground.postgres.controllers.StructureController.getStructureVersion(id: Long)
+GET         /structures/:sourceKey/latest               edu.berkeley.ground.postgres.controllers.StructureController.getLatest(sourceKey: String)
+GET         /structures/:sourceKey/history              edu.berkeley.ground.postgres.controllers.StructureController.getHistory(sourceKey: String)
+

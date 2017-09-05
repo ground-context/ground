@@ -4,7 +4,7 @@ name := """ground"""
 
 lazy val commonSettings = Seq(
   organization := "edu.berkeley.ground",
-  version := "0.1.2-SNAPSHOT",
+  version := "0.1.3-SNAPSHOT",
   scalaVersion := "2.11.8"
 )
 
@@ -41,7 +41,11 @@ lazy val postgres = (project in file("modules/postgres"))
     jacoco.settings,
     parallelExecution in jacoco.Config := false,
     Keys.fork in jacoco.Config := true,
-    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
+    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8")),
+    mappings in Universal ++=
+      (baseDirectory.value / "resources/scripts/postgres" * "*" get) map
+        (x => x -> ("postgres/scripts/" + x.getName))
+        
   ).dependsOn(common)
 
 

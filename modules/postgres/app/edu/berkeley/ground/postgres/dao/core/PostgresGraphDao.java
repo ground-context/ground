@@ -20,6 +20,7 @@ import edu.berkeley.ground.postgres.dao.version.PostgresItemDao;
 import edu.berkeley.ground.postgres.util.PostgresStatements;
 import edu.berkeley.ground.postgres.util.PostgresUtils;
 import java.util.List;
+import java.util.Map;
 import play.db.Database;
 
 
@@ -63,6 +64,12 @@ public class PostgresGraphDao extends PostgresItemDao<Graph> implements GraphDao
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Graph graph = retrieveFromDatabase(sourceKey);
     return super.getLeaves(graph.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Graph graph = retrieveFromDatabase(sourceKey);
+    return super.getHistory(graph.getId());
   }
 
   @Override

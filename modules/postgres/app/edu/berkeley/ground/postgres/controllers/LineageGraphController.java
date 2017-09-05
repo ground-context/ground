@@ -47,7 +47,7 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_graphs",
+            "lineage_graphs." + sourceKey,
             () -> Json.toJson(this.postgresLineageGraphDao.retrieveFromDatabase(sourceKey)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -64,7 +64,7 @@ public class LineageGraphController extends Controller {
       () -> {
         try {
           return this.cache.getOrElse(
-            "lineage_graph_versions",
+            "lineage_graph_versions." + id,
             () -> Json.toJson(this.postgresLineageGraphVersionDao.retrieveFromDatabase(id)),
             Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
         } catch (Exception e) {
@@ -113,6 +113,40 @@ public class LineageGraphController extends Controller {
       },
       PostgresUtils.getDbSourceHttpContext(actorSystem))
              .thenApply(Results::created)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
+  public final CompletionStage<Result> getLatest(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "lineage_graph_leaves." + sourceKey,
+            () -> Json.toJson(this.postgresLineageGraphDao.getLeaves(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
+             .exceptionally(e -> GroundUtils.handleException(e, request()));
+  }
+
+  public final CompletionStage<Result> getHistory(String sourceKey) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        try {
+          return this.cache.getOrElse(
+            "lineage_graph_history." + sourceKey,
+            () -> Json.toJson(this.postgresLineageGraphDao.getHistory(sourceKey)),
+            Integer.parseInt(System.getProperty("ground.cache.expire.secs")));
+        } catch (Exception e) {
+          throw new CompletionException(e);
+        }
+      },
+      PostgresUtils.getDbSourceHttpContext(actorSystem))
+             .thenApply(Results::ok)
              .exceptionally(e -> GroundUtils.handleException(e, request()));
   }
 }
