@@ -14,7 +14,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava)
     commonSettings,
     name := "ground"
   )
-  .aggregate(common, postgres)
+  .aggregate(common, postgres, cassandra)
 
 
 lazy val common = (project in file("modules/common"))
@@ -48,6 +48,20 @@ lazy val postgres = (project in file("modules/postgres"))
         
   ).dependsOn(common)
 
+lazy val cassandra = (project in file("modules/cassandra"))
+  .enablePlugins(PlayJava, JavaAppPackaging)
+  .settings(
+    commonSettings,
+    name := "ground-cassandra",
+    libraryDependencies += javaJdbc,
+    libraryDependencies += cache,
+    libraryDependencies += "com.datastax.cassandra" % "cassandra-driver-core" % "3.0.0",
+    libraryDependencies += "commons-beanutils" % "commons-beanutils-core" % "1.8.3",
+    jacoco.settings,
+    parallelExecution in jacoco.Config := false,
+    Keys.fork in jacoco.Config := true,
+    jacoco.reportFormats in jacoco.Config := Seq(XMLReport(encoding = "utf-8"))
+  ).dependsOn(common)
 
 jacoco.settings
 parallelExecution in jacoco.Config := false
