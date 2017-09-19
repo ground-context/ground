@@ -10,9 +10,9 @@ For the vision behind Ground, please see our [CIDR '17](http://cidrdb.org/cidr20
 
 ## Getting Started
 You can download the latest version of Ground from our [releases page](https://github.com/ground-context/ground/releases).
-The most recent version of Ground is [**v0.1**](https://github.com/ground-context/ground/releases/tag/v0.1.0).
+The most recent version of Ground is [**v0.1.2**](https://github.com/ground-context/ground/releases/tag/v0.1.2).
 
-Once you have downloaded the latest version of Ground, you can start the Ground server by running `./bin/ground-postgres`.*
+Once you have downloaded the latest version of Ground, you can start the Ground server by running `./bin/ground-postgres`.
 This starts a local Ground server running on port 9000.
 
 For more information, see [Hit the Ground Running](http://ground-context.org/wiki/), our getting started guide.
