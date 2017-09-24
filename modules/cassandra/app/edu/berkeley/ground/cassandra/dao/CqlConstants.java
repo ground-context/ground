@@ -52,6 +52,7 @@ public class CqlConstants {
 
   /* Node-specific statements */
   public static final String INSERT_NODE_VERSION = "INSERT INTO node_version (id, node_id) VALUES (%d, %d);";
+  public static final String SELECT_NODE_VERSION_ADJACENT_LINEAGE = "SELECT * FROM lineage_edge_version WHERE from_rich_version_id = %d;";
 
   /* Rich Version-specific statements */
   public static final String INSERT_RICH_VERSION_WITH_REFERENCE = "INSERT INTO rich_version (id, structure_version_id, reference) VALUES (%d, %d, "

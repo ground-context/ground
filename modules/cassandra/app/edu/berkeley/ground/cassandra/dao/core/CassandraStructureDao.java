@@ -21,6 +21,7 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
+import java.util.Map;
 
 
 public class CassandraStructureDao extends CassandraItemDao<Structure> implements StructureDao {
@@ -67,6 +68,12 @@ public class CassandraStructureDao extends CassandraItemDao<Structure> implement
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Structure structure = retrieveFromDatabase(sourceKey);
     return super.getLeaves(structure.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Structure structure = retrieveFromDatabase(sourceKey);
+    return super.getHistory(structure.getId());
   }
 
   @Override

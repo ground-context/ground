@@ -10,6 +10,7 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
+import java.util.Map;
 
 
 public class CassandraNodeDao extends CassandraItemDao<Node> implements NodeDao {
@@ -53,6 +54,12 @@ public class CassandraNodeDao extends CassandraItemDao<Node> implements NodeDao 
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Node node = this.retrieveFromDatabase(sourceKey);
     return super.getLeaves(node.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Node node = retrieveFromDatabase(sourceKey);
+    return super.getHistory(node.getId());
   }
 
   @Override

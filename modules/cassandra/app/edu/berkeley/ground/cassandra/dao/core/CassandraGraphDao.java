@@ -21,6 +21,7 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
+import java.util.Map;
 
 
 public class CassandraGraphDao extends CassandraItemDao<Graph> implements GraphDao {
@@ -63,6 +64,12 @@ public class CassandraGraphDao extends CassandraItemDao<Graph> implements GraphD
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Graph graph = retrieveFromDatabase(sourceKey);
     return super.getLeaves(graph.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Graph graph = retrieveFromDatabase(sourceKey);
+    return super.getHistory(graph.getId());
   }
 
   @Override

@@ -21,6 +21,7 @@ import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
+import java.util.Map;
 
 
 public class CassandraLineageEdgeDao extends CassandraItemDao<LineageEdge> implements LineageEdgeDao {
@@ -64,6 +65,12 @@ public class CassandraLineageEdgeDao extends CassandraItemDao<LineageEdge> imple
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     LineageEdge lineageEdge = retrieveFromDatabase(sourceKey);
     return super.getLeaves(lineageEdge.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    LineageEdge lineageEdge = retrieveFromDatabase(sourceKey);
+    return super.getHistory(lineageEdge.getId());
   }
 
   @Override

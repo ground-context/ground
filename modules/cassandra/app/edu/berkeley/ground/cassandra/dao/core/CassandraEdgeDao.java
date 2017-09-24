@@ -22,6 +22,7 @@ import edu.berkeley.ground.cassandra.dao.version.CassandraItemDao;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
 import java.util.List;
+import java.util.Map;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import play.libs.Json;
 
@@ -83,6 +84,12 @@ public class CassandraEdgeDao extends CassandraItemDao<Edge> implements EdgeDao 
   public List<Long> getLeaves(String sourceKey) throws GroundException {
     Edge edge = retrieveFromDatabase(sourceKey);
     return super.getLeaves(edge.getId());
+  }
+
+  @Override
+  public Map<Long, Long> getHistory(String sourceKey) throws GroundException {
+    Edge edge = retrieveFromDatabase(sourceKey);
+    return super.getHistory(edge.getId());
   }
 
   @Override

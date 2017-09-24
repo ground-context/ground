@@ -11,6 +11,7 @@ import edu.berkeley.ground.cassandra.dao.CqlConstants;
 import edu.berkeley.ground.cassandra.util.CassandraDatabase;
 import edu.berkeley.ground.cassandra.util.CassandraStatements;
 import edu.berkeley.ground.cassandra.util.CassandraUtils;
+import java.util.ArrayList;
 import java.util.List;
 import play.libs.Json;
 
@@ -37,7 +38,7 @@ public class CassandraNodeVersionDao extends CassandraRichVersionDao<NodeVersion
       statements.append(String.format(CqlConstants.INSERT_NODE_VERSION, uniqueId, nodeVersion.getNodeId()));
       statements.merge(updateVersionList);
 
-      CassandraUtils.executeCqlList(dbSource, statements);
+      CassandraUtils.executeCqlList(this.dbSource, statements);
     } catch (Exception e) {
       e.printStackTrace();
       throw new GroundException(e);
@@ -58,7 +59,7 @@ public class CassandraNodeVersionDao extends CassandraRichVersionDao<NodeVersion
   @Override
   public NodeVersion retrieveFromDatabase(long id) throws GroundException {
     String cql = String.format(CqlConstants.SELECT_STAR_BY_ID, "node_version", id);
-    JsonNode json = Json.parse(CassandraUtils.executeQueryToJson(dbSource, cql));
+    JsonNode json = Json.parse(CassandraUtils.executeQueryToJson(this.dbSource, cql));
 
     if (json.size() == 0) {
       throw new GroundException(ExceptionType.VERSION_NOT_FOUND, this.getType().getSimpleName(), String.format("%d", id));
@@ -68,5 +69,16 @@ public class CassandraNodeVersionDao extends CassandraRichVersionDao<NodeVersion
     RichVersion richVersion = super.retrieveFromDatabase(id);
 
     return new NodeVersion(id, richVersion, nodeVersion);
+  }
+
+  @Override
+  public List<Long> retrieveAdjacentLineageEdgeVersion(long startId) throws GroundException {
+    String cql = String.format(CqlConstants.SELECT_NODE_VERSION_ADJACENT_LINEAGE, startId);
+    JsonNode json = Json.parse(CassandraUtils.executeQueryToJson(this.dbSource, cql));
+
+    List<Long> result = new ArrayList<>();
+    json.forEach(x -> result.add(x.get("id").asLong()));
+
+    return result;
   }
 }
