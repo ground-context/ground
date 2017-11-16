@@ -9,13 +9,7 @@ import edu.berkeley.ground.common.model.core.EdgeVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.PostgresEdgeDao;
 import edu.berkeley.ground.postgres.dao.core.PostgresEdgeVersionDao;
-import edu.berkeley.ground.postgres.util.GroundUtils;
-import edu.berkeley.ground.postgres.util.PostgresUtils;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.util.*;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -24,21 +18,27 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
 
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 public class EdgeController extends Controller {
 
   private CacheApi cache;
   private ActorSystem actorSystem;
-
   private PostgresEdgeDao postgresEdgeDao;
   private PostgresEdgeVersionDao postgresEdgeVersionDao;
+  private SharedFileState sharedFileState;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
-
     this.postgresEdgeDao = new PostgresEdgeDao(dbSource, idGenerator);
     this.postgresEdgeVersionDao = new PostgresEdgeVersionDao(dbSource, idGenerator);
+    this.sharedFileState = new SharedFileState(new Tree(new TreeNode("root", "root")));
   }
 
   public final CompletionStage<Result> getEdge(final String sourceKey) {
@@ -60,11 +60,13 @@ public class EdgeController extends Controller {
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addEdge() {
+    String currentPath = sharedFileState.getCwd();
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
         Edge edge = Json.fromJson(json, Edge.class);
-
+        String newName = currentPath + "/" + String.valueOf(json.get("name"));
+        ((ObjectNode) json).put("name", newName);
         try {
           edge = this.postgresEdgeDao.create(edge);
         } catch (GroundException e) {
