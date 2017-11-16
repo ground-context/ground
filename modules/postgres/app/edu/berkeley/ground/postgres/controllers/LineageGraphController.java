@@ -9,13 +9,7 @@ import edu.berkeley.ground.common.model.usage.LineageGraphVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphDao;
 import edu.berkeley.ground.postgres.dao.usage.PostgresLineageGraphVersionDao;
-import edu.berkeley.ground.postgres.util.GroundUtils;
-import edu.berkeley.ground.postgres.util.PostgresUtils;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.util.*;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -24,6 +18,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
 
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 public class LineageGraphController extends Controller {
 
   private CacheApi cache;
@@ -31,6 +31,7 @@ public class LineageGraphController extends Controller {
 
   private PostgresLineageGraphDao postgresLineageGraphDao;
   private PostgresLineageGraphVersionDao postgresLineageGraphVersionDao;
+  private SharedFileState sharedFileState;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource,
@@ -40,6 +41,7 @@ public class LineageGraphController extends Controller {
 
     this.postgresLineageGraphDao = new PostgresLineageGraphDao(dbSource, idGenerator);
     this.postgresLineageGraphVersionDao = new PostgresLineageGraphVersionDao(dbSource, idGenerator);
+    this.sharedFileState = new SharedFileState(new Tree(new TreeNode("root", "root")));
   }
 
   public final CompletionStage<Result> getLineageGraph(String sourceKey) {
@@ -78,9 +80,12 @@ public class LineageGraphController extends Controller {
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> createLineageGraph() {
+    String currentPath = sharedFileState.getCwd();
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
+        String newName = currentPath + "/" + String.valueOf(json.get("name"));
+        ((ObjectNode) json).put("name", newName);
         LineageGraph lineageGraph = Json.fromJson(json, LineageGraph.class);
         try {
           lineageGraph = this.postgresLineageGraphDao.create(lineageGraph);

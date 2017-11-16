@@ -9,13 +9,7 @@ import edu.berkeley.ground.common.model.usage.LineageEdgeVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeDao;
 import edu.berkeley.ground.postgres.dao.usage.PostgresLineageEdgeVersionDao;
-import edu.berkeley.ground.postgres.util.GroundUtils;
-import edu.berkeley.ground.postgres.util.PostgresUtils;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.util.*;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -24,6 +18,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
 
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 public class LineageEdgeController extends Controller {
 
   private CacheApi cache;
@@ -31,6 +31,7 @@ public class LineageEdgeController extends Controller {
 
   private PostgresLineageEdgeDao postgresLineageEdgeDao;
   private PostgresLineageEdgeVersionDao postgresLineageEdgeVersionDao;
+  private SharedFileState sharedFileState;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
@@ -39,6 +40,7 @@ public class LineageEdgeController extends Controller {
 
     this.postgresLineageEdgeDao = new PostgresLineageEdgeDao(dbSource, idGenerator);
     this.postgresLineageEdgeVersionDao = new PostgresLineageEdgeVersionDao(dbSource, idGenerator);
+    this.sharedFileState = new SharedFileState(new Tree(new TreeNode("root", "root")));
   }
 
   public final CompletionStage<Result> getLineageEdge(String sourceKey) {
@@ -77,9 +79,12 @@ public class LineageEdgeController extends Controller {
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> createLineageEdge() {
+    String currentPath = sharedFileState.getCwd();
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
+        String newName = currentPath + "/" + String.valueOf(json.get("name"));
+        ((ObjectNode) json).put("name", newName);
         LineageEdge lineageEdge = Json.fromJson(json, LineageEdge.class);
         try {
           lineageEdge = this.postgresLineageEdgeDao.create(lineageEdge);

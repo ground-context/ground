@@ -20,13 +20,7 @@ import edu.berkeley.ground.common.model.core.GraphVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.PostgresGraphDao;
 import edu.berkeley.ground.postgres.dao.core.PostgresGraphVersionDao;
-import edu.berkeley.ground.postgres.util.GroundUtils;
-import edu.berkeley.ground.postgres.util.PostgresUtils;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.util.*;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -35,6 +29,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
 
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 public class GraphController extends Controller {
 
   private CacheApi cache;
@@ -42,15 +42,15 @@ public class GraphController extends Controller {
 
   private PostgresGraphDao postgresGraphDao;
   private PostgresGraphVersionDao postgresGraphVersionDao;
+  private SharedFileState sharedFileState;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
     this.actorSystem = actorSystem;
     this.cache = cache;
-
     this.postgresGraphDao = new PostgresGraphDao(dbSource, idGenerator);
-
     this.postgresGraphVersionDao = new PostgresGraphVersionDao(dbSource, idGenerator);
+    this.sharedFileState = new SharedFileState(new Tree(new TreeNode("root", "root")));
   }
 
   public final CompletionStage<Result> getGraph(String sourceKey) {
@@ -88,9 +88,12 @@ public class GraphController extends Controller {
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addGraph() {
+    String currentPath = sharedFileState.getCwd();
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
+        String newName = currentPath + "/" + String.valueOf(json.get("name"));
+        ((ObjectNode) json).put("name", newName);
         Graph graph = Json.fromJson(json, Graph.class);
 
         try {

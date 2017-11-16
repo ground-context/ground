@@ -20,13 +20,7 @@ import edu.berkeley.ground.common.model.core.StructureVersion;
 import edu.berkeley.ground.common.util.IdGenerator;
 import edu.berkeley.ground.postgres.dao.core.PostgresStructureDao;
 import edu.berkeley.ground.postgres.dao.core.PostgresStructureVersionDao;
-import edu.berkeley.ground.postgres.util.GroundUtils;
-import edu.berkeley.ground.postgres.util.PostgresUtils;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import javax.inject.Inject;
+import edu.berkeley.ground.postgres.util.*;
 import play.cache.CacheApi;
 import play.db.Database;
 import play.libs.Json;
@@ -35,6 +29,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
 
+import javax.inject.Inject;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 public class StructureController extends Controller {
 
   private CacheApi cache;
@@ -42,6 +42,7 @@ public class StructureController extends Controller {
 
   private PostgresStructureDao postgresStructureDao;
   private PostgresStructureVersionDao postgresStructureVersionDao;
+  private SharedFileState sharedFileState;
 
   @Inject
   final void injectUtils(final CacheApi cache, final Database dbSource, final ActorSystem actorSystem, final IdGenerator idGenerator) {
@@ -50,6 +51,7 @@ public class StructureController extends Controller {
 
     this.postgresStructureDao = new PostgresStructureDao(dbSource, idGenerator);
     this.postgresStructureVersionDao = new PostgresStructureVersionDao(dbSource, idGenerator);
+    this.sharedFileState = new SharedFileState(new Tree(new TreeNode("root", "root")));
   }
 
   public final CompletionStage<Result> getStructure(String sourceKey) {
@@ -86,9 +88,12 @@ public class StructureController extends Controller {
 
   @BodyParser.Of(BodyParser.Json.class)
   public final CompletionStage<Result> addStructure() {
+    String currentPath = sharedFileState.getCwd();
     return CompletableFuture.supplyAsync(
       () -> {
         JsonNode json = request().body().asJson();
+        String newName = currentPath + "/" + String.valueOf(json.get("name"));
+        ((ObjectNode) json).put("name", newName);
         Structure structure = Json.fromJson(json, Structure.class);
 
         try {
