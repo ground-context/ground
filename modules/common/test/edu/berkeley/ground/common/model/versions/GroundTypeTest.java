@@ -14,6 +14,11 @@ public class GroundTypeTest {
     assertEquals(GroundType.INTEGER, GroundType.fromString("integer"));
     assertEquals(GroundType.LONG, GroundType.fromString("long"));
     assertEquals(GroundType.STRING, GroundType.fromString("string"));
+    assertEquals(GroundType.DOUBLE, GroundType.fromString("double"));
+    assertEquals(GroundType.NULL, GroundType.fromString("null"));
+    assertEquals(GroundType.ARRAY, GroundType.fromString("array"));
+    assertEquals(GroundType.JSON, GroundType.fromString("null"));
+    assertEquals(GroundType.SET, GroundType.fromString("set"));
   }
 
   @Test(expected = GroundException.class)
@@ -29,5 +34,7 @@ public class GroundTypeTest {
     assertEquals(GroundType.LONG.parse("54321"), 54321L);
     assertEquals(GroundType.BOOLEAN.parse("true"), true);
     assertEquals(GroundType.BOOLEAN.parse("false"), false);
+    assertEquals(GroundType.DOUBLE.parse("123.45"), 123.45);
+    assertEquals(GroundType.NULL.parse("null"), null);
   }
 }

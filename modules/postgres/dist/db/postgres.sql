@@ -15,7 +15,7 @@
 -- limitations under the License.
 
 -- VERSIONS
-CREATE TYPE data_type as enum ('integer', 'string', 'boolean');
+CREATE TYPE data_type as enum ('integer', 'string', 'boolean', 'long', 'double', 'null', 'array', 'json', 'set');
 
 CREATE TABLE IF NOT EXISTS version (
     id bigint NOT NULL PRIMARY KEY

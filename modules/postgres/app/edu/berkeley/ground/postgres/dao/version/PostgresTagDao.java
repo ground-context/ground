@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +52,7 @@ public class PostgresTagDao implements TagDao {
   @Override
   public PostgresStatements insertRichVersionTag(final Tag tag) {
     List<String> sqlList = new ArrayList<>();
-    if (tag.getValue() != null) {
+    if (tag.getValue() != null || (tag != null && tag.getValueType() == GroundType.NULL)) {
       sqlList.add(String.format(SqlConstants.INSERT_RICH_VERSION_TAG_WITH_VALUE, tag.getId(), tag.getKey(), tag.getValue(), tag.getValueType()));
     } else {
       sqlList.add(String.format(SqlConstants.INSERT_RICH_VERSION_TAG_NO_VALUE, tag.getId(), tag.getKey()));

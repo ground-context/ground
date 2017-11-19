@@ -24,6 +24,8 @@ import edu.berkeley.ground.common.model.version.GroundType;
 import edu.berkeley.ground.common.model.version.Tag;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import org.junit.Test;
 
 public class NodeVersionTest {
@@ -93,5 +95,38 @@ public class NodeVersionTest {
     NodeVersion differentNodeId = new NodeVersion(1, new HashMap<>(), 2, "http://www.google.com",
       new HashMap<>(), 10);
     assertFalse(truth.equals(differentNodeId));
+  }
+
+  @Test
+  public void testNodeVersionTags() throws Exception {
+    Map<String, Tag> tagsMap = new HashMap<>();
+    tagsMap.put("testtag1", new Tag(1, "testtag1", "tag", GroundType.STRING));
+    tagsMap.put("testtag2", new Tag(2, "testtag2", 2, GroundType.INTEGER));
+    tagsMap.put("testtag3", new Tag(3, "testtag3", true, GroundType.BOOLEAN));
+    tagsMap.put("testtag4", new Tag(4, "testtag4", 9999999999999, GroundType.LONG));
+
+    ArrayList array = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 4));
+    LinkedHashMap json = new LinkedHashMap<String, Object>();
+    json.put("ting", "skrr");
+    json.put("maths", 3);
+
+    Map<String, Tag> tagsMapEqual = new HashMap<>();
+    tagsMapEqual.put("testtag1", new Tag(1, "testtag1", 45.6, GroundType.DOUBLE));
+    tagsMapEqual.put("testtag2", new Tag(2, "testtag2", array, GroundType.ARRAY));
+    tagsMapEqual.put("testtag3", new Tag(3, "testtag3", null, GroundType.NULL));
+    tagsMapEqual.put("testtag4", new Tag(4, "testtag4", json, GroundType.JSON));
+
+    Map<String, String> parametersMap = new HashMap<>();
+    parametersMap.put("http", "POST");
+
+    Map<String, String> parametersMapEqual = new HashMap<>();
+    parametersMapEqual.put("http", "POST");
+
+    NodeVersion nodeVersion = new NodeVersion(1, tagsMap, 2, "http://www.google.com", parametersMap, 3);
+    
+    NodeVersion nodeVersionEqual = new NodeVersion(1, tagsMapEqual, 2, "http://www.google.com", parametersMapEqual, 3);
+
+    assertFalse(nodeVersion.equals(nodeVersionEqual));
+
   }
 }
