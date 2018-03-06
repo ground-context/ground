@@ -16,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.berkeley.ground.common.exception.GroundException;
 import edu.berkeley.ground.common.exception.GroundException.ExceptionType;
 import java.util.Objects;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class Tag {
 
@@ -44,9 +47,14 @@ public class Tag {
               @JsonProperty("type") GroundType valueType)
     throws edu.berkeley.ground.common.exception.GroundException {
 
-    if (!((value != null) == (valueType != null))
+    if (!((value != null) == (valueType != null && valueType.getSqlType() != Types.NULL))
           || (value != null && !(value.getClass().equals(valueType.getTypeClass())))) {
-
+      /*
+      System.out.println(value.getClass());
+      System.out.println(value);
+      System.out.println(valueType.getTypeClass());
+      System.out.println(valueType.getSqlType());
+      */
       throw new GroundException(ExceptionType.OTHER, "Mismatch between value (" + value + ") and given type (" + valueType.toString() + ").");
     }
 
